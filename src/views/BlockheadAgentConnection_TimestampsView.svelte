@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead agent connection observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadAgentConnection_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadAgentConnection_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadAgentConnection_TimestampView from '$/views/BlockheadAgentConnection_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadAgentConnectionTimestamps) => [...new Map(blockheadAgentConnectionTimestamps.values.map((blockheadAgentConnectionTimestamp) => [blockheadAgentConnectionTimestamp[EntityMetaKey.SelectorKey], blockheadAgentConnectionTimestamp])).values()]}
 	getKey={(blockheadAgentConnectionTimestamp) => blockheadAgentConnectionTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadAgentConnectionTimestamp })}
 		{@const blockheadAgentConnectionTimestampFields = { ...blockheadAgentConnectionTimestamp[EntityMetaKey.Selector], ...blockheadAgentConnectionTimestamp }}
-		{@const selection = select(EntityType.BlockheadAgentConnection_Timestamp, blockheadAgentConnectionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadAgentConnection_TimestampView
-			selection={selection}
-			prefetched={blockheadAgentConnectionTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadAgentConnection_Timestamp}
+			entitySelector={blockheadAgentConnectionTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadAgentConnectionTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead agent connection timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadAgentConnectionTimestampFields.health) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadAgentConnectionTimestampFields.latencyMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

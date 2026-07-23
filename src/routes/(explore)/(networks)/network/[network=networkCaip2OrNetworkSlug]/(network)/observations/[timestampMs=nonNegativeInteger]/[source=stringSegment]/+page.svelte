@@ -23,7 +23,6 @@
 			blockHeight: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [(String((pageSelection.entitySelector.blockHeight) ?? '') ? 'Block ' + String((pageSelection.entitySelector.blockHeight) ?? '') : ''), String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network timestamp' : [(String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).blockHeight) ?? '') ? 'Block ' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).blockHeight) ?? '') : ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network timestamp')))
 
 
 	// Components
@@ -33,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM network timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network timestamp' : [(String((({ ...data.selector, ...pageSelection.entity }).blockHeight) ?? '') ? 'Block ' + String((({ ...data.selector, ...pageSelection.entity }).blockHeight) ?? '') : ''), String((({ ...data.selector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network timestamp'))} • EVM network timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.StarknetClass>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.StarknetClass>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StarknetClass>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const starknetClass = $derived(selection({
+	const starknetClass = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			contractClassVersion: true,
+			declaredAtBlockNumber: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			contractClassVersion: true,
@@ -49,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || 'starknet class')
-	const viewDomId = $derived('starknet-class-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('starknet-class-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,7 +79,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contractClassVersion') && Object.hasOwn(prefetched, 'declaredAtBlockNumber')}
 			{[String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={starknetClass}>
@@ -85,7 +92,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contractClassVersion') && Object.hasOwn(prefetched, 'declaredAtBlockNumber')}
 			{[String((pendingEntity.contractClassVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={starknetClass}>
@@ -98,7 +105,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contractClassVersion') && Object.hasOwn(prefetched, 'declaredAtBlockNumber')}
 			{@const declaredAtBlockNumber0 = pendingEntity.declaredAtBlockNumber}
 			{#if declaredAtBlockNumber0 !== undefined && declaredAtBlockNumber0 !== null}
 				<span data-text="muted">
@@ -130,7 +137,7 @@
 				<dt>network</dt>
 				<dd>
 					<StarknetNetworkView
-						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -312,17 +319,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<StarknetContractsView
-				selection={
-						selection.$$contracts({
-							count: true,
-						})
-					}
-				title='contracts'
-				emptyText='No Starknet contracts.'
-				id='StarknetContractsView-contracts'
-			/>
-		{/if}
+		{@const starknetClassStarknetContractsViewContractsResource = selection.$$contracts}
+		<ResourceBoundary
+			resource={starknetClassStarknetContractsViewContractsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<StarknetContractsView
+					selection={starknetClassStarknetContractsViewContractsResource}
+					countResource={starknetClassStarknetContractsViewContractsResource.count}
+					title='contracts'
+					id='StarknetContractsView-contracts'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

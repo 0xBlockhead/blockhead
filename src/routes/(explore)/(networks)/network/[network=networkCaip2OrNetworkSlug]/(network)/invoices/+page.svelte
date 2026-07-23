@@ -37,11 +37,8 @@
 			})
 		}
 		title='Invoices'
-		selection={
-			select(EntityType.LightningNetwork, data.selector).$$invoices({
-				count: true,
-			})
-		}
+		selection={select(EntityType.LightningNetwork, data.selector).$$invoices}
+		countResource={select(EntityType.LightningNetwork, data.selector).$$invoices.count}
 		id='invoices'
 		data-column-item="flexible"
 		data-card

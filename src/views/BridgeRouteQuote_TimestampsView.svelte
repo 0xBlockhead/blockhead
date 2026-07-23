@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Bridge route quote observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BridgeRouteQuote_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BridgeRouteQuote_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BridgeRouteQuote_TimestampView from '$/views/BridgeRouteQuote_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(bridgeRouteQuoteTimestamps) => [...new Map(bridgeRouteQuoteTimestamps.values.map((bridgeRouteQuoteTimestamp) => [bridgeRouteQuoteTimestamp[EntityMetaKey.SelectorKey], bridgeRouteQuoteTimestamp])).values()]}
 	getKey={(bridgeRouteQuoteTimestamp) => bridgeRouteQuoteTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,12 +90,24 @@
 
 	{#snippet Item({ item: bridgeRouteQuoteTimestamp })}
 		{@const bridgeRouteQuoteTimestampFields = { ...bridgeRouteQuoteTimestamp[EntityMetaKey.Selector], ...bridgeRouteQuoteTimestamp }}
-		{@const selection = select(EntityType.BridgeRouteQuote_Timestamp, bridgeRouteQuoteTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BridgeRouteQuote_TimestampView
-			selection={selection}
-			prefetched={bridgeRouteQuoteTimestampFields}
+		<EntityView
+			entityType={EntityType.BridgeRouteQuote_Timestamp}
+			entitySelector={bridgeRouteQuoteTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((bridgeRouteQuoteTimestampFields.fromChainId) ?? ''), 'to', String((bridgeRouteQuoteTimestampFields.toChainId) ?? '')].filter(Boolean).join(' ') || 'bridge route quote timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((bridgeRouteQuoteTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((bridgeRouteQuoteTimestampFields.source) ?? ''), String((bridgeRouteQuoteTimestampFields.estimatedCostUsd) ?? ''), String((bridgeRouteQuoteTimestampFields.estimatedDurationSeconds) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

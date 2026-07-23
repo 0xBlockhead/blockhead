@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Zcash viewing keys',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadZcashViewingKey>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadZcashViewingKey>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadZcashViewingKeyView from '$/views/BlockheadZcashViewingKeyView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadZcashViewingKeys) => [...new Map(blockheadZcashViewingKeys.values.map((blockheadZcashViewingKey) => [blockheadZcashViewingKey[EntityMetaKey.SelectorKey], blockheadZcashViewingKey])).values()]}
 	getKey={(blockheadZcashViewingKey) => blockheadZcashViewingKey[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadZcashViewingKey })}
 		{@const blockheadZcashViewingKeyFields = { ...blockheadZcashViewingKey[EntityMetaKey.Selector], ...blockheadZcashViewingKey }}
-		{@const selection = select(EntityType.BlockheadZcashViewingKey, blockheadZcashViewingKey[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadZcashViewingKeyView
-			selection={selection}
-			prefetched={blockheadZcashViewingKeyFields}
+		<EntityView
+			entityType={EntityType.BlockheadZcashViewingKey}
+			entitySelector={blockheadZcashViewingKey[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadZcashViewingKeyFields.keyFingerprint) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash viewing key'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadZcashViewingKeyFields.keyKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((blockheadZcashViewingKeyFields.$network.name) ?? '')].filter(Boolean).join(' ') || [blockheadZcashViewingKeyFields.$network.caip2 == null ? '' : String(`${(blockheadZcashViewingKeyFields.$network.caip2).namespace}:${(blockheadZcashViewingKeyFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

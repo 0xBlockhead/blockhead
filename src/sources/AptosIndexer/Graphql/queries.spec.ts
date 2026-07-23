@@ -1,0 +1,113 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const { executeAptosIndexer } = vi.hoisted(() => ({
+	executeAptosIndexer: vi.fn(),
+}))
+
+vi.mock('$/sources/AptosIndexer/Graphql/client.ts', () => ({
+	executeAptosIndexer,
+}))
+
+const {
+	getAccountTransactions,
+	getCurrentFungibleAssetBalances,
+} = await import('$/sources/AptosIndexer/Graphql/queries.ts')
+
+const transaction = {
+	account_address: '0xa11ce',
+	transaction_version: '18446744073709551615',
+	user_transaction: {
+		sender: '0xbob',
+		timestamp: '2026-07-22T12:00:00Z',
+		version: '18446744073709551615',
+	},
+}
+
+const balance = {
+	amount: '340282366920938463463374607431768211455',
+	asset_type: '0x1::aptos_coin::AptosCoin',
+	asset_type_v1: '0x1::aptos_coin::AptosCoin',
+	is_primary: true,
+	last_transaction_timestamp: '2026-07-22T12:00:00Z',
+	last_transaction_version: '18446744073709551615',
+	owner_address: '0xa11ce',
+	storage_id: '0xstore',
+	token_standard: 'v1',
+}
+
+describe('Aptos Indexer account portfolio queries', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('preserves account identity and lossless transaction versions', async () => {
+		executeAptosIndexer.mockResolvedValueOnce({
+			account_transactions: [transaction],
+		})
+
+		await expect(getAccountTransactions('0xa11ce', 25, 5)).resolves.toEqual([transaction])
+		expect(executeAptosIndexer.mock.calls[0][1]).toEqual({
+			accountAddress: '0xa11ce',
+			limit: 25,
+			offset: 5,
+		})
+	})
+
+	it('preserves owner identity and lossless fungible amounts', async () => {
+		executeAptosIndexer.mockResolvedValueOnce({
+			current_fungible_asset_balances: [balance],
+		})
+
+		await expect(getCurrentFungibleAssetBalances('0xa11ce', 25, 5)).resolves.toEqual([balance])
+		expect(executeAptosIndexer.mock.calls[0][1]).toEqual({
+			ownerAddress: '0xa11ce',
+			limit: 25,
+			offset: 5,
+		})
+	})
+
+	it('fails closed on foreign and internally inconsistent rows', async () => {
+		executeAptosIndexer.mockResolvedValueOnce({
+			account_transactions: [{
+				...transaction,
+				account_address: '0xforeign',
+			}],
+		})
+		await expect(getAccountTransactions('0xa11ce')).rejects.toThrow('foreign account row')
+
+		executeAptosIndexer.mockResolvedValueOnce({
+			account_transactions: [{
+				...transaction,
+				user_transaction: {
+					...transaction.user_transaction,
+					version: '7',
+				},
+			}],
+		})
+		await expect(getAccountTransactions('0xa11ce')).rejects.toThrow('invalid transaction version')
+
+		executeAptosIndexer.mockResolvedValueOnce({
+			current_fungible_asset_balances: [{
+				...balance,
+				owner_address: '0xforeign',
+			}],
+		})
+		await expect(getCurrentFungibleAssetBalances('0xa11ce')).rejects.toThrow('foreign owner row')
+
+		executeAptosIndexer.mockResolvedValueOnce({
+			current_fungible_asset_balances: [{
+				...balance,
+				amount: '-1',
+			}],
+		})
+		await expect(getCurrentFungibleAssetBalances('0xa11ce')).rejects.toThrow('invalid balance amount')
+	})
+
+	it('bounds offset pages and avoids transport for zero cardinality', async () => {
+		await expect(getAccountTransactions('0xa11ce', 0)).resolves.toEqual([])
+		await expect(getCurrentFungibleAssetBalances('0xa11ce', 0)).resolves.toEqual([])
+		expect(() => getAccountTransactions('0xa11ce', 101)).toThrow('0 through 100')
+		expect(() => getCurrentFungibleAssetBalances('0xa11ce', 25, -1)).toThrow('nonnegative')
+		expect(executeAptosIndexer).not.toHaveBeenCalled()
+	})
+})

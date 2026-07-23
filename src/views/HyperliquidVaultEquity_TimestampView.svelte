@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.HyperliquidVaultEquity_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.HyperliquidVaultEquity_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HyperliquidVaultEquity_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,15 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidVaultEquityTimestamp = $derived(selection({
+	const hyperliquidVaultEquityTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('hyperliquid vault equity timestamp')
-	const viewDomId = $derived('hyperliquid-vault-equity-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'hyperliquid vault equity timestamp'
+	const viewDomId = $derived('hyperliquid-vault-equity-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import HyperliquidAccountView from '$/views/HyperliquidAccountView.svelte'
 	import HyperliquidVaultView from '$/views/HyperliquidVaultView.svelte'
@@ -66,12 +71,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={hyperliquidVaultEquityTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -84,7 +88,7 @@
 				<dt>account</dt>
 				<dd>
 					<HyperliquidAccountView
-						selection={select(EntityType.HyperliquidAccount, selection.entitySelector.$account, {})}
+						selection={select(EntityType.HyperliquidAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -95,7 +99,7 @@
 				<dt>vault</dt>
 				<dd>
 					<HyperliquidVaultView
-						selection={select(EntityType.HyperliquidVault, selection.entitySelector.$vault, {})}
+						selection={select(EntityType.HyperliquidVault, selection.entitySelector.$vault)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

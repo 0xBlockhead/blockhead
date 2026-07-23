@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Near actions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NearAction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NearAction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NearActionView from '$/views/NearActionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nearActions) => [...new Map(nearActions.values.map((nearAction) => [nearAction[EntityMetaKey.SelectorKey], nearAction])).values()]}
 	getKey={(nearAction) => nearAction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: nearAction })}
 		{@const nearActionFields = { ...nearAction[EntityMetaKey.Selector], ...nearAction }}
-		{@const selection = select(EntityType.NearAction, nearAction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<NearActionView
-			selection={selection}
-			prefetched={nearActionFields}
+		<EntityView
+			entityType={EntityType.NearAction}
+			entitySelector={nearAction[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nearActionFields.actionKind) ?? '')].filter(Boolean).join(' ') || 'near action'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((nearActionFields.methodName) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((nearActionFields.actionIndex) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

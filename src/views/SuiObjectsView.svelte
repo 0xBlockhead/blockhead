@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Sui objects',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.SuiObject>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SuiObject>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import SuiObjectView from '$/views/SuiObjectView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(suiObjects) => [...new Map(suiObjects.values.map((suiObject) => [suiObject[EntityMetaKey.SelectorKey], suiObject])).values()]}
 	getKey={(suiObject) => suiObject[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: suiObject })}
 		{@const suiObjectFields = { ...suiObject[EntityMetaKey.Selector], ...suiObject }}
-		{@const selection = select(EntityType.SuiObject, suiObject[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<SuiObjectView
-			selection={selection}
-			prefetched={suiObjectFields}
+		<EntityView
+			entityType={EntityType.SuiObject}
+			entitySelector={suiObject[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'Sui object'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

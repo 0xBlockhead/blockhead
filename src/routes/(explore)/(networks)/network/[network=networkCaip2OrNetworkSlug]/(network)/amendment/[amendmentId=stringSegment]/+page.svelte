@@ -22,7 +22,6 @@
 			name: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'XRPL amendment' : 'XRPL amendment')))
 
 
 	// Components
@@ -32,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • XRPL amendment • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'XRPL amendment' : 'XRPL amendment'))} • XRPL amendment • Blockhead</title>
 </svelte:head>
 
 

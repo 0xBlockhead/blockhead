@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Payout>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Payout>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Payout>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,11 +44,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const payout = $derived(selection({
+	const payout = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('payout')
-	const viewDomId = $derived('payout-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'payout'
+	const viewDomId = $derived('payout-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,12 +76,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={payout}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -146,15 +149,32 @@
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									href={
-										(assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
-											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
-											network: String(caip2StringFromValue(assetInstance[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
-											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
-											network: String(assetInstance[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											assetInstance[EntityMetaKey.Selector] != null && 'kind' in assetInstance[EntityMetaKey.Selector]
+											&& assetInstance[EntityMetaKey.Selector].kind != null
+											&& assetInstance[EntityMetaKey.Selector] != null && 'assetKey' in assetInstance[EntityMetaKey.Selector]
+											&& assetInstance[EntityMetaKey.Selector].assetKey != null
+											&& assetInstance[EntityMetaKey.Selector] != null && '$network' in assetInstance[EntityMetaKey.Selector] ?
+												assetInstance[EntityMetaKey.Selector].$network != null && 'caip2' in assetInstance[EntityMetaKey.Selector].$network
+												&& assetInstance[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+												kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
+												assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
+												network: String(caip2StringFromValue(assetInstance[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													assetInstance[EntityMetaKey.Selector].$network != null && 'slug' in assetInstance[EntityMetaKey.Selector].$network
+													&& assetInstance[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+													kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
+													assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
+													network: String(assetInstance[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -197,11 +217,21 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+										(
+											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
+											&& network[EntityMetaKey.Selector].caip2 != null ?
+												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : undefined)
+										})
+										:
+												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
+												&& network[EntityMetaKey.Selector].slug != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+												network: String(network[EntityMetaKey.Selector].slug ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -224,13 +254,28 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-											network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
+											&& evmContract[EntityMetaKey.Selector].address != null
+											&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
+												evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
+												&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+												network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
+													&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+													network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -392,17 +437,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<PayoutClaim_TimestampsView
-				selection={
-						selection.$$claims({
-							count: true,
-						})
-					}
-				title='claims'
-				emptyText='No payout claim observations.'
-				id='PayoutClaim_TimestampsView-claims'
-			/>
-		{/if}
+		{@const payoutPayoutClaimTimestampsViewClaimsResource = selection.$$claims}
+		<ResourceBoundary
+			resource={payoutPayoutClaimTimestampsViewClaimsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<PayoutClaim_TimestampsView
+					selection={payoutPayoutClaimTimestampsViewClaimsResource}
+					countResource={payoutPayoutClaimTimestampsViewClaimsResource.count}
+					title='claims'
+					id='PayoutClaim_TimestampsView-claims'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

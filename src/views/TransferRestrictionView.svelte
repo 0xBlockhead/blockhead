@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.TransferRestriction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TransferRestriction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TransferRestriction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const transferRestriction = $derived(selection({
+	const transferRestriction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('transfer restriction')
-	const viewDomId = $derived('transfer-restriction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'transfer restriction'
+	const viewDomId = $derived('transfer-restriction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,12 +72,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={transferRestriction}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -86,17 +89,34 @@
 				<dt>asset instance</dt>
 				<dd>
 					<AssetInstanceView
-						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance, {})}
+						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						href={
-							(selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-								network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$assetInstance != null && 'kind' in selection.entitySelector.$assetInstance
+								&& selection.entitySelector.$assetInstance.kind != null
+								&& selection.entitySelector.$assetInstance != null && 'assetKey' in selection.entitySelector.$assetInstance
+								&& selection.entitySelector.$assetInstance.assetKey != null
+								&& selection.entitySelector.$assetInstance != null && '$network' in selection.entitySelector.$assetInstance ?
+									selection.entitySelector.$assetInstance.$network != null && 'caip2' in selection.entitySelector.$assetInstance.$network
+									&& selection.entitySelector.$assetInstance.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+									kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+									assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$assetInstance.$network != null && 'slug' in selection.entitySelector.$assetInstance.$network
+										&& selection.entitySelector.$assetInstance.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+										kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+										assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+										network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -225,17 +245,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<TransferRestrictionCheck_TimestampsView
-				selection={
-						selection.$$checks({
-							count: true,
-						})
-					}
-				title='checks'
-				emptyText='No transfer restriction checks.'
-				id='TransferRestrictionCheck_TimestampsView-checks'
-			/>
-		{/if}
+		{@const transferRestrictionTransferRestrictionCheckTimestampsViewChecksResource = selection.$$checks}
+		<ResourceBoundary
+			resource={transferRestrictionTransferRestrictionCheckTimestampsViewChecksResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<TransferRestrictionCheck_TimestampsView
+					selection={transferRestrictionTransferRestrictionCheckTimestampsViewChecksResource}
+					countResource={transferRestrictionTransferRestrictionCheckTimestampsViewChecksResource.count}
+					title='checks'
+					id='TransferRestrictionCheck_TimestampsView-checks'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

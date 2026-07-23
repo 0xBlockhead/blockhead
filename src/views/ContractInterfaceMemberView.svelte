@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -22,7 +23,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ContractInterfaceMember>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ContractInterfaceMember>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ContractInterfaceMember>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -36,7 +37,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const contractInterfaceMember = $derived(selection({
+	const contractInterfaceMember = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			name: true,
+			canonicalSignature: true,
+			memberKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			name: true,
@@ -45,7 +53,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.canonicalSignature) ?? ''), String((pendingEntity.memberKey) ?? '')].filter(Boolean).join(' ') || 'contract interface member')
-	const viewDomId = $derived('contract-interface-member-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('contract-interface-member-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,7 +73,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'canonicalSignature') && Object.hasOwn(prefetched, 'memberKind')}
 			{[String((pendingEntity.name) ?? ''), String((pendingEntity.canonicalSignature) ?? ''), String((pendingEntity.memberKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={contractInterfaceMember}>
@@ -78,7 +86,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'canonicalSignature') && Object.hasOwn(prefetched, 'memberKind')}
 			{[String((pendingEntity.memberKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.canonicalSignature) ?? ''), String((pendingEntity.memberKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={contractInterfaceMember}>
@@ -91,7 +99,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'canonicalSignature') && Object.hasOwn(prefetched, 'memberKind')}
 			{@const interfaceId0 = pendingEntity.interfaceId}
 			{#if interfaceId0 !== undefined && interfaceId0 !== null}
 				<span data-text="muted">

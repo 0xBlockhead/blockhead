@@ -23,11 +23,19 @@
 		sources: [
 			Source.Atproto_Xrpc,
 		],
+		fields: {
+			did: true,
+		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account'))
-	const canonicalEntityHref = $derived(pageSelection.entity == null ? undefined : (({ ...pageSelection.entitySelector, ...pageSelection.entity }).did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
+	const canonicalEntityHref = $derived(pageSelection.entity == null ? undefined : (
+		({ ...pageSelection.entitySelector, ...pageSelection.entity }) != null && 'did' in ({ ...pageSelection.entitySelector, ...pageSelection.entity })
+		&& ({ ...pageSelection.entitySelector, ...pageSelection.entity }).did != null ?
+			resolve('/atproto/actor/[did=stringSegment]', {
 		did: encodeURIComponent(String(({ ...pageSelection.entitySelector, ...pageSelection.entity }).did ?? '')),
-	}) : undefined))
+	})
+	:
+			undefined
+	))
 
 	$effect(() => {
 		if (canonicalEntityHref == null) return
@@ -43,7 +51,9 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • AT Protocol account • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'AT Protocol account' : [String((({ ...{
+		handle: params.handle,
+	}, ...pageSelection.entity }).did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account')} • AT Protocol account • Blockhead</title>
 </svelte:head>
 
 

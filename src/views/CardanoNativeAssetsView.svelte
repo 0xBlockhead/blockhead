@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Cardano native assets',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CardanoNativeAsset>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CardanoNativeAsset>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CardanoNativeAssetView from '$/views/CardanoNativeAssetView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,8 +65,14 @@
 	resource={
 		selection({
 			sources: selection.sources,
+			fields: {
+				assetName: true,
+				fingerprint: true,
+				policyId: true,
+			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cardanoNativeAssets) => [...new Map(cardanoNativeAssets.values.map((cardanoNativeAsset) => [cardanoNativeAsset[EntityMetaKey.SelectorKey], cardanoNativeAsset])).values()]}
 	getKey={(cardanoNativeAsset) => cardanoNativeAsset[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +87,20 @@
 
 	{#snippet Item({ item: cardanoNativeAsset })}
 		{@const cardanoNativeAssetFields = { ...cardanoNativeAsset[EntityMetaKey.Selector], ...cardanoNativeAsset }}
-		{@const selection = select(EntityType.CardanoNativeAsset, cardanoNativeAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CardanoNativeAssetView
-			selection={selection}
-			prefetched={cardanoNativeAssetFields}
+		<EntityView
+			entityType={EntityType.CardanoNativeAsset}
+			entitySelector={cardanoNativeAsset[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cardanoNativeAssetFields.assetName) ?? '')].filter(Boolean).join(' ') || [String((cardanoNativeAssetFields.policyId) ?? '')].filter(Boolean).join(' ') || 'Cardano native asset'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((cardanoNativeAssetFields.fingerprint) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

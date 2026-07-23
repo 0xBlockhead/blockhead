@@ -1,11 +1,17 @@
 import { corsFetch, fetchFailedMessage } from '$/lib/http.ts'
 import {
+	apiOrigin,
 	coinsBaseUrl,
 	defillamaOrigins,
+	yieldsOrigin,
 } from '$/sources/Defillama/Rest/constants.ts'
 import type {
 	DefillamaOpenApiChartResponse,
 	DefillamaOpenApiCurrentPricesResponse,
+	DefillamaProtocolResponse,
+	DefillamaProtocolsResponse,
+	DefillamaYieldPoolChartResponse,
+	DefillamaYieldPoolsResponse,
 } from '$/sources/Defillama/OpenApi/types.ts'
 
 const withSearchWidth = (
@@ -64,3 +70,36 @@ export const getCurrentPricesJson = async ({
 
 	return response.json<DefillamaOpenApiCurrentPricesResponse>()
 }
+
+const getJson = async <_Response>(
+	path: string,
+	baseUrl: string
+): Promise<_Response> => {
+	const requestUrl = new URL(path, baseUrl)
+	const response = await corsFetch(requestUrl.href, { origins: defillamaOrigins })
+	if (!response.ok)
+		throw new Error(await fetchFailedMessage(requestUrl.href, response))
+	return response.json<_Response>()
+}
+
+export const getProtocolsJson = (
+	baseUrl = apiOrigin
+): Promise<DefillamaProtocolsResponse> => getJson('/protocols', baseUrl)
+
+export const getProtocolJson = (
+	protocolSlug: string,
+	baseUrl = apiOrigin
+): Promise<DefillamaProtocolResponse> => (
+	getJson(`/protocol/${encodeURIComponent(protocolSlug)}`, baseUrl)
+)
+
+export const getYieldPoolsJson = (
+	baseUrl = yieldsOrigin
+): Promise<DefillamaYieldPoolsResponse> => getJson('/pools', baseUrl)
+
+export const getYieldPoolChartJson = (
+	poolId: string,
+	baseUrl = yieldsOrigin
+): Promise<DefillamaYieldPoolChartResponse> => (
+	getJson(`/chart/${encodeURIComponent(poolId)}`, baseUrl)
+)

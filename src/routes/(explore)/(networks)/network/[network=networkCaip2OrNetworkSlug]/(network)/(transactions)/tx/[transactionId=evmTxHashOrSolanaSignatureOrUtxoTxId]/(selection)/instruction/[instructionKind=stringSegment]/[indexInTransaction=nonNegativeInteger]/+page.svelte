@@ -19,13 +19,13 @@
 
 	const pageSelection = $derived(select(EntityType.SolanaInstruction, data.selector, {
 		fields: {
+			indexInInstruction: true,
 			parsedType: true,
 			stackHeight: true,
 			$program: true,
 			data: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'solana instruction' : 'solana instruction')))
 
 
 	// Components
@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • solana instruction • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'solana instruction' : 'solana instruction'))} • solana instruction • Blockhead</title>
 </svelte:head>
 
 

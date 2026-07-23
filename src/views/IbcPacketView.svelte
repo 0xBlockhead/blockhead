@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.IbcPacket>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.IbcPacket>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.IbcPacket>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ibcPacket = $derived(selection({
+	const ibcPacket = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			status: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			status: true,
 		},
 	}))
 	const titleFallback = $derived((String((pendingEntity.sequence) ?? '') ? 'Packet #' + String((pendingEntity.sequence) ?? '') : '') || 'IBC packet')
-	const viewDomId = $derived('ibc-packet-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('ibc-packet-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -91,7 +97,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
 			{@const direction0 = pendingEntity.direction}
 			{#if direction0 !== undefined && direction0 !== null}
 				<span data-text="muted">
@@ -521,7 +527,7 @@
 				<dt>Channel</dt>
 				<dd>
 					<IbcChannelView
-						selection={select(EntityType.IbcChannel, selection.entitySelector.$channel, {})}
+						selection={select(EntityType.IbcChannel, selection.entitySelector.$channel)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -10,9 +10,58 @@ import type {
 	FetchLifiChainsOptions,
 	FetchLifiTokensOptions,
 	LifiChainsResponse,
+	LifiQuoteRequest,
+	LifiQuoteStep,
+	LifiQuoteStepLike,
 	LifiTokensResponse,
 	LifiToolsResponse,
 } from '$/sources/Lifi/Rest/types.ts'
+
+const maximumQuoteSteps = 32
+const maximumCostRows = 64
+const maximumCatalogChains = 1_000
+const maximumCatalogTokens = 100_000
+const maximumTools = 1_000
+const maximumSupportedChainsPerTool = 10_000
+const unsignedIntegerPattern = /^(0|[1-9]\d*)$/
+const decimalPattern = /^(0|[1-9]\d*)(\.\d+)?$/
+
+const assertQuoteStep = (
+	step: LifiQuoteStepLike,
+	label: string
+) => {
+	if (
+		step.id === ''
+		|| step.tool === ''
+		|| step.estimate.tool !== step.tool
+		|| !unsignedIntegerPattern.test(step.action.fromAmount)
+		|| !unsignedIntegerPattern.test(step.estimate.fromAmount)
+		|| !unsignedIntegerPattern.test(step.estimate.toAmount)
+		|| !unsignedIntegerPattern.test(step.estimate.toAmountMin)
+		|| BigInt(step.estimate.toAmountMin) > BigInt(step.estimate.toAmount)
+		|| !Number.isFinite(step.estimate.executionDuration)
+		|| step.estimate.executionDuration < 0
+	)
+		throw new Error(`Lifi_Rest: malformed ${label} quote step`)
+
+	for (const row of [
+		...(step.estimate.feeCosts ?? []),
+		...(step.estimate.gasCosts ?? []),
+	]) {
+		if (
+			!unsignedIntegerPattern.test(row.amount ?? '')
+			|| !decimalPattern.test(row.amountUSD)
+			|| ('percentage' in row && row.percentage != null && !decimalPattern.test(row.percentage))
+		)
+			throw new Error(`Lifi_Rest: malformed ${label} quote cost`)
+	}
+
+	if (
+		(step.estimate.feeCosts?.length ?? 0) > maximumCostRows
+		|| (step.estimate.gasCosts?.length ?? 0) > maximumCostRows
+	)
+		throw new Error(`Lifi_Rest: excessive ${label} quote costs`)
+}
 
 /**
  * `GET /v1/chains` — supported chains (optional `chainTypes` e.g. `EVM,SVM`).
@@ -27,7 +76,19 @@ export async function fetchChains(
 	const path = `/v1/chains${queryString ? `?${queryString}` : ''}`
 	const res = await lifiRestFetch(path, undefined, { baseUrl: options?.baseUrl })
 	await throwIfHttpNotOk(res, path)
-	return res.json<LifiChainsResponse>()
+	const result = await res.json<LifiChainsResponse>()
+	if (
+		result.chains.length > maximumCatalogChains
+		|| new Set(result.chains.map((chain) => chain.id)).size !== result.chains.length
+		|| new Set(result.chains.map((chain) => chain.key)).size !== result.chains.length
+		|| result.chains.some((chain) => (
+			!Number.isSafeInteger(chain.id)
+			|| chain.id <= 0
+			|| (chain.nativeToken != null && chain.nativeToken.chainId !== chain.id)
+		))
+	)
+		throw new Error('Lifi_Rest: malformed chains catalog')
+	return result
 }
 
 /**
@@ -48,7 +109,21 @@ export async function fetchTokens(
 	const path = `/v1/tokens${queryString ? `?${queryString}` : ''}`
 	const res = await lifiRestFetch(path, undefined, { baseUrl: options?.baseUrl })
 	await throwIfHttpNotOk(res, path)
-	return res.json<LifiTokensResponse>()
+	const result = await res.json<LifiTokensResponse>()
+	if (
+		Object.values(result.tokens).reduce((total, tokens) => total + tokens.length, 0) > maximumCatalogTokens
+		|| Object.entries(result.tokens).some(([chainId, tokens]) => (
+			tokens.some((token) => (
+				String(token.chainId) !== chainId
+				|| !Number.isSafeInteger(token.decimals)
+				|| token.decimals < 0
+				|| token.decimals > 255
+			))
+			|| new Set(tokens.map((token) => token.address.toLowerCase())).size !== tokens.length
+		))
+	)
+		throw new Error('Lifi_Rest: malformed tokens catalog')
+	return result
 }
 
 export const findChainByChainId = async (
@@ -67,5 +142,118 @@ export async function fetchTools(
 	const path = '/v1/tools'
 	const res = await lifiRestFetch(path, undefined, { baseUrl: options?.baseUrl })
 	await throwIfHttpNotOk(res, path)
-	return res.json<LifiToolsResponse>()
+	const result = await res.json<LifiToolsResponse>()
+	if (
+		result.bridges.length > maximumTools
+		|| (result.exchanges?.length ?? 0) > maximumTools
+		|| new Set(result.bridges.map((tool) => tool.key)).size !== result.bridges.length
+		|| result.bridges.some((tool) => (
+			tool.supportedChains.length > maximumSupportedChainsPerTool
+			|| new Set(tool.supportedChains.map((pair) => `${pair.fromChainId}:${pair.toChainId}`)).size !== tool.supportedChains.length
+			|| tool.supportedChains.some((pair) => (
+				!Number.isSafeInteger(pair.fromChainId)
+				|| pair.fromChainId <= 0
+				|| !Number.isSafeInteger(pair.toChainId)
+				|| pair.toChainId <= 0
+			))
+		))
+	)
+		throw new Error('Lifi_Rest: malformed tools catalog')
+	return result
+}
+
+/**
+ * `GET /v1/quote` returns an ephemeral public observation. Execution and
+ * signing payloads are deliberately discarded at this source boundary.
+ */
+export const fetchQuote = async (
+	params: LifiQuoteRequest,
+	options?: { baseUrl?: string }
+): Promise<LifiQuoteStep> => {
+	if (
+		!Number.isSafeInteger(params.fromChain)
+		|| params.fromChain <= 0
+		|| !Number.isSafeInteger(params.toChain)
+		|| params.toChain <= 0
+		|| !unsignedIntegerPattern.test(params.fromAmount)
+		|| BigInt(params.fromAmount) <= 0n
+		|| (params.slippage != null && (
+			!Number.isFinite(params.slippage)
+			|| params.slippage < 0
+			|| params.slippage >= 1
+		))
+	)
+		throw new Error('Lifi_Rest: invalid quote request')
+
+	const search = new URLSearchParams({
+		fromChain: String(params.fromChain),
+		toChain: String(params.toChain),
+		fromToken: params.fromToken,
+		toToken: params.toToken,
+		fromAmount: params.fromAmount,
+		fromAddress: params.fromAddress,
+		...(params.toAddress != null && { toAddress: params.toAddress }),
+		...(params.slippage != null && { slippage: String(params.slippage) }),
+	})
+	const path = `/v1/quote?${search}`
+	const response = await lifiRestFetch(path, undefined, options)
+	await throwIfHttpNotOk(response, path)
+	const quote = await response.json<LifiQuoteStep>()
+
+	assertQuoteStep(quote, 'top-level')
+	if (
+		quote.action.fromChainId !== params.fromChain
+		|| quote.action.toChainId !== params.toChain
+		|| quote.action.fromToken.chainId !== params.fromChain
+		|| quote.action.toToken.chainId !== params.toChain
+		|| !Number.isSafeInteger(quote.action.fromToken.decimals)
+		|| quote.action.fromToken.decimals < 0
+		|| quote.action.fromToken.decimals > 255
+		|| !Number.isSafeInteger(quote.action.toToken.decimals)
+		|| quote.action.toToken.decimals < 0
+		|| quote.action.toToken.decimals > 255
+		|| quote.action.fromToken.address.toLowerCase() !== params.fromToken.toLowerCase()
+		|| quote.action.toToken.address.toLowerCase() !== params.toToken.toLowerCase()
+		|| quote.action.fromAmount !== params.fromAmount
+		|| quote.estimate.fromAmount !== params.fromAmount
+		|| quote.action.fromAddress?.toLowerCase() !== params.fromAddress.toLowerCase()
+		|| quote.action.toAddress?.toLowerCase() !== (params.toAddress ?? params.fromAddress).toLowerCase()
+		|| (params.slippage != null && quote.action.slippage !== params.slippage)
+	)
+		throw new Error('Lifi_Rest: quote identity does not match the request')
+
+	const steps = quote.includedSteps ?? []
+	if (
+		steps.length > maximumQuoteSteps
+		|| new Set(steps.map((step) => step.id)).size !== steps.length
+		|| (steps.length > 0 && (
+			steps[0].action.fromChainId !== params.fromChain
+			|| steps[0].action.fromToken.address.toLowerCase() !== params.fromToken.toLowerCase()
+			|| steps[steps.length - 1].action.toChainId !== params.toChain
+			|| steps[steps.length - 1].action.toToken.address.toLowerCase() !== params.toToken.toLowerCase()
+		))
+	)
+		throw new Error('Lifi_Rest: malformed included quote steps')
+
+	steps.forEach((step, index) => {
+		assertQuoteStep(step, `included ${index}`)
+		if (index > 0) {
+			const previous = steps[index - 1]
+			if (
+				previous.action.toChainId !== step.action.fromChainId
+				|| previous.action.toToken.address.toLowerCase() !== step.action.fromToken.address.toLowerCase()
+			)
+				throw new Error('Lifi_Rest: disconnected included quote steps')
+		}
+	})
+
+	return {
+		id: quote.id,
+		type: quote.type,
+		tool: quote.tool,
+		...(quote.toolDetails != null && { toolDetails: quote.toolDetails }),
+		action: quote.action,
+		estimate: quote.estimate,
+		...(steps.length > 0 && { includedSteps: steps }),
+	}
 }

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Near access keys',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NearAccessKey>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NearAccessKey>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NearAccessKeyView from '$/views/NearAccessKeyView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nearAccessKeys) => [...new Map(nearAccessKeys.values.map((nearAccessKey) => [nearAccessKey[EntityMetaKey.SelectorKey], nearAccessKey])).values()]}
 	getKey={(nearAccessKey) => nearAccessKey[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: nearAccessKey })}
 		{@const nearAccessKeyFields = { ...nearAccessKey[EntityMetaKey.Selector], ...nearAccessKey }}
-		{@const selection = select(EntityType.NearAccessKey, nearAccessKey[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<NearAccessKeyView
-			selection={selection}
-			prefetched={nearAccessKeyFields}
+		<EntityView
+			entityType={EntityType.NearAccessKey}
+			entitySelector={nearAccessKey[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nearAccessKeyFields.publicKey) ?? '')].filter(Boolean).join(' ') || 'near access key'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((nearAccessKeyFields.permission) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((nearAccessKeyFields.nonce) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

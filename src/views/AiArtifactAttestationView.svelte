@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AiArtifactAttestation>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AiArtifactAttestation>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiArtifactAttestation>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiArtifactAttestation = $derived(selection({
+	const aiArtifactAttestation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || 'AI artifact attestation')
-	const viewDomId = $derived('ai-artifact-attestation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('ai-artifact-attestation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,7 +71,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$artifact') && prefetched.$artifact != null && Object.hasOwn(prefetched.$artifact, 'artifactType') && Object.hasOwn(prefetched.$artifact, 'mediaType') && Object.hasOwn(prefetched.$artifact, 'providerArtifactId') && Object.hasOwn(prefetched.$artifact, 'ociDigest') && Object.hasOwn(prefetched.$artifact, 'ipfsCid') && Object.hasOwn(prefetched.$artifact, 'arweaveId') && Object.hasOwn(prefetched.$artifact, 'gitObject') && Object.hasOwn(prefetched.$artifact, 'digest') && Object.hasOwn(prefetched.$artifact, 'size') && Object.hasOwn(prefetched, 'logEntryId')}
 			{[String((pendingEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={aiArtifactAttestation}>
@@ -80,18 +84,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<AiArtifactView
-						selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$artifact') && prefetched.$artifact != null && Object.hasOwn(prefetched.$artifact, 'artifactType') && Object.hasOwn(prefetched.$artifact, 'mediaType') && Object.hasOwn(prefetched.$artifact, 'providerArtifactId') && Object.hasOwn(prefetched.$artifact, 'ociDigest') && Object.hasOwn(prefetched.$artifact, 'ipfsCid') && Object.hasOwn(prefetched.$artifact, 'arweaveId') && Object.hasOwn(prefetched.$artifact, 'gitObject') && Object.hasOwn(prefetched.$artifact, 'digest') && Object.hasOwn(prefetched.$artifact, 'size') && Object.hasOwn(prefetched, 'logEntryId')}
+			{@const aiArtifact0 = pendingEntity.$artifact}
+			{#if aiArtifact0 != null && selection.entitySelector.$artifact != null}
+				<AiArtifactView
+					selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact, { sources: selection.sources })}
+					prefetched={aiArtifact0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={aiArtifactAttestation}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<AiArtifactView
 						selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -101,7 +110,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$artifact') && prefetched.$artifact != null && Object.hasOwn(prefetched.$artifact, 'artifactType') && Object.hasOwn(prefetched.$artifact, 'mediaType') && Object.hasOwn(prefetched.$artifact, 'providerArtifactId') && Object.hasOwn(prefetched.$artifact, 'ociDigest') && Object.hasOwn(prefetched.$artifact, 'ipfsCid') && Object.hasOwn(prefetched.$artifact, 'arweaveId') && Object.hasOwn(prefetched.$artifact, 'gitObject') && Object.hasOwn(prefetched.$artifact, 'digest') && Object.hasOwn(prefetched.$artifact, 'size') && Object.hasOwn(prefetched, 'logEntryId')}
 			{@const logEntryId0 = pendingEntity.logEntryId}
 			{#if logEntryId0 !== undefined && logEntryId0 !== null}
 				<span data-text="muted">
@@ -129,7 +138,7 @@
 				<dt>artifact</dt>
 				<dd>
 					<AiArtifactView
-						selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact, {})}
+						selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

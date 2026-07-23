@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.HyperliquidOrder_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.HyperliquidOrder_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HyperliquidOrder_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,15 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidOrderTimestamp = $derived(selection({
+	const hyperliquidOrderTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('hyperliquid order timestamp')
-	const viewDomId = $derived('hyperliquid-order-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'hyperliquid order timestamp'
+	const viewDomId = $derived('hyperliquid-order-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import HyperliquidOrderView from '$/views/HyperliquidOrderView.svelte'
 </script>
 
@@ -64,12 +69,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={hyperliquidOrderTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -82,7 +86,7 @@
 				<dt>order</dt>
 				<dd>
 					<HyperliquidOrderView
-						selection={select(EntityType.HyperliquidOrder, selection.entitySelector.$order, {})}
+						selection={select(EntityType.HyperliquidOrder, selection.entitySelector.$order)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

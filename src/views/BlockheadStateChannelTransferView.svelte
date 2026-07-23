@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadStateChannelTransfer>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadStateChannelTransfer>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadStateChannelTransfer>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadStateChannelTransfer = $derived(selection({
+	const blockheadStateChannelTransfer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			timestamp: true,
+			status: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			timestamp: true,
@@ -49,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel transfer')
-	const viewDomId = $derived('blockhead-state-channel-transfer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-state-channel-transfer-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,7 +78,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'timestamp')}
 			{[String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadStateChannelTransfer}>
@@ -84,7 +91,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'timestamp')}
 			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadStateChannelTransfer}>
@@ -97,7 +104,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'timestamp')}
 			{@const timestamp0 = pendingEntity.timestamp}
 			{#if timestamp0 !== undefined && timestamp0 !== null}
 				<span data-text="muted">
@@ -125,11 +132,17 @@
 				<dt>channel</dt>
 				<dd>
 					<BlockheadStateChannelView
-						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel, {})}
+						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
 						href={
-							(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
+							(
+								selection.entitySelector.$channel != null && 'id' in selection.entitySelector.$channel
+								&& selection.entitySelector.$channel.id != null ?
+									resolve('/channel/[channelId=stringSegment]', {
 								channelId: String(selection.entitySelector.$channel.id ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -165,11 +178,17 @@
 				<dt>from</dt>
 				<dd>
 					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$from, {})}
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$from)}
 						href={
-							(selection.entitySelector.$from.address !== undefined ? resolve('/account/[address=evmAddress]', {
+							(
+								selection.entitySelector.$from != null && 'address' in selection.entitySelector.$from
+								&& selection.entitySelector.$from.address != null ?
+									resolve('/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$from.address ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -181,11 +200,17 @@
 				<dt>to</dt>
 				<dd>
 					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$to, {})}
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$to)}
 						href={
-							(selection.entitySelector.$to.address !== undefined ? resolve('/account/[address=evmAddress]', {
+							(
+								selection.entitySelector.$to != null && 'address' in selection.entitySelector.$to
+								&& selection.entitySelector.$to.address != null ?
+									resolve('/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$to.address ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

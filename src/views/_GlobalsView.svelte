@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Globals',
 		typeAnnotationParagraphs = ['Root catalog and navigation scope for top-level networks, assets, markets, proposals, and local Blockhead state.'],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._Global>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._Global>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalView from '$/views/_GlobalView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(globals) => [...new Map(globals.values.map((global) => [global[EntityMetaKey.SelectorKey], global])).values()]}
 	getKey={(global) => global[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: global })}
 		{@const globalFields = { ...global[EntityMetaKey.Selector], ...global }}
-		{@const selection = select(EntityType._Global, global[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<GlobalView
-			selection={selection}
-			prefetched={globalFields}
+		<EntityView
+			entityType={EntityType._Global}
+			entitySelector={global[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'global'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

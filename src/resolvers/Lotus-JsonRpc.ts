@@ -367,26 +367,44 @@ export default {
 						if (source !== Source.Lotus_JsonRpc)
 							throw new Error(`Lotus_JsonRpc: unsupported actor observation source ${source}`)
 
-						const { getActor, getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead({ rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl })
-						if (BigInt(head.Height) !== height || tipsetKey(head.Cids) !== selectorTipsetKey)
-							throw new Error(`Lotus_JsonRpc: actor observation ${height.toString()}/${selectorTipsetKey} is not the current head`)
-
-						const actor = await getActor({
+						const {
+							getActor,
+							getIdAddress,
+							getTipSetByHeight,
+						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
+						const tipset = await getTipSetByHeight({
 							rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
-							address: $actor.address,
-							tipsetKey: head.Cids,
+							height,
 						})
+						if (BigInt(tipset.Height) !== height || tipsetKey(tipset.Cids) !== selectorTipsetKey)
+							throw new Error(`Lotus_JsonRpc: actor observation does not match ${height.toString()}/${selectorTipsetKey}`)
+						const timestamp = tipset.Blocks.at(0)?.Timestamp
+						if (timestamp == null)
+							throw new Error(`Lotus_JsonRpc: actor observation ${height.toString()}/${selectorTipsetKey} has no timestamp`)
+						const [actor, idAddress] = await Promise.all([
+							getActor({
+								rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+								address: $actor.address,
+								tipsetKey: tipset.Cids,
+							}),
+							getIdAddress({
+								rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+								address: $actor.address,
+								tipsetKey: tipset.Cids,
+							}),
+						])
 						return {
-							height: BigInt(head.Height),
-							tipsetKey: tipsetKey(head.Cids),
+							timestampMs: timestamp * 1000,
+							height: BigInt(tipset.Height),
+							tipsetKey: tipsetKey(tipset.Cids),
 							$tipset: {
 								[EntityMetaKey.Selector]: {
 									$network: $actor.$network,
-									height: BigInt(head.Height),
-									tipsetKey: tipsetKey(head.Cids),
+									height: BigInt(tipset.Height),
+									tipsetKey: tipsetKey(tipset.Cids),
 								},
 							},
+							idAddress,
 							actorCodeCid: actor.Code['/'],
 							nonce: BigInt(actor.Nonce),
 							balanceAttoFil: BigInt(actor.Balance),
@@ -396,9 +414,11 @@ export default {
 				}
 			},
 		})({
+				timestampMs: (timestamp) => timestamp.timestampMs,
 				height: (timestamp) => timestamp.height,
 				tipsetKey: (timestamp) => timestamp.tipsetKey,
 				$tipset: (timestamp) => timestamp.$tipset,
+				idAddress: (timestamp) => timestamp.idAddress,
 				actorCodeCid: (timestamp) => timestamp.actorCodeCid,
 				nonce: (timestamp) => timestamp.nonce,
 				balanceAttoFil: (timestamp) => timestamp.balanceAttoFil,

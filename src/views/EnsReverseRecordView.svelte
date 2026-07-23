@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EnsReverseRecord>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EnsReverseRecord>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EnsReverseRecord>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ensReverseRecord = $derived(selection({
+	const ensReverseRecord = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('ENS reverse record')
-	const viewDomId = $derived('ens-reverse-record-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'ENS reverse record'
+	const viewDomId = $derived('ens-reverse-record-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,28 +72,23 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EnsNameView
-						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-						href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$name') && prefetched.$name != null && Object.hasOwn(prefetched, '$account') && prefetched.$account != null}
+			{@const ensName0 = pendingEntity.$name}
+			{#if ensName0 != null && selection.entitySelector.$name != null}
+				<EnsNameView
+					selection={select(EntityType.EnsName, selection.entitySelector.$name, { sources: selection.sources })}
+					prefetched={ensName0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={ensReverseRecord}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<EnsNameView
 						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-						href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -99,18 +98,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<AccountView
-						selection={select(EntityType.Account, selection.entitySelector.$account)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$name') && prefetched.$name != null && Object.hasOwn(prefetched, '$account') && prefetched.$account != null}
+			{@const account0 = pendingEntity.$account}
+			{#if account0 != null && selection.entitySelector.$account != null}
+				<AccountView
+					selection={select(EntityType.Account, selection.entitySelector.$account, { sources: selection.sources })}
+					prefetched={account0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={ensReverseRecord}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<AccountView
 						selection={select(EntityType.Account, selection.entitySelector.$account)}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -125,7 +129,7 @@
 				<dt>Account</dt>
 				<dd>
 					<AccountView
-						selection={select(EntityType.Account, selection.entitySelector.$account, {})}
+						selection={select(EntityType.Account, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -136,11 +140,17 @@
 				<dt>Name</dt>
 				<dd>
 					<EnsNameView
-						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
+						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 						href={
-							(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
+							(
+								selection.entitySelector.$name != null && 'name' in selection.entitySelector.$name
+								&& selection.entitySelector.$name.name != null ?
+									resolve('/ens/name/[ensName=stringSegment]', {
 								ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -151,17 +161,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<EnsReverseRecord_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Timestamps'
-				emptyText='No ENS reverse record observations.'
-				id='EnsReverseRecord_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const ensReverseRecordEnsReverseRecordTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={ensReverseRecordEnsReverseRecordTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<EnsReverseRecord_TimestampsView
+					selection={ensReverseRecordEnsReverseRecordTimestampsViewTimestampsResource}
+					countResource={ensReverseRecordEnsReverseRecordTimestampsViewTimestampsResource.count}
+					title='Timestamps'
+					id='EnsReverseRecord_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

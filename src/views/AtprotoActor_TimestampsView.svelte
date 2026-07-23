@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'AT Protocol account observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AtprotoActor_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AtprotoActor_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AtprotoActor_TimestampView from '$/views/AtprotoActor_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(atprotoActorTimestamps) => [...new Map(atprotoActorTimestamps.values.map((atprotoActorTimestamp) => [atprotoActorTimestamp[EntityMetaKey.SelectorKey], atprotoActorTimestamp])).values()]}
 	getKey={(atprotoActorTimestamp) => atprotoActorTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,20 +90,38 @@
 
 	{#snippet Item({ item: atprotoActorTimestamp })}
 		{@const atprotoActorTimestampFields = { ...atprotoActorTimestamp[EntityMetaKey.Selector], ...atprotoActorTimestamp }}
-		{@const selection = select(EntityType.AtprotoActor_Timestamp, atprotoActorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const atprotoActorTimestampHrefFields = { ...atprotoActorTimestamp, ...atprotoActorTimestamp[EntityMetaKey.Selector] }}
-		<AtprotoActor_TimestampView
-			selection={selection}
-			prefetched={atprotoActorTimestampFields}
+		<EntityView
+			entityType={EntityType.AtprotoActor_Timestamp}
+			entitySelector={atprotoActorTimestamp[EntityMetaKey.Selector]}
 			href={
-				(atprotoActorTimestampHrefFields.timestampMs !== undefined && atprotoActorTimestampHrefFields.source !== undefined && atprotoActorTimestampHrefFields.$actor !== undefined && atprotoActorTimestampHrefFields.$actor.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(atprotoActorTimestampHrefFields.timestampMs ?? ''),
-					source: String(atprotoActorTimestampHrefFields.source ?? ''),
-					did: encodeURIComponent(String(atprotoActorTimestampHrefFields.$actor.did ?? '')),
-				}) : undefined)
+				(
+					atprotoActorTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in atprotoActorTimestamp[EntityMetaKey.Selector]
+					&& atprotoActorTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& atprotoActorTimestamp[EntityMetaKey.Selector] != null && 'source' in atprotoActorTimestamp[EntityMetaKey.Selector]
+					&& atprotoActorTimestamp[EntityMetaKey.Selector].source != null
+					&& atprotoActorTimestamp[EntityMetaKey.Selector] != null && '$actor' in atprotoActorTimestamp[EntityMetaKey.Selector]
+					&& atprotoActorTimestamp[EntityMetaKey.Selector].$actor != null && 'did' in atprotoActorTimestamp[EntityMetaKey.Selector].$actor
+					&& atprotoActorTimestamp[EntityMetaKey.Selector].$actor.did != null ?
+						resolve('/atproto/actor/[did=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(atprotoActorTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(atprotoActorTimestamp[EntityMetaKey.Selector].source ?? ''),
+					did: encodeURIComponent(String(atprotoActorTimestamp[EntityMetaKey.Selector].$actor.did ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((atprotoActorTimestampFields.displayName) ?? ''), String((atprotoActorTimestampFields.handle) ?? '')].filter(Boolean).join(' ') || [String((atprotoActorTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[(String((atprotoActorTimestampFields.followersCount) ?? '') ? String((atprotoActorTimestampFields.followersCount) ?? '') + ' followers' : ''), (String((atprotoActorTimestampFields.postsCount) ?? '') ? String((atprotoActorTimestampFields.postsCount) ?? '') + ' posts' : '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

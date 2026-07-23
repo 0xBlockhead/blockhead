@@ -105,6 +105,10 @@ export const coinsOrigin = 'https://coins.llama.fi' as const
 
 export const iconsOrigin = 'https://icons.llama.fi' as const
 
+export const apiOrigin = 'https://api.llama.fi' as const
+
+export const yieldsOrigin = 'https://yields.llama.fi' as const
+
 export const coinsBaseUrl = coinsOrigin
 
 /**
@@ -126,6 +130,14 @@ export const defillamaOrigins = [
 	},
 	{
 		origin: proOrigin,
+		corsEnabled: false,
+	},
+	{
+		origin: apiOrigin,
+		corsEnabled: false,
+	},
+	{
+		origin: yieldsOrigin,
 		corsEnabled: false,
 	},
 ] as const

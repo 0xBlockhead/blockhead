@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Radicle seed observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadRadicleSeedObservation_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadRadicleSeedObservation_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadRadicleSeedObservation_TimestampView from '$/views/BlockheadRadicleSeedObservation_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadRadicleSeedObservationTimestamps) => [...new Map(blockheadRadicleSeedObservationTimestamps.values.map((blockheadRadicleSeedObservationTimestamp) => [blockheadRadicleSeedObservationTimestamp[EntityMetaKey.SelectorKey], blockheadRadicleSeedObservationTimestamp])).values()]}
 	getKey={(blockheadRadicleSeedObservationTimestamp) => blockheadRadicleSeedObservationTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadRadicleSeedObservationTimestamp })}
 		{@const blockheadRadicleSeedObservationTimestampFields = { ...blockheadRadicleSeedObservationTimestamp[EntityMetaKey.Selector], ...blockheadRadicleSeedObservationTimestamp }}
-		{@const selection = select(EntityType.BlockheadRadicleSeedObservation_Timestamp, blockheadRadicleSeedObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadRadicleSeedObservation_TimestampView
-			selection={selection}
-			prefetched={blockheadRadicleSeedObservationTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadRadicleSeedObservation_Timestamp}
+			entitySelector={blockheadRadicleSeedObservationTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadRadicleSeedObservationTimestampFields.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle seed observation timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadRadicleSeedObservationTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{['radicle repository'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

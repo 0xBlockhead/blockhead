@@ -19,7 +19,7 @@ export const load: LayoutLoad = ({ params }) => {
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: Number(params.chainId),
+					reference: params.chainId,
 				},
 			},
 			id: params.poolId,

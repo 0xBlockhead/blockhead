@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Bittensor neurons',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BittensorNeuron>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BittensorNeuron>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BittensorNeuronView from '$/views/BittensorNeuronView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,10 +67,15 @@
 			sources: selection.sources,
 			fields: {
 				uid: true,
-				$subnet: true,
+				$subnet: {
+					fields: {
+						name: true,
+					},
+				},
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(bittensorNeurons) => [...new Map(bittensorNeurons.values.map((bittensorNeuron) => [bittensorNeuron[EntityMetaKey.SelectorKey], bittensorNeuron])).values()]}
 	getKey={(bittensorNeuron) => bittensorNeuron[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +90,20 @@
 
 	{#snippet Item({ item: bittensorNeuron })}
 		{@const bittensorNeuronFields = { ...bittensorNeuron[EntityMetaKey.Selector], ...bittensorNeuron }}
-		{@const selection = select(EntityType.BittensorNeuron, bittensorNeuron[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BittensorNeuronView
-			selection={selection}
-			prefetched={bittensorNeuronFields}
+		<EntityView
+			entityType={EntityType.BittensorNeuron}
+			entitySelector={bittensorNeuron[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((bittensorNeuronFields.uid) ?? '')].filter(Boolean).join(' ') || 'Bittensor neuron'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((bittensorNeuronFields.$subnet.name) ?? ''), String((bittensorNeuronFields.$subnet.netuid) ?? '')].filter(Boolean).join(' ') || 'Bittensor subnet'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

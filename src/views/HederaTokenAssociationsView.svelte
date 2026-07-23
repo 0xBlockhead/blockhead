@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hedera token associations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HederaTokenAssociation>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HederaTokenAssociation>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HederaTokenAssociationView from '$/views/HederaTokenAssociationView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,8 +65,13 @@
 	resource={
 		selection({
 			sources: selection.sources,
+			fields: {
+				$token: true,
+				$account: true,
+			},
 		})
 	}
+	{countResource}
 	getResourceItems={(hederaTokenAssociations) => [...new Map(hederaTokenAssociations.values.map((hederaTokenAssociation) => [hederaTokenAssociation[EntityMetaKey.SelectorKey], hederaTokenAssociation])).values()]}
 	getKey={(hederaTokenAssociation) => hederaTokenAssociation[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +86,20 @@
 
 	{#snippet Item({ item: hederaTokenAssociation })}
 		{@const hederaTokenAssociationFields = { ...hederaTokenAssociation[EntityMetaKey.Selector], ...hederaTokenAssociation }}
-		{@const selection = select(EntityType.HederaTokenAssociation, hederaTokenAssociation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HederaTokenAssociationView
-			selection={selection}
-			prefetched={hederaTokenAssociationFields}
+		<EntityView
+			entityType={EntityType.HederaTokenAssociation}
+			entitySelector={hederaTokenAssociation[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((hederaTokenAssociationFields.$token.tokenId) ?? '')].filter(Boolean).join(' ') || 'hedera token'].filter(Boolean).join(' ') || 'hedera token association'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((hederaTokenAssociationFields.$account.accountId) ?? '')].filter(Boolean).join(' ') || 'hedera account'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

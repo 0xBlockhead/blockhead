@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Shared addresses',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadSharedAddress>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadSharedAddress>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadSharedAddressView from '$/views/BlockheadSharedAddressView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadSharedAddresses) => [...new Map(blockheadSharedAddresses.values.map((blockheadSharedAddress) => [blockheadSharedAddress[EntityMetaKey.SelectorKey], blockheadSharedAddress])).values()]}
 	getKey={(blockheadSharedAddress) => blockheadSharedAddress[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: blockheadSharedAddress })}
 		{@const blockheadSharedAddressFields = { ...blockheadSharedAddress[EntityMetaKey.Selector], ...blockheadSharedAddress }}
-		{@const selection = select(EntityType.BlockheadSharedAddress, blockheadSharedAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadSharedAddressView
-			selection={selection}
-			prefetched={blockheadSharedAddressFields}
+		<EntityView
+			entityType={EntityType.BlockheadSharedAddress}
+			entitySelector={blockheadSharedAddress[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((blockheadSharedAddressFields.$account.address) ?? '')].filter(Boolean).join(' ') || 'EVM account'].filter(Boolean).join(' ') || 'blockhead shared address'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadSharedAddressFields.sharedAt) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

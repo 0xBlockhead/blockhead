@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FilecoinActor>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FilecoinActor>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FilecoinActor>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,11 +44,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const filecoinActor = $derived(selection({
+	const filecoinActor = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'filecoin actor')
-	const viewDomId = $derived('filecoin-actor-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('filecoin-actor-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,20 +69,35 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-			address: String(pendingEntity.address ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
-		}) : pendingEntity.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-			address: String(pendingEntity.address ?? ''),
-			network: String(pendingEntity.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'address' in selection.entitySelector
+			&& selection.entitySelector.address != null
+			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
+				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+				&& selection.entitySelector.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+				address: String(selection.entitySelector.address ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+					&& selection.entitySelector.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+					address: String(selection.entitySelector.address ?? ''),
+					network: String(selection.entitySelector.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{[String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={filecoinActor}>
@@ -97,21 +116,22 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection.$$timestamps({
-								sources: [
-									Source.Lotus_JsonRpc,
-								],
-								fields: {
-									height: true,
-									timestampMs: true,
-									balanceAttoFil: true,
-									source: true,
-								},
-								limit: 1,
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							})
+							selection
+								.$$timestamps({
+									sources: [
+										Source.Lotus_JsonRpc,
+									],
+									fields: {
+										height: true,
+										timestampMs: true,
+										balanceAttoFil: true,
+										source: true,
+									},
+									limit: 1,
+									orderBy: [
+										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
+									],
+								})
 						}
 					>
 						{#snippet children(filecoinActorTimestamps)}
@@ -127,19 +147,41 @@
 										})
 									}
 									href={
-										(filecoinActorTimestamp[EntityMetaKey.Selector].height !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].source !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
-											height: String(filecoinActorTimestamp[EntityMetaKey.Selector].height ?? ''),
-											tipsetKey: String(filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
-											source: String(filecoinActorTimestamp[EntityMetaKey.Selector].source ?? ''),
-											address: String(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address ?? ''),
-											network: String(caip2StringFromValue(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.caip2) ?? ''),
-										}) : filecoinActorTimestamp[EntityMetaKey.Selector].height !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].source !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network !== undefined && filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
-											height: String(filecoinActorTimestamp[EntityMetaKey.Selector].height ?? ''),
-											tipsetKey: String(filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
-											source: String(filecoinActorTimestamp[EntityMetaKey.Selector].source ?? ''),
-											address: String(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address ?? ''),
-											network: String(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.slug ?? ''),
-										}) : undefined)
+										(
+											filecoinActorTimestamp[EntityMetaKey.Selector] != null && 'height' in filecoinActorTimestamp[EntityMetaKey.Selector]
+											&& filecoinActorTimestamp[EntityMetaKey.Selector].height != null
+											&& filecoinActorTimestamp[EntityMetaKey.Selector] != null && 'tipsetKey' in filecoinActorTimestamp[EntityMetaKey.Selector]
+											&& filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey != null
+											&& filecoinActorTimestamp[EntityMetaKey.Selector] != null && 'source' in filecoinActorTimestamp[EntityMetaKey.Selector]
+											&& filecoinActorTimestamp[EntityMetaKey.Selector].source != null
+											&& filecoinActorTimestamp[EntityMetaKey.Selector] != null && '$actor' in filecoinActorTimestamp[EntityMetaKey.Selector]
+											&& filecoinActorTimestamp[EntityMetaKey.Selector].$actor != null && 'address' in filecoinActorTimestamp[EntityMetaKey.Selector].$actor
+											&& filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address != null
+											&& filecoinActorTimestamp[EntityMetaKey.Selector].$actor != null && '$network' in filecoinActorTimestamp[EntityMetaKey.Selector].$actor ?
+												filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network != null && 'caip2' in filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network
+												&& filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
+												height: String(filecoinActorTimestamp[EntityMetaKey.Selector].height ?? ''),
+												tipsetKey: String(filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
+												source: String(filecoinActorTimestamp[EntityMetaKey.Selector].source ?? ''),
+												address: String(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address ?? ''),
+												network: String(caip2StringFromValue(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.caip2) ?? ''),
+											})
+											:
+													filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network != null && 'slug' in filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network
+													&& filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
+													height: String(filecoinActorTimestamp[EntityMetaKey.Selector].height ?? ''),
+													tipsetKey: String(filecoinActorTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
+													source: String(filecoinActorTimestamp[EntityMetaKey.Selector].source ?? ''),
+													address: String(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.address ?? ''),
+													network: String(filecoinActorTimestamp[EntityMetaKey.Selector].$actor.$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									prefetched={{ ...filecoinActorTimestampSelector, ...filecoinActorTimestamp }}
 									layout={EntityLayout.Value}
@@ -159,13 +201,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -200,19 +252,25 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<FilecoinActor_TimestampsView
-				selection={
-						selection.$$timestamps({
-							sources: [
-								Source.Lotus_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Observations'
-				id='FilecoinActor_TimestampsView-timestamps'
-			/>
-		{/if}
+				{@const filecoinActorFilecoinActorTimestampsViewTimestampsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.Lotus_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={filecoinActorFilecoinActorTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<FilecoinActor_TimestampsView
+							selection={filecoinActorFilecoinActorTimestampsViewTimestampsResource}
+							countResource={filecoinActorFilecoinActorTimestampsViewTimestampsResource.count}
+							title='Observations'
+							id='FilecoinActor_TimestampsView-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

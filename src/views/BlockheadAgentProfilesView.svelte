@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead agent profiles',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadAgentProfile>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadAgentProfile>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadAgentProfileView from '$/views/BlockheadAgentProfileView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadAgentProfiles) => [...new Map(blockheadAgentProfiles.values.map((blockheadAgentProfile) => [blockheadAgentProfile[EntityMetaKey.SelectorKey], blockheadAgentProfile])).values()]}
 	getKey={(blockheadAgentProfile) => blockheadAgentProfile[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: blockheadAgentProfile })}
 		{@const blockheadAgentProfileFields = { ...blockheadAgentProfile[EntityMetaKey.Selector], ...blockheadAgentProfile }}
-		{@const selection = select(EntityType.BlockheadAgentProfile, blockheadAgentProfile[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadAgentProfileView
-			selection={selection}
-			prefetched={blockheadAgentProfileFields}
+		<EntityView
+			entityType={EntityType.BlockheadAgentProfile}
+			entitySelector={blockheadAgentProfile[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadAgentProfileFields.label) ?? '')].filter(Boolean).join(' ') || [String((blockheadAgentProfileFields.profileId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent profile'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((blockheadAgentProfileFields.$model.label) ?? '')].filter(Boolean).join(' ') || [String((blockheadAgentProfileFields.$model.providerModelId) ?? '')].filter(Boolean).join(' ') || 'AI model'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadAgentProfileFields.updatedAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Rooms',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadRoom>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadRoom>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadRoomView from '$/views/BlockheadRoomView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadRooms) => [...new Map(blockheadRooms.values.map((blockheadRoom) => [blockheadRoom[EntityMetaKey.SelectorKey], blockheadRoom])).values()]}
 	getKey={(blockheadRoom) => blockheadRoom[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,18 +88,31 @@
 
 	{#snippet Item({ item: blockheadRoom })}
 		{@const blockheadRoomFields = { ...blockheadRoom[EntityMetaKey.Selector], ...blockheadRoom }}
-		{@const selection = select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const blockheadRoomHrefFields = { ...blockheadRoom, ...blockheadRoom[EntityMetaKey.Selector] }}
-		<BlockheadRoomView
-			selection={selection}
-			prefetched={blockheadRoomFields}
+		<EntityView
+			entityType={EntityType.BlockheadRoom}
+			entitySelector={blockheadRoom[EntityMetaKey.Selector]}
 			href={
-				(blockheadRoomHrefFields.id !== undefined ? resolve('/~/multiplayer/room/[roomId=stringSegment]', {
-					roomId: String(blockheadRoomHrefFields.id ?? ''),
-				}) : undefined)
+				(
+					blockheadRoom[EntityMetaKey.Selector] != null && 'id' in blockheadRoom[EntityMetaKey.Selector]
+					&& blockheadRoom[EntityMetaKey.Selector].id != null ?
+						resolve('/~/multiplayer/room/[roomId=stringSegment]', {
+					roomId: String(blockheadRoom[EntityMetaKey.Selector].id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadRoomFields.name) ?? '')].filter(Boolean).join(' ') || [String((blockheadRoomFields.id) ?? '')].filter(Boolean).join(' ') || 'room'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadRoomFields.createdAt) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

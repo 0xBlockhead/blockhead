@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.XUser>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XUser>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XUser>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xUser = $derived(selection({
+	const xUser = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			name: true,
+			createdAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			name: true,
@@ -54,7 +61,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'X user')
-	const viewDomId = $derived('xuser-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('xuser-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,9 +80,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.id !== undefined ? resolve('/x/user/[userId=stringSegment]', {
-			userId: String(pendingEntity.id ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'id' in selection.entitySelector
+			&& selection.entitySelector.id != null ?
+				resolve('/x/user/[userId=stringSegment]', {
+			userId: String(selection.entitySelector.id ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -86,7 +99,7 @@
 		<ResourceBoundary resource={xUser}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference?.[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -99,52 +112,35 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.name) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={xUser}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={xUser}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[(String((pendingEntity.username) ?? '') ? '@' + String((pendingEntity.username) ?? '') : ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={xUser}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[(String((resolvedEntity.username) ?? '') ? '@' + String((resolvedEntity.username) ?? '') : ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={xUser}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[(String((resolvedEntity.username) ?? '') ? '@' + String((resolvedEntity.username) ?? '') : ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const createdAt0 = pendingEntity.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={xUser}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt0 = resolvedEntity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={xUser}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const createdAt0 = resolvedEntity.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -307,37 +303,47 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<XPostsView
-				selection={
-						selection.$$posts({
-							sources: [
-								Source.X_Rest,
-								Source.X_FxEmbed_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Posts'
-				href={resolve('/x/posts')}
-				emptyText='No X posts here yet.'
-				id='XPostsView-posts'
-			/>
-
-			<XUser_TimestampsView
-				selection={
-						selection.$$timestamps({
-							sources: [
-								Source.X_Rest,
-								Source.X_FxEmbed_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Observations'
-				emptyText='No X user observations yet.'
-				id='XUser_TimestampsView-timestamps'
-			/>
-		{/if}
+				{@const xUserXPostsViewPostsResource = selection
+		.$$posts({
+			sources: [
+				Source.X_Rest,
+				Source.X_FxEmbed_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={xUserXPostsViewPostsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<XPostsView
+							selection={xUserXPostsViewPostsResource}
+							countResource={xUserXPostsViewPostsResource.count}
+							title='Posts'
+							id='XPostsView-posts'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const xUserXUserTimestampsViewTimestampsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.X_Rest,
+				Source.X_FxEmbed_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={xUserXUserTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<XUser_TimestampsView
+							selection={xUserXUserTimestampsViewTimestampsResource}
+							countResource={xUserXUserTimestampsViewTimestampsResource.count}
+							title='Observations'
+							id='XUser_TimestampsView-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

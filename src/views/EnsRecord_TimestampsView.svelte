@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ENS record observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EnsRecord_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EnsRecord_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EnsRecord_TimestampView from '$/views/EnsRecord_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,12 +67,17 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				$record: true,
+				$record: {
+					fields: {
+						$name: true,
+					},
+				},
 				timestampMs: true,
 				source: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(ensRecordTimestamps) => [...new Map(ensRecordTimestamps.values.map((ensRecordTimestamp) => [ensRecordTimestamp[EntityMetaKey.SelectorKey], ensRecordTimestamp])).values()]}
 	getKey={(ensRecordTimestamp) => ensRecordTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,21 +92,42 @@
 
 	{#snippet Item({ item: ensRecordTimestamp })}
 		{@const ensRecordTimestampFields = { ...ensRecordTimestamp[EntityMetaKey.Selector], ...ensRecordTimestamp }}
-		{@const selection = select(EntityType.EnsRecord_Timestamp, ensRecordTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const ensRecordTimestampHrefFields = { ...ensRecordTimestamp, ...ensRecordTimestamp[EntityMetaKey.Selector] }}
-		<EnsRecord_TimestampView
-			selection={selection}
-			prefetched={ensRecordTimestampFields}
+		<EntityView
+			entityType={EntityType.EnsRecord_Timestamp}
+			entitySelector={ensRecordTimestamp[EntityMetaKey.Selector]}
 			href={
-				(ensRecordTimestampHrefFields.timestampMs !== undefined && ensRecordTimestampHrefFields.source !== undefined && ensRecordTimestampHrefFields.$record !== undefined && ensRecordTimestampHrefFields.$record.$name !== undefined && ensRecordTimestampHrefFields.$record.$name.name !== undefined && ensRecordTimestampHrefFields.$record.recordKey !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(ensRecordTimestampHrefFields.timestampMs ?? ''),
-					source: String(ensRecordTimestampHrefFields.source ?? ''),
-					ensName: encodeURIComponent(String(ensRecordTimestampHrefFields.$record.$name.name ?? '')),
-					recordId: encodeURIComponent(String(ensRecordTimestampHrefFields.$record.recordKey ?? '')),
-				}) : undefined)
+				(
+					ensRecordTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in ensRecordTimestamp[EntityMetaKey.Selector]
+					&& ensRecordTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& ensRecordTimestamp[EntityMetaKey.Selector] != null && 'source' in ensRecordTimestamp[EntityMetaKey.Selector]
+					&& ensRecordTimestamp[EntityMetaKey.Selector].source != null
+					&& ensRecordTimestamp[EntityMetaKey.Selector] != null && '$record' in ensRecordTimestamp[EntityMetaKey.Selector]
+					&& ensRecordTimestamp[EntityMetaKey.Selector].$record != null && '$name' in ensRecordTimestamp[EntityMetaKey.Selector].$record
+					&& ensRecordTimestamp[EntityMetaKey.Selector].$record.$name != null && 'name' in ensRecordTimestamp[EntityMetaKey.Selector].$record.$name
+					&& ensRecordTimestamp[EntityMetaKey.Selector].$record.$name.name != null
+					&& ensRecordTimestamp[EntityMetaKey.Selector].$record != null && 'recordKey' in ensRecordTimestamp[EntityMetaKey.Selector].$record
+					&& ensRecordTimestamp[EntityMetaKey.Selector].$record.recordKey != null ?
+						resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(ensRecordTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(ensRecordTimestamp[EntityMetaKey.Selector].source ?? ''),
+					ensName: encodeURIComponent(String(ensRecordTimestamp[EntityMetaKey.Selector].$record.$name.name ?? '')),
+					recordId: encodeURIComponent(String(ensRecordTimestamp[EntityMetaKey.Selector].$record.recordKey ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((ensRecordTimestampFields.$record.recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record'].filter(Boolean).join(' ') || 'ENS record observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((ensRecordTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

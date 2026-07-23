@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Kaspa networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.KaspaNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.KaspaNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,6 +70,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(kaspaNetworks) => [...new Map(kaspaNetworks.values.map((kaspaNetwork) => [kaspaNetwork[EntityMetaKey.SelectorKey], kaspaNetwork])).values()]}
 	getKey={(kaspaNetwork) => kaspaNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -91,12 +85,16 @@
 
 	{#snippet Item({ item: kaspaNetwork })}
 		{@const kaspaNetworkFields = { ...kaspaNetwork[EntityMetaKey.Selector], ...kaspaNetwork }}
-		{@const selection = select(EntityType.KaspaNetwork, kaspaNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<KaspaNetworkView
-			selection={selection}
-			prefetched={kaspaNetworkFields}
+		<EntityView
+			entityType={EntityType.KaspaNetwork}
+			entitySelector={kaspaNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((kaspaNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [kaspaNetworkFields.$network.caip2 == null ? '' : String(`${(kaspaNetworkFields.$network.caip2).namespace}:${(kaspaNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'kaspa network'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

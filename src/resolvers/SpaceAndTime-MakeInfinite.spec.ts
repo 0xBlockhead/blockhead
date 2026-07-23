@@ -1,4 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
 
 import authFailure from '$/sources/SpaceAndTime/MakeInfinite/fixtures/auth-failure.json'
 import completedDay from '$/sources/SpaceAndTime/MakeInfinite/fixtures/completed-day.json'
@@ -6,6 +13,12 @@ import empty from '$/sources/SpaceAndTime/MakeInfinite/fixtures/empty.json'
 import incompleteDay from '$/sources/SpaceAndTime/MakeInfinite/fixtures/incomplete-day.json'
 import staleCursor from '$/sources/SpaceAndTime/MakeInfinite/fixtures/stale-cursor.json'
 import unsupportedTable from '$/sources/SpaceAndTime/MakeInfinite/fixtures/unsupported-table.json'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -27,7 +40,11 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 }))
 
 const { getActivityDay } = await import('$/sources/SpaceAndTime/MakeInfinite/queries.ts')
-const { resolveNetworkActivityDay } = await import('$/resolvers/SpaceAndTime-MakeInfinite.ts')
+const {
+	default: spaceAndTimeMakeInfiniteResolvers,
+	resolveNetworkActivityDay,
+} = await import('$/resolvers/SpaceAndTime-MakeInfinite.ts')
+const networkActivityDaysResolver = spaceAndTimeMakeInfiniteResolvers.resolvers[0]
 
 const binding = {
 	provider: Provider.A2a,
@@ -71,6 +88,10 @@ const completedDayNowMs = Date.parse('2026-07-16T12:00:00.000Z')
 describe('MakeInfinite source and resolver slice', () => {
 	beforeEach(() => {
 		vi.resetAllMocks()
+	})
+
+	afterEach(() => {
+		vi.restoreAllMocks()
 	})
 
 	it('completed UTC day aggregate', async () => {
@@ -119,6 +140,33 @@ describe('MakeInfinite source and resolver slice', () => {
 		})
 	})
 
+	it('materializes the latest completed day once as a fully prefetched parent row', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json(completedDay))
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(completedDayNowMs)
+
+		const activityDays = await networkActivityDaysResolver.resolve[
+			NetworkSelector.Caip2
+		].resolve(network)
+		expect(activityDays).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				dayStartTimestampMs: completedDayStartTimestampMs,
+				source: Source.SpaceAndTime_MakeInfinite,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'blockCount')]: 12345,
+				[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'transactionCount')]: 67890,
+				[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'endBlockNumber')]: 22900000,
+				[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'indexedThroughTimestampMs')]: Date.parse('2026-07-16T00:03:11.000Z'),
+				[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'resolvedAtMs')]: completedDayNowMs,
+				[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'trustModel')]: 'OptimisticProviderResult',
+			},
+		}])
+		expect(networkActivityDaysResolver.projections.Evm.$$activityDays(activityDays)).toBe(activityDays)
+		expect(sourceFetch).toHaveBeenCalledTimes(1)
+		dateNow.mockRestore()
+	})
+
 	it('excludes incomplete UTC day', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(incompleteDay))
 
@@ -142,6 +190,29 @@ describe('MakeInfinite source and resolver slice', () => {
 		})).resolves.toBeUndefined()
 	})
 
+	it('resolves an empty completed day as zero parent rows', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json(empty))
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(completedDayNowMs)
+
+		await expect(networkActivityDaysResolver.resolve[
+			NetworkSelector.Caip2
+		].resolve(network)).resolves.toEqual([])
+		expect(sourceFetch).toHaveBeenCalledTimes(1)
+		dateNow.mockRestore()
+	})
+
+	it('rejects non-Ethereum-mainnet parents before provider I/O', async () => {
+		await expect(networkActivityDaysResolver.resolve[
+			NetworkSelector.Caip2
+		].resolve({
+			caip2: {
+				namespace: 'eip155',
+				reference: '10',
+			},
+		})).rejects.toThrow('unsupported network eip155:10')
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
 	it('authentication failure', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(authFailure, { status: 401 }))
 
@@ -149,6 +220,16 @@ describe('MakeInfinite source and resolver slice', () => {
 			binding,
 			dayStartTimestampMs: completedDayStartTimestampMs,
 		})).rejects.toThrow('MakeInfinite SQL')
+	})
+
+	it('preserves parent authentication failures for the resource boundary', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json(authFailure, { status: 401 }))
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(completedDayNowMs)
+
+		await expect(networkActivityDaysResolver.resolve[
+			NetworkSelector.Caip2
+		].resolve(network)).rejects.toThrow('MakeInfinite SQL')
+		dateNow.mockRestore()
 	})
 
 	it('stale indexed cursor', async () => {
@@ -160,6 +241,16 @@ describe('MakeInfinite source and resolver slice', () => {
 			dayStartTimestampMs: completedDayStartTimestampMs,
 			nowMs: completedDayNowMs,
 		})).rejects.toThrow('stale indexed cursor')
+	})
+
+	it('preserves stale parent results as failures rather than partial rows', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json(staleCursor))
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(completedDayNowMs)
+
+		await expect(networkActivityDaysResolver.resolve[
+			NetworkSelector.Caip2
+		].resolve(network)).rejects.toThrow('stale indexed cursor')
+		dateNow.mockRestore()
 	})
 
 	it('unsupported table', async () => {

@@ -44,14 +44,14 @@
 				}
 				title='Mempool'
 				selection={
-					projection.$$txpoolTimestamps({
-						sources: [
-							Source.Voltaire_JsonRpc,
-						],
-						count: true,
-					})
+					projection
+						.$$txpoolTimestamps({
+							sources: [
+								Source.Voltaire_JsonRpc,
+							],
+						})
 				}
-				id='txpool-timestamps'
+				id='account-evm-network-txpool-timestamp'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

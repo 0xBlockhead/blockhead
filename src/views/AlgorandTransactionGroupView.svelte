@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AlgorandTransactionGroup>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AlgorandTransactionGroup>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AlgorandTransactionGroup>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandTransactionGroup = $derived(selection({
+	const algorandTransactionGroup = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('algorand transaction group')
-	const viewDomId = $derived('algorand-transaction-group-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'algorand transaction group'
+	const viewDomId = $derived('algorand-transaction-group-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,12 +70,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={algorandTransactionGroup}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -84,7 +87,7 @@
 				<dt>network</dt>
 				<dd>
 					<AlgorandNetworkView
-						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -118,17 +121,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AlgorandTransactionsView
-				selection={
-						selection.$$transactions({
-							count: true,
-						})
-					}
-				title='transactions'
-				emptyText='No Algorand transactions.'
-				id='AlgorandTransactionsView-transactions'
-			/>
-		{/if}
+		{@const algorandTransactionGroupAlgorandTransactionsViewTransactionsResource = selection.$$transactions}
+		<ResourceBoundary
+			resource={algorandTransactionGroupAlgorandTransactionsViewTransactionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AlgorandTransactionsView
+					selection={algorandTransactionGroupAlgorandTransactionsViewTransactionsResource}
+					countResource={algorandTransactionGroupAlgorandTransactionsViewTransactionsResource.count}
+					title='transactions'
+					id='AlgorandTransactionsView-transactions'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

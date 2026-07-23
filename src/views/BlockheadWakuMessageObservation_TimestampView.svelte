@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadWakuMessageObservation_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadWakuMessageObservation_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadWakuMessageObservation_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadWakuMessageObservationTimestamp = $derived(selection({
+	const blockheadWakuMessageObservationTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			contentTopic: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			contentTopic: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.messageHash) ?? '')].filter(Boolean).join(' ') || 'blockhead waku message observation timestamp')
-	const viewDomId = $derived('blockhead-waku-message-observation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-waku-message-observation-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,7 +77,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentTopic')}
 			{[String((pendingEntity.messageHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadWakuMessageObservationTimestamp}>
@@ -84,11 +90,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentTopic')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadWakuMessageObservationTimestamp}>
 				{#snippet children(entity)}
@@ -103,7 +109,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentTopic')}
 			{@const contentTopic0 = pendingEntity.contentTopic}
 			{#if contentTopic0 !== undefined && contentTopic0 !== null}
 				<span data-text="muted">
@@ -131,7 +137,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadWakuNodeStateView
-						selection={select(EntityType.BlockheadWakuNodeState, selection.entitySelector.$nodeState, {})}
+						selection={select(EntityType.BlockheadWakuNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

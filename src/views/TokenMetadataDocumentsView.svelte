@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Token metadata',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TokenMetadataDocument>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TokenMetadataDocument>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TokenMetadataDocumentView from '$/views/TokenMetadataDocumentView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(tokenMetadataDocuments) => [...new Map(tokenMetadataDocuments.values.map((tokenMetadataDocument) => [tokenMetadataDocument[EntityMetaKey.SelectorKey], tokenMetadataDocument])).values()]}
 	getKey={(tokenMetadataDocument) => tokenMetadataDocument[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,12 +91,24 @@
 
 	{#snippet Item({ item: tokenMetadataDocument })}
 		{@const tokenMetadataDocumentFields = { ...tokenMetadataDocument[EntityMetaKey.Selector], ...tokenMetadataDocument }}
-		{@const selection = select(EntityType.TokenMetadataDocument, tokenMetadataDocument[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TokenMetadataDocumentView
-			selection={selection}
-			prefetched={tokenMetadataDocumentFields}
+		<EntityView
+			entityType={EntityType.TokenMetadataDocument}
+			entitySelector={tokenMetadataDocument[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((tokenMetadataDocumentFields.name) ?? ''), String((tokenMetadataDocumentFields.symbol) ?? ''), String((tokenMetadataDocumentFields.metadataKey) ?? '')].filter(Boolean).join(' ') || 'token metadata document'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((tokenMetadataDocumentFields.metadataStandard) ?? ''), String((tokenMetadataDocumentFields.source) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((tokenMetadataDocumentFields.timestampMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

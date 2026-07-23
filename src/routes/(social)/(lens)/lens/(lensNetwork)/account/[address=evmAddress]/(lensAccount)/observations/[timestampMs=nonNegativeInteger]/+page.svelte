@@ -31,7 +31,6 @@
 			followingCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'Lens account observation' : 'Lens account observation'))
 
 
 	// Components
@@ -41,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Lens account observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'Lens account observation' : 'Lens account observation')} • Lens account observation • Blockhead</title>
 </svelte:head>
 
 

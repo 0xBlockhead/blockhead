@@ -84,20 +84,30 @@ export default {
 							getSubnetsInfo,
 							getSystemHealth,
 						} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
+						const finalizedBlockHash = await getFinalizedHead({
+							rpcUrl: getMainnetRpcUrl,
+						})
 						const [
-							finalizedBlockHash,
 							runtimeVersion,
 							systemHealth,
 							subnetsInfo,
 							dynamicInfo,
 							metagraphs,
 						] = await Promise.all([
-							getFinalizedHead({ rpcUrl: getMainnetRpcUrl }),
 							getRuntimeVersion({ rpcUrl: getMainnetRpcUrl }),
 							getSystemHealth({ rpcUrl: getMainnetRpcUrl }),
-							getSubnetsInfo({ rpcUrl: getMainnetRpcUrl }),
-							getAllDynamicInfo({ rpcUrl: getMainnetRpcUrl }),
-							getAllMetagraphs({ rpcUrl: getMainnetRpcUrl }),
+							getSubnetsInfo({
+								rpcUrl: getMainnetRpcUrl,
+								blockHash: finalizedBlockHash,
+							}),
+							getAllDynamicInfo({
+								rpcUrl: getMainnetRpcUrl,
+								blockHash: finalizedBlockHash,
+							}),
+							getAllMetagraphs({
+								rpcUrl: getMainnetRpcUrl,
+								blockHash: finalizedBlockHash,
+							}),
 						])
 						return {
 							finalizedBlockHash,

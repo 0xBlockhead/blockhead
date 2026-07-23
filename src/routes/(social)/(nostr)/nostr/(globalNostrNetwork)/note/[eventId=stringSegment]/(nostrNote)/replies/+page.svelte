@@ -39,13 +39,22 @@
 		}
 		title='Note replies'
 		selection={
-			select(EntityType.NostrNote, data.selector).$$replies({
-				sources: [
-					Source.Constants_Internal,
-					Source.NostrBand_Rest,
-				],
-				count: true,
-			})
+			select(EntityType.NostrNote, data.selector)
+				.$$replies({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.NostrNote, data.selector)
+				.$$replies({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				}).count
 		}
 		id='replies'
 		data-column-item="flexible"

@@ -1,14 +1,17 @@
 export const resolverAccountabilityReport = ({
 	entityTypes,
 	entityTypesWithResolver,
+	entityTypesWithMaterializer = new Set(),
 	sourceBackedEntityTypes,
 }: {
 	entityTypes: readonly string[]
 	entityTypesWithResolver: ReadonlySet<string>
+	entityTypesWithMaterializer?: ReadonlySet<string>
 	sourceBackedEntityTypes: ReadonlySet<string>
 }) => {
 	const unresolvedEntityTypes = entityTypes.filter((entityType) => (
 		!entityTypesWithResolver.has(entityType)
+		&& !entityTypesWithMaterializer.has(entityType)
 	))
 	const unresolvedSourceBackedEntityTypes = unresolvedEntityTypes.filter((entityType) => (
 		sourceBackedEntityTypes.has(entityType)

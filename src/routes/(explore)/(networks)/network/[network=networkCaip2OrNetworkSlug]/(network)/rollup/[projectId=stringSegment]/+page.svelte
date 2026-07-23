@@ -26,7 +26,6 @@
 			$settlementNetwork: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? ''), String((pageSelection.entitySelector.projectId) ?? '')].filter(Boolean).join(' ') || 'EVM rollup' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).projectId) ?? '')].filter(Boolean).join(' ') || 'EVM rollup')))
 
 
 	// Components
@@ -36,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM rollup • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.projectId) ?? '')].filter(Boolean).join(' ') || 'EVM rollup' : [String((({ ...data.selector, ...pageSelection.entity }).name) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).projectId) ?? '')].filter(Boolean).join(' ') || 'EVM rollup'))} • EVM rollup • Blockhead</title>
 </svelte:head>
 
 

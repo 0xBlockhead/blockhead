@@ -1,5 +1,11 @@
 import { expect, test, vi } from 'vitest'
 
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceDelivery,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
+
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
@@ -18,7 +24,12 @@ test('uses the registered HttpProxy binding', async () => {
 	})
 	expect(sourceGetJson).toHaveBeenCalledWith(
 		expect.objectContaining({
-			proxyId: 'Rss2Json_Rest-273',
+			source: Source.Rss2Json_Rest,
+			target: {
+				kind: SourceTargetKind.Global,
+				key: 'rss2json',
+			},
+			delivery: SourceDelivery.HttpProxy,
 		}),
 		'https://api.rss2json.com/v1/api.json?rss_url=fixture'
 	)

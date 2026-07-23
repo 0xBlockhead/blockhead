@@ -24,7 +24,6 @@
 		type SvelteKitResource,
 	} from '$/lib/db/queryResource.svelte.ts'
 
-
 	// State
 	let {
 		children,

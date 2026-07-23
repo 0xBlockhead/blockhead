@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'global agent network observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalAgentNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalAgentNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalAgentNetwork_TimestampView from '$/views/_GlobalAgentNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalAgentNetworkTimestamps) => [...new Map(globalAgentNetworkTimestamps.values.map((globalAgentNetworkTimestamp) => [globalAgentNetworkTimestamp[EntityMetaKey.SelectorKey], globalAgentNetworkTimestamp])).values()]}
 	getKey={(globalAgentNetworkTimestamp) => globalAgentNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: globalAgentNetworkTimestamp })}
 		{@const globalAgentNetworkTimestampFields = { ...globalAgentNetworkTimestamp[EntityMetaKey.Selector], ...globalAgentNetworkTimestamp }}
-		{@const selection = select(EntityType._GlobalAgentNetwork_Timestamp, globalAgentNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<GlobalAgentNetwork_TimestampView
-			selection={selection}
-			prefetched={globalAgentNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType._GlobalAgentNetwork_Timestamp}
+			entitySelector={globalAgentNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((globalAgentNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global agent network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((globalAgentNetworkTimestampFields.status) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((globalAgentNetworkTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

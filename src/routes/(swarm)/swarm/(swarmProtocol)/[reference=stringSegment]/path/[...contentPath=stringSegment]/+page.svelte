@@ -40,7 +40,6 @@
 			text: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.canonicalUri) ?? '')].filter(Boolean).join(' ') || 'Swarm resource' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).canonicalUri) ?? '')].filter(Boolean).join(' ') || 'Swarm resource'))
 
 
 	// Components
@@ -50,7 +49,10 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Swarm resource • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'Swarm resource' : [String((({ ...{
+		reference: swarmResourceReferenceFromRouteParam(params.reference),
+		contentPath: swarmResourceContentPathFromRouteParam(params.contentPath),
+	}, ...pageSelection.entity }).canonicalUri) ?? '')].filter(Boolean).join(' ') || 'Swarm resource')} • Swarm resource • Blockhead</title>
 </svelte:head>
 
 

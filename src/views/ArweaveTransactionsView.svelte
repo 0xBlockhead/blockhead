@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Arweave transactions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ArweaveTransaction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ArweaveTransaction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ArweaveTransactionView from '$/views/ArweaveTransactionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(arweaveTransactions) => [...new Map(arweaveTransactions.values.map((arweaveTransaction) => [arweaveTransaction[EntityMetaKey.SelectorKey], arweaveTransaction])).values()]}
 	getKey={(arweaveTransaction) => arweaveTransaction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: arweaveTransaction })}
 		{@const arweaveTransactionFields = { ...arweaveTransaction[EntityMetaKey.Selector], ...arweaveTransaction }}
-		{@const selection = select(EntityType.ArweaveTransaction, arweaveTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ArweaveTransactionView
-			selection={selection}
-			prefetched={arweaveTransactionFields}
+		<EntityView
+			entityType={EntityType.ArweaveTransaction}
+			entitySelector={arweaveTransaction[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((arweaveTransactionFields.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave transaction'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((arweaveTransactionFields.quantityWinston) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((arweaveTransactionFields.$block.height) ?? '')].filter(Boolean).join(' ') || [String((arweaveTransactionFields.$block.indepHash) ?? '')].filter(Boolean).join(' ') || 'arweave block', [String((arweaveTransactionFields.$resource.canonicalUri) ?? '')].filter(Boolean).join(' ') || [String((arweaveTransactionFields.$resource.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave resource'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

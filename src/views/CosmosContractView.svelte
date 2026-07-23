@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CosmosContract>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CosmosContract>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CosmosContract>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cosmosContract = $derived(selection({
+	const cosmosContract = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			codeId: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			codeId: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'Cosmos contract')
-	const viewDomId = $derived('cosmos-contract-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('cosmos-contract-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,11 +77,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const address0 = pendingEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'codeId')}
+			{@const address0 = pendingEntity.address}
+			{#if address0 !== undefined && address0 !== null}
+				<TruncatedValue value={String((address0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={cosmosContract}>
 				{#snippet children(entity)}
@@ -90,11 +96,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const address0 = pendingEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'codeId')}
+			{@const address0 = pendingEntity.address}
+			{#if address0 !== undefined && address0 !== null}
+				<TruncatedValue value={String((address0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={cosmosContract}>
 				{#snippet children(entity)}
@@ -109,7 +115,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'codeId')}
 			{@const codeId0 = pendingEntity.codeId}
 			{#if codeId0 !== undefined && codeId0 !== null}
 				<span data-text="muted">
@@ -193,13 +199,28 @@
 									selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
 									prefetched={cosmosAccount}
 									href={
-										(cosmosAccount[EntityMetaKey.Selector].address !== undefined && cosmosAccount[EntityMetaKey.Selector].$network !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-											accountId: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
-											network: String(caip2StringFromValue(cosmosAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : cosmosAccount[EntityMetaKey.Selector].address !== undefined && cosmosAccount[EntityMetaKey.Selector].$network !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-											accountId: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
-											network: String(cosmosAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											cosmosAccount[EntityMetaKey.Selector] != null && 'address' in cosmosAccount[EntityMetaKey.Selector]
+											&& cosmosAccount[EntityMetaKey.Selector].address != null
+											&& cosmosAccount[EntityMetaKey.Selector] != null && '$network' in cosmosAccount[EntityMetaKey.Selector] ?
+												cosmosAccount[EntityMetaKey.Selector].$network != null && 'caip2' in cosmosAccount[EntityMetaKey.Selector].$network
+												&& cosmosAccount[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+												accountId: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
+												network: String(caip2StringFromValue(cosmosAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													cosmosAccount[EntityMetaKey.Selector].$network != null && 'slug' in cosmosAccount[EntityMetaKey.Selector].$network
+													&& cosmosAccount[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+													accountId: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
+													network: String(cosmosAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -222,13 +243,28 @@
 									selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
 									prefetched={cosmosAccount}
 									href={
-										(cosmosAccount[EntityMetaKey.Selector].address !== undefined && cosmosAccount[EntityMetaKey.Selector].$network !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-											accountId: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
-											network: String(caip2StringFromValue(cosmosAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : cosmosAccount[EntityMetaKey.Selector].address !== undefined && cosmosAccount[EntityMetaKey.Selector].$network !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-											accountId: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
-											network: String(cosmosAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											cosmosAccount[EntityMetaKey.Selector] != null && 'address' in cosmosAccount[EntityMetaKey.Selector]
+											&& cosmosAccount[EntityMetaKey.Selector].address != null
+											&& cosmosAccount[EntityMetaKey.Selector] != null && '$network' in cosmosAccount[EntityMetaKey.Selector] ?
+												cosmosAccount[EntityMetaKey.Selector].$network != null && 'caip2' in cosmosAccount[EntityMetaKey.Selector].$network
+												&& cosmosAccount[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+												accountId: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
+												network: String(caip2StringFromValue(cosmosAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													cosmosAccount[EntityMetaKey.Selector].$network != null && 'slug' in cosmosAccount[EntityMetaKey.Selector].$network
+													&& cosmosAccount[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+													accountId: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
+													network: String(cosmosAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -243,13 +279,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

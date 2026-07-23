@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Allowances',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmActorCoinAllowance>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmActorCoinAllowance>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmActorCoinAllowanceView from '$/views/EvmActorCoinAllowanceView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmActorCoinAllowances) => [...new Map(evmActorCoinAllowances.values.map((evmActorCoinAllowance) => [evmActorCoinAllowance[EntityMetaKey.SelectorKey], evmActorCoinAllowance])).values()]}
 	getKey={(evmActorCoinAllowance) => evmActorCoinAllowance[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,21 +88,45 @@
 
 	{#snippet Item({ item: evmActorCoinAllowance })}
 		{@const evmActorCoinAllowanceFields = { ...evmActorCoinAllowance[EntityMetaKey.Selector], ...evmActorCoinAllowance }}
-		{@const selection = select(EntityType.EvmActorCoinAllowance, evmActorCoinAllowance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmActorCoinAllowanceHrefFields = { ...evmActorCoinAllowance, ...evmActorCoinAllowance[EntityMetaKey.Selector] }}
-		<EvmActorCoinAllowanceView
-			selection={selection}
-			prefetched={evmActorCoinAllowanceFields}
+		<EntityView
+			entityType={EntityType.EvmActorCoinAllowance}
+			entitySelector={evmActorCoinAllowance[EntityMetaKey.Selector]}
 			href={
-				(evmActorCoinAllowanceHrefFields.$actor !== undefined && evmActorCoinAllowanceHrefFields.$actor.address !== undefined && evmActorCoinAllowanceHrefFields.$contract !== undefined && evmActorCoinAllowanceHrefFields.$contract.$network !== undefined && evmActorCoinAllowanceHrefFields.$contract.$network.caip2 !== undefined && evmActorCoinAllowanceHrefFields.$contract.$network.caip2.reference !== undefined && evmActorCoinAllowanceHrefFields.$contract.address !== undefined && evmActorCoinAllowanceHrefFields.$spender !== undefined && evmActorCoinAllowanceHrefFields.$spender.address !== undefined ? resolve('/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]', {
-					owner: String(evmActorCoinAllowanceHrefFields.$actor.address ?? ''),
-					chainId: String(evmActorCoinAllowanceHrefFields.$contract.$network.caip2.reference ?? ''),
-					coin: String(evmActorCoinAllowanceHrefFields.$contract.address ?? ''),
-					spender: String(evmActorCoinAllowanceHrefFields.$spender.address ?? ''),
-				}) : undefined)
+				(
+					evmActorCoinAllowance[EntityMetaKey.Selector] != null && '$actor' in evmActorCoinAllowance[EntityMetaKey.Selector]
+					&& evmActorCoinAllowance[EntityMetaKey.Selector].$actor != null && 'address' in evmActorCoinAllowance[EntityMetaKey.Selector].$actor
+					&& evmActorCoinAllowance[EntityMetaKey.Selector].$actor.address != null
+					&& evmActorCoinAllowance[EntityMetaKey.Selector] != null && '$contract' in evmActorCoinAllowance[EntityMetaKey.Selector]
+					&& evmActorCoinAllowance[EntityMetaKey.Selector].$contract != null && '$network' in evmActorCoinAllowance[EntityMetaKey.Selector].$contract
+					&& evmActorCoinAllowance[EntityMetaKey.Selector].$contract.$network != null && 'caip2' in evmActorCoinAllowance[EntityMetaKey.Selector].$contract.$network
+					&& evmActorCoinAllowance[EntityMetaKey.Selector].$contract.$network.caip2 != null && 'reference' in evmActorCoinAllowance[EntityMetaKey.Selector].$contract.$network.caip2
+					&& evmActorCoinAllowance[EntityMetaKey.Selector].$contract.$network.caip2.reference != null
+					&& evmActorCoinAllowance[EntityMetaKey.Selector].$contract != null && 'address' in evmActorCoinAllowance[EntityMetaKey.Selector].$contract
+					&& evmActorCoinAllowance[EntityMetaKey.Selector].$contract.address != null
+					&& evmActorCoinAllowance[EntityMetaKey.Selector] != null && '$spender' in evmActorCoinAllowance[EntityMetaKey.Selector]
+					&& evmActorCoinAllowance[EntityMetaKey.Selector].$spender != null && 'address' in evmActorCoinAllowance[EntityMetaKey.Selector].$spender
+					&& evmActorCoinAllowance[EntityMetaKey.Selector].$spender.address != null ?
+						resolve('/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]', {
+					owner: String(evmActorCoinAllowance[EntityMetaKey.Selector].$actor.address ?? ''),
+					chainId: String(evmActorCoinAllowance[EntityMetaKey.Selector].$contract.$network.caip2.reference ?? ''),
+					coin: String(evmActorCoinAllowance[EntityMetaKey.Selector].$contract.address ?? ''),
+					spender: String(evmActorCoinAllowance[EntityMetaKey.Selector].$spender.address ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((evmActorCoinAllowanceFields.$contract.precompileName) ?? ''), String((evmActorCoinAllowanceFields.$contract.address) ?? '')].filter(Boolean).join(' ') || 'EVM contract'].filter(Boolean).join(' ') || 'allowance'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((evmActorCoinAllowanceFields.$spender.address) ?? '')].filter(Boolean).join(' ') || 'EVM account'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

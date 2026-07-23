@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ACP agent program versions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AcpAgentProgramVersion>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AcpAgentProgramVersion>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AcpAgentProgramVersionView from '$/views/AcpAgentProgramVersionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(acpAgentProgramVersions) => [...new Map(acpAgentProgramVersions.values.map((acpAgentProgramVersion) => [acpAgentProgramVersion[EntityMetaKey.SelectorKey], acpAgentProgramVersion])).values()]}
 	getKey={(acpAgentProgramVersion) => acpAgentProgramVersion[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: acpAgentProgramVersion })}
 		{@const acpAgentProgramVersionFields = { ...acpAgentProgramVersion[EntityMetaKey.Selector], ...acpAgentProgramVersion }}
-		{@const selection = select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AcpAgentProgramVersionView
-			selection={selection}
-			prefetched={acpAgentProgramVersionFields}
+		<EntityView
+			entityType={EntityType.AcpAgentProgramVersion}
+			entitySelector={acpAgentProgramVersion[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((acpAgentProgramVersionFields.version) ?? '')].filter(Boolean).join(' ') || [[String((acpAgentProgramVersionFields.$artifact.artifactType) ?? '')].filter(Boolean).join(' ') || [String((acpAgentProgramVersionFields.$artifact.providerArtifactId) ?? ''), String((acpAgentProgramVersionFields.$artifact.ociDigest) ?? ''), String((acpAgentProgramVersionFields.$artifact.ipfsCid) ?? ''), String((acpAgentProgramVersionFields.$artifact.arweaveId) ?? ''), String((acpAgentProgramVersionFields.$artifact.gitObject) ?? ''), String((acpAgentProgramVersionFields.$artifact.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ') || 'ACP agent program version'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((acpAgentProgramVersionFields.$program.label) ?? '')].filter(Boolean).join(' ') || [String((acpAgentProgramVersionFields.$program.registryAgentId) ?? ''), String((acpAgentProgramVersionFields.$program.packageName) ?? ''), String((acpAgentProgramVersionFields.$program.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((acpAgentProgramVersionFields.distributionKind) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -37,7 +37,6 @@
 			$activeAccount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'wallet connection' : 'wallet connection'))
 
 
 	// Components
@@ -47,7 +46,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • wallet connection • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'wallet connection' : 'wallet connection')} • wallet connection • Blockhead</title>
 </svelte:head>
 
 

@@ -40,7 +40,6 @@
 
 			<DetailView
 				selection={select(EntityType.AtprotoPost, data.selector, { sources: [
-		Source.Constants_Internal,
 		Source.Atproto_Xrpc,
 	] })}
 				href={

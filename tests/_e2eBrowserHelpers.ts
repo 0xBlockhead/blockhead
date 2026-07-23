@@ -1671,7 +1671,7 @@ const mempoolSpaceMempoolStatsWire = (
 	method: string
 ) => (
 	method === 'GET'
-	&& decodeURIComponent(url).includes('mempool.space/api/mempool')
+	&& /mempool\.space\/api\/mempool(?:\?|$)/.test(decodeURIComponent(url))
 )
 
 const mempoolSpaceMempoolStatsBody = JSON.stringify({
@@ -1680,6 +1680,18 @@ const mempoolSpaceMempoolStatsBody = JSON.stringify({
 	total_fee: 1024,
 	fee_histogram: [],
 })
+
+const mempoolSpaceMempoolTxidsWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('mempool.space/api/mempool/txids')
+)
+
+const mempoolSpaceMempoolTxidsBody = JSON.stringify([
+	bitcoinProbeTransactionId,
+])
 
 const mempoolSpaceRecommendedFeesWire = (
 	url: string,
@@ -4512,6 +4524,14 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 				status: 200,
 				contentType: 'application/json',
 				body: mempoolSpaceMempoolStatsBody,
+			})
+			return
+		}
+		if (mempoolSpaceMempoolTxidsWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: mempoolSpaceMempoolTxidsBody,
 			})
 			return
 		}

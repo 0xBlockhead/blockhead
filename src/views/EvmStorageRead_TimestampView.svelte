@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmStorageRead_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmStorageRead_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmStorageRead_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,14 +44,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmStorageReadTimestamp = $derived(selection({
+	const evmStorageReadTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			value: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			value: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'EVM storage read timestamp')
-	const viewDomId = $derived('evm-storage-read-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('evm-storage-read-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,11 +78,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const slot0 = pendingEntity.slot}
-					{#if slot0 !== undefined && slot0 !== null}
-						<TruncatedValue value={String((slot0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'value')}
+			{@const slot0 = pendingEntity.slot}
+			{#if slot0 !== undefined && slot0 !== null}
+				<TruncatedValue value={String((slot0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={evmStorageReadTimestamp}>
 				{#snippet children(entity)}
@@ -91,11 +97,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const value0 = pendingEntity.value}
-					{#if value0 !== undefined && value0 !== null}
-						<TruncatedValue value={String((value0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'value')}
+			{@const value0 = pendingEntity.value}
+			{#if value0 !== undefined && value0 !== null}
+				<TruncatedValue value={String((value0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={evmStorageReadTimestamp}>
 				{#snippet children(entity)}
@@ -110,7 +116,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'value')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -260,15 +266,30 @@
 				<dt>Contract</dt>
 				<dd>
 					<EvmContractView
-						selection={select(EntityType.EvmContract, selection.entitySelector.$contract, {})}
+						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 						href={
-							(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-								address: String(selection.entitySelector.$contract.address ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-								address: String(selection.entitySelector.$contract.address ?? ''),
-								network: String(selection.entitySelector.$contract.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$contract != null && 'address' in selection.entitySelector.$contract
+								&& selection.entitySelector.$contract.address != null
+								&& selection.entitySelector.$contract != null && '$network' in selection.entitySelector.$contract ?
+									selection.entitySelector.$contract.$network != null && 'caip2' in selection.entitySelector.$contract.$network
+									&& selection.entitySelector.$contract.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+									address: String(selection.entitySelector.$contract.address ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$contract.$network != null && 'slug' in selection.entitySelector.$contract.$network
+										&& selection.entitySelector.$contract.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+										address: String(selection.entitySelector.$contract.address ?? ''),
+										network: String(selection.entitySelector.$contract.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

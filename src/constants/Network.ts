@@ -40,19 +40,25 @@ export enum NetworkNamespace {
 }
 
 export enum Caip2Namespace {
+	Aptos = 'aptos',
 	Bip122 = 'bip122',
 	Cosmos = 'cosmos',
 	Eip155 = 'eip155',
 	Fil = 'fil',
+	Hedera = 'hedera',
 	Monero = 'monero',
 	Polkadot = 'polkadot',
 	Solana = 'solana',
+	Starknet = 'starknet',
 	Tezos = 'tezos',
 	Ton = 'ton',
+	Tron = 'tron',
+	Xrpl = 'xrpl',
 }
 
 export enum Caip2Reference {
 	Arbitrum = '42161',
+	AptosMainnet = '1',
 	Base = '8453',
 	Bitcoin = '000000000019d6689c085ae165831e93',
 	BitcoinCash = '000000000000000000651ef99cb9fcbe',
@@ -60,6 +66,7 @@ export enum Caip2Reference {
 	CosmosHub = 'cosmoshub-4',
 	Dogecoin = '1a91e3dace36e2be3bf030a65679fe82',
 	EthereumMainnet = '1',
+	HederaMainnet = 'mainnet',
 	Optimism = '10',
 	Filecoin = 'f',
 	Litecoin = '12a765e31ffd4059bada1e25190f6e98',
@@ -67,8 +74,11 @@ export enum Caip2Reference {
 	Polkadot = '91b171bb158e2d3848fa23a9f1c25182',
 	Polygon = '137',
 	SolanaMainnet = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+	StarknetMainnet = 'SN_MAIN',
 	TezosMainnet = 'NetXdQprcVkpaWU',
 	TonMainnet = '-239',
+	TronMainnet = '0x2b6653dc',
+	XrplMainnet = '0',
 	Zcash = '00040fe8ec8471911baa1db1266ea15',
 }
 
@@ -132,6 +142,10 @@ export const networks = [
 	{
 		slug: 'aptos',
 		name: 'Aptos',
+		caip2: {
+			namespace: Caip2Namespace.Aptos,
+			reference: Caip2Reference.AptosMainnet,
+		},
 		namespace: NetworkNamespace.Aptos,
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],
@@ -333,8 +347,8 @@ export const networks = [
 		slug: 'hedera',
 		name: 'Hedera Mainnet',
 		caip2: {
-			namespace: 'hedera',
-			reference: 'mainnet',
+			namespace: Caip2Namespace.Hedera,
+			reference: Caip2Reference.HederaMainnet,
 		},
 		namespace: NetworkNamespace.Hedera,
 		environment: NetworkEnvironment.Mainnet,
@@ -452,6 +466,10 @@ export const networks = [
 	{
 		slug: 'starknet',
 		name: 'Starknet',
+		caip2: {
+			namespace: Caip2Namespace.Starknet,
+			reference: Caip2Reference.StarknetMainnet,
+		},
 		namespace: NetworkNamespace.Starknet,
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],
@@ -488,6 +506,10 @@ export const networks = [
 	{
 		slug: 'tron',
 		name: 'TRON Mainnet',
+		caip2: {
+			namespace: Caip2Namespace.Tron,
+			reference: Caip2Reference.TronMainnet,
+		},
 		namespace: NetworkNamespace.Tron,
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],
@@ -509,8 +531,8 @@ export const networks = [
 		slug: 'xrpl',
 		name: 'XRP Ledger',
 		caip2: {
-			namespace: 'xrpl',
-			reference: '0',
+			namespace: Caip2Namespace.Xrpl,
+			reference: Caip2Reference.XrplMainnet,
 		},
 		namespace: NetworkNamespace.Xrpl,
 		environment: NetworkEnvironment.Mainnet,

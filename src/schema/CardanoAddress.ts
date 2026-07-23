@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CardanoAddressSelector {
@@ -33,6 +34,9 @@ export const CardanoAddress = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	paymentCredential: {
 		label: 'payment credential',
@@ -51,18 +55,46 @@ export const CardanoAddress = entity({
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.CardanoStakeCredential,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$$utxos: {
 		label: 'utxos',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoTxOutput,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	$$assets: {
+		label: 'native assets',
+		description: 'Native assets present across the current unspent outputs at this address.',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.CardanoNativeAsset,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	$$transactions: {
+		label: 'transactions',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.CardanoTransaction,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$$timestamps: {
 		label: 'timestamps',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoAddress_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 })({
 	selectors: {

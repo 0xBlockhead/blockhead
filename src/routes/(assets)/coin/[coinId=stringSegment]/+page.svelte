@@ -29,7 +29,6 @@
 			name: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.symbol) ?? ''), String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || 'Coin' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).symbol) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Coin')))
 
 
 	// Components
@@ -39,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Coin • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Coin' : [String((({ ...data.selector, ...pageSelection.entity }).symbol) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Coin'))} • Coin • Blockhead</title>
 </svelte:head>
 
 

@@ -24,6 +24,8 @@
 			Source.Lens_Graphql,
 		],
 		fields: {
+			localName: true,
+			legacyProfileId: true,
 			$icon: true,
 			displayName: true,
 			createdAt: true,
@@ -33,7 +35,6 @@
 			bio: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.displayName) ?? ''), String((pageSelection.entitySelector.localName) ?? ''), String((pageSelection.entitySelector.address) ?? ''), String((pageSelection.entitySelector.legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).localName) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).address) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account')))
 
 
 	// Components
@@ -43,7 +44,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Lens account • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'Lens account' : [String((({ ...data.selector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).localName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).address) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account'))} • Lens account • Blockhead</title>
 </svelte:head>
 
 

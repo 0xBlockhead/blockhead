@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadCashuWalletState>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadCashuWalletState>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadCashuWalletState>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadCashuWalletState = $derived(selection({
+	const blockheadCashuWalletState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu wallet state')
-	const viewDomId = $derived('blockhead-cashu-wallet-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-cashu-wallet-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,7 +77,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$mint') && prefetched.$mint != null && prefetched.$mint[EntityMetaKey.Selector] != null}
 			{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadCashuWalletState}>
@@ -86,28 +90,21 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const unit0 = pendingEntity.unit}
-					{#if unit0 !== undefined && unit0 !== null}
-						{String((unit0) ?? '')}
-					{/if}
-
-					<ResourceBoundary
-						resource={selection.$mint}
-					>
-						{#snippet children(cashuMint)}
-							{#if cashuMint != null && cashuMint[EntityMetaKey.Selector] != null}
-							<CashuMintView
-								selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
-								prefetched={cashuMint}
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$mint') && prefetched.$mint != null && prefetched.$mint[EntityMetaKey.Selector] != null}
+			{@const unit0 = pendingEntity.unit}
+			{#if unit0 !== undefined && unit0 !== null}
+				{String((unit0) ?? '')}
+			{/if}
+			{@const cashuMint1 = pendingEntity.$mint}
+			{#if cashuMint1 != null && cashuMint1[EntityMetaKey.Selector] != null}
+				<CashuMintView
+					selection={select(EntityType.CashuMint, cashuMint1[EntityMetaKey.Selector], { sources: selection.sources })}
+					prefetched={cashuMint1}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadCashuWalletState}>
 				{#snippet children(entity)}
@@ -125,11 +122,10 @@
 							<CashuMintView
 								selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 								prefetched={cashuMint}
+								href=""
 								layout={EntityLayout.Value}
 								open={false}
 							/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -262,155 +258,413 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-cashu-wallet-balance'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'cashu-proofs',
-							label: 'Proofs',
-						},
-						{
-							id: 'cashu-tokens',
-							label: 'Tokens',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-balance'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Balance</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-cashu-wallet-balance'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'cashu-proofs',
+						label: 'Proofs',
+						ownsSection: true,
+					},
+					{
+						id: 'cashu-tokens',
+						label: 'Tokens',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-balance'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Balance</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionCashuProofs({ id, label, open })}
-					<BlockheadCashuProofsView
-						selection={selection.$$proofs}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No proofs found.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerCashuProofs(_context, Content)}
+				{@const cashuWalletBalanceCashuProofsResource = selection.$$proofs}
+				<ResourceBoundary
+					resource={cashuWalletBalanceCashuProofsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionCashuTokens({ id, label, open })}
-					<BlockheadCashuTokensView
-						selection={selection.$$tokens}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No tokens found.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-cashu-wallet-quotes'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'cashu-mint-quotes',
-							label: 'Mint quotes',
-						},
-						{
-							id: 'cashu-melt-quotes',
-							label: 'Melt quotes',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-quotes'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Quotes</HeadingComponent>
-					</header>
-				{/snippet}
+			{#snippet SectionCashuProofs({ id, label, open, active })}
+				{@const cashuWalletBalanceCashuProofsResource = selection.$$proofs}
+				<ResourceBoundary
+					resource={cashuWalletBalanceCashuProofsResource}
+				>
+					{#snippet children(blockheadCashuProof)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BlockheadCashuProofsView
+								selection={cashuWalletBalanceCashuProofsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No proofs found.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-				{#snippet SectionCashuMintQuotes({ id, label, open })}
-					<BlockheadCashuMintQuotesView
-						selection={selection.$$mintQuotes}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No mint quotes found.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-				{#snippet SectionCashuMeltQuotes({ id, label, open })}
-					<BlockheadCashuMeltQuotesView
-						selection={selection.$$meltQuotes}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No melt quotes found.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			</CollapsibleTabs>
+			{#snippet MarkerCashuTokens(_context, Content)}
+				{@const cashuWalletBalanceCashuTokensResource = selection.$$tokens}
+				<ResourceBoundary
+					resource={cashuWalletBalanceCashuTokensResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-cashu-wallet-observations'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'cashu-wallet-timestamps',
-							label: 'Observations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-observations'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Observations</HeadingComponent>
-					</header>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionCashuWalletTimestamps({ id, label, open })}
-					<BlockheadCashuWalletState_TimestampsView
-						selection={selection.$$timestamps}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No observations yet.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+			{#snippet SectionCashuTokens({ id, label, open, active })}
+				{@const cashuWalletBalanceCashuTokensResource = selection.$$tokens}
+				<ResourceBoundary
+					resource={cashuWalletBalanceCashuTokensResource}
+				>
+					{#snippet children(blockheadCashuToken)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BlockheadCashuTokensView
+								selection={cashuWalletBalanceCashuTokensResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No tokens found.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-cashu-wallet-quotes'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'cashu-mint-quotes',
+						label: 'Mint quotes',
+						ownsSection: true,
+					},
+					{
+						id: 'cashu-melt-quotes',
+						label: 'Melt quotes',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-quotes'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Quotes</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerCashuMintQuotes(_context, Content)}
+				{@const cashuWalletQuotesCashuMintQuotesResource = selection.$$mintQuotes}
+				<ResourceBoundary
+					resource={cashuWalletQuotesCashuMintQuotesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionCashuMintQuotes({ id, label, open, active })}
+				{@const cashuWalletQuotesCashuMintQuotesResource = selection.$$mintQuotes}
+				<ResourceBoundary
+					resource={cashuWalletQuotesCashuMintQuotesResource}
+				>
+					{#snippet children(blockheadCashuMintQuote)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BlockheadCashuMintQuotesView
+								selection={cashuWalletQuotesCashuMintQuotesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No mint quotes found.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerCashuMeltQuotes(_context, Content)}
+				{@const cashuWalletQuotesCashuMeltQuotesResource = selection.$$meltQuotes}
+				<ResourceBoundary
+					resource={cashuWalletQuotesCashuMeltQuotesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionCashuMeltQuotes({ id, label, open, active })}
+				{@const cashuWalletQuotesCashuMeltQuotesResource = selection.$$meltQuotes}
+				<ResourceBoundary
+					resource={cashuWalletQuotesCashuMeltQuotesResource}
+				>
+					{#snippet children(blockheadCashuMeltQuote)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BlockheadCashuMeltQuotesView
+								selection={cashuWalletQuotesCashuMeltQuotesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No melt quotes found.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-cashu-wallet-observations'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'cashu-wallet-timestamps',
+						label: 'Observations',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-observations'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Observations</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerCashuWalletTimestamps(_context, Content)}
+				{@const cashuWalletObservationsCashuWalletTimestampsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={cashuWalletObservationsCashuWalletTimestampsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionCashuWalletTimestamps({ id, label, open, active })}
+				{@const cashuWalletObservationsCashuWalletTimestampsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={cashuWalletObservationsCashuWalletTimestampsResource}
+				>
+					{#snippet children(blockheadCashuWalletStateTimestamp)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BlockheadCashuWalletState_TimestampsView
+								selection={cashuWalletObservationsCashuWalletTimestampsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No observations yet.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

@@ -122,10 +122,12 @@ export type YoutubeApiVideosListResponse = {
 
 export type YoutubeApiPlaylistsListResponse = {
 	items?: YoutubeApiPlaylist[]
+	nextPageToken?: string
 }
 
 export type YoutubeApiPlaylistItemsListResponse = {
 	items?: YoutubeApiPlaylistItem[]
+	nextPageToken?: string
 }
 
 export type YoutubeApiCommentThreadsListResponse = {
@@ -149,4 +151,5 @@ export type YoutubeApiSearchResult = {
 
 export type YoutubeApiSearchListResponse = {
 	items?: YoutubeApiSearchResult[]
+	nextPageToken?: string
 }

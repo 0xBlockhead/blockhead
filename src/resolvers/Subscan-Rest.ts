@@ -9,11 +9,13 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
 import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
+import { PolkadotReferendumSelector } from '$/schema/PolkadotReferendum.ts'
+import { PolkadotReferendum_TimestampSelector } from '$/schema/PolkadotReferendum_Timestamp.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
 	reference: string
-} } | { networkSlug: string } | { slug: string }
+} } | { slug: string }
 
 const assertPolkadotMainnet = (network: NetworkId) => {
 	if (
@@ -28,6 +30,13 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 const subscanPolkadotRestBaseUrl = async () => (
 	(await import('$/sources/Subscan/Rest/queries.ts')).subscanPolkadotRestEndpoints[0].url
 )
+
+const referendumIndexFromId = (referendumId: string) => {
+	const referendumIndex = Number(referendumId)
+	if (!Number.isSafeInteger(referendumIndex) || referendumIndex < 0 || String(referendumIndex) !== referendumId)
+		throw new Error(`Subscan_Rest: invalid referendum ID ${referendumId}`)
+	return referendumIndex
+}
 
 export default {
 	source: Source.Subscan_Rest,
@@ -76,11 +85,27 @@ export default {
 					resolve: async ({ $block, indexInBlock }, context) => {
 						assertPolkadotMainnet($block.$network)
 						const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
+						const extrinsicIndex = `${$block.blockNumber.toString()}-${indexInBlock}`
 						const extrinsic = (await getExtrinsic({
 							restBaseUrl: await subscanPolkadotRestBaseUrl(),
-							extrinsicIndex: `${$block.blockNumber.toString()}-${indexInBlock}`,
+							extrinsicIndex,
 							publicEnv: context.publicEnv,
 						})).data
+						if (
+							extrinsic.extrinsic_index !== extrinsicIndex
+							|| !Number.isSafeInteger(extrinsic.block_num)
+							|| extrinsic.block_num < 0
+							|| BigInt(extrinsic.block_num) !== $block.blockNumber
+						)
+							throw new Error('Subscan_Rest: extrinsic response does not match the subject')
+						if (
+							extrinsic.account_id === ''
+							|| extrinsic.extrinsic_hash === ''
+							|| extrinsic.call_module.length === 0
+							|| extrinsic.call_module_function.length === 0
+						)
+							throw new Error('Subscan_Rest: extrinsic response is malformed')
+
 						return {
 							...(extrinsic.extrinsic_hash != null && {
 								hash: extrinsic.extrinsic_hash,
@@ -111,6 +136,87 @@ export default {
 				$pallet: (snapshot) => snapshot.$pallet,
 				callName: (snapshot) => snapshot.callName,
 				success: (snapshot) => snapshot.success,
+			}),
+
+		defineResolver(Source.Subscan_Rest, {
+			entityType: EntityType.PolkadotReferendum,
+			resolve: {
+				[PolkadotReferendumSelector.NetworkReferendumId]: {
+					resolve: async (entitySelector, context) => {
+						assertPolkadotMainnet(entitySelector.$network)
+						const { getReferendum } = await import('$/sources/Subscan/Rest/queries.ts')
+						const referendum = (await getReferendum({
+							restBaseUrl: await subscanPolkadotRestBaseUrl(),
+							referendumIndex: referendumIndexFromId(entitySelector.referendumId),
+							publicEnv: context.publicEnv,
+						})).data
+						if (referendum.referendum_index !== Number(entitySelector.referendumId))
+							throw new Error('Subscan_Rest: referendum response does not match the subject')
+
+						return {
+							track: referendum.origins,
+							submittedAtBlockNumber: BigInt(referendum.created_block),
+						}
+					},
+				}
+			},
+		})({
+				track: (referendum) => referendum.track,
+				submittedAtBlockNumber: (referendum) => referendum.submittedAtBlockNumber,
+			}),
+
+		defineResolver(Source.Subscan_Rest, {
+			entityType: EntityType.PolkadotReferendum_Timestamp,
+			resolve: {
+				[PolkadotReferendum_TimestampSelector.ReferendumTimestampMsSource]: {
+					resolve: async ({
+						$referendum,
+						timestampMs,
+						source,
+					}, context) => {
+						if (source !== Source.Subscan_Rest)
+							throw new Error(`Subscan_Rest: unsupported source ${source}`)
+						assertPolkadotMainnet($referendum.$network)
+						const { getReferendum } = await import('$/sources/Subscan/Rest/queries.ts')
+						const referendum = (await getReferendum({
+							restBaseUrl: await subscanPolkadotRestBaseUrl(),
+							referendumIndex: referendumIndexFromId($referendum.referendumId),
+							publicEnv: context.publicEnv,
+						})).data
+						if (referendum.referendum_index !== Number($referendum.referendumId))
+							throw new Error('Subscan_Rest: referendum response does not match the observation subject')
+						const observation = [...referendum.timeline, {
+							block: referendum.latest_block_num,
+							status: referendum.status,
+							time: referendum.latest_block_timestamp,
+						}].findLast((candidate) => candidate.time * 1_000 === timestampMs)
+						if (observation == null)
+							throw new Error('Subscan_Rest: referendum observation not found')
+
+						return {
+							$referendum: {
+								[EntityMetaKey.Selector]: $referendum,
+							},
+							timestampMs,
+							source,
+							blockNumber: BigInt(observation.block),
+							status: observation.status,
+							...(observation.time === referendum.latest_block_timestamp && {
+								ayeVotes: BigInt(referendum.ayes_amount),
+								nayVotes: BigInt(referendum.nays_amount),
+							}),
+						}
+					},
+				}
+			},
+		})({
+				$referendum: (observation) => observation.$referendum,
+				timestampMs: (observation) => observation.timestampMs,
+				source: (observation) => observation.source,
+				blockNumber: (observation) => observation.blockNumber,
+				status: (observation) => observation.status,
+				ayeVotes: (observation) => observation.ayeVotes,
+				nayVotes: (observation) => observation.nayVotes,
 			}),
 	],
 }

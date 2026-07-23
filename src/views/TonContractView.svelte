@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.TonContract>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TonContract>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TonContract>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonContract = $derived(selection({
+	const tonContract = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('TON contract')
-	const viewDomId = $derived('ton-contract-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'TON contract'
+	const viewDomId = $derived('ton-contract-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,12 +71,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={tonContract}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -85,15 +88,30 @@
 				<dt>account</dt>
 				<dd>
 					<TonAccountView
-						selection={select(EntityType.TonAccount, selection.entitySelector.$account, {})}
+						selection={select(EntityType.TonAccount, selection.entitySelector.$account)}
 						href={
-							(selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(selection.entitySelector.$account.address ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(selection.entitySelector.$account.address ?? ''),
-								network: String(selection.entitySelector.$account.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$account != null && 'address' in selection.entitySelector.$account
+								&& selection.entitySelector.$account.address != null
+								&& selection.entitySelector.$account != null && '$network' in selection.entitySelector.$account ?
+									selection.entitySelector.$account.$network != null && 'caip2' in selection.entitySelector.$account.$network
+									&& selection.entitySelector.$account.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+									accountId: String(selection.entitySelector.$account.address ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$account.$network != null && 'slug' in selection.entitySelector.$account.$network
+										&& selection.entitySelector.$account.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+										accountId: String(selection.entitySelector.$account.address ?? ''),
+										network: String(selection.entitySelector.$account.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

@@ -22,7 +22,6 @@
 			Source.Constants_Internal,
 		],
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? ['YouTube'].filter(Boolean).join(' ') || 'YouTube network' : ['YouTube'].filter(Boolean).join(' ') || 'YouTube network')))
 
 
 	// Components
@@ -32,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • YouTube network • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? ['YouTube'].filter(Boolean).join(' ') || 'YouTube network' : ['YouTube'].filter(Boolean).join(' ') || 'YouTube network'))} • YouTube network • Blockhead</title>
 </svelte:head>
 
 

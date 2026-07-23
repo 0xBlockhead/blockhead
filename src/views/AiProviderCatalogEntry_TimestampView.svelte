@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AiProviderCatalogEntry_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AiProviderCatalogEntry_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiProviderCatalogEntry_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiProviderCatalogEntryTimestamp = $derived(selection({
+	const aiProviderCatalogEntryTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			availabilityStatus: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			availabilityStatus: true,
 		},
 	}))
-	const titleFallback = $derived('AI provider catalog entry timestamp')
-	const viewDomId = $derived('ai-provider-catalog-entry-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'AI provider catalog entry timestamp'
+	const viewDomId = $derived('ai-provider-catalog-entry-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,18 +74,23 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<AiProviderCatalogEntryView
-						selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$entry') && prefetched.$entry != null && Object.hasOwn(prefetched.$entry, 'entryLabel') && Object.hasOwn(prefetched.$entry, 'subjectKind') && Object.hasOwn(prefetched, 'availabilityStatus')}
+			{@const aiProviderCatalogEntry0 = pendingEntity.$entry}
+			{#if aiProviderCatalogEntry0 != null && selection.entitySelector.$entry != null}
+				<AiProviderCatalogEntryView
+					selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry, { sources: selection.sources })}
+					prefetched={aiProviderCatalogEntry0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={aiProviderCatalogEntryTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<AiProviderCatalogEntryView
 						selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry)}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -89,11 +100,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$entry') && prefetched.$entry != null && Object.hasOwn(prefetched.$entry, 'entryLabel') && Object.hasOwn(prefetched.$entry, 'subjectKind') && Object.hasOwn(prefetched, 'availabilityStatus')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={aiProviderCatalogEntryTimestamp}>
 				{#snippet children(entity)}
@@ -108,7 +119,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$entry') && prefetched.$entry != null && Object.hasOwn(prefetched.$entry, 'entryLabel') && Object.hasOwn(prefetched.$entry, 'subjectKind') && Object.hasOwn(prefetched, 'availabilityStatus')}
 			{@const availabilityStatus0 = pendingEntity.availabilityStatus}
 			{#if availabilityStatus0 !== undefined && availabilityStatus0 !== null}
 				<span data-text="muted">
@@ -136,7 +147,7 @@
 				<dt>entry</dt>
 				<dd>
 					<AiProviderCatalogEntryView
-						selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry, {})}
+						selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

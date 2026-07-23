@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Reddit observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalRedditNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalRedditNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalRedditNetwork_TimestampView from '$/views/_GlobalRedditNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalRedditNetworkTimestamps) => [...new Map(globalRedditNetworkTimestamps.values.map((globalRedditNetworkTimestamp) => [globalRedditNetworkTimestamp[EntityMetaKey.SelectorKey], globalRedditNetworkTimestamp])).values()]}
 	getKey={(globalRedditNetworkTimestamp) => globalRedditNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: globalRedditNetworkTimestamp })}
 		{@const globalRedditNetworkTimestampFields = { ...globalRedditNetworkTimestamp[EntityMetaKey.Selector], ...globalRedditNetworkTimestamp }}
-		{@const selection = select(EntityType._GlobalRedditNetwork_Timestamp, globalRedditNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<GlobalRedditNetwork_TimestampView
-			selection={selection}
-			prefetched={globalRedditNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType._GlobalRedditNetwork_Timestamp}
+			entitySelector={globalRedditNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((globalRedditNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global Reddit network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((globalRedditNetworkTimestampFields.source) ?? ''), String((globalRedditNetworkTimestampFields.reachable) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((globalRedditNetworkTimestampFields.observedLinkCount) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

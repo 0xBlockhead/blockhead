@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Logos blockchain networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LogosBlockchainNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LogosBlockchainNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LogosBlockchainNetworkView from '$/views/LogosBlockchainNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,6 +70,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(logosBlockchainNetworks) => [...new Map(logosBlockchainNetworks.values.map((logosBlockchainNetwork) => [logosBlockchainNetwork[EntityMetaKey.SelectorKey], logosBlockchainNetwork])).values()]}
 	getKey={(logosBlockchainNetwork) => logosBlockchainNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -91,12 +85,20 @@
 
 	{#snippet Item({ item: logosBlockchainNetwork })}
 		{@const logosBlockchainNetworkFields = { ...logosBlockchainNetwork[EntityMetaKey.Selector], ...logosBlockchainNetwork }}
-		{@const selection = select(EntityType.LogosBlockchainNetwork, logosBlockchainNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<LogosBlockchainNetworkView
-			selection={selection}
-			prefetched={logosBlockchainNetworkFields}
+		<EntityView
+			entityType={EntityType.LogosBlockchainNetwork}
+			entitySelector={logosBlockchainNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((logosBlockchainNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [logosBlockchainNetworkFields.$network.caip2 == null ? '' : String(`${(logosBlockchainNetworkFields.$network.caip2).namespace}:${(logosBlockchainNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'Logos blockchain network'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((logosBlockchainNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [logosBlockchainNetworkFields.$network.caip2 == null ? '' : String(`${(logosBlockchainNetworkFields.$network.caip2).namespace}:${(logosBlockchainNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

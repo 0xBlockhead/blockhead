@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadSource>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadSource>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSource>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,7 +38,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSource = $derived(selection({
+	const blockheadSource = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+			source: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
@@ -47,7 +54,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'source')
-	const viewDomId = $derived('blockhead-source-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-source-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -63,16 +70,22 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.id !== undefined ? resolve('/~/manage/source/[sourceId=stringSegment]', {
-			sourceId: String(pendingEntity.id ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'id' in selection.entitySelector
+			&& selection.entitySelector.id != null ?
+				resolve('/~/manage/source/[sourceId=stringSegment]', {
+			sourceId: String(selection.entitySelector.id ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'source')}
 			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadSource}>
@@ -85,7 +98,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'source')}
 			{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadSource}>
@@ -303,17 +316,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadSource_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Observations'
-				emptyText='No observations yet.'
-				id='BlockheadSource_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadSourceBlockheadSourceTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadSourceBlockheadSourceTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadSource_TimestampsView
+					selection={blockheadSourceBlockheadSourceTimestampsViewTimestampsResource}
+					countResource={blockheadSourceBlockheadSourceTimestampsViewTimestampsResource.count}
+					title='Observations'
+					id='BlockheadSource_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

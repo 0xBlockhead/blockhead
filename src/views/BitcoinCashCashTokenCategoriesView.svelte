@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Bitcoin Cash CashToken categories',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BitcoinCashCashTokenCategory>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BitcoinCashCashTokenCategory>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BitcoinCashCashTokenCategoryView from '$/views/BitcoinCashCashTokenCategoryView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(bitcoinCashCashTokenCategories) => [...new Map(bitcoinCashCashTokenCategories.values.map((bitcoinCashCashTokenCategory) => [bitcoinCashCashTokenCategory[EntityMetaKey.SelectorKey], bitcoinCashCashTokenCategory])).values()]}
 	getKey={(bitcoinCashCashTokenCategory) => bitcoinCashCashTokenCategory[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,24 @@
 
 	{#snippet Item({ item: bitcoinCashCashTokenCategory })}
 		{@const bitcoinCashCashTokenCategoryFields = { ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }}
-		{@const selection = select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BitcoinCashCashTokenCategoryView
-			selection={selection}
-			prefetched={bitcoinCashCashTokenCategoryFields}
+		<EntityView
+			entityType={EntityType.BitcoinCashCashTokenCategory}
+			entitySelector={bitcoinCashCashTokenCategory[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((bitcoinCashCashTokenCategoryFields.categoryId) ?? '')].filter(Boolean).join(' ') || 'Bitcoin Cash CashToken category'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((bitcoinCashCashTokenCategoryFields.categoryId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((bitcoinCashCashTokenCategoryFields.$network.name) ?? '')].filter(Boolean).join(' ') || [bitcoinCashCashTokenCategoryFields.$network.caip2 == null ? '' : String(`${(bitcoinCashCashTokenCategoryFields.$network.caip2).namespace}:${(bitcoinCashCashTokenCategoryFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

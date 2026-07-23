@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Erc4337Paymaster>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Erc4337Paymaster>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Erc4337Paymaster>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,11 +44,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const erc4337Paymaster = $derived(selection({
+	const erc4337Paymaster = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster')
-	const viewDomId = $derived('erc4337paymaster-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('erc4337paymaster-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -64,93 +68,87 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
-			address: String(pendingEntity.address ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
-		}) : pendingEntity.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
-			address: String(pendingEntity.address ?? ''),
-			network: String(pendingEntity.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'address' in selection.entitySelector
+			&& selection.entitySelector.address != null
+			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
+				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+				&& selection.entitySelector.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
+				address: String(selection.entitySelector.address ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+					&& selection.entitySelector.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
+					address: String(selection.entitySelector.address ?? ''),
+					network: String(selection.entitySelector.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const address0 = pendingEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={erc4337Paymaster}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const address0 = resolvedEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={erc4337Paymaster}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const address0 = resolvedEntity.address}
+				{#if address0 !== undefined && address0 !== null}
+					<TruncatedValue value={String((address0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const address0 = pendingEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={erc4337Paymaster}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const address0 = resolvedEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={erc4337Paymaster}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const address0 = resolvedEntity.address}
+				{#if address0 !== undefined && address0 !== null}
+					<TruncatedValue value={String((address0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<span data-text="muted">
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
-						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$network.slug ?? ''),
-						}) : undefined)
-					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={erc4337Paymaster}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<span data-text="muted">
-						<NetworkView
-							selection={select(EntityType.Network, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-								}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+		<ResourceBoundary resource={erc4337Paymaster}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 									network: String(selection.entitySelector.$network.slug ?? ''),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+								})
+								:
+									undefined
+							)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -191,13 +189,28 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-											network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
+											&& evmContract[EntityMetaKey.Selector].address != null
+											&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
+												evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
+												&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+												network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
+													&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+													network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -212,13 +225,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

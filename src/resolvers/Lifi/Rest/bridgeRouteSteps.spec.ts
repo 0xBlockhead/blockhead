@@ -26,6 +26,7 @@ describe('LI.FI bridge route step references', () => {
 			},
 			0,
 			{
+				id: 'step-0',
 				type: 'cross',
 				tool: 'across',
 				action: {
@@ -46,6 +47,13 @@ describe('LI.FI bridge route step references', () => {
 						name: 'USD Coin',
 						symbol: 'USDC',
 					},
+				},
+				estimate: {
+					tool: 'across',
+					fromAmount: '1',
+					toAmount: '1',
+					toAmountMin: '1',
+					executionDuration: 30,
 				},
 			}
 		)

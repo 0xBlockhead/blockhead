@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Avail app IDs',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AvailAppId>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AvailAppId>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AvailAppIdView from '$/views/AvailAppIdView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(availAppIds) => [...new Map(availAppIds.values.map((availAppId) => [availAppId[EntityMetaKey.SelectorKey], availAppId])).values()]}
 	getKey={(availAppId) => availAppId[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: availAppId })}
 		{@const availAppIdFields = { ...availAppId[EntityMetaKey.Selector], ...availAppId }}
-		{@const selection = select(EntityType.AvailAppId, availAppId[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AvailAppIdView
-			selection={selection}
-			prefetched={availAppIdFields}
+		<EntityView
+			entityType={EntityType.AvailAppId}
+			entitySelector={availAppId[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((availAppIdFields.label) ?? '')].filter(Boolean).join(' ') || [String((availAppIdFields.appId) ?? '')].filter(Boolean).join(' ') || 'avail app ID'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((availAppIdFields.appId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

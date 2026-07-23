@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FarcasterCastEmbed>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterCastEmbed>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FarcasterCastEmbed>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const farcasterCastEmbed = $derived(selection({
+	const farcasterCastEmbed = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			title: true,
+			url: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			title: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.title) ?? ''), String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')
-	const viewDomId = $derived('farcaster-cast-embed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('farcaster-cast-embed-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,11 +75,22 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.indexInCast !== undefined && pendingEntity.$cast !== undefined && pendingEntity.$cast.fid !== undefined && pendingEntity.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {
-			indexInCast: String(pendingEntity.indexInCast ?? ''),
-			fid: String(pendingEntity.$cast.fid ?? ''),
-			hash: String(pendingEntity.$cast.hash ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'indexInCast' in selection.entitySelector
+			&& selection.entitySelector.indexInCast != null
+			&& selection.entitySelector != null && '$cast' in selection.entitySelector
+			&& selection.entitySelector.$cast != null && 'fid' in selection.entitySelector.$cast
+			&& selection.entitySelector.$cast.fid != null
+			&& selection.entitySelector.$cast != null && 'hash' in selection.entitySelector.$cast
+			&& selection.entitySelector.$cast.hash != null ?
+				resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {
+			indexInCast: String(selection.entitySelector.indexInCast ?? ''),
+			fid: String(selection.entitySelector.$cast.fid ?? ''),
+			hash: String(selection.entitySelector.$cast.hash ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -83,7 +101,7 @@
 		<ResourceBoundary resource={farcasterCastEmbed}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference?.[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -96,117 +114,56 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const title0 = pendingEntity.title}
-					{#if title0 !== undefined && title0 !== null}
-						{String((title0) ?? '')}
-					{/if}
-					{@const url1 = pendingEntity.url}
-					{#if url1 !== undefined && url1 !== null}
-						<TruncatedValue value={String((url1) ?? '')} />
-					{/if}
+		<ResourceBoundary resource={farcasterCastEmbed}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const title0 = resolvedEntity.title}
+				{#if title0 !== undefined && title0 !== null}
+					{String((title0) ?? '')}
+				{/if}
+				{@const url1 = resolvedEntity.url}
+				{#if url1 !== undefined && url1 !== null}
+					<TruncatedValue value={String((url1) ?? '')} />
+				{/if}
 
-					<ResourceBoundary
-						resource={
-						selection.$embeddedCast({
-							sources: [
-								Source.Snapchain_Rest,
-							],
-						})
+				<ResourceBoundary
+					resource={
+						selection
+							.$embeddedCast({
+								sources: [
+									Source.Snapchain_Rest,
+								],
+							})
 					}
-					>
-						{#snippet children(farcasterCast)}
-							{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
-								<FarcasterCastView
-									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
-									prefetched={farcasterCast}
-									href={
-									(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
-										fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
-										hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
-									}) : farcasterCast[EntityMetaKey.Selector].username !== undefined && farcasterCast[EntityMetaKey.Selector].hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-										fname: String(farcasterCast[EntityMetaKey.Selector].username ?? ''),
-										hash: String(farcasterCast[EntityMetaKey.Selector].hashPrefix ?? ''),
-									}) : undefined)
-								}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={farcasterCastEmbed}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const title0 = resolvedEntity.title}
-					{#if title0 !== undefined && title0 !== null}
-						{String((title0) ?? '')}
-					{/if}
-					{@const url1 = resolvedEntity.url}
-					{#if url1 !== undefined && url1 !== null}
-						<TruncatedValue value={String((url1) ?? '')} />
-					{/if}
-
-					<ResourceBoundary
-						resource={
-						selection.$embeddedCast({
-							sources: [
-								Source.Snapchain_Rest,
-							],
-						})
-					}
-					>
-						{#snippet children(farcasterCast)}
-							{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
-								<FarcasterCastView
-									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
-									prefetched={farcasterCast}
-									href={
-									(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
-										fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
-										hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
-									}) : farcasterCast[EntityMetaKey.Selector].username !== undefined && farcasterCast[EntityMetaKey.Selector].hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-										fname: String(farcasterCast[EntityMetaKey.Selector].username ?? ''),
-										hash: String(farcasterCast[EntityMetaKey.Selector].hashPrefix ?? ''),
-									}) : undefined)
-								}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				>
+					{#snippet children(farcasterCast)}
+						{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
+							<FarcasterCastView
+								selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
+								prefetched={farcasterCast}
+								href=""
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const indexInCast0 = pendingEntity.indexInCast}
-					{#if indexInCast0 !== undefined && indexInCast0 !== null}
-						<NumberValue
-							value={indexInCast0}
-						/>
-					{/if}
-		{:else}
-			<ResourceBoundary resource={farcasterCastEmbed}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const indexInCast0 = resolvedEntity.indexInCast}
-					{#if indexInCast0 !== undefined && indexInCast0 !== null}
-						<NumberValue
-							value={indexInCast0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={farcasterCastEmbed}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const indexInCast0 = resolvedEntity.indexInCast}
+				{#if indexInCast0 !== undefined && indexInCast0 !== null}
+					<NumberValue
+						value={indexInCast0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -215,15 +172,29 @@
 				<dt>Cast</dt>
 				<dd>
 					<FarcasterCastView
-						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast, {})}
+						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
 						href={
-							(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
+							(
+								selection.entitySelector.$cast != null && 'fid' in selection.entitySelector.$cast
+								&& selection.entitySelector.$cast.fid != null
+								&& selection.entitySelector.$cast != null && 'hash' in selection.entitySelector.$cast
+								&& selection.entitySelector.$cast.hash != null ?
+									resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 								fid: String(selection.entitySelector.$cast.fid ?? ''),
 								hash: String(selection.entitySelector.$cast.hash ?? ''),
-							}) : selection.entitySelector.$cast.username !== undefined && selection.entitySelector.$cast.hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-								fname: String(selection.entitySelector.$cast.username ?? ''),
-								hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$cast != null && 'username' in selection.entitySelector.$cast
+									&& selection.entitySelector.$cast.username != null
+									&& selection.entitySelector.$cast != null && 'hashPrefix' in selection.entitySelector.$cast
+									&& selection.entitySelector.$cast.hashPrefix != null ?
+										resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+									fname: String(selection.entitySelector.$cast.username ?? ''),
+									hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -296,11 +267,12 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection.$embeddedCast({
-						sources: [
-							Source.Snapchain_Rest,
-						],
-					})
+					selection
+						.$embeddedCast({
+							sources: [
+								Source.Snapchain_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(farcasterCast)}
@@ -312,13 +284,27 @@
 									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 									prefetched={farcasterCast}
 									href={
-										(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
+										(
+											farcasterCast[EntityMetaKey.Selector] != null && 'fid' in farcasterCast[EntityMetaKey.Selector]
+											&& farcasterCast[EntityMetaKey.Selector].fid != null
+											&& farcasterCast[EntityMetaKey.Selector] != null && 'hash' in farcasterCast[EntityMetaKey.Selector]
+											&& farcasterCast[EntityMetaKey.Selector].hash != null ?
+												resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 											fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
 											hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
-										}) : farcasterCast[EntityMetaKey.Selector].username !== undefined && farcasterCast[EntityMetaKey.Selector].hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-											fname: String(farcasterCast[EntityMetaKey.Selector].username ?? ''),
-											hash: String(farcasterCast[EntityMetaKey.Selector].hashPrefix ?? ''),
-										}) : undefined)
+										})
+										:
+												farcasterCast[EntityMetaKey.Selector] != null && 'username' in farcasterCast[EntityMetaKey.Selector]
+												&& farcasterCast[EntityMetaKey.Selector].username != null
+												&& farcasterCast[EntityMetaKey.Selector] != null && 'hashPrefix' in farcasterCast[EntityMetaKey.Selector]
+												&& farcasterCast[EntityMetaKey.Selector].hashPrefix != null ?
+													resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+												fname: String(farcasterCast[EntityMetaKey.Selector].username ?? ''),
+												hash: String(farcasterCast[EntityMetaKey.Selector].hashPrefix ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}

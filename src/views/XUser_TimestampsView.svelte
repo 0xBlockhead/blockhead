@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'X user observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.XUser_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.XUser_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import XUser_TimestampView from '$/views/XUser_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -76,9 +69,11 @@
 			fields: {
 				$user: true,
 				timestampMs: true,
+				source: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(xUserTimestamps) => [...new Map(xUserTimestamps.values.map((xUserTimestamp) => [xUserTimestamp[EntityMetaKey.SelectorKey], xUserTimestamp])).values()]}
 	getKey={(xUserTimestamp) => xUserTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,19 +88,42 @@
 
 	{#snippet Item({ item: xUserTimestamp })}
 		{@const xUserTimestampFields = { ...xUserTimestamp[EntityMetaKey.Selector], ...xUserTimestamp }}
-		{@const selection = select(EntityType.XUser_Timestamp, xUserTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const xUserTimestampHrefFields = { ...xUserTimestamp, ...xUserTimestamp[EntityMetaKey.Selector] }}
-		<XUser_TimestampView
-			selection={selection}
-			prefetched={xUserTimestampFields}
+		<EntityView
+			entityType={EntityType.XUser_Timestamp}
+			entitySelector={xUserTimestamp[EntityMetaKey.Selector]}
 			href={
-				(xUserTimestampHrefFields.timestampMs !== undefined && xUserTimestampHrefFields.$user !== undefined && xUserTimestampHrefFields.$user.id !== undefined ? resolve('/x/user/[userId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-					timestampMs: String(xUserTimestampHrefFields.timestampMs ?? ''),
-					userId: String(xUserTimestampHrefFields.$user.id ?? ''),
-				}) : undefined)
+				(
+					xUserTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in xUserTimestamp[EntityMetaKey.Selector]
+					&& xUserTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& xUserTimestamp[EntityMetaKey.Selector] != null && 'source' in xUserTimestamp[EntityMetaKey.Selector]
+					&& xUserTimestamp[EntityMetaKey.Selector].source != null
+					&& xUserTimestamp[EntityMetaKey.Selector] != null && '$user' in xUserTimestamp[EntityMetaKey.Selector]
+					&& xUserTimestamp[EntityMetaKey.Selector].$user != null && 'id' in xUserTimestamp[EntityMetaKey.Selector].$user
+					&& xUserTimestamp[EntityMetaKey.Selector].$user.id != null ?
+						resolve('/x/user/[userId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(xUserTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(xUserTimestamp[EntityMetaKey.Selector].source ?? ''),
+					userId: String(xUserTimestamp[EntityMetaKey.Selector].$user.id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((xUserTimestampFields.$user.name) ?? ''), String((xUserTimestampFields.$user.username) ?? ''), String((xUserTimestampFields.$user.id) ?? '')].filter(Boolean).join(' ') || 'X user'].filter(Boolean).join(' ') || 'X user observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((xUserTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((xUserTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

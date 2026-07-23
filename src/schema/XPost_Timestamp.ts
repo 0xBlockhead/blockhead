@@ -6,7 +6,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum XPost_TimestampSelector {
-	XPostTimestampMs = 'XPostTimestampMs',
+	XPostTimestampMsSource = 'XPostTimestampMsSource',
 }
 export const XPost_Timestamp = entity({
 	entityType: EntityType.XPost_Timestamp,
@@ -25,6 +25,13 @@ export const XPost_Timestamp = entity({
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
 		primitiveType: (type('number.integer >= 0')),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this immutable post observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	likeCount: {
@@ -53,9 +60,10 @@ export const XPost_Timestamp = entity({
 	},
 })({
 	selectors: {
-		XPostTimestampMs: [
+		XPostTimestampMsSource: [
 			'$post',
 			'timestampMs',
+			'source',
 		],
 	},
 })

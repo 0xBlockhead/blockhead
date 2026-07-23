@@ -24,6 +24,7 @@
 			Source.X_FxEmbed_Rest,
 		],
 		fields: {
+			username: true,
 			$icon: true,
 			name: true,
 			createdAt: true,
@@ -33,7 +34,6 @@
 			description: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? ''), String((pageSelection.entitySelector.username) ?? ''), String((pageSelection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'X user' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).username) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'X user')))
 
 
 	// Components
@@ -43,7 +43,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • X user • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.id) ?? '')].filter(Boolean).join(' ') || 'X user' : [String((({ ...data.selector, ...pageSelection.entity }).name) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).username) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'X user'))} • X user • Blockhead</title>
 </svelte:head>
 
 

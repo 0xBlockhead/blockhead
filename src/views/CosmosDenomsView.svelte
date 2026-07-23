@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Denoms',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CosmosDenom>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CosmosDenom>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CosmosDenomView from '$/views/CosmosDenomView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cosmosDenoms) => [...new Map(cosmosDenoms.values.map((cosmosDenom) => [cosmosDenom[EntityMetaKey.SelectorKey], cosmosDenom])).values()]}
 	getKey={(cosmosDenom) => cosmosDenom[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: cosmosDenom })}
 		{@const cosmosDenomFields = { ...cosmosDenom[EntityMetaKey.Selector], ...cosmosDenom }}
-		{@const selection = select(EntityType.CosmosDenom, cosmosDenom[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CosmosDenomView
-			selection={selection}
-			prefetched={cosmosDenomFields}
+		<EntityView
+			entityType={EntityType.CosmosDenom}
+			entitySelector={cosmosDenom[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cosmosDenomFields.symbol) ?? ''), String((cosmosDenomFields.display) ?? ''), String((cosmosDenomFields.denom) ?? '')].filter(Boolean).join(' ') || 'Cosmos denom'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((cosmosDenomFields.denom) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((cosmosDenomFields.$network.name) ?? '')].filter(Boolean).join(' ') || [cosmosDenomFields.$network.caip2 == null ? '' : String(`${(cosmosDenomFields.$network.caip2).namespace}:${(cosmosDenomFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import blockFixture from '$/sources/Blockfrost/Rest/fixtures/block.json'
+import { CardanoAddressSelector } from '$/schema/CardanoAddress.ts'
 import { CardanoBlockSelector } from '$/schema/CardanoBlock.ts'
 import { CardanoCommittee_EpochSelector } from '$/schema/CardanoCommittee_Epoch.ts'
 import { CardanoDRepSelector } from '$/schema/CardanoDRep.ts'
@@ -8,30 +9,43 @@ import { CardanoGovernanceProposalSelector } from '$/schema/CardanoGovernancePro
 import { CardanoGovernanceProposal_TimestampSelector } from '$/schema/CardanoGovernanceProposal_Timestamp.ts'
 import { CardanoNetwork_TimestampSelector } from '$/schema/CardanoNetwork_Timestamp.ts'
 import { CardanoStakePoolSelector } from '$/schema/CardanoStakePool.ts'
+import { CardanoTransactionSelector } from '$/schema/CardanoTransaction.ts'
+import { CardanoTxInputSelector } from '$/schema/CardanoTxInput.ts'
+import { CardanoTxOutputSelector } from '$/schema/CardanoTxOutput.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { NetworkNamespace, networkBySlug } from '$/constants/Network.ts'
 import { NetworkSelector } from '$/schema/Network.ts'
 import type {
+	BlockfrostAddress,
+	BlockfrostAddressTotal,
+	BlockfrostAddressTransactions,
+	BlockfrostAddressUtxos,
 	BlockfrostAssets,
 	BlockfrostBlock,
 	BlockfrostCommittee,
-	BlockfrostDReps,
+	BlockfrostDRepListItem,
 	BlockfrostGovernanceProposals,
 	BlockfrostProtocolParameters,
 	BlockfrostStakePools,
+	BlockfrostTransaction,
+	BlockfrostTransactionUtxos,
 	BlockfrostTransactions,
 } from '$/sources/Blockfrost/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 
 const getHealth = vi.fn()
+const getAddress = vi.fn()
+const getAddressTotal = vi.fn()
 const getLatestBlock = vi.fn()
 const getLatestEpoch = vi.fn()
 const getLatestProtocolParameters = vi.fn()
 const getNetwork = vi.fn()
 const getCommittee = vi.fn()
 const listCommitteeVotes = vi.fn()
+const listAddressTransactions = vi.fn()
+const listAddressUtxos = vi.fn()
 const listBlocks = vi.fn()
 const listLatestBlockTransactions = vi.fn()
 const listStakePools = vi.fn()
@@ -47,15 +61,21 @@ const getGovernanceProposalMetadata = vi.fn()
 const listGovernanceProposalVotes = vi.fn()
 const getStakePool = vi.fn()
 const getStakePoolMetadata = vi.fn()
+const getTransaction = vi.fn()
+const getTransactionUtxos = vi.fn()
 
 vi.mock('$/sources/Blockfrost/Rest/queries.ts', () => ({
 	getHealth,
+	getAddress,
+	getAddressTotal,
 	getLatestBlock,
 	getLatestEpoch,
 	getLatestProtocolParameters,
 	getNetwork,
 	getCommittee,
 	listCommitteeVotes,
+	listAddressTransactions,
+	listAddressUtxos,
 	listBlocks,
 	listLatestBlockTransactions,
 	listStakePools,
@@ -71,9 +91,67 @@ vi.mock('$/sources/Blockfrost/Rest/queries.ts', () => ({
 	listGovernanceProposalVotes,
 	getStakePool,
 	getStakePoolMetadata,
+	getTransaction,
+	getTransactionUtxos,
 }))
 
 const { default: blockfrostResolvers } = await import('$/resolvers/Blockfrost-Rest.ts')
+
+const cardanoAddressResolver = blockfrostResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CardanoAddress
+	&& 'addressKind' in resolver.projections
+))
+
+if (cardanoAddressResolver == null)
+	throw new Error('Blockfrost-Rest spec missing CardanoAddress resolver')
+
+const cardanoAddressTransactionsResolver = blockfrostResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CardanoAddress
+	&& '$$transactions' in resolver.projections
+))
+
+if (cardanoAddressTransactionsResolver == null)
+	throw new Error('Blockfrost-Rest spec missing CardanoAddress.$$transactions resolver')
+
+const cardanoAddressUtxosResolver = blockfrostResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CardanoAddress
+	&& '$$utxos' in resolver.projections
+	&& '$$assets' in resolver.projections
+))
+
+if (cardanoAddressUtxosResolver == null)
+	throw new Error('Blockfrost-Rest spec missing CardanoAddress UTXO relationship resolver')
+
+const cardanoTransactionResolver = blockfrostResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CardanoTransaction
+))
+
+if (cardanoTransactionResolver == null)
+	throw new Error('Blockfrost-Rest spec missing CardanoTransaction resolver')
+
+const cardanoTransactionRelationshipsResolver = blockfrostResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CardanoTransaction
+	&& '$$inputs' in resolver.projections
+	&& '$$outputs' in resolver.projections
+	&& '$$assets' in resolver.projections
+))
+
+if (cardanoTransactionRelationshipsResolver == null)
+	throw new Error('Blockfrost-Rest spec missing CardanoTransaction relationship resolver')
+
+const cardanoTxInputResolver = blockfrostResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CardanoTxInput
+))
+
+if (cardanoTxInputResolver == null)
+	throw new Error('Blockfrost-Rest spec missing CardanoTxInput resolver')
+
+const cardanoTxOutputResolver = blockfrostResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CardanoTxOutput
+))
+
+if (cardanoTxOutputResolver == null)
+	throw new Error('Blockfrost-Rest spec missing CardanoTxOutput resolver')
 
 const cardanoNetworkObservationResolver = blockfrostResolvers.resolvers.find((
 	resolver
@@ -126,6 +204,61 @@ const latestBlock = blockFixture satisfies BlockfrostBlock
 const cardanoNetwork = {
 	caip2: networkBySlug.cardano.caip2,
 }
+const cardanoAddress = {
+	$network: cardanoNetwork,
+	address: 'addr1qxqs59lphg8g6qndelq8xwqn60ag3aeyfcp33c2kdp46a09re5df3pzwwmyq946axfcejy5n4x0y99wqpgtp2gd0k09qsgy6pz',
+}
+const cardanoTransaction = {
+	$network: cardanoNetwork,
+	hash: 'transaction-hash',
+}
+const cardanoNativeAssetUnit = `${'a'.repeat(56)}746f6b656e`
+const cardanoTransactionUtxos = {
+	hash: cardanoTransaction.hash,
+	inputs: [
+		{
+			address: 'addr1input',
+			amount: [
+				{
+					unit: 'lovelace',
+					quantity: '5000000',
+				},
+				{
+					unit: cardanoNativeAssetUnit,
+					quantity: '2',
+				},
+			],
+			tx_hash: 'spent-transaction-hash',
+			output_index: 3,
+			data_hash: null,
+			inline_datum: null,
+			reference_script_hash: null,
+			collateral: false,
+			reference: true,
+		},
+	],
+	outputs: [
+		{
+			address: 'addr1output',
+			amount: [
+				{
+					unit: 'lovelace',
+					quantity: '3000000',
+				},
+				{
+					unit: cardanoNativeAssetUnit,
+					quantity: '2',
+				},
+			],
+			output_index: 1,
+			data_hash: 'datum-hash',
+			inline_datum: '19a6aa',
+			collateral: false,
+			reference_script_hash: 'reference-script-hash',
+			consumed_by_tx: 'consuming-transaction-hash',
+		},
+	],
+} satisfies BlockfrostTransactionUtxos
 const transactions = ['transaction-hash'] satisfies BlockfrostTransactions
 const stakePools = ['pool1example'] satisfies BlockfrostStakePools
 const dReps = [
@@ -137,9 +270,9 @@ const dReps = [
 		retired: false,
 		expired: false,
 		last_active_epoch: 500,
-		metadata: null,
+		displayName: 'Example DRep',
 	},
-] satisfies BlockfrostDReps
+] satisfies BlockfrostDRepListItem[]
 const governanceProposals = [
 	{
 		id: 'gov_action1example',
@@ -253,6 +386,491 @@ const resolveCardanoField = async (fieldName: string) => {
 	)
 }
 
+describe('Blockfrost Cardano address facet', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('materializes address facts and the latest source observation', async () => {
+		getAddress.mockResolvedValueOnce({
+			address: cardanoAddress.address,
+			amount: [
+				{
+					unit: 'lovelace',
+					quantity: '42000000',
+				},
+				{
+					unit: `${'a'.repeat(56)}746f6b656e`,
+					quantity: '12',
+				},
+			],
+			stake_address: 'stake1ux3g2c9dx2nhhehyrezyxpkstartcqmu9hk63qgfkccw5rqttygt7',
+			type: 'shelley',
+			script: false,
+		} satisfies BlockfrostAddress)
+		getAddressTotal.mockResolvedValueOnce({
+			address: cardanoAddress.address,
+			received_sum: [],
+			sent_sum: [],
+			tx_count: 12,
+		} satisfies BlockfrostAddressTotal)
+		getLatestBlock.mockResolvedValueOnce(latestBlock)
+
+		await expect(cardanoAddressResolver.resolve[
+			CardanoAddressSelector.NetworkAddress
+		].resolve(
+			cardanoAddress,
+			resolverContext
+		)).resolves.toEqual({
+			addressKind: 'shelley-key',
+			$stakeCredential: {
+				[EntityMetaKey.Selector]: {
+					$network: cardanoNetwork,
+					credential: 'stake1ux3g2c9dx2nhhehyrezyxpkstartcqmu9hk63qgfkccw5rqttygt7',
+				},
+			},
+			$$timestamps: [
+				{
+					[EntityMetaKey.Selector]: {
+						$address: cardanoAddress,
+						blockSlot: 130_000_000n,
+						source: Source.Blockfrost_Rest,
+					},
+					timestampMs: 1_720_000_000_000,
+					blockHash: 'block-hash',
+					lovelaceBalance: 42_000_000n,
+					nativeAssetCount: 1,
+					transactionCount: 12,
+				},
+			],
+		})
+		expect(getAddress).toHaveBeenCalledWith(blockfrostBinding, cardanoAddress.address)
+		expect(getAddressTotal).toHaveBeenCalledWith(blockfrostBinding, cardanoAddress.address)
+	})
+
+	it('preserves the absence of a stake credential for addresses without one', async () => {
+		getAddress.mockResolvedValueOnce({
+			address: cardanoAddress.address,
+			amount: [],
+			stake_address: null,
+			type: 'byron',
+			script: false,
+		} satisfies BlockfrostAddress)
+		getAddressTotal.mockResolvedValueOnce({
+			address: cardanoAddress.address,
+			received_sum: [],
+			sent_sum: [],
+			tx_count: 0,
+		} satisfies BlockfrostAddressTotal)
+		getLatestBlock.mockResolvedValueOnce(latestBlock)
+
+		const address = await cardanoAddressResolver.resolve[
+			CardanoAddressSelector.NetworkAddress
+		].resolve(
+			cardanoAddress,
+			resolverContext
+		)
+
+		expect(cardanoAddressResolver.projections.$stakeCredential(
+			address,
+			cardanoAddress,
+			resolverContext
+		)).toBeUndefined()
+	})
+
+	it('maps address transactions and UTXOs with subject-scoped pagination', async () => {
+		listAddressTransactions.mockResolvedValueOnce([
+			{
+				tx_hash: 'newest-transaction-hash',
+				tx_index: 1,
+				block_height: 10_000_000,
+				block_time: 1_720_000_000,
+			},
+			{
+				tx_hash: 'older-transaction-hash',
+				tx_index: 0,
+				block_height: 9_999_999,
+				block_time: 1_719_999_980,
+			},
+		] satisfies BlockfrostAddressTransactions)
+		listAddressUtxos.mockResolvedValueOnce([
+			{
+				address: cardanoAddress.address,
+				tx_hash: 'utxo-transaction-hash',
+				tx_index: 0,
+				output_index: 2,
+				amount: [
+					{
+						unit: 'lovelace',
+						quantity: '729235000',
+					},
+					{
+						unit: assets[0].asset,
+						quantity: '3',
+					},
+					{
+						unit: `${'b'.repeat(56)}6e6674`,
+						quantity: '1',
+					},
+				],
+				block: 'utxo-block-hash',
+				data_hash: 'datum-hash',
+				inline_datum: '19a6aa',
+				reference_script_hash: 'reference-script-hash',
+			},
+			{
+				address: cardanoAddress.address,
+				tx_hash: 'second-utxo-transaction-hash',
+				tx_index: 0,
+				output_index: 3,
+				amount: [
+					{
+						unit: 'lovelace',
+						quantity: '1000000',
+					},
+					{
+						unit: assets[0].asset,
+						quantity: '2',
+					},
+				],
+				block: 'second-utxo-block-hash',
+				data_hash: null,
+				inline_datum: null,
+				reference_script_hash: null,
+			},
+		] satisfies BlockfrostAddressUtxos)
+
+		const transactionSnapshot = await cardanoAddressTransactionsResolver.resolve[
+			CardanoAddressSelector.NetworkAddress
+		].resolve(
+			cardanoAddress,
+			{
+				...resolverContext,
+				pagination: {
+					limit: 2,
+				},
+				providerContinuationToken: '2',
+			}
+		)
+		const transactionProjection = cardanoAddressTransactionsResolver.projections.$$transactions
+		if (
+			typeof transactionProjection === 'function'
+			|| transactionProjection.select == null
+			|| transactionProjection.continuation == null
+		)
+			throw new Error('Blockfrost-Rest spec missing Cardano address transaction pagination')
+
+		expect(transactionProjection.select(
+			transactionSnapshot,
+			cardanoAddress,
+			resolverContext
+		).map((row) => row[EntityMetaKey.Selector])).toEqual([
+			{
+				$network: cardanoNetwork,
+				hash: 'newest-transaction-hash',
+			},
+			{
+				$network: cardanoNetwork,
+				hash: 'older-transaction-hash',
+			},
+		])
+		expect(transactionProjection.continuation(
+			transactionSnapshot,
+			cardanoAddress,
+			resolverContext
+		)).toEqual({
+			operation: 'address-transactions',
+			target: cardanoAddress.address,
+			terminal: false,
+			token: '3',
+		})
+		expect(listAddressTransactions).toHaveBeenCalledWith(
+			blockfrostBinding,
+			cardanoAddress.address,
+			2,
+			2
+		)
+
+		const utxoSnapshot = await cardanoAddressUtxosResolver.resolve[
+			CardanoAddressSelector.NetworkAddress
+		].resolve(
+			cardanoAddress,
+			{
+				...resolverContext,
+				pagination: {
+					limit: 3,
+				},
+			}
+		)
+		const utxoProjection = cardanoAddressUtxosResolver.projections.$$utxos
+		if (
+			typeof utxoProjection === 'function'
+			|| utxoProjection.select == null
+			|| utxoProjection.continuation == null
+		)
+			throw new Error('Blockfrost-Rest spec missing Cardano address UTXO pagination')
+
+		expect(utxoProjection.select(
+			utxoSnapshot,
+			cardanoAddress,
+			resolverContext
+		)[0]).toMatchObject(
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: cardanoNetwork,
+						hash: 'utxo-transaction-hash',
+					},
+					outputIndex: 2,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'lovelace')]: 729_235_000n,
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'datumHash')]: 'datum-hash',
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'referenceScriptHash')]: 'reference-script-hash',
+				},
+			}
+		)
+		expect(utxoProjection.continuation(
+			utxoSnapshot,
+			cardanoAddress,
+			resolverContext
+		)).toEqual({
+			operation: 'address-utxos',
+			target: cardanoAddress.address,
+			terminal: true,
+		})
+		const assetProjection = cardanoAddressUtxosResolver.projections.$$assets
+		if (
+			typeof assetProjection === 'function'
+			|| assetProjection.select == null
+			|| assetProjection.continuation == null
+		)
+			throw new Error('Blockfrost-Rest spec missing Cardano address asset pagination')
+
+		expect(assetProjection.select(
+			utxoSnapshot,
+			cardanoAddress,
+			resolverContext
+		).map((row) => row[EntityMetaKey.Selector])).toEqual([
+			{
+				$network: cardanoNetwork,
+				policyId: 'a'.repeat(56),
+				assetName: '746f6b656e',
+			},
+			{
+				$network: cardanoNetwork,
+				policyId: 'b'.repeat(56),
+				assetName: '6e6674',
+			},
+		])
+		expect(assetProjection.continuation(
+			utxoSnapshot,
+			cardanoAddress,
+			resolverContext
+		)).toEqual({
+			operation: 'address-utxos',
+			target: cardanoAddress.address,
+			terminal: true,
+		})
+		expect(listAddressUtxos).toHaveBeenCalledWith(
+			blockfrostBinding,
+			cardanoAddress.address,
+			3,
+			1
+		)
+	})
+
+	it('materializes transaction summary fields from the transaction detail operation', async () => {
+		getTransaction.mockResolvedValueOnce({
+			hash: cardanoTransaction.hash,
+			block: 'block-hash',
+			block_height: 10_000_000,
+			block_time: 1_720_000_000,
+			slot: 130_000_000,
+			index: 1,
+			output_amount: [],
+			fees: '182485',
+			deposit: '2000000',
+			size: 433,
+			invalid_before: '129999000',
+			invalid_hereafter: '130001000',
+			utxo_count: 4,
+			withdrawal_count: 0,
+			mir_cert_count: 0,
+			delegation_count: 0,
+			stake_cert_count: 0,
+			pool_update_count: 0,
+			pool_retire_count: 0,
+			asset_mint_or_burn_count: 0,
+			redeemer_count: 0,
+			valid_contract: true,
+			treasury_donation: '0',
+		} satisfies BlockfrostTransaction)
+
+		const transaction = await cardanoTransactionResolver.resolve[
+			CardanoTransactionSelector.NetworkHash
+		].resolve(
+			cardanoTransaction,
+			resolverContext
+		)
+
+		expect(getTransaction).toHaveBeenCalledWith(blockfrostBinding, cardanoTransaction.hash)
+		expect(cardanoTransactionResolver.projections.blockSlot(transaction, cardanoTransaction, resolverContext)).toBe(130_000_000n)
+		expect(cardanoTransactionResolver.projections.fee(transaction, cardanoTransaction, resolverContext)).toBe(182_485n)
+		expect(cardanoTransactionResolver.projections.deposit(transaction, cardanoTransaction, resolverContext)).toBe(2_000_000n)
+		expect(cardanoTransactionResolver.projections.sizeBytes(transaction, cardanoTransaction, resolverContext)).toBe(433)
+		expect(cardanoTransactionResolver.projections.validityStartSlot(transaction, cardanoTransaction, resolverContext)).toBe(129_999_000n)
+		expect(cardanoTransactionResolver.projections.ttlSlot(transaction, cardanoTransaction, resolverContext)).toBe(130_001_000n)
+	})
+
+	it('materializes transaction inputs, outputs, and native assets from the exact UTXO snapshot', async () => {
+		getTransactionUtxos.mockResolvedValueOnce(cardanoTransactionUtxos)
+
+		const transactionUtxos = await cardanoTransactionRelationshipsResolver.resolve[
+			CardanoTransactionSelector.NetworkHash
+		].resolve(
+			cardanoTransaction,
+			resolverContext
+		)
+
+		expect(getTransactionUtxos).toHaveBeenCalledWith(
+			blockfrostBinding,
+			cardanoTransaction.hash
+		)
+		expect(cardanoTransactionRelationshipsResolver.projections.$$inputs(
+			transactionUtxos,
+			cardanoTransaction,
+			resolverContext
+		)).toMatchObject([
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: cardanoTransaction,
+					inputIndex: 0,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'inputKind')]: 'reference',
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'spentTxHash')]: 'spent-transaction-hash',
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'spentOutputIndex')]: 3,
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], '$spentOutput')]: {
+						[EntityMetaKey.Selector]: {
+							$transaction: {
+								$network: cardanoNetwork,
+								hash: 'spent-transaction-hash',
+							},
+							outputIndex: 3,
+						},
+					},
+				},
+			},
+		])
+		expect(cardanoTransactionRelationshipsResolver.projections.$$outputs(
+			transactionUtxos,
+			cardanoTransaction,
+			resolverContext
+		)).toMatchObject([
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: cardanoTransaction,
+					outputIndex: 1,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'address')]: 'addr1output',
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], '$address')]: {
+						[EntityMetaKey.Selector]: {
+							$network: cardanoNetwork,
+							address: 'addr1output',
+						},
+					},
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'lovelace')]: 3_000_000n,
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'datumHash')]: 'datum-hash',
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'spentByTxHash')]: 'consuming-transaction-hash',
+				},
+			},
+		])
+		expect(cardanoTransactionRelationshipsResolver.projections.$$assets(
+			transactionUtxos,
+			cardanoTransaction,
+			resolverContext
+		).map((row) => row[EntityMetaKey.Selector])).toEqual([
+			{
+				$network: cardanoNetwork,
+				policyId: 'a'.repeat(56),
+				assetName: '746f6b656e',
+			},
+		])
+	})
+
+	it('resolves cold transaction input and output selectors from the same UTXO operation', async () => {
+		getTransactionUtxos
+			.mockResolvedValueOnce(cardanoTransactionUtxos)
+			.mockResolvedValueOnce(cardanoTransactionUtxos)
+
+		const cardanoTxInput = {
+			$transaction: cardanoTransaction,
+			inputIndex: 0,
+		}
+		const input = await cardanoTxInputResolver.resolve[
+			CardanoTxInputSelector.TransactionInputIndex
+		].resolve(
+			cardanoTxInput,
+			resolverContext
+		)
+		expect(cardanoTxInputResolver.projections.inputKind(
+			input,
+			cardanoTxInput,
+			resolverContext
+		)).toBe('reference')
+		expect(cardanoTxInputResolver.projections.$spentOutput(
+			input,
+			cardanoTxInput,
+			resolverContext
+		)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: cardanoNetwork,
+					hash: 'spent-transaction-hash',
+				},
+				outputIndex: 3,
+			},
+		})
+
+		const cardanoTxOutput = {
+			$transaction: cardanoTransaction,
+			outputIndex: 1,
+		}
+		const output = await cardanoTxOutputResolver.resolve[
+			CardanoTxOutputSelector.TransactionOutputIndex
+		].resolve(
+			cardanoTxOutput,
+			resolverContext
+		)
+		expect(cardanoTxOutputResolver.projections.lovelace(
+			output,
+			cardanoTxOutput,
+			resolverContext
+		)).toBe(3_000_000n)
+		expect(cardanoTxOutputResolver.projections.$$assets(
+			output,
+			cardanoTxOutput,
+			resolverContext
+		)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$output: cardanoTxOutput,
+					$asset: {
+						$network: cardanoNetwork,
+						policyId: 'a'.repeat(56),
+						assetName: '746f6b656e',
+					},
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoTxOutputAsset, [], 'quantity')]: 2n,
+				},
+			},
+		])
+	})
+})
+
 describe('Blockfrost Cardano network facet', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -268,6 +886,15 @@ describe('Blockfrost Cardano network facet', () => {
 			resolver.entityType === EntityType.Network
 			&& 'Cardano' in resolver.projections
 		))).toBe(true)
+	})
+
+	it('resolves Cardano network fields from both public route selectors', () => {
+		for (const resolver of blockfrostResolvers.resolvers.filter(({ entityType }) => (
+			entityType === EntityType.Network
+		))) {
+			expect(resolver.resolve).toHaveProperty(NetworkSelector.Slug)
+			expect(resolver.resolve).toHaveProperty(NetworkSelector.Caip2)
+		}
 	})
 
 	it('maps a nonempty $$transactions source-shaped result', async () => {
@@ -309,25 +936,108 @@ describe('Blockfrost Cardano network facet', () => {
 				},
 				drepCredential: 'drep1example',
 				credentialKind: 'key',
+				displayName: 'Example DRep',
 			},
 		])
 	})
 
 	it('maps a nonempty $$governanceProposals source-shaped result', async () => {
 		listGovernanceProposals.mockResolvedValueOnce(governanceProposals)
+		const resolver = blockfrostResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Cardano' in candidate.projections
+			&& '$$governanceProposals' in candidate.projections.Cardano
+		))
+		if (
+			resolver == null
+			|| typeof resolver.projections.Cardano.$$governanceProposals === 'function'
+			|| resolver.projections.Cardano.$$governanceProposals.select == null
+		)
+			throw new Error('Blockfrost-Rest spec missing governance proposal pagination')
+		const snapshot = await resolver.resolve[NetworkSelector.Caip2].resolve(
+			cardanoNetwork,
+			resolverContext
+		)
 
-		await expect(resolveCardanoField('$$governanceProposals')).resolves.toEqual([
+		expect(resolver.projections.Cardano.$$governanceProposals.select(
+			snapshot,
+			cardanoNetwork,
+			resolverContext
+		)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: cardanoNetwork,
 					proposalTxHash: 'proposal-transaction-hash',
 					proposalIndex: 1,
 				},
-				proposalTxHash: 'proposal-transaction-hash',
-				proposalIndex: 1,
-				proposalKind: 'info_action',
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalTxHash')]: 'proposal-transaction-hash',
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalIndex')]: 1,
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'governanceActionId')]: 'gov_action1example',
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalKind')]: 'info_action',
+				},
 			},
 		])
+		expect(listGovernanceProposals).toHaveBeenCalledWith(blockfrostBinding, 64, 1)
+	})
+
+	it('continues governance proposal pages and rejects malformed or duplicate pages', async () => {
+		const resolver = blockfrostResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Cardano' in candidate.projections
+			&& '$$governanceProposals' in candidate.projections.Cardano
+		))
+		if (
+			resolver == null
+			|| typeof resolver.projections.Cardano.$$governanceProposals === 'function'
+			|| resolver.projections.Cardano.$$governanceProposals.continuation == null
+		)
+			throw new Error('Blockfrost-Rest spec missing governance proposal continuation')
+		listGovernanceProposals.mockResolvedValueOnce(governanceProposals)
+		const context = {
+			...resolverContext,
+			pagination: { limit: 1 },
+			providerContinuationToken: 'after=previous-hash%3A0&page=2',
+		}
+		const snapshot = await resolver.resolve[NetworkSelector.Caip2].resolve(
+			cardanoNetwork,
+			context
+		)
+		expect(listGovernanceProposals).toHaveBeenCalledWith(blockfrostBinding, 1, 2)
+		expect(resolver.projections.Cardano.$$governanceProposals.continuation(
+			snapshot,
+			cardanoNetwork,
+			context
+		)).toEqual({
+			operation: 'cardano-governance-proposals',
+			target: networkBySlug.cardano.slug,
+			terminal: false,
+			token: 'after=proposal-transaction-hash%3A1&page=3',
+		})
+
+		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
+			cardanoNetwork,
+			{
+				...resolverContext,
+				providerContinuationToken: '2.5',
+			}
+		)).rejects.toThrow('invalid governance proposals continuation')
+		listGovernanceProposals.mockResolvedValueOnce(governanceProposals)
+		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
+			cardanoNetwork,
+			{
+				...resolverContext,
+				providerContinuationToken: 'after=proposal-transaction-hash%3A1&page=2',
+			}
+		)).rejects.toThrow('governance proposals continuation did not advance')
+		listGovernanceProposals.mockResolvedValueOnce([
+			governanceProposals[0],
+			governanceProposals[0],
+		])
+		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
+			cardanoNetwork,
+			resolverContext
+		)).rejects.toThrow('governance proposals page contains duplicate identities')
 	})
 
 	it('maps a nonempty $$assets source-shaped result', async () => {
@@ -831,22 +1541,26 @@ describe('Blockfrost Cardano governance details', () => {
 		if (resolver == null || metadataResolver == null)
 			throw new Error('missing proposal resolver')
 
-		await expect(resolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve(
+		const resolvedProposal = await resolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve(
 			{
 				$network: cardanoNetwork,
 				proposalTxHash: 'proposal-hash',
 				proposalIndex: 1,
 			},
 			resolverContext
-		)).resolves.toMatchObject({
+		)
+		expect(resolvedProposal).toMatchObject({
+			governanceActionId: 'gov_action1example',
 			proposalKind: 'info_action',
 			$$timestamps: [{
 				epoch: 599,
 				source: Source.Blockfrost_Rest,
+				status: 'active',
 				expirationEpoch: 600,
 			}],
 			$$votes: [],
 		})
+		expect(resolvedProposal).not.toHaveProperty('proposalPayload')
 		await expect(metadataResolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve(
 			{
 				$network: cardanoNetwork,
@@ -865,13 +1579,15 @@ describe('Blockfrost Cardano governance details', () => {
 			tx_hash: 'proposal-hash',
 			cert_index: 1,
 			governance_type: 'info_action',
-			governance_description: null,
+			governance_description: {
+				tag: 'InfoAction',
+			},
 			deposit: '1000000',
 			return_address: 'stake1return',
 			ratified_epoch: 590,
 			enacted_epoch: 591,
-			dropped_epoch: 592,
-			expired_epoch: 593,
+			dropped_epoch: null,
+			expired_epoch: null,
 			expiration: 600,
 		})
 		getGovernanceProposalMetadata.mockRejectedValueOnce(new Error('metadata transport unavailable'))
@@ -887,12 +1603,15 @@ describe('Blockfrost Cardano governance details', () => {
 			proposalTxHash: 'proposal-hash',
 			proposalIndex: 1,
 		}, resolverContext)).resolves.toMatchObject({
+			governanceActionId: 'gov_action1example',
+			proposalPayload: {
+				tag: 'InfoAction',
+			},
 			$$timestamps: [{
 				epoch: 599,
+				status: 'enacted',
 				ratifiedEpoch: 590,
 				enactedEpoch: 591,
-				droppedEpoch: 592,
-				expiredEpoch: 593,
 				expirationEpoch: 600,
 			}],
 		})
@@ -906,6 +1625,98 @@ describe('Blockfrost Cardano governance details', () => {
 			source: Source.Blockfrost_Rest,
 		}, resolverContext)).rejects.toThrow('historical proposal observation is unavailable')
 		expect(getGovernanceProposal).toHaveBeenCalledOnce()
+	})
+
+	it('distinguishes natural expiry from an earlier dropped proposal', async () => {
+		getGovernanceProposal
+			.mockResolvedValueOnce({
+				id: 'gov_action1expired',
+				tx_hash: 'expired-proposal-hash',
+				cert_index: 0,
+				governance_type: 'info_action',
+				governance_description: null,
+				deposit: '1000000',
+				return_address: 'stake1return',
+				ratified_epoch: null,
+				enacted_epoch: null,
+				dropped_epoch: 594,
+				expired_epoch: 593,
+				expiration: 593,
+			})
+			.mockResolvedValueOnce({
+				id: 'gov_action1dropped',
+				tx_hash: 'dropped-proposal-hash',
+				cert_index: 0,
+				governance_type: 'parameter_change',
+				governance_description: null,
+				deposit: '1000000',
+				return_address: 'stake1return',
+				ratified_epoch: null,
+				enacted_epoch: null,
+				dropped_epoch: 592,
+				expired_epoch: null,
+				expiration: 600,
+			})
+		listGovernanceProposalVotes.mockResolvedValue([])
+		const proposalResolver = blockfrostResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.CardanoGovernanceProposal
+			&& '$$timestamps' in candidate.projections
+		))
+
+		if (proposalResolver == null)
+			throw new Error('missing proposal lifecycle resolver')
+
+		await expect(proposalResolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve({
+				$network: cardanoNetwork,
+				proposalTxHash: 'expired-proposal-hash',
+				proposalIndex: 0,
+			}, resolverContext)).resolves.toEqual(expect.objectContaining({
+			$$timestamps: [expect.objectContaining({
+				status: 'expired',
+				droppedEpoch: 594,
+				expiredEpoch: 593,
+			})],
+		}))
+		await expect(proposalResolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve({
+				$network: cardanoNetwork,
+				proposalTxHash: 'dropped-proposal-hash',
+				proposalIndex: 0,
+			}, resolverContext)).resolves.toEqual(expect.objectContaining({
+			$$timestamps: [expect.objectContaining({
+				status: 'dropped',
+				droppedEpoch: 592,
+			})],
+		}))
+	})
+
+	it('rejects governance proposal detail for a different transaction occurrence', async () => {
+		getGovernanceProposal.mockResolvedValueOnce({
+			id: 'gov_action1wrong',
+			tx_hash: 'different-proposal-hash',
+			cert_index: 2,
+			governance_type: 'info_action',
+			governance_description: null,
+			deposit: '1000000',
+			return_address: 'stake1return',
+			ratified_epoch: null,
+			enacted_epoch: null,
+			dropped_epoch: null,
+			expired_epoch: null,
+			expiration: 600,
+		})
+		listGovernanceProposalVotes.mockResolvedValueOnce([])
+		const proposalResolver = blockfrostResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.CardanoGovernanceProposal
+			&& '$$timestamps' in candidate.projections
+		))
+		if (proposalResolver == null)
+			throw new Error('missing proposal lifecycle resolver')
+
+		await expect(proposalResolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve({
+			$network: cardanoNetwork,
+			proposalTxHash: 'proposal-hash',
+			proposalIndex: 1,
+		}, resolverContext)).rejects.toThrow('governance proposal response does not match the subject')
 	})
 
 	it('preserves proposal detail and votes when optional metadata fails', async () => {
@@ -953,6 +1764,14 @@ describe('Blockfrost Cardano governance details', () => {
 				expect.objectContaining({
 					voterCredential: 'drep1example',
 					voteTxHash: 'vote-hash',
+					$transaction: {
+						$network: cardanoNetwork,
+						hash: 'vote-hash',
+					},
+					$drep: {
+						$network: cardanoNetwork,
+						drepCredential: 'drep1example',
+					},
 				}),
 			],
 		})
@@ -964,6 +1783,146 @@ describe('Blockfrost Cardano governance details', () => {
 			},
 			resolverContext
 		)).rejects.toThrow('metadata transport unavailable')
+	})
+
+	it('links SPO votes to their transaction and stake pool', async () => {
+		getGovernanceProposal.mockResolvedValueOnce({
+			id: 'gov_action1example',
+			tx_hash: 'proposal-hash',
+			cert_index: 1,
+			governance_type: 'info_action',
+			governance_description: null,
+			deposit: '1000000',
+			return_address: 'stake1return',
+			ratified_epoch: null,
+			enacted_epoch: null,
+			dropped_epoch: null,
+			expired_epoch: null,
+			expiration: 600,
+		})
+		listGovernanceProposalVotes.mockResolvedValueOnce([{
+			tx_hash: 'spo-vote-hash',
+			cert_index: 3,
+			voter_role: 'spo',
+			voter: 'pool1example',
+			vote: 'no',
+		}])
+		const proposalResolver = blockfrostResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.CardanoGovernanceProposal
+			&& '$$votes' in candidate.projections
+		))
+
+		if (proposalResolver == null)
+			throw new Error('missing proposal vote resolver')
+
+		const context = {
+			...resolverContext,
+			pagination: { limit: 1 },
+			providerContinuationToken: 'after=previous-vote%3A0%3Adrep%3Adrep1previous&page=2',
+		}
+		const snapshot = await proposalResolver.resolve[
+			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+		].resolve({
+			$network: cardanoNetwork,
+			proposalTxHash: 'proposal-hash',
+			proposalIndex: 1,
+		}, context)
+		expect(snapshot).toMatchObject({
+			$$votes: [{
+				$transaction: {
+					$network: cardanoNetwork,
+					hash: 'spo-vote-hash',
+				},
+				$stakePool: {
+					$network: cardanoNetwork,
+					poolId: 'pool1example',
+				},
+			}],
+		})
+		expect(listGovernanceProposalVotes).toHaveBeenCalledWith(
+			blockfrostBinding,
+			'proposal-hash',
+			1,
+			1,
+			2
+		)
+		if (
+			typeof proposalResolver.projections.$$votes === 'function'
+			|| proposalResolver.projections.$$votes.continuation == null
+		)
+			throw new Error('missing proposal vote continuation')
+		expect(proposalResolver.projections.$$votes.continuation(
+			snapshot,
+			{
+				$network: cardanoNetwork,
+				proposalTxHash: 'proposal-hash',
+				proposalIndex: 1,
+			},
+			context
+		)).toEqual({
+			operation: 'cardano-governance-proposal-votes',
+			target: 'proposal-hash:1',
+			terminal: false,
+			token: 'after=spo-vote-hash%3A3%3Aspo%3Apool1example&page=3',
+		})
+		getGovernanceProposal.mockResolvedValueOnce({
+			id: 'gov_action1example',
+			tx_hash: 'proposal-hash',
+			cert_index: 1,
+			governance_type: 'info_action',
+			governance_description: null,
+			deposit: '1000000',
+			return_address: 'stake1return',
+			ratified_epoch: null,
+			enacted_epoch: null,
+			dropped_epoch: null,
+			expired_epoch: null,
+			expiration: 600,
+		})
+		listGovernanceProposalVotes.mockResolvedValueOnce([{
+			tx_hash: 'spo-vote-hash',
+			cert_index: 3,
+			voter_role: 'spo',
+			voter: 'pool1example',
+			vote: 'no',
+		}])
+		await expect(proposalResolver.resolve[
+			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+		].resolve({
+			$network: cardanoNetwork,
+			proposalTxHash: 'proposal-hash',
+			proposalIndex: 1,
+		}, {
+			...resolverContext,
+			providerContinuationToken: 'after=spo-vote-hash%3A3%3Aspo%3Apool1example&page=3',
+		})).rejects.toThrow('governance proposal votes continuation did not advance')
+	})
+
+	it('rejects metadata for a different proposal occurrence', async () => {
+		getGovernanceProposalMetadata.mockReset().mockResolvedValueOnce({
+			id: 'gov_action1wrong',
+			tx_hash: 'different-proposal-hash',
+			cert_index: 2,
+			url: 'https://example.com/wrong.json',
+			hash: 'wrong-metadata-hash',
+			json_metadata: null,
+			bytes: '',
+		})
+		const metadataResolver = blockfrostResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.CardanoGovernanceProposal
+			&& 'anchorUrl' in candidate.projections
+		))
+
+		if (metadataResolver == null)
+			throw new Error('missing proposal metadata resolver')
+
+		await expect(metadataResolver.resolve[
+			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+		].resolve({
+			$network: cardanoNetwork,
+			proposalTxHash: 'proposal-hash',
+			proposalIndex: 1,
+		}, resolverContext)).rejects.toThrow('governance proposal metadata does not match the subject')
 	})
 
 	it('keeps missing pool metadata optional and rejects a wrong network', async () => {
@@ -994,5 +1953,32 @@ describe('Blockfrost Cardano governance details', () => {
 			},
 			resolverContext
 		)).rejects.toThrow('Blockfrost_Rest: unsupported network')
+	})
+
+	it('projects validated CIP-119 display identity on DRep detail', async () => {
+		getDRepMetadata.mockResolvedValueOnce({
+			url: 'https://example.com/drep.json',
+			hash: 'metadata-hash',
+			displayName: 'Example DRep',
+		})
+		const drepIdentityResolver = blockfrostResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.CardanoDRep
+			&& 'displayName' in resolver.projections
+		))
+
+		if (drepIdentityResolver == null)
+			throw new Error('missing Cardano DRep identity resolver')
+
+		await expect(drepIdentityResolver.resolve[CardanoDRepSelector.NetworkDrepCredential].resolve(
+			{
+				$network: cardanoNetwork,
+				drepCredential: 'drep1example',
+			},
+			resolverContext
+		)).resolves.toEqual({
+			displayName: 'Example DRep',
+			anchorUrl: 'https://example.com/drep.json',
+			anchorHash: 'metadata-hash',
+		})
 	})
 })

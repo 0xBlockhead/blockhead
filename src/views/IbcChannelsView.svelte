@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'IBC channels',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.IbcChannel>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.IbcChannel>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import IbcChannelView from '$/views/IbcChannelView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(ibcChannels) => [...new Map(ibcChannels.values.map((ibcChannel) => [ibcChannel[EntityMetaKey.SelectorKey], ibcChannel])).values()]}
 	getKey={(ibcChannel) => ibcChannel[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: ibcChannel })}
 		{@const ibcChannelFields = { ...ibcChannel[EntityMetaKey.Selector], ...ibcChannel }}
-		{@const selection = select(EntityType.IbcChannel, ibcChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<IbcChannelView
-			selection={selection}
-			prefetched={ibcChannelFields}
+		<EntityView
+			entityType={EntityType.IbcChannel}
+			entitySelector={ibcChannel[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((ibcChannelFields.channelId) ?? '')].filter(Boolean).join(' ') || 'IBC channel'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((ibcChannelFields.state) ?? ''), String((ibcChannelFields.channelId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((ibcChannelFields.portId) ?? ''), String((ibcChannelFields.counterpartyChainId) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

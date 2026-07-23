@@ -30,7 +30,6 @@
 			relationshipModel: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.protocolName) ?? '')].filter(Boolean).join(' ') || 'RSS / Atom' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'RSS / Atom')))
 
 
 	// Components
@@ -40,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • RSS / Atom • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'RSS / Atom' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'RSS / Atom'))} • RSS / Atom • Blockhead</title>
 </svelte:head>
 
 

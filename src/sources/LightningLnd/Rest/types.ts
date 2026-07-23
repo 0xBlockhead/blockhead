@@ -84,3 +84,58 @@ export type LndPayment = {
 export type LndListPaymentsResponse = {
 	payments?: LndPayment[]
 }
+
+export type LndNetworkInfoResponse = {
+	graph_diameter?: number
+	avg_out_degree?: number
+	max_out_degree?: number
+	num_nodes?: number
+	num_channels?: number
+	total_network_capacity?: string
+	avg_channel_size?: number
+	min_channel_size?: string
+	max_channel_size?: string
+	median_channel_size_sat?: string
+	num_zombie_chans?: string
+}
+
+export type LndNodeAddress = {
+	network?: string
+	addr: string
+}
+
+export type LndGraphNode = {
+	last_update?: number
+	pub_key: string
+	alias?: string
+	addresses?: LndNodeAddress[]
+	color?: string
+}
+
+export type LndRoutingPolicy = {
+	time_lock_delta?: number
+	min_htlc?: string
+	fee_base_msat?: string
+	fee_rate_milli_msat?: string
+	disabled?: boolean
+	max_htlc_msat?: string
+	last_update?: number
+}
+
+export type LndChannelEdge = {
+	channel_id: string
+	chan_point?: string
+	last_update?: number
+	node1_pub: string
+	node2_pub: string
+	capacity?: string
+	node1_policy?: LndRoutingPolicy
+	node2_policy?: LndRoutingPolicy
+}
+
+export type LndNodeInfoResponse = {
+	node: LndGraphNode
+	num_channels?: number
+	total_capacity?: string
+	channels?: LndChannelEdge[]
+}

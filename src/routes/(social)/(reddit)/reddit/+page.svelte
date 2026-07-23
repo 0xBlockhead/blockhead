@@ -19,11 +19,9 @@
 
 	const pageSelection = $derived(select(EntityType._GlobalRedditNetwork, data.selector, {
 		sources: [
-			Source.Constants_Internal,
 			Source.Reddit_PublicJson,
 		],
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'Reddit' : 'Reddit')))
 
 
 	// Components
@@ -33,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Reddit • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Reddit' : 'Reddit'))} • Reddit • Blockhead</title>
 </svelte:head>
 
 

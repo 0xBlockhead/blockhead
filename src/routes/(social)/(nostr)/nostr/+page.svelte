@@ -30,7 +30,6 @@
 			relationshipModel: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? ['Nostr'].filter(Boolean).join(' ') || 'Nostr' : ['Nostr'].filter(Boolean).join(' ') || 'Nostr')))
 
 
 	// Components
@@ -40,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Nostr • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? ['Nostr'].filter(Boolean).join(' ') || 'Nostr' : ['Nostr'].filter(Boolean).join(' ') || 'Nostr'))} • Nostr • Blockhead</title>
 </svelte:head>
 
 

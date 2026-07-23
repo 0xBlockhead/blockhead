@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadActionOutcome>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadActionOutcome>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadActionOutcome>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadActionOutcome = $derived(selection({
+	const blockheadActionOutcome = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			outcomeKind: true,
+			createdAt: true,
+			transactionHash: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			outcomeKind: true,
@@ -50,7 +58,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.outcomeKind) ?? '')].filter(Boolean).join(' ') || 'blockhead action outcome')
-	const viewDomId = $derived('blockhead-action-outcome-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-action-outcome-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -76,7 +84,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'outcomeKind') && Object.hasOwn(prefetched, 'transactionHash') && Object.hasOwn(prefetched, 'createdAt')}
 			{[String((pendingEntity.outcomeKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadActionOutcome}>
@@ -89,7 +97,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'outcomeKind') && Object.hasOwn(prefetched, 'transactionHash') && Object.hasOwn(prefetched, 'createdAt')}
 			{[String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.outcomeKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadActionOutcome}>
@@ -102,7 +110,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'outcomeKind') && Object.hasOwn(prefetched, 'transactionHash') && Object.hasOwn(prefetched, 'createdAt')}
 			{@const createdAt0 = pendingEntity.createdAt}
 			{#if createdAt0 !== undefined && createdAt0 !== null}
 				<span data-text="muted">
@@ -379,17 +387,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadActionOutcome_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No outcome observations.'
-				id='BlockheadActionOutcome_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadActionOutcomeBlockheadActionOutcomeTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadActionOutcomeBlockheadActionOutcomeTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadActionOutcome_TimestampsView
+					selection={blockheadActionOutcomeBlockheadActionOutcomeTimestampsViewTimestampsResource}
+					countResource={blockheadActionOutcomeBlockheadActionOutcomeTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadActionOutcome_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

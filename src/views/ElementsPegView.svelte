@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ElementsPeg>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ElementsPeg>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ElementsPeg>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const elementsPeg = $derived(selection({
+	const elementsPeg = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			amountSats: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			amountSats: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.direction) ?? ''), String((pendingEntity.pegTransactionId) ?? '')].filter(Boolean).join(' ') || 'Elements peg')
-	const viewDomId = $derived('elements-peg-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('elements-peg-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,7 +79,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountSats')}
 			{[String((pendingEntity.direction) ?? ''), String((pendingEntity.pegTransactionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={elementsPeg}>
@@ -86,13 +92,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const amountSats0 = pendingEntity.amountSats}
-					{#if amountSats0 !== undefined && amountSats0 !== null}
-						<NumberValue
-							value={amountSats0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountSats')}
+			{@const amountSats0 = pendingEntity.amountSats}
+			{#if amountSats0 !== undefined && amountSats0 !== null}
+				<NumberValue
+					value={amountSats0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={elementsPeg}>
 				{#snippet children(entity)}
@@ -114,7 +120,7 @@
 				<dt>Network</dt>
 				<dd>
 					<ElementsNetworkView
-						selection={select(EntityType.ElementsNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.ElementsNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -207,13 +213,28 @@
 									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
 									prefetched={utxoTransaction}
 									href={
-										(utxoTransaction[EntityMetaKey.Selector].txId !== undefined && utxoTransaction[EntityMetaKey.Selector].$network !== undefined && utxoTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-											transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
-											network: String(caip2StringFromValue(utxoTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : utxoTransaction[EntityMetaKey.Selector].txId !== undefined && utxoTransaction[EntityMetaKey.Selector].$network !== undefined && utxoTransaction[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-											transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
-											network: String(utxoTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											utxoTransaction[EntityMetaKey.Selector] != null && 'txId' in utxoTransaction[EntityMetaKey.Selector]
+											&& utxoTransaction[EntityMetaKey.Selector].txId != null
+											&& utxoTransaction[EntityMetaKey.Selector] != null && '$network' in utxoTransaction[EntityMetaKey.Selector] ?
+												utxoTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in utxoTransaction[EntityMetaKey.Selector].$network
+												&& utxoTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+												transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
+												network: String(caip2StringFromValue(utxoTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													utxoTransaction[EntityMetaKey.Selector].$network != null && 'slug' in utxoTransaction[EntityMetaKey.Selector].$network
+													&& utxoTransaction[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+													transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
+													network: String(utxoTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -236,13 +257,28 @@
 									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
 									prefetched={utxoTransaction}
 									href={
-										(utxoTransaction[EntityMetaKey.Selector].txId !== undefined && utxoTransaction[EntityMetaKey.Selector].$network !== undefined && utxoTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-											transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
-											network: String(caip2StringFromValue(utxoTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : utxoTransaction[EntityMetaKey.Selector].txId !== undefined && utxoTransaction[EntityMetaKey.Selector].$network !== undefined && utxoTransaction[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-											transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
-											network: String(utxoTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											utxoTransaction[EntityMetaKey.Selector] != null && 'txId' in utxoTransaction[EntityMetaKey.Selector]
+											&& utxoTransaction[EntityMetaKey.Selector].txId != null
+											&& utxoTransaction[EntityMetaKey.Selector] != null && '$network' in utxoTransaction[EntityMetaKey.Selector] ?
+												utxoTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in utxoTransaction[EntityMetaKey.Selector].$network
+												&& utxoTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+												transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
+												network: String(caip2StringFromValue(utxoTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													utxoTransaction[EntityMetaKey.Selector].$network != null && 'slug' in utxoTransaction[EntityMetaKey.Selector].$network
+													&& utxoTransaction[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+													transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
+													network: String(utxoTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -306,16 +342,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<ElementsPeg_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Observations'
-				id='ElementsPeg_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const elementsPegElementsPegTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={elementsPegElementsPegTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<ElementsPeg_TimestampsView
+					selection={elementsPegElementsPegTimestampsViewTimestampsResource}
+					countResource={elementsPegElementsPegTimestampsViewTimestampsResource.count}
+					title='Observations'
+					id='ElementsPeg_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

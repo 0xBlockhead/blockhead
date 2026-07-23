@@ -24,7 +24,6 @@
 			sequence: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'XRPL transaction' : 'XRPL transaction')))
 
 
 	// Components
@@ -34,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • XRPL transaction • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'XRPL transaction' : 'XRPL transaction'))} • XRPL transaction • Blockhead</title>
 </svelte:head>
 
 

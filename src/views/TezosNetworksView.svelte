@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Tezos networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TezosNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TezosNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TezosNetworkView from '$/views/TezosNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(tezosNetworks) => [...new Map(tezosNetworks.values.map((tezosNetwork) => [tezosNetwork[EntityMetaKey.SelectorKey], tezosNetwork])).values()]}
 	getKey={(tezosNetwork) => tezosNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: tezosNetwork })}
 		{@const tezosNetworkFields = { ...tezosNetwork[EntityMetaKey.Selector], ...tezosNetwork, $$timestamps: tezosNetwork.$$timestamps }}
-		{@const selection = select(EntityType.TezosNetwork, tezosNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TezosNetworkView
-			selection={selection}
-			prefetched={tezosNetworkFields}
+		<EntityView
+			entityType={EntityType.TezosNetwork}
+			entitySelector={tezosNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((tezosNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [tezosNetworkFields.$network.caip2 == null ? '' : String(`${(tezosNetworkFields.$network.caip2).namespace}:${(tezosNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'tezos network'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[tezosNetworkFields.$$timestamps.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

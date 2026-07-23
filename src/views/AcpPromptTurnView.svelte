@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AcpPromptTurn>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AcpPromptTurn>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpPromptTurn>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpPromptTurn = $derived(selection({
+	const acpPromptTurn = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			stopReason: true,
+			startedAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			stopReason: true,
@@ -49,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.turnId) ?? '')].filter(Boolean).join(' ') || 'ACP prompt turn')
-	const viewDomId = $derived('acp-prompt-turn-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('acp-prompt-turn-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,7 +78,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'stopReason') && Object.hasOwn(prefetched, 'startedAt')}
 			{[String((pendingEntity.turnId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={acpPromptTurn}>
@@ -84,7 +91,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'stopReason') && Object.hasOwn(prefetched, 'startedAt')}
 			{[String((pendingEntity.stopReason) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.turnId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={acpPromptTurn}>
@@ -97,7 +104,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'stopReason') && Object.hasOwn(prefetched, 'startedAt')}
 			{@const startedAt0 = pendingEntity.startedAt}
 			{#if startedAt0 !== undefined && startedAt0 !== null}
 				<span data-text="muted">
@@ -125,7 +132,7 @@
 				<dt>session</dt>
 				<dd>
 					<AcpSessionView
-						selection={select(EntityType.AcpSession, selection.entitySelector.$session, {})}
+						selection={select(EntityType.AcpSession, selection.entitySelector.$session)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

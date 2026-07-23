@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'XRPL trustlines',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.XrplTrustline>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.XrplTrustline>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import XrplTrustlineView from '$/views/XrplTrustlineView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(xrplTrustlines) => [...new Map(xrplTrustlines.values.map((xrplTrustline) => [xrplTrustline[EntityMetaKey.SelectorKey], xrplTrustline])).values()]}
 	getKey={(xrplTrustline) => xrplTrustline[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,26 +90,48 @@
 
 	{#snippet Item({ item: xrplTrustline })}
 		{@const xrplTrustlineFields = { ...xrplTrustline[EntityMetaKey.Selector], ...xrplTrustline }}
-		{@const selection = select(EntityType.XrplTrustline, xrplTrustline[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const xrplTrustlineHrefFields = { ...xrplTrustline, ...xrplTrustline[EntityMetaKey.Selector] }}
-		<XrplTrustlineView
-			selection={selection}
-			prefetched={xrplTrustlineFields}
+		<EntityView
+			entityType={EntityType.XrplTrustline}
+			entitySelector={xrplTrustline[EntityMetaKey.Selector]}
 			href={
-				(xrplTrustlineHrefFields.account !== undefined && xrplTrustlineHrefFields.currency !== undefined && xrplTrustlineHrefFields.issuer !== undefined && xrplTrustlineHrefFields.$network !== undefined && xrplTrustlineHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]', {
-					account: String(xrplTrustlineHrefFields.account ?? ''),
-					currency: String(xrplTrustlineHrefFields.currency ?? ''),
-					issuer: String(xrplTrustlineHrefFields.issuer ?? ''),
-					network: String(caip2StringFromValue(xrplTrustlineHrefFields.$network.caip2) ?? ''),
-				}) : xrplTrustlineHrefFields.account !== undefined && xrplTrustlineHrefFields.currency !== undefined && xrplTrustlineHrefFields.issuer !== undefined && xrplTrustlineHrefFields.$network !== undefined && xrplTrustlineHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]', {
-					account: String(xrplTrustlineHrefFields.account ?? ''),
-					currency: String(xrplTrustlineHrefFields.currency ?? ''),
-					issuer: String(xrplTrustlineHrefFields.issuer ?? ''),
-					network: String(xrplTrustlineHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					xrplTrustline[EntityMetaKey.Selector] != null && 'account' in xrplTrustline[EntityMetaKey.Selector]
+					&& xrplTrustline[EntityMetaKey.Selector].account != null
+					&& xrplTrustline[EntityMetaKey.Selector] != null && 'currency' in xrplTrustline[EntityMetaKey.Selector]
+					&& xrplTrustline[EntityMetaKey.Selector].currency != null
+					&& xrplTrustline[EntityMetaKey.Selector] != null && 'issuer' in xrplTrustline[EntityMetaKey.Selector]
+					&& xrplTrustline[EntityMetaKey.Selector].issuer != null
+					&& xrplTrustline[EntityMetaKey.Selector] != null && '$network' in xrplTrustline[EntityMetaKey.Selector] ?
+						xrplTrustline[EntityMetaKey.Selector].$network != null && 'caip2' in xrplTrustline[EntityMetaKey.Selector].$network
+						&& xrplTrustline[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]', {
+						account: String(xrplTrustline[EntityMetaKey.Selector].account ?? ''),
+						currency: String(xrplTrustline[EntityMetaKey.Selector].currency ?? ''),
+						issuer: String(xrplTrustline[EntityMetaKey.Selector].issuer ?? ''),
+						network: String(caip2StringFromValue(xrplTrustline[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							xrplTrustline[EntityMetaKey.Selector].$network != null && 'slug' in xrplTrustline[EntityMetaKey.Selector].$network
+							&& xrplTrustline[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]', {
+							account: String(xrplTrustline[EntityMetaKey.Selector].account ?? ''),
+							currency: String(xrplTrustline[EntityMetaKey.Selector].currency ?? ''),
+							issuer: String(xrplTrustline[EntityMetaKey.Selector].issuer ?? ''),
+							network: String(xrplTrustline[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'XRPL trustline'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

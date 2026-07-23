@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.XrplAmm_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XrplAmm_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XrplAmm_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,15 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xrplAmmTimestamp = $derived(selection({
+	const xrplAmmTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('XRPL AMM timestamp')
-	const viewDomId = $derived('xrpl-amm-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'XRPL AMM timestamp'
+	const viewDomId = $derived('xrpl-amm-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import XrplAmmView from '$/views/XrplAmmView.svelte'
 	import XrplLedgerEntryView from '$/views/XrplLedgerEntryView.svelte'
 </script>
@@ -67,12 +72,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={xrplAmmTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -85,15 +89,30 @@
 				<dt>AMM</dt>
 				<dd>
 					<XrplAmmView
-						selection={select(EntityType.XrplAmm, selection.entitySelector.$amm, {})}
+						selection={select(EntityType.XrplAmm, selection.entitySelector.$amm)}
 						href={
-							(selection.entitySelector.$amm.ammAccount !== undefined && selection.entitySelector.$amm.$network !== undefined && selection.entitySelector.$amm.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/amm/[ammAccount=stringSegment]', {
-								ammAccount: String(selection.entitySelector.$amm.ammAccount ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$amm.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$amm.ammAccount !== undefined && selection.entitySelector.$amm.$network !== undefined && selection.entitySelector.$amm.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/amm/[ammAccount=stringSegment]', {
-								ammAccount: String(selection.entitySelector.$amm.ammAccount ?? ''),
-								network: String(selection.entitySelector.$amm.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$amm != null && 'ammAccount' in selection.entitySelector.$amm
+								&& selection.entitySelector.$amm.ammAccount != null
+								&& selection.entitySelector.$amm != null && '$network' in selection.entitySelector.$amm ?
+									selection.entitySelector.$amm.$network != null && 'caip2' in selection.entitySelector.$amm.$network
+									&& selection.entitySelector.$amm.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/amm/[ammAccount=stringSegment]', {
+									ammAccount: String(selection.entitySelector.$amm.ammAccount ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$amm.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$amm.$network != null && 'slug' in selection.entitySelector.$amm.$network
+										&& selection.entitySelector.$amm.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/amm/[ammAccount=stringSegment]', {
+										ammAccount: String(selection.entitySelector.$amm.ammAccount ?? ''),
+										network: String(selection.entitySelector.$amm.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

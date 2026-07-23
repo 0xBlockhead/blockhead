@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EigenLayer AVSs',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EigenLayerAvs>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EigenLayerAvs>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EigenLayerAvsView from '$/views/EigenLayerAvsView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(eigenLayerAVSs) => [...new Map(eigenLayerAVSs.values.map((eigenLayerAvs) => [eigenLayerAvs[EntityMetaKey.SelectorKey], eigenLayerAvs])).values()]}
 	getKey={(eigenLayerAvs) => eigenLayerAvs[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: eigenLayerAvs })}
 		{@const eigenLayerAvsFields = { ...eigenLayerAvs[EntityMetaKey.Selector], ...eigenLayerAvs }}
-		{@const selection = select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<EigenLayerAvsView
-			selection={selection}
-			prefetched={eigenLayerAvsFields}
+		<EntityView
+			entityType={EntityType.EigenLayerAvs}
+			entitySelector={eigenLayerAvs[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((eigenLayerAvsFields.avsAddress) ?? '')].filter(Boolean).join(' ') || 'eigen layer avs'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((eigenLayerAvsFields.name) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((eigenLayerAvsFields.$network.name) ?? '')].filter(Boolean).join(' ') || [eigenLayerAvsFields.$network.caip2 == null ? '' : String(`${(eigenLayerAvsFields.$network.caip2).namespace}:${(eigenLayerAvsFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

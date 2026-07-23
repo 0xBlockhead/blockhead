@@ -896,6 +896,10 @@ describe('resolver registry live resolver architecture', () => {
 		const accountabilityReport = resolverAccountabilityReport({
 			entityTypes: schema.map((entityDefinition) => entityDefinition.entityType),
 			entityTypesWithResolver: new Set(allSourceResolverDefinitions.map((resolver) => resolver.entityType)),
+			entityTypesWithMaterializer: new Set([
+				EntityType.BlockheadWalletRequestCall,
+				EntityType.XPost_Timestamp,
+			]),
 			sourceBackedEntityTypes: new Set(schema.flatMap((entityDefinition) => (
 				Object.values(fieldDefinitionByEntityTypeAndFieldName[entityDefinition.entityType]).some((fieldDefinition) => (
 					(fieldDefinition.defaultSources?.length ?? 0) > 0
@@ -914,9 +918,10 @@ describe('resolver registry live resolver architecture', () => {
 		]
 		expect(newlyCoveredLocalEntityTypes.every((entityType) => !accountabilityReport.unresolvedEntityTypes.includes(entityType))).toBe(true)
 		for (const entityType of Object.keys(intentionallyUnresolvedEntityTypes))
-			expect(accountabilityReport.unresolvedEntityTypes).toContain(entityType)
+			expect(accountabilityReport.unresolvedEntityTypes).not.toContain(entityType)
 		expect(accountabilityReport.unresolvedSourceBackedEntityTypes).not.toContain(EntityType.BlockheadWalletRequestCall)
-		expect(accountabilityReport.unresolvedNoDeclaredSourceEntityTypes).toContain(EntityType.BlockheadWalletRequestCall)
+		expect(accountabilityReport.unresolvedNoDeclaredSourceEntityTypes).not.toContain(EntityType.BlockheadWalletRequestCall)
+		expect(accountabilityReport.unresolvedEntityTypes).not.toContain(EntityType.XPost_Timestamp)
 		expect(Object.values(intentionallyUnresolvedEntityTypes)).toEqual([
 			'query-local Local_Internal source without a schema field default or resolver implementation',
 		])

@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ActivityPub actors',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ActivityPubActor>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ActivityPubActor>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(activityPubActors) => [...new Map(activityPubActors.values.map((activityPubActor) => [activityPubActor[EntityMetaKey.SelectorKey], activityPubActor])).values()]}
 	getKey={(activityPubActor) => activityPubActor[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,19 +91,34 @@
 
 	{#snippet Item({ item: activityPubActor })}
 		{@const activityPubActorFields = { ...activityPubActor[EntityMetaKey.Selector], ...activityPubActor }}
-		{@const selection = select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const activityPubActorHrefFields = { ...activityPubActor, ...activityPubActor[EntityMetaKey.Selector] }}
-		<ActivityPubActorView
-			selection={selection}
-			prefetched={activityPubActorFields}
+		<EntityView
+			entityType={EntityType.ActivityPubActor}
+			entitySelector={activityPubActor[EntityMetaKey.Selector]}
 			href={
-				(activityPubActorHrefFields.instanceOrigin !== undefined && activityPubActorHrefFields.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
-					instanceOrigin: encodeURIComponent(String(activityPubActorHrefFields.instanceOrigin ?? '')),
-					localAccountId: String(activityPubActorHrefFields.localAccountId ?? ''),
-				}) : undefined)
+				(
+					activityPubActor[EntityMetaKey.Selector] != null && 'instanceOrigin' in activityPubActor[EntityMetaKey.Selector]
+					&& activityPubActor[EntityMetaKey.Selector].instanceOrigin != null
+					&& activityPubActor[EntityMetaKey.Selector] != null && 'localAccountId' in activityPubActor[EntityMetaKey.Selector]
+					&& activityPubActor[EntityMetaKey.Selector].localAccountId != null ?
+						resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
+					instanceOrigin: encodeURIComponent(String(activityPubActor[EntityMetaKey.Selector].instanceOrigin ?? '')),
+					localAccountId: String(activityPubActor[EntityMetaKey.Selector].localAccountId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((activityPubActorFields.displayName) ?? ''), String((activityPubActorFields.acct) ?? ''), String((activityPubActorFields.username) ?? ''), String((activityPubActorFields.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((activityPubActorFields.acct) ?? ''), String((activityPubActorFields.localAccountId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

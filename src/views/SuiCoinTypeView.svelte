@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.SuiCoinType>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SuiCoinType>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SuiCoinType>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiCoinType = $derived(selection({
+	const suiCoinType = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('Sui coin type')
-	const viewDomId = $derived('sui-coin-type-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'Sui coin type'
+	const viewDomId = $derived('sui-coin-type-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -75,12 +79,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={suiCoinType}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -93,7 +96,7 @@
 				<dt>network</dt>
 				<dd>
 					<SuiNetworkView
-						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -176,15 +179,32 @@
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									href={
-										(assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
-											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
-											network: String(caip2StringFromValue(assetInstance[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
-											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
-											network: String(assetInstance[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											assetInstance[EntityMetaKey.Selector] != null && 'kind' in assetInstance[EntityMetaKey.Selector]
+											&& assetInstance[EntityMetaKey.Selector].kind != null
+											&& assetInstance[EntityMetaKey.Selector] != null && 'assetKey' in assetInstance[EntityMetaKey.Selector]
+											&& assetInstance[EntityMetaKey.Selector].assetKey != null
+											&& assetInstance[EntityMetaKey.Selector] != null && '$network' in assetInstance[EntityMetaKey.Selector] ?
+												assetInstance[EntityMetaKey.Selector].$network != null && 'caip2' in assetInstance[EntityMetaKey.Selector].$network
+												&& assetInstance[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+												kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
+												assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
+												network: String(caip2StringFromValue(assetInstance[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													assetInstance[EntityMetaKey.Selector].$network != null && 'slug' in assetInstance[EntityMetaKey.Selector].$network
+													&& assetInstance[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+													kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
+													assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
+													network: String(assetInstance[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -325,99 +345,253 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-sui-coin-type-activity-a'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'sui-coin-type-balances',
-							label: 'Balances',
-						},
-						{
-							id: 'sui-coin-type-objects',
-							label: 'Objects',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-activity-a'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Activity</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-sui-coin-type-activity-a'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'sui-coin-type-balances',
+						label: 'Balances',
+						ownsSection: true,
+					},
+					{
+						id: 'sui-coin-type-objects',
+						label: 'Objects',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-activity-a'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Activity</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionSuiCoinTypeBalances({ id, label, open })}
-					<SuiCoinBalance_TimestampsView
-						selection={selection.$$balances}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No balances.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerSuiCoinTypeBalances(_context, Content)}
+				{@const suiCoinTypeActivityASuiCoinTypeBalancesResource = selection.$$balances}
+				<ResourceBoundary
+					resource={suiCoinTypeActivityASuiCoinTypeBalancesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionSuiCoinTypeObjects({ id, label, open })}
-					<SuiObjectsView
-						selection={selection.$$objects}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No objects.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-sui-coin-type-activity-b'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'sui-coin-type-regulated-states',
-							label: 'Regulated States',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-activity-b'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Activity continued</HeadingComponent>
-					</header>
-				{/snippet}
+			{#snippet SectionSuiCoinTypeBalances({ id, label, open, active })}
+				{@const suiCoinTypeActivityASuiCoinTypeBalancesResource = selection.$$balances}
+				<ResourceBoundary
+					resource={suiCoinTypeActivityASuiCoinTypeBalancesResource}
+				>
+					{#snippet children(suiCoinBalanceTimestamp)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<SuiCoinBalance_TimestampsView
+								selection={suiCoinTypeActivityASuiCoinTypeBalancesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No balances.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-				{#snippet SectionSuiCoinTypeRegulatedStates({ id, label, open })}
-					<SuiRegulatedCoinState_TimestampsView
-						selection={selection.$$regulatedStates}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No regulated states.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerSuiCoinTypeObjects(_context, Content)}
+				{@const suiCoinTypeActivityASuiCoinTypeObjectsResource = selection.$$objects}
+				<ResourceBoundary
+					resource={suiCoinTypeActivityASuiCoinTypeObjectsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionSuiCoinTypeObjects({ id, label, open, active })}
+				{@const suiCoinTypeActivityASuiCoinTypeObjectsResource = selection.$$objects}
+				<ResourceBoundary
+					resource={suiCoinTypeActivityASuiCoinTypeObjectsResource}
+				>
+					{#snippet children(suiObject)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<SuiObjectsView
+								selection={suiCoinTypeActivityASuiCoinTypeObjectsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No objects.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-sui-coin-type-activity-b'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'sui-coin-type-regulated-states',
+						label: 'Regulated States',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-activity-b'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Activity continued</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerSuiCoinTypeRegulatedStates(_context, Content)}
+				{@const suiCoinTypeActivityBSuiCoinTypeRegulatedStatesResource = selection.$$regulatedStates}
+				<ResourceBoundary
+					resource={suiCoinTypeActivityBSuiCoinTypeRegulatedStatesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionSuiCoinTypeRegulatedStates({ id, label, open, active })}
+				{@const suiCoinTypeActivityBSuiCoinTypeRegulatedStatesResource = selection.$$regulatedStates}
+				<ResourceBoundary
+					resource={suiCoinTypeActivityBSuiCoinTypeRegulatedStatesResource}
+				>
+					{#snippet children(suiRegulatedCoinStateTimestamp)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<SuiRegulatedCoinState_TimestampsView
+								selection={suiCoinTypeActivityBSuiCoinTypeRegulatedStatesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No regulated states.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

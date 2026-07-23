@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum EvmNetworkAccountSelector {
@@ -38,6 +39,9 @@ export const EvmNetworkAccount = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.EvmTransaction,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockscout_Rest,
+		],
 	},
 	$$tokenTransfers: {
 		label: 'token transfers',
@@ -56,6 +60,9 @@ export const EvmNetworkAccount = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.EvmNetworkActorCoinBalance,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Allium_Rest,
+		],
 	},
 	$$erc20TokenAllowances: {
 		label: 'erc20 token allowances',

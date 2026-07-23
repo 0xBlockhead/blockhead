@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LensPost>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensPost>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LensPost>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lensPost = $derived(selection({
+	const lensPost = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			text: true,
+			timestamp: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			text: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'Lens post')
-	const viewDomId = $derived('lens-post-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('lens-post-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,16 +77,22 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.id !== undefined ? resolve('/lens/post/[postId=stringSegment]', {
-			postId: String(pendingEntity.id ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'id' in selection.entitySelector
+			&& selection.entitySelector.id != null ?
+				resolve('/lens/post/[postId=stringSegment]', {
+			postId: String(selection.entitySelector.id ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'text') && Object.hasOwn(prefetched, 'timestamp')}
 			{[String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={lensPost}>
@@ -92,7 +105,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'text') && Object.hasOwn(prefetched, 'timestamp')}
 			{[String((pendingEntity.timestamp) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={lensPost}>
@@ -118,9 +131,15 @@
 									selection={select(EntityType.LensAccount, lensAccount[EntityMetaKey.Selector])}
 									prefetched={lensAccount}
 									href={
-										(lensAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
+										(
+											lensAccount[EntityMetaKey.Selector] != null && 'address' in lensAccount[EntityMetaKey.Selector]
+											&& lensAccount[EntityMetaKey.Selector].address != null ?
+												resolve('/lens/account/[address=evmAddress]', {
 											address: String(lensAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -282,9 +301,15 @@
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									href={
-										(lensPost[EntityMetaKey.Selector].id !== undefined ? resolve('/lens/post/[postId=stringSegment]', {
+										(
+											lensPost[EntityMetaKey.Selector] != null && 'id' in lensPost[EntityMetaKey.Selector]
+											&& lensPost[EntityMetaKey.Selector].id != null ?
+												resolve('/lens/post/[postId=stringSegment]', {
 											postId: String(lensPost[EntityMetaKey.Selector].id ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -309,9 +334,15 @@
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									href={
-										(lensPost[EntityMetaKey.Selector].id !== undefined ? resolve('/lens/post/[postId=stringSegment]', {
+										(
+											lensPost[EntityMetaKey.Selector] != null && 'id' in lensPost[EntityMetaKey.Selector]
+											&& lensPost[EntityMetaKey.Selector].id != null ?
+												resolve('/lens/post/[postId=stringSegment]', {
 											postId: String(lensPost[EntityMetaKey.Selector].id ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -336,9 +367,15 @@
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									href={
-										(lensPost[EntityMetaKey.Selector].id !== undefined ? resolve('/lens/post/[postId=stringSegment]', {
+										(
+											lensPost[EntityMetaKey.Selector] != null && 'id' in lensPost[EntityMetaKey.Selector]
+											&& lensPost[EntityMetaKey.Selector].id != null ?
+												resolve('/lens/post/[postId=stringSegment]', {
 											postId: String(lensPost[EntityMetaKey.Selector].id ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -363,9 +400,15 @@
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									href={
-										(lensPost[EntityMetaKey.Selector].id !== undefined ? resolve('/lens/post/[postId=stringSegment]', {
+										(
+											lensPost[EntityMetaKey.Selector] != null && 'id' in lensPost[EntityMetaKey.Selector]
+											&& lensPost[EntityMetaKey.Selector].id != null ?
+												resolve('/lens/post/[postId=stringSegment]', {
 											postId: String(lensPost[EntityMetaKey.Selector].id ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -398,33 +441,40 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<LensPostsView
-				selection={
-						selection.$$comments({
-							count: true,
-						})
-					}
-				title='Comments'
-				href={
-						(selection.entitySelector.id !== undefined ? resolve('/lens/post/[postId=stringSegment]/comments', {
-							postId: selection.entitySelector.id,
-						}) : undefined)
-					}
-				emptyText='No Lens comments for this post.'
-				id='LensPostsView-comments'
-			/>
-
-			<LensPost_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Observations'
-				emptyText='No Lens post observations yet.'
-				id='LensPost_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const lensPostLensPostsViewCommentsResource = selection.$$comments}
+		<ResourceBoundary
+			resource={lensPostLensPostsViewCommentsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<LensPostsView
+					selection={lensPostLensPostsViewCommentsResource}
+					countResource={lensPostLensPostsViewCommentsResource.count}
+					title='Comments'
+					href={
+							(selection.entitySelector != null && 'id' in selection.entitySelector && selection.entitySelector.id != null ? resolve('/lens/post/[postId=stringSegment]/comments', {
+								postId: String(selection.entitySelector.id ?? ''),
+							}) : undefined)
+						}
+					id='LensPostsView-comments'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const lensPostLensPostTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={lensPostLensPostTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<LensPost_TimestampsView
+					selection={lensPostLensPostTimestampsViewTimestampsResource}
+					countResource={lensPostLensPostTimestampsViewTimestampsResource.count}
+					title='Observations'
+					id='LensPost_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -44,15 +44,15 @@
 				}
 				title='Blocks'
 				selection={
-					projection.$$blocks({
-						sources: [
-							Source.Voltaire_JsonRpc,
-							Source.Blockscout_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$blocks({
+							sources: [
+								Source.Voltaire_JsonRpc,
+								Source.Blockscout_Rest,
+							],
+						})
 				}
-				id='blocks'
+				id='account-evm-block'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

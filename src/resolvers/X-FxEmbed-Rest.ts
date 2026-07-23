@@ -15,8 +15,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { XUserSelector } from '$/schema/XUser.ts'
 import { XPostSelector } from '$/schema/XPost.ts'
-import { XUser_TimestampSelector } from '$/schema/XUser_Timestamp.ts'
-import { XPost_TimestampSelector } from '$/schema/XPost_Timestamp.ts'
 import { _GlobalXNetworkSelector } from '$/schema/_GlobalXNetwork.ts'
 import { XNetworkSelector } from '$/schema/XNetwork.ts'
 
@@ -53,6 +51,7 @@ export default {
 						const name = optionalNonemptyString(user.name)
 						const description = optionalNonemptyString(user.description)
 						const location = optionalNonemptyString(user.location)
+						if (user.id !== id) throw new Error('X_FxEmbed_Rest: user id mismatch')
 						if (username == null) throw new Error('X_FxEmbed_Rest: user username not found')
 
 						return {
@@ -82,6 +81,7 @@ export default {
 						const response = await getUser(username)
 						const user = response.user
 						if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
+						const resolvedUsername = optionalNonemptyString(user.screen_name)
 						const createdAt = Date.parse(user.joined ?? '')
 						const websiteUrl = (
 							((urlString) => (
@@ -101,9 +101,10 @@ export default {
 						const name = optionalNonemptyString(user.name)
 						const description = optionalNonemptyString(user.description)
 						const location = optionalNonemptyString(user.location)
+						if (resolvedUsername == null) throw new Error('X_FxEmbed_Rest: user username not found')
 						return {
 							id: user.id,
-							username,
+							username: resolvedUsername,
 							...(name != null && { name }),
 							...(description != null && { description }),
 							...(location != null && { location }),
@@ -145,6 +146,7 @@ export default {
 						const status = response.status
 						if (status?.type !== 'status' || status.id == null)
 							throw new Error('X_FxEmbed_Rest: post not found')
+						if (status.id !== id) throw new Error('X_FxEmbed_Rest: post id mismatch')
 						const createdAt = (
 							status.created_timestamp != null ?
 								status.created_timestamp * 1000
@@ -152,10 +154,16 @@ export default {
 								Date.parse(status.created_at ?? '')
 						)
 						const replyToId = optionalNonemptyString(status.replying_to?.status)
-						const quotedId = optionalNonemptyString(status.quote?.id)
+						const quotedId = (
+							status.quote?.type === 'status' ?
+								optionalNonemptyString(status.quote.id)
+							:
+								undefined
+						)
 						const postId = optionalNonemptyString(status.id)
 						const text = optionalNonemptyString(status.text)
 						return {
+							id,
 							...(text != null && { text }),
 							...(Number.isFinite(createdAt) && { createdAt }),
 							...(postId != null && {
@@ -169,6 +177,33 @@ export default {
 							...(quotedId != null && {
 								$quotedPost: {
 									[EntityMetaKey.Selector]: { id: quotedId },
+									[EntityMetaKey.Fields]: {
+										...(optionalNonemptyString(status.quote?.text) != null && {
+											[entityFieldAddressKey(EntityType.XPost, [], 'text')]:
+												optionalNonemptyString(status.quote?.text),
+										}),
+										...(status.quote?.created_timestamp != null && {
+											[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:
+												status.quote.created_timestamp * 1_000,
+										}),
+										[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
+											`https://x.com/i/web/status/${quotedId}`,
+										...(status.quote?.author?.id != null && {
+											[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
+												[EntityMetaKey.Selector]: { id: status.quote.author.id },
+												[EntityMetaKey.Fields]: {
+													...(optionalNonemptyString(status.quote.author.screen_name) != null && {
+														[entityFieldAddressKey(EntityType.XUser, [], 'username')]:
+															optionalNonemptyString(status.quote.author.screen_name),
+													}),
+													...(optionalNonemptyString(status.quote.author.name) != null && {
+														[entityFieldAddressKey(EntityType.XUser, [], 'name')]:
+															optionalNonemptyString(status.quote.author.name),
+													}),
+												},
+											},
+										}),
+									},
 								},
 							}),
 							$author: (
@@ -177,6 +212,16 @@ export default {
 								:
 									{
 										[EntityMetaKey.Selector]: { id: status.author.id },
+										[EntityMetaKey.Fields]: {
+											...(optionalNonemptyString(status.author.screen_name) != null && {
+												[entityFieldAddressKey(EntityType.XUser, [], 'username')]:
+													optionalNonemptyString(status.author.screen_name),
+											}),
+											...(optionalNonemptyString(status.author.name) != null && {
+												[entityFieldAddressKey(EntityType.XUser, [], 'name')]:
+													optionalNonemptyString(status.author.name),
+											}),
+										},
 									}
 							),
 						}
@@ -184,59 +229,13 @@ export default {
 				}
 			},
 		})({
+				id: (snapshot) => snapshot.id,
 				text: (snapshot) => snapshot.text,
 				createdAt: (snapshot) => snapshot.createdAt,
 				postUrl: (snapshot) => snapshot.postUrl,
 				$replyToPost: (snapshot) => snapshot.$replyToPost,
 				$quotedPost: (snapshot) => snapshot.$quotedPost,
 				$author: (snapshot) => snapshot.$author,
-			}),
-
-		defineResolver(Source.X_FxEmbed_Rest, {
-			entityType: EntityType.XUser_Timestamp,
-			resolve: {
-				[XUser_TimestampSelector.XUserTimestampMs]: {
-					resolve: async ({ $user }) => {
-						const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						const user = (await getUser('id' in $user ? $user.id : $user.username)).user
-						if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
-						return {
-							followerCount: user.followers,
-							followingCount: user.following,
-							tweetCount: user.statuses,
-						}
-					},
-				}
-			},
-		})({
-				followerCount: (snapshot) => snapshot.followerCount,
-				followingCount: (snapshot) => snapshot.followingCount,
-				tweetCount: (snapshot) => snapshot.tweetCount,
-			}),
-
-		defineResolver(Source.X_FxEmbed_Rest, {
-			entityType: EntityType.XPost_Timestamp,
-			resolve: {
-				[XPost_TimestampSelector.XPostTimestampMs]: {
-					resolve: async ({ $post }) => {
-						const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						const status = (await getStatus($post.id)).status
-						if (status?.type !== 'status' || status.id == null)
-							throw new Error('X_FxEmbed_Rest: post not found')
-						return {
-							likeCount: status.likes,
-							retweetCount: status.reposts,
-							replyCount: status.replies,
-							quoteCount: status.quotes,
-						}
-					},
-				}
-			},
-		})({
-				likeCount: (snapshot) => snapshot.likeCount,
-				retweetCount: (snapshot) => snapshot.retweetCount,
-				replyCount: (snapshot) => snapshot.replyCount,
-				quoteCount: (snapshot) => snapshot.quoteCount,
 			}),
 
 			defineResolver(Source.X_FxEmbed_Rest, {
@@ -250,6 +249,7 @@ export default {
 						return (
 							(statusSearchResponse.results ?? [])
 								.flatMap((status) => {
+								if (status.type !== 'status') return []
 								const authorId = optionalNonemptyString(status.author?.id)
 								if (authorId == null) return []
 								return [{
@@ -284,7 +284,8 @@ export default {
 						return (
 							((await searchStatuses(limit)).results ?? [])
 								.flatMap((wirePost) => (
-								wirePost.type === 'status' && wirePost.id != null ?
+								wirePost.type === 'status'
+								&& wirePost.id != null ?
 									[{
 										[EntityMetaKey.Selector]: { id: wirePost.id },
 										[EntityMetaKey.Fields]: {
@@ -301,6 +302,24 @@ export default {
 											...(wirePost.author?.id != null && {
 												[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 													[EntityMetaKey.Selector]: { id: wirePost.author.id },
+													...(
+														optionalNonemptyString(wirePost.author.screen_name) != null
+														|| optionalNonemptyString(wirePost.author.name) != null ?
+															{
+																[EntityMetaKey.Fields]: {
+																	...(optionalNonemptyString(wirePost.author.screen_name) != null && {
+																		[entityFieldAddressKey(EntityType.XUser, [], 'username')]:
+																			optionalNonemptyString(wirePost.author.screen_name),
+																	}),
+																	...(optionalNonemptyString(wirePost.author.name) != null && {
+																		[entityFieldAddressKey(EntityType.XUser, [], 'name')]:
+																			optionalNonemptyString(wirePost.author.name),
+																	}),
+																},
+															}
+														:
+															{}
+													),
 												},
 											}),
 										},
@@ -325,16 +344,32 @@ export default {
 						const status = (await getStatus(id)).status
 						if (status?.type !== 'status' || status.id == null)
 							throw new Error('X_FxEmbed_Rest: post not found')
+						if (status.id !== id) throw new Error('X_FxEmbed_Rest: post id mismatch')
 						return [
 							{
 								[EntityMetaKey.Selector]: {
 									$post: { id },
 									timestampMs: Date.now(),
+									source: Source.X_FxEmbed_Rest,
 								},
-								likeCount: status.likes,
-								retweetCount: status.reposts,
-								replyCount: status.replies,
-								quoteCount: status.quotes,
+								[EntityMetaKey.Fields]: {
+									...(status.likes != null && {
+										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'likeCount')]:
+											status.likes,
+									}),
+									...(status.reposts != null && {
+										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'retweetCount')]:
+											status.reposts,
+									}),
+									...(status.replies != null && {
+										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'replyCount')]:
+											status.replies,
+									}),
+									...(status.quotes != null && {
+										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'quoteCount')]:
+											status.quotes,
+									}),
+								},
 							},
 						]
 					},
@@ -352,6 +387,7 @@ export default {
 						const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const user = (await getUser(id)).user
 						if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
+						if (user.id !== id) throw new Error('X_FxEmbed_Rest: user id mismatch')
 						return [
 							{
 								[EntityMetaKey.Selector]: {
@@ -359,11 +395,21 @@ export default {
 										id: user.id,
 									},
 									timestampMs: Date.now(),
+									source: Source.X_FxEmbed_Rest,
 								},
 								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followerCount')]: user.followers,
-									[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followingCount')]: user.following,
-									[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]: user.statuses,
+									...(user.followers != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followerCount')]:
+											user.followers,
+									}),
+									...(user.following != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followingCount')]:
+											user.following,
+									}),
+									...(user.statuses != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]:
+											user.statuses,
+									}),
 								},
 							},
 						]
@@ -378,14 +424,24 @@ export default {
 							{
 								[EntityMetaKey.Selector]: {
 									$user: {
-										username,
+										id: user.id,
 									},
 									timestampMs: Date.now(),
+									source: Source.X_FxEmbed_Rest,
 								},
 								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followerCount')]: user.followers,
-									[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followingCount')]: user.following,
-									[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]: user.statuses,
+									...(user.followers != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followerCount')]:
+											user.followers,
+									}),
+									...(user.following != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followingCount')]:
+											user.following,
+									}),
+									...(user.statuses != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]:
+											user.statuses,
+									}),
 								},
 							},
 						]
@@ -406,7 +462,9 @@ export default {
 						return (
 							((await getUserStatuses(id, limit)).results ?? [])
 								.flatMap((wirePost) => (
-								wirePost.type === 'status' && wirePost.id != null ?
+								wirePost.type === 'status'
+								&& wirePost.id != null
+								&& wirePost.author?.id === id ?
 									[{
 										[EntityMetaKey.Selector]: { id: wirePost.id },
 										[EntityMetaKey.Fields]: {
@@ -420,6 +478,21 @@ export default {
 											}),
 											[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
 												`https://x.com/i/web/status/${wirePost.id}`,
+											[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
+												[EntityMetaKey.Selector]: { id },
+												...(wirePost.author != null && {
+													[EntityMetaKey.Fields]: {
+														...(optionalNonemptyString(wirePost.author.screen_name) != null && {
+															[entityFieldAddressKey(EntityType.XUser, [], 'username')]:
+																optionalNonemptyString(wirePost.author.screen_name),
+														}),
+														...(optionalNonemptyString(wirePost.author.name) != null && {
+															[entityFieldAddressKey(EntityType.XUser, [], 'name')]:
+																optionalNonemptyString(wirePost.author.name),
+														}),
+													},
+												}),
+											},
 										},
 									}]
 								:
@@ -435,7 +508,10 @@ export default {
 						return (
 							((await getUserStatuses(username, limit)).results ?? [])
 								.flatMap((wirePost) => (
-								wirePost.type === 'status' && wirePost.id != null ?
+								wirePost.type === 'status'
+								&& wirePost.id != null
+								&& wirePost.author?.id != null
+								&& wirePost.author.screen_name?.toLowerCase() === username.toLowerCase() ?
 									[{
 										[EntityMetaKey.Selector]: { id: wirePost.id },
 										[EntityMetaKey.Fields]: {
@@ -449,6 +525,17 @@ export default {
 											}),
 											[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
 												`https://x.com/i/web/status/${wirePost.id}`,
+											[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
+												[EntityMetaKey.Selector]: { id: wirePost.author.id },
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.XUser, [], 'username')]:
+														wirePost.author.screen_name,
+													...(optionalNonemptyString(wirePost.author.name) != null && {
+														[entityFieldAddressKey(EntityType.XUser, [], 'name')]:
+															optionalNonemptyString(wirePost.author.name),
+													}),
+												},
+											},
 										},
 									}]
 								:
@@ -525,6 +612,24 @@ export default {
 											...(status.author?.id != null && {
 												[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 													[EntityMetaKey.Selector]: { id: status.author.id },
+													...(
+														optionalNonemptyString(status.author.screen_name) != null
+														|| optionalNonemptyString(status.author.name) != null ?
+															{
+																[EntityMetaKey.Fields]: {
+																	...(optionalNonemptyString(status.author.screen_name) != null && {
+																		[entityFieldAddressKey(EntityType.XUser, [], 'username')]:
+																			optionalNonemptyString(status.author.screen_name),
+																	}),
+																	...(optionalNonemptyString(status.author.name) != null && {
+																		[entityFieldAddressKey(EntityType.XUser, [], 'name')]:
+																			optionalNonemptyString(status.author.name),
+																	}),
+																},
+															}
+														:
+															{}
+													),
 												},
 											}),
 										},

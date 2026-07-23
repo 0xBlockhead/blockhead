@@ -15,19 +15,19 @@ export const isJsonObject = (value: JsonValue | undefined): value is JsonObject 
 	typeof value === 'object' && value !== null && !Array.isArray(value)
 )
 
-export const isJsonString = (value: JsonValue): value is string => (
+export const isJsonString = (value: JsonValue | undefined): value is string => (
 	typeof value === 'string'
 )
 
-export const isJsonNumber = (value: JsonValue): value is number => (
+export const isJsonNumber = (value: JsonValue | undefined): value is number => (
 	typeof value === 'number'
 )
 
-export const isJsonBoolean = (value: JsonValue): value is boolean => (
+export const isJsonBoolean = (value: JsonValue | undefined): value is boolean => (
 	typeof value === 'boolean'
 )
 
-export const isJsonArray = (value: JsonValue): value is readonly JsonValue[] => (
+export const isJsonArray = (value: JsonValue | undefined): value is readonly JsonValue[] => (
 	Array.isArray(value)
 )
 

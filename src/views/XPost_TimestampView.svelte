@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.XPost_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XPost_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XPost_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xPostTimestamp = $derived(selection({
+	const xPostTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('X post observation')
-	const viewDomId = $derived('xpost-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'X post observation'
+	const viewDomId = $derived('xpost-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,38 +66,45 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$post !== undefined && pendingEntity.$post.id !== undefined ? resolve('/x/post/[postId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			postId: String(pendingEntity.$post.id ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$post' in selection.entitySelector
+			&& selection.entitySelector.$post != null && 'id' in selection.entitySelector.$post
+			&& selection.entitySelector.$post.id != null ?
+				resolve('/x/post/[postId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			postId: String(selection.entitySelector.$post.id ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<XPostView
-						selection={select(EntityType.XPost, selection.entitySelector.$post)}
-						href={
-						(selection.entitySelector.$post.id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
-							postId: String(selection.entitySelector.$post.id ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$post') && prefetched.$post != null && Object.hasOwn(prefetched.$post, 'text') && Object.hasOwn(prefetched.$post, 'createdAt')}
+			{@const xPost0 = pendingEntity.$post}
+			{#if xPost0 != null && selection.entitySelector.$post != null}
+				<XPostView
+					selection={select(EntityType.XPost, selection.entitySelector.$post, { sources: selection.sources })}
+					prefetched={xPost0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={xPostTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<XPostView
 						selection={select(EntityType.XPost, selection.entitySelector.$post)}
-						href={
-						(selection.entitySelector.$post.id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
-							postId: String(selection.entitySelector.$post.id ?? ''),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -103,11 +114,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$post') && prefetched.$post != null && Object.hasOwn(prefetched.$post, 'text') && Object.hasOwn(prefetched.$post, 'createdAt')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={xPostTimestamp}>
 				{#snippet children(entity)}
@@ -121,17 +132,46 @@
 		{/if}
 	{/snippet}
 
+	{#snippet HeadingAfter()}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$post') && prefetched.$post != null && Object.hasOwn(prefetched.$post, 'text') && Object.hasOwn(prefetched.$post, 'createdAt')}
+			{@const source0 = pendingEntity.source}
+			{#if source0 !== undefined && source0 !== null}
+				<span data-text="muted">
+					{String((source0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={xPostTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const source0 = resolvedEntity.source}
+					{#if source0 !== undefined && source0 !== null}
+						<span data-text="muted">
+							{String((source0) ?? '')}
+						</span>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
 				<dt>Post</dt>
 				<dd>
 					<XPostView
-						selection={select(EntityType.XPost, selection.entitySelector.$post, {})}
+						selection={select(EntityType.XPost, selection.entitySelector.$post)}
 						href={
-							(selection.entitySelector.$post.id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
+							(
+								selection.entitySelector.$post != null && 'id' in selection.entitySelector.$post
+								&& selection.entitySelector.$post.id != null ?
+									resolve('/x/post/[postId=stringSegment]', {
 								postId: String(selection.entitySelector.$post.id ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -159,6 +199,32 @@
 							{@const timestampMs = resolvedEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

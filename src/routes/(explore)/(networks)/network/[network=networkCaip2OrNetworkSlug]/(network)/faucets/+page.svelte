@@ -37,11 +37,8 @@
 			})
 		}
 		title='Faucets'
-		selection={
-			select(EntityType.Network, data.selector).$$faucetUrls({
-				count: true,
-			})
-		}
+		selection={select(EntityType.Network, data.selector).$$faucetUrls}
+		countResource={select(EntityType.Network, data.selector).$$faucetUrls.count}
 		id='faucet-urls'
 		data-column-item="flexible"
 		data-card

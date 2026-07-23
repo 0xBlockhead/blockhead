@@ -28,7 +28,6 @@
 			blobGasUsedRatio: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [(String((pageSelection.entitySelector.blockNumber) ?? '') ? 'Block ' + String((pageSelection.entitySelector.blockNumber) ?? '') : ''), (String((pageSelection.entitySelector.baseFeePerGas) ?? '') ? String((pageSelection.entitySelector.baseFeePerGas) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'EVM network gas fee block' : [(String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).blockNumber) ?? '') ? 'Block ' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).blockNumber) ?? '') : ''), (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).baseFeePerGas) ?? '') ? String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).baseFeePerGas) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'EVM network gas fee block')))
 
 
 	// Components
@@ -38,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM network gas fee block • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [(String((data.selector.blockNumber) ?? '') ? 'Block ' + String((data.selector.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || 'EVM network gas fee block' : [(String((({ ...data.selector, ...pageSelection.entity }).blockNumber) ?? '') ? 'Block ' + String((({ ...data.selector, ...pageSelection.entity }).blockNumber) ?? '') : ''), (String((({ ...data.selector, ...pageSelection.entity }).baseFeePerGas) ?? '') ? String((({ ...data.selector, ...pageSelection.entity }).baseFeePerGas) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'EVM network gas fee block'))} • EVM network gas fee block • Blockhead</title>
 </svelte:head>
 
 

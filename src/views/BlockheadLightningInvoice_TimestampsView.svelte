@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Lightning invoice observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadLightningInvoice_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadLightningInvoice_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadLightningInvoice_TimestampView from '$/views/BlockheadLightningInvoice_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadLightningInvoiceTimestamps) => [...new Map(blockheadLightningInvoiceTimestamps.values.map((blockheadLightningInvoiceTimestamp) => [blockheadLightningInvoiceTimestamp[EntityMetaKey.SelectorKey], blockheadLightningInvoiceTimestamp])).values()]}
 	getKey={(blockheadLightningInvoiceTimestamp) => blockheadLightningInvoiceTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: blockheadLightningInvoiceTimestamp })}
 		{@const blockheadLightningInvoiceTimestampFields = { ...blockheadLightningInvoiceTimestamp[EntityMetaKey.Selector], ...blockheadLightningInvoiceTimestamp }}
-		{@const selection = select(EntityType.BlockheadLightningInvoice_Timestamp, blockheadLightningInvoiceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadLightningInvoice_TimestampView
-			selection={selection}
-			prefetched={blockheadLightningInvoiceTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadLightningInvoice_Timestamp}
+			entitySelector={blockheadLightningInvoiceTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadLightningInvoiceTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning invoice timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadLightningInvoiceTimestampFields.state) ?? ''), String((blockheadLightningInvoiceTimestampFields.amountPaidMsat) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

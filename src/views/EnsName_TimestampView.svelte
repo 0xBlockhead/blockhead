@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EnsName_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EnsName_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EnsName_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ensNameTimestamp = $derived(selection({
+	const ensNameTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('ENS name observation')
-	const viewDomId = $derived('ens-name-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'ENS name observation'
+	const viewDomId = $derived('ens-name-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,39 +69,45 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$name !== undefined && pendingEntity.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			ensName: encodeURIComponent(String(pendingEntity.$name.name ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$name' in selection.entitySelector
+			&& selection.entitySelector.$name != null && 'name' in selection.entitySelector.$name
+			&& selection.entitySelector.$name.name != null ?
+				resolve('/ens/name/[ensName=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EnsNameView
-						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-						href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$name') && prefetched.$name != null}
+			{@const ensName0 = pendingEntity.$name}
+			{#if ensName0 != null && selection.entitySelector.$name != null}
+				<EnsNameView
+					selection={select(EntityType.EnsName, selection.entitySelector.$name, { sources: selection.sources })}
+					prefetched={ensName0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={ensNameTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<EnsNameView
 						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-						href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -107,11 +117,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$name') && prefetched.$name != null}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={ensNameTimestamp}>
 				{#snippet children(entity)}
@@ -131,11 +141,17 @@
 				<dt>Name</dt>
 				<dd>
 					<EnsNameView
-						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
+						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 						href={
-							(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
+							(
+								selection.entitySelector.$name != null && 'name' in selection.entitySelector.$name
+								&& selection.entitySelector.$name.name != null ?
+									resolve('/ens/name/[ensName=stringSegment]', {
 								ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -209,9 +225,15 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+										(
+											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
+											&& evmAccount[EntityMetaKey.Selector].address != null ?
+												resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -236,13 +258,28 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-											network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
+											&& evmContract[EntityMetaKey.Selector].address != null
+											&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
+												evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
+												&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+												network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
+													&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+													network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -267,9 +304,15 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+										(
+											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
+											&& evmAccount[EntityMetaKey.Selector].address != null ?
+												resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}

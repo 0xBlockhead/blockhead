@@ -22,7 +22,6 @@
 			validatorIndices: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.period) ?? '') ? 'Sync committee #' + String((pageSelection.entitySelector.period) ?? '') : '') || 'beacon sync committee' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).period) ?? '') ? 'Sync committee #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).period) ?? '') : '') || 'beacon sync committee')))
 
 
 	// Components
@@ -32,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • beacon sync committee • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String((data.selector.period) ?? '') ? 'Sync committee #' + String((data.selector.period) ?? '') : '') || 'beacon sync committee' : (String((({ ...data.selector, ...pageSelection.entity }).period) ?? '') ? 'Sync committee #' + String((({ ...data.selector, ...pageSelection.entity }).period) ?? '') : '') || 'beacon sync committee'))} • beacon sync committee • Blockhead</title>
 </svelte:head>
 
 

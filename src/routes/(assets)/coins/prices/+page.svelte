@@ -29,18 +29,34 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$marketPrices',
-			}).$$marketPrices({
-				sources: [
-					Source.Constants_Internal,
-					Source.Coingecko_Rest,
-					Source.Coingecko_OpenApi,
-					Source.CoinMarketCap_Rest,
-					Source.Coinpaprika_OpenApi,
-					Source.Defillama_OpenApi,
-				],
-				limit: 96,
-				count: true,
 			})
+				.$$marketPrices({
+					sources: [
+						Source.Constants_Internal,
+						Source.Coingecko_Rest,
+						Source.Coingecko_OpenApi,
+						Source.CoinMarketCap_Rest,
+						Source.Coinpaprika_OpenApi,
+						Source.Defillama_OpenApi,
+					],
+					limit: 96,
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$marketPrices',
+			})
+				.$$marketPrices({
+					sources: [
+						Source.Constants_Internal,
+						Source.Coingecko_Rest,
+						Source.Coingecko_OpenApi,
+						Source.CoinMarketCap_Rest,
+						Source.Coinpaprika_OpenApi,
+						Source.Defillama_OpenApi,
+					],
+					limit: 96,
+				}).count
 		}
 		id='market-prices'
 		data-column-item="flexible"

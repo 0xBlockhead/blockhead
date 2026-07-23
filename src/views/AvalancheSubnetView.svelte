@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -22,7 +23,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AvalancheSubnet>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AvalancheSubnet>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvalancheSubnet>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -36,7 +37,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const avalancheSubnet = $derived(selection({
+	const avalancheSubnet = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+			threshold: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
@@ -44,7 +51,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.subnetId) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet')
-	const viewDomId = $derived('avalanche-subnet-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('avalanche-subnet-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,7 +76,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'threshold')}
 			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={avalancheSubnet}>
@@ -82,13 +89,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const threshold0 = pendingEntity.threshold}
-					{#if threshold0 !== undefined && threshold0 !== null}
-						<NumberValue
-							value={threshold0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'threshold')}
+			{@const threshold0 = pendingEntity.threshold}
+			{#if threshold0 !== undefined && threshold0 !== null}
+				<NumberValue
+					value={threshold0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={avalancheSubnet}>
 				{#snippet children(entity)}
@@ -159,50 +166,65 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AvalancheSubnet_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='AvalancheSubnet_TimestampsView-timestamps'
-			/>
-
-			<AvalancheBlockchainsView
-				selection={
-						selection.$$blockchains({
-							count: true,
-						})
-					}
-				title='blockchains'
-				emptyText='No blockchains found.'
-				id='AvalancheBlockchainsView-blockchains'
-			/>
-
-			<AvalancheValidatorsView
-				selection={
-						selection.$$validators({
-							count: true,
-						})
-					}
-				title='validators'
-				emptyText='No validators found.'
-				id='AvalancheValidatorsView-validators'
-			/>
-
-			<AvalancheDelegatorsView
-				selection={
-						selection.$$delegators({
-							count: true,
-						})
-					}
-				title='delegators'
-				emptyText='No delegators found.'
-				id='AvalancheDelegatorsView-delegators'
-			/>
-		{/if}
+		{@const avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvalancheSubnet_TimestampsView
+					selection={avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource}
+					countResource={avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='AvalancheSubnet_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const avalancheSubnetAvalancheBlockchainsViewBlockchainsResource = selection.$$blockchains}
+		<ResourceBoundary
+			resource={avalancheSubnetAvalancheBlockchainsViewBlockchainsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvalancheBlockchainsView
+					selection={avalancheSubnetAvalancheBlockchainsViewBlockchainsResource}
+					countResource={avalancheSubnetAvalancheBlockchainsViewBlockchainsResource.count}
+					title='blockchains'
+					id='AvalancheBlockchainsView-blockchains'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const avalancheSubnetAvalancheValidatorsViewValidatorsResource = selection.$$validators}
+		<ResourceBoundary
+			resource={avalancheSubnetAvalancheValidatorsViewValidatorsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvalancheValidatorsView
+					selection={avalancheSubnetAvalancheValidatorsViewValidatorsResource}
+					countResource={avalancheSubnetAvalancheValidatorsViewValidatorsResource.count}
+					title='validators'
+					id='AvalancheValidatorsView-validators'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const avalancheSubnetAvalancheDelegatorsViewDelegatorsResource = selection.$$delegators}
+		<ResourceBoundary
+			resource={avalancheSubnetAvalancheDelegatorsViewDelegatorsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvalancheDelegatorsView
+					selection={avalancheSubnetAvalancheDelegatorsViewDelegatorsResource}
+					countResource={avalancheSubnetAvalancheDelegatorsViewDelegatorsResource.count}
+					title='delegators'
+					id='AvalancheDelegatorsView-delegators'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

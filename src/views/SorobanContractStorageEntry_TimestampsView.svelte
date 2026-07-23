@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Soroban contract storage entry observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.SorobanContractStorageEntry_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SorobanContractStorageEntry_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import SorobanContractStorageEntry_TimestampView from '$/views/SorobanContractStorageEntry_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(sorobanContractStorageEntryTimestamps) => [...new Map(sorobanContractStorageEntryTimestamps.values.map((sorobanContractStorageEntryTimestamp) => [sorobanContractStorageEntryTimestamp[EntityMetaKey.SelectorKey], sorobanContractStorageEntryTimestamp])).values()]}
 	getKey={(sorobanContractStorageEntryTimestamp) => sorobanContractStorageEntryTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: sorobanContractStorageEntryTimestamp })}
 		{@const sorobanContractStorageEntryTimestampFields = { ...sorobanContractStorageEntryTimestamp[EntityMetaKey.Selector], ...sorobanContractStorageEntryTimestamp }}
-		{@const selection = select(EntityType.SorobanContractStorageEntry_Timestamp, sorobanContractStorageEntryTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<SorobanContractStorageEntry_TimestampView
-			selection={selection}
-			prefetched={sorobanContractStorageEntryTimestampFields}
+		<EntityView
+			entityType={EntityType.SorobanContractStorageEntry_Timestamp}
+			entitySelector={sorobanContractStorageEntryTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'soroban contract storage entry timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CardanoTxOutputSelector {
@@ -24,7 +25,7 @@ export const CardanoTxOutput = entity({
 	outputIndex: {
 		label: 'output index',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
@@ -82,6 +83,9 @@ export const CardanoTxOutput = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoTxOutputAsset,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 })({
 	selectors: {

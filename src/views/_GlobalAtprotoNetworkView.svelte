@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -25,7 +26,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType._GlobalAtprotoNetwork>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType._GlobalAtprotoNetwork>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType._GlobalAtprotoNetwork>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -39,14 +40,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalAtprotoNetwork = $derived(selection({
+	const globalAtprotoNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			protocolName: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			protocolName: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol')
-	const viewDomId = $derived('-global-atproto-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || [String('AT Protocol')].filter(Boolean).join(' ') || 'AT Protocol')
+	const viewDomId = $derived('-global-atproto-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,13 +71,20 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? (pendingEntity.scope === '_GlobalAtprotoNetwork' ? resolve('/atproto') : undefined)}
+	href={
+		href ?? (
+			selection.entitySelector.scope === '_GlobalAtprotoNetwork' ?
+				resolve('/atproto')
+		:
+				undefined
+		)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={globalAtprotoNetwork}>
@@ -210,89 +223,199 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-directory'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'accounts',
-							label: 'Accounts',
-						},
-						{
-							id: 'recent-posts',
-							label: 'Recent posts',
-						},
-					]
-				}
-				data-card
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Directory and examples</HeadingComponent>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									Bounded observeds and example routes from declared AT Protocol appviews.
-								</p>
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-directory'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'accounts',
+								label: 'Accounts',
+								ownsSection: true,
+							},
+							{
+								id: 'recent-posts',
+								label: 'Recent posts',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Directory and examples</HeadingComponent>
+							<Tooltip contentProps={{ side: 'top' }}>
+								{#snippet Content()}
+									<p>
+										Bounded observeds and example routes from declared AT Protocol appviews.
+									</p>
+								{/snippet}
+
+								<abbr
+									class="entity-heading-tip"
+									aria-label='Directory and examples help'
+								>ⓘ</abbr>
+							</Tooltip>
+						</header>
+					{/snippet}
+
+					{#snippet MarkerAccounts(_context, Content)}
+						{@const directoryAccountsResource = selection
+		.$$observedActors({
+			sources: [
+				Source.Constants_Internal,
+				Source.Atproto_Xrpc,
+			],
+		})}
+						<ResourceBoundary
+							resource={directoryAccountsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
 							{/snippet}
 
-							<abbr
-								class="entity-heading-tip"
-								aria-label='Directory and examples help'
-							>ⓘ</abbr>
-						</Tooltip>
-					</header>
-				{/snippet}
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
 
-				{#snippet SectionAccounts({ id, label, open })}
-					<AtprotoActorsView
-						selection={
-							selection.$$observedActors({
-								sources: [
-									Source.Constants_Internal,
-									Source.Atproto_Xrpc,
-								],
-							})
-						}
-						href={resolve('/atproto/actors')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No accounts available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
 
-				{#snippet SectionRecentPosts({ id, label, open })}
-					<AtprotoPostsView
-						selection={
-							selection.$$observedPosts({
-								sources: [
-									Source.Constants_Internal,
-									Source.Atproto_Xrpc,
-								],
-							})
-						}
-						href={resolve('/atproto/posts')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No recent posts available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet SectionAccounts({ id, label, open, active })}
+						{@const directoryAccountsResource = selection
+		.$$observedActors({
+			sources: [
+				Source.Constants_Internal,
+				Source.Atproto_Xrpc,
+			],
+		})}
+						<ResourceBoundary
+							resource={directoryAccountsResource}
+						>
+							{#snippet children(atprotoActor)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<AtprotoActorsView
+										selection={directoryAccountsResource}
+										href={resolve('/atproto/actors')}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet MarkerRecentPosts(_context, Content)}
+						{@const directoryRecentPostsResource = selection
+		.$$observedPosts({
+			sources: [
+				Source.Constants_Internal,
+				Source.Atproto_Xrpc,
+			],
+		})}
+						<ResourceBoundary
+							resource={directoryRecentPostsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionRecentPosts({ id, label, open, active })}
+						{@const directoryRecentPostsResource = selection
+		.$$observedPosts({
+			sources: [
+				Source.Constants_Internal,
+				Source.Atproto_Xrpc,
+			],
+		})}
+						<ResourceBoundary
+							resource={directoryRecentPostsResource}
+						>
+							{#snippet children(atprotoPost)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<AtprotoPostsView
+										selection={directoryRecentPostsResource}
+										href={resolve('/atproto/posts')}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
 	{/snippet}
 </EntityView>

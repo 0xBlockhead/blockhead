@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ActivityPubInstance_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ActivityPubInstance_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ActivityPubInstance_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const activityPubInstanceTimestamp = $derived(selection({
+	const activityPubInstanceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			title: true,
+			version: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			title: true,
@@ -49,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.title) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance observation')
-	const viewDomId = $derived('activity-pub-instance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('activity-pub-instance-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,18 +74,29 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$instance !== undefined && pendingEntity.$instance.instanceOrigin !== undefined ? resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			instanceOrigin: encodeURIComponent(String(pendingEntity.$instance.instanceOrigin ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$instance' in selection.entitySelector
+			&& selection.entitySelector.$instance != null && 'instanceOrigin' in selection.entitySelector.$instance
+			&& selection.entitySelector.$instance.instanceOrigin != null ?
+				resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			instanceOrigin: encodeURIComponent(String(selection.entitySelector.$instance.instanceOrigin ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'title') && Object.hasOwn(prefetched, '$instance') && prefetched.$instance != null && Object.hasOwn(prefetched, 'version')}
 			{[String((pendingEntity.title) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={activityPubInstanceTimestamp}>
@@ -91,36 +109,32 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ActivityPubInstanceView
-						selection={select(EntityType.ActivityPubInstance, selection.entitySelector.$instance)}
-						href={
-						(selection.entitySelector.$instance.instanceOrigin !== undefined ? resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
-							instanceOrigin: encodeURIComponent(String(selection.entitySelector.$instance.instanceOrigin ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-					{@const source1 = pendingEntity.source}
-					{#if source1 !== undefined && source1 !== null}
-						{String((source1) ?? '')}
-					{/if}
-					{@const version2 = pendingEntity.version}
-					{#if version2 !== undefined && version2 !== null}
-						{String((version2) ?? '')}
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'title') && Object.hasOwn(prefetched, '$instance') && prefetched.$instance != null && Object.hasOwn(prefetched, 'version')}
+			{@const activityPubInstance0 = pendingEntity.$instance}
+			{#if activityPubInstance0 != null && selection.entitySelector.$instance != null}
+				<ActivityPubInstanceView
+					selection={select(EntityType.ActivityPubInstance, selection.entitySelector.$instance, { sources: selection.sources })}
+					prefetched={activityPubInstance0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
+			{@const source1 = pendingEntity.source}
+			{#if source1 !== undefined && source1 !== null}
+				{String((source1) ?? '')}
+			{/if}
+			{@const version2 = pendingEntity.version}
+			{#if version2 !== undefined && version2 !== null}
+				{String((version2) ?? '')}
+			{/if}
 		{:else}
 			<ResourceBoundary resource={activityPubInstanceTimestamp}>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<ActivityPubInstanceView
 						selection={select(EntityType.ActivityPubInstance, selection.entitySelector.$instance)}
-						href={
-						(selection.entitySelector.$instance.instanceOrigin !== undefined ? resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
-							instanceOrigin: encodeURIComponent(String(selection.entitySelector.$instance.instanceOrigin ?? '')),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -143,11 +157,17 @@
 				<dt>Instance</dt>
 				<dd>
 					<ActivityPubInstanceView
-						selection={select(EntityType.ActivityPubInstance, selection.entitySelector.$instance, {})}
+						selection={select(EntityType.ActivityPubInstance, selection.entitySelector.$instance)}
 						href={
-							(selection.entitySelector.$instance.instanceOrigin !== undefined ? resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
+							(
+								selection.entitySelector.$instance != null && 'instanceOrigin' in selection.entitySelector.$instance
+								&& selection.entitySelector.$instance.instanceOrigin != null ?
+									resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
 								instanceOrigin: encodeURIComponent(String(selection.entitySelector.$instance.instanceOrigin ?? '')),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -282,28 +302,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<ActivityPubInstancePeersView
-				selection={
-						selection.$$peers({
-							count: true,
-						})
-					}
-				title='Peers'
-				emptyText='No public peers reported for this observation.'
-				id='ActivityPubInstancePeersView-peers'
-			/>
-
-			<ActivityPubInstanceModeratedDomainsView
-				selection={
-						selection.$$moderatedDomains({
-							count: true,
-						})
-					}
-				title='Moderated domains'
-				emptyText='No public moderated domains reported for this observation.'
-				id='ActivityPubInstanceModeratedDomainsView-moderated-domains'
-			/>
-		{/if}
+		{@const activityPubInstanceTimestampActivityPubInstancePeersViewPeersResource = selection.$$peers}
+		<ResourceBoundary
+			resource={activityPubInstanceTimestampActivityPubInstancePeersViewPeersResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<ActivityPubInstancePeersView
+					selection={activityPubInstanceTimestampActivityPubInstancePeersViewPeersResource}
+					countResource={activityPubInstanceTimestampActivityPubInstancePeersViewPeersResource.count}
+					title='Peers'
+					id='ActivityPubInstancePeersView-peers'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const activityPubInstanceTimestampActivityPubInstanceModeratedDomainsViewModeratedDomainsResource = selection.$$moderatedDomains}
+		<ResourceBoundary
+			resource={activityPubInstanceTimestampActivityPubInstanceModeratedDomainsViewModeratedDomainsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<ActivityPubInstanceModeratedDomainsView
+					selection={activityPubInstanceTimestampActivityPubInstanceModeratedDomainsViewModeratedDomainsResource}
+					countResource={activityPubInstanceTimestampActivityPubInstanceModeratedDomainsViewModeratedDomainsResource.count}
+					title='Moderated domains'
+					id='ActivityPubInstanceModeratedDomainsView-moderated-domains'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -28,9 +28,12 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$marketVenues',
-			}).$$marketVenues({
-				count: true,
-			})
+			}).$$marketVenues
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$marketVenues',
+			}).$$marketVenues.count
 		}
 		id='market-venues'
 		data-column-item="flexible"

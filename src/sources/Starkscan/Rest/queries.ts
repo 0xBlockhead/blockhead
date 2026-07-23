@@ -1,10 +1,193 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceTargetKind,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type { StarkscanJson } from '$/sources/Starkscan/Rest/types.ts'
+import type {
+	StarkscanAddressTransactionPage,
+	StarkscanTokenHoldings,
+} from '$/sources/Starkscan/Rest/types.ts'
 
-export const query = (
+const assertBinding = (binding: SourceBinding) => {
+	if (
+		binding.source !== Source.Starkscan_Rest
+		|| binding.target.kind !== SourceTargetKind.Global
+		|| binding.target.key !== 'starkscan-api'
+	)
+		throw new Error('Starkscan_Rest: expected declared Starkscan API binding')
+}
+
+const assertFelt = (
+	value: string,
+	label: string
+) => {
+	if (
+		!/^0[xX][0-9a-fA-F]{1,64}$/.test(value)
+		|| BigInt(value) >= 2n ** 251n
+	)
+		throw new Error(`Starkscan_Rest: invalid ${label}`)
+}
+
+const sameFelt = (
+	left: string | null,
+	right: string
+) => (
+	left != null
+	&& /^0[xX][0-9a-fA-F]{1,64}$/.test(left)
+	&& BigInt(left) < 2n ** 251n
+	&& BigInt(left) === BigInt(right)
+)
+
+const assertSafeUnsigned = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(value) || value < 0)
+		throw new Error(`Starkscan_Rest: invalid ${label}`)
+}
+
+const assertNonnegativeDecimal = (
+	value: string,
+	label: string
+) => {
+	if (!/^[0-9]+$/.test(value))
+		throw new Error(`Starkscan_Rest: invalid ${label}`)
+}
+
+export const query = <_Json>(
 	binding: SourceBinding,
 	path: string
 ) => (
-	getJson<StarkscanJson>(binding, path)
+	getJson<_Json>(binding, path)
 )
+
+export const getAddressTransactions = async (
+	binding: SourceBinding,
+	{
+		address,
+		limit,
+		cursor,
+	}: {
+		address: string
+		limit: number
+		cursor?: string
+	}
+) => {
+	assertBinding(binding)
+	assertFelt(address, 'account address')
+	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 100)
+		throw new Error('Starkscan_Rest: transaction limit must be an integer from 0 through 100')
+	if (cursor === '')
+		throw new Error('Starkscan_Rest: transaction cursor must not be empty')
+	if (limit === 0)
+		return {
+			items: [],
+			nextCursor: null,
+		}
+
+	const parameters = new URLSearchParams({
+		limit: limit.toString(),
+	})
+	if (cursor != null)
+		parameters.set('cursor', cursor)
+	const page = await query<StarkscanAddressTransactionPage>(
+		binding,
+		`/v1/SN_MAIN/address/${encodeURIComponent(address)}/transactions?${parameters.toString()}`
+	)
+	if (page.items.length > limit)
+		throw new Error('Starkscan_Rest: transaction page exceeds requested limit')
+
+	const hashes = new Set<string>()
+	let previousBlockNumber: number | undefined
+	let previousTransactionIndex: number | undefined
+	for (const transaction of page.items) {
+		assertFelt(transaction.txHash, 'transaction hash')
+		const transactionHash = BigInt(transaction.txHash).toString(16)
+		assertSafeUnsigned(transaction.blockNumber, 'transaction block number')
+		assertSafeUnsigned(transaction.txIndex, 'transaction index')
+		if (
+			previousBlockNumber != null
+			&& (
+				transaction.blockNumber > previousBlockNumber
+				|| (
+					transaction.blockNumber === previousBlockNumber
+					&& previousTransactionIndex != null
+					&& transaction.txIndex > previousTransactionIndex
+				)
+			)
+		)
+			throw new Error('Starkscan_Rest: transaction page is not newest-first')
+		previousBlockNumber = transaction.blockNumber
+		previousTransactionIndex = transaction.txIndex
+		if (
+			!sameFelt(transaction.fromAddress, address)
+			&& !sameFelt(transaction.toAddress, address)
+		)
+			throw new Error('Starkscan_Rest: transaction page contains a foreign account row')
+		if (hashes.has(transactionHash))
+			throw new Error('Starkscan_Rest: transaction page contains a duplicate hash')
+		hashes.add(transactionHash)
+		if (transaction.topTransferAmount != null)
+			assertNonnegativeDecimal(transaction.topTransferAmount, 'transfer amount')
+		if (transaction.timestampIso != null) {
+			const timestampMs = Date.parse(transaction.timestampIso)
+			if (
+				!/^\d{4}-\d{2}-\d{2}T/.test(transaction.timestampIso)
+				|| !Number.isSafeInteger(timestampMs)
+				|| timestampMs < 0
+			)
+				throw new Error('Starkscan_Rest: invalid transaction timestamp')
+		}
+	}
+	if (page.nextCursor === '')
+		throw new Error('Starkscan_Rest: transaction cursor must not be empty')
+	if (page.nextCursor != null && page.nextCursor === cursor)
+		throw new Error('Starkscan_Rest: transaction cursor did not advance')
+	return page
+}
+
+export const getExactTokenHoldings = async (
+	binding: SourceBinding,
+	address: string
+) => {
+	assertBinding(binding)
+	assertFelt(address, 'account address')
+	const holdings = await query<StarkscanTokenHoldings>(
+		binding,
+		`/v1/SN_MAIN/address/${encodeURIComponent(address)}/token-holdings`
+	)
+	if (holdings.chainId !== 'SN_MAIN')
+		throw new Error('Starkscan_Rest: token holdings chain does not match Starknet mainnet')
+	if (!sameFelt(holdings.ownerAddress, address))
+		throw new Error('Starkscan_Rest: token holdings owner does not match request')
+	if (
+		!holdings.exact
+		|| holdings.truncated
+		|| !holdings.completeness.exact
+		|| holdings.completeness.truncated
+		|| !holdings.completeness.complete
+		|| holdings.completeness.reasonCode !== 'complete'
+	)
+		throw new Error(`Starkscan_Rest: token holdings are incomplete (${holdings.completeness.reasonCode})`)
+	if (holdings.items.length > 256)
+		throw new Error('Starkscan_Rest: token holdings exceed the certified response cap')
+
+	const tokenAddresses = new Set<string>()
+	for (const holding of holdings.items) {
+		assertFelt(holding.tokenAddress, 'token address')
+		assertFelt(holding.normalizedTokenAddress, 'normalized token address')
+		if (!sameFelt(holding.tokenAddress, holding.normalizedTokenAddress))
+			throw new Error('Starkscan_Rest: token holding address normalization mismatch')
+		if (tokenAddresses.has(holding.normalizedTokenAddress))
+			throw new Error('Starkscan_Rest: duplicate token holding')
+		tokenAddresses.add(holding.normalizedTokenAddress)
+		assertNonnegativeDecimal(holding.indexedBalanceRaw, 'token balance')
+		if (
+			holding.decimals != null
+			&& (!Number.isSafeInteger(holding.decimals) || holding.decimals < 0)
+		)
+			throw new Error('Starkscan_Rest: invalid token decimals')
+	}
+	return holdings
+}

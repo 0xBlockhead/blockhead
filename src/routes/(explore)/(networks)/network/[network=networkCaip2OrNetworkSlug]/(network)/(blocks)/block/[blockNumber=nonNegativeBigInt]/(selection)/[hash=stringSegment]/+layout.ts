@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
-import { parseEntitySelector, type EntitySelector } from '$/schema/$schema.ts'
+import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { PolkadotBlock as PolkadotBlockSchema } from '$/schema/PolkadotBlock.ts'
@@ -18,11 +18,26 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	const projectionNetwork = (Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value ?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value)
 	if (projectionNetwork == null) error(404, 'Network projection context not found')
 
-	const selectorMappings: {
-		entityType: EntityType
-		selectorName: string
-		selector: EntitySelector<typeof schema, EntityType>
-	}[] = []
+	const routeCandidates: (
+		| {
+			readonly entityType: EntityType.PolkadotBlock
+			readonly selectorName: 'NetworkBlockNumberHash'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.PolkadotBlock,
+				'NetworkBlockNumberHash'
+			>
+		}
+		| {
+			readonly entityType: EntityType.UtxoBlock
+			readonly selectorName: 'NetworkHeightHash'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.UtxoBlock,
+				'NetworkHeightHash'
+			>
+		}
+	)[] = []
 
 	if (((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')) && projectionNetwork.namespace === 'Polkadot') && matchNonNegativeBigInt(params.blockNumber) && matchStringSegment(params.hash)) {
 		const polkadotBlockNetworkBlockNumberHashSelector = parseEntitySelector(
@@ -34,8 +49,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				hash: params.hash,
 			}
 		)
-		if (!(polkadotBlockNetworkBlockNumberHashSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.PolkadotBlock, selectorName: 'NetworkBlockNumberHash', selector: polkadotBlockNetworkBlockNumberHashSelector })
+		if (!(polkadotBlockNetworkBlockNumberHashSelector instanceof arktype.errors) && '$network' in polkadotBlockNetworkBlockNumberHashSelector && 'blockNumber' in polkadotBlockNetworkBlockNumberHashSelector && 'hash' in polkadotBlockNetworkBlockNumberHashSelector)
+			routeCandidates.push({ entityType: EntityType.PolkadotBlock, selectorName: 'NetworkBlockNumberHash', selector: polkadotBlockNetworkBlockNumberHashSelector })
 	}
 
 	if (((projectionNetwork.ledgerModels !== undefined && projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && [
@@ -56,13 +71,12 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				hash: params.hash,
 			}
 		)
-		if (!(utxoBlockNetworkHeightHashSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.UtxoBlock, selectorName: 'NetworkHeightHash', selector: utxoBlockNetworkHeightHashSelector })
+		if (!(utxoBlockNetworkHeightHashSelector instanceof arktype.errors) && '$network' in utxoBlockNetworkHeightHashSelector && 'height' in utxoBlockNetworkHeightHashSelector && 'hash' in utxoBlockNetworkHeightHashSelector)
+			routeCandidates.push({ entityType: EntityType.UtxoBlock, selectorName: 'NetworkHeightHash', selector: utxoBlockNetworkHeightHashSelector })
 	}
 
-	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')
-	if (selectorMappings.length > 1) error(500, 'Route selector is ambiguous')
-	const selectorMapping = selectorMappings[0]
+	if (routeCandidates.length === 0) error(404, 'Route selector not applicable')
+	if (routeCandidates.length > 1) error(500, 'Route selector is ambiguous')
 
-	return { selector: selectorMapping.selector, selectorMapping, selectorMappings }
+	return routeCandidates[0]
 }

@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'YouTube comment observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.YoutubeComment_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.YoutubeComment_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import YoutubeComment_TimestampView from '$/views/YoutubeComment_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(youtubeCommentTimestamps) => [...new Map(youtubeCommentTimestamps.values.map((youtubeCommentTimestamp) => [youtubeCommentTimestamp[EntityMetaKey.SelectorKey], youtubeCommentTimestamp])).values()]}
 	getKey={(youtubeCommentTimestamp) => youtubeCommentTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,21 +88,37 @@
 
 	{#snippet Item({ item: youtubeCommentTimestamp })}
 		{@const youtubeCommentTimestampFields = { ...youtubeCommentTimestamp[EntityMetaKey.Selector], ...youtubeCommentTimestamp }}
-		{@const selection = select(EntityType.YoutubeComment_Timestamp, youtubeCommentTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const youtubeCommentTimestampHrefFields = { ...youtubeCommentTimestamp, ...youtubeCommentTimestamp[EntityMetaKey.Selector] }}
-		<YoutubeComment_TimestampView
-			selection={selection}
-			prefetched={youtubeCommentTimestampFields}
+		<EntityView
+			entityType={EntityType.YoutubeComment_Timestamp}
+			entitySelector={youtubeCommentTimestamp[EntityMetaKey.Selector]}
 			href={
-				(youtubeCommentTimestampHrefFields.timestampMs !== undefined && youtubeCommentTimestampHrefFields.source !== undefined && youtubeCommentTimestampHrefFields.$comment !== undefined && youtubeCommentTimestampHrefFields.$comment.videoId !== undefined && youtubeCommentTimestampHrefFields.$comment.commentId !== undefined ? resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
-					timestampMs: String(youtubeCommentTimestampHrefFields.timestampMs ?? ''),
-					source: String(youtubeCommentTimestampHrefFields.source ?? ''),
-					videoId: encodeURIComponent(String(youtubeCommentTimestampHrefFields.$comment.videoId ?? '')),
-					commentId: encodeURIComponent(String(youtubeCommentTimestampHrefFields.$comment.commentId ?? '')),
-				}) : undefined)
+				(
+					youtubeCommentTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in youtubeCommentTimestamp[EntityMetaKey.Selector]
+					&& youtubeCommentTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& youtubeCommentTimestamp[EntityMetaKey.Selector] != null && 'source' in youtubeCommentTimestamp[EntityMetaKey.Selector]
+					&& youtubeCommentTimestamp[EntityMetaKey.Selector].source != null
+					&& youtubeCommentTimestamp[EntityMetaKey.Selector] != null && '$comment' in youtubeCommentTimestamp[EntityMetaKey.Selector]
+					&& youtubeCommentTimestamp[EntityMetaKey.Selector].$comment != null && 'videoId' in youtubeCommentTimestamp[EntityMetaKey.Selector].$comment
+					&& youtubeCommentTimestamp[EntityMetaKey.Selector].$comment.videoId != null
+					&& youtubeCommentTimestamp[EntityMetaKey.Selector].$comment != null && 'commentId' in youtubeCommentTimestamp[EntityMetaKey.Selector].$comment
+					&& youtubeCommentTimestamp[EntityMetaKey.Selector].$comment.commentId != null ?
+						resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
+					timestampMs: String(youtubeCommentTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(youtubeCommentTimestamp[EntityMetaKey.Selector].source ?? ''),
+					videoId: encodeURIComponent(String(youtubeCommentTimestamp[EntityMetaKey.Selector].$comment.videoId ?? '')),
+					commentId: encodeURIComponent(String(youtubeCommentTimestamp[EntityMetaKey.Selector].$comment.commentId ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((youtubeCommentTimestampFields.$comment.text) ?? '')].filter(Boolean).join(' ') || 'YouTube comment', String((youtubeCommentTimestampFields.timestampMs) ?? ''), String((youtubeCommentTimestampFields.source) ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

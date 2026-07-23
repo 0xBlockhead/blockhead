@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Referendums',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.PolkadotReferendum>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.PolkadotReferendum>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import PolkadotReferendumView from '$/views/PolkadotReferendumView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(polkadotReferendums) => [...new Map(polkadotReferendums.values.map((polkadotReferendum) => [polkadotReferendum[EntityMetaKey.SelectorKey], polkadotReferendum])).values()]}
 	getKey={(polkadotReferendum) => polkadotReferendum[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: polkadotReferendum })}
 		{@const polkadotReferendumFields = { ...polkadotReferendum[EntityMetaKey.Selector], ...polkadotReferendum }}
-		{@const selection = select(EntityType.PolkadotReferendum, polkadotReferendum[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<PolkadotReferendumView
-			selection={selection}
-			prefetched={polkadotReferendumFields}
+		<EntityView
+			entityType={EntityType.PolkadotReferendum}
+			entitySelector={polkadotReferendum[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((polkadotReferendumFields.referendumId) ?? '')].filter(Boolean).join(' ') || 'Polkadot referendum'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((polkadotReferendumFields.track) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((polkadotReferendumFields.$network.name) ?? '')].filter(Boolean).join(' ') || [polkadotReferendumFields.$network.caip2 == null ? '' : String(`${(polkadotReferendumFields.$network.caip2).namespace}:${(polkadotReferendumFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

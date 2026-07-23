@@ -23,14 +23,13 @@
 			Source.Blockfrost_Rest,
 		],
 		fields: {
+			ticker: true,
 			vrfKeyHash: true,
 			name: true,
-			ticker: true,
 			description: true,
 			homepage: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.poolId) ?? '')].filter(Boolean).join(' ') || 'Cardano stake pool' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).poolId) ?? '')].filter(Boolean).join(' ') || 'Cardano stake pool')))
 
 
 	// Components
@@ -40,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Cardano stake pool • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.poolId) ?? '')].filter(Boolean).join(' ') || 'Cardano stake pool' : [String((({ ...data.selector, ...pageSelection.entity }).ticker) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).poolId) ?? '')].filter(Boolean).join(' ') || 'Cardano stake pool'))} • Cardano stake pool • Blockhead</title>
 </svelte:head>
 
 

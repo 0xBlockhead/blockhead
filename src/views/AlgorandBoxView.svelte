@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AlgorandBox>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AlgorandBox>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AlgorandBox>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandBox = $derived(selection({
+	const algorandBox = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('algorand box')
-	const viewDomId = $derived('algorand-box-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'algorand box'
+	const viewDomId = $derived('algorand-box-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,12 +70,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={algorandBox}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -84,7 +87,7 @@
 				<dt>application</dt>
 				<dd>
 					<AlgorandApplicationView
-						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application, {})}
+						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -118,17 +121,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AlgorandBox_RoundsView
-				selection={
-						selection.$$rounds({
-							count: true,
-						})
-					}
-				title='rounds'
-				emptyText='No Algorand box rounds.'
-				id='AlgorandBox_RoundsView-rounds'
-			/>
-		{/if}
+		{@const algorandBoxAlgorandBoxRoundsViewRoundsResource = selection.$$rounds}
+		<ResourceBoundary
+			resource={algorandBoxAlgorandBoxRoundsViewRoundsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AlgorandBox_RoundsView
+					selection={algorandBoxAlgorandBoxRoundsViewRoundsResource}
+					countResource={algorandBoxAlgorandBoxRoundsViewRoundsResource.count}
+					title='rounds'
+					id='AlgorandBox_RoundsView-rounds'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -23,7 +23,6 @@
 			Source.Lotus_JsonRpc,
 		],
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.minerAddress) ?? '')].filter(Boolean).join(' ') || 'filecoin miner' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).minerAddress) ?? '')].filter(Boolean).join(' ') || 'filecoin miner')))
 
 
 	// Components
@@ -33,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • filecoin miner • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.minerAddress) ?? '')].filter(Boolean).join(' ') || 'filecoin miner' : [String((({ ...data.selector, ...pageSelection.entity }).minerAddress) ?? '')].filter(Boolean).join(' ') || 'filecoin miner'))} • filecoin miner • Blockhead</title>
 </svelte:head>
 
 

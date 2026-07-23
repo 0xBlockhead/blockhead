@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Elements asset observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ElementsAsset_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ElementsAsset_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ElementsAsset_TimestampView from '$/views/ElementsAsset_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(elementsAssetTimestamps) => [...new Map(elementsAssetTimestamps.values.map((elementsAssetTimestamp) => [elementsAssetTimestamp[EntityMetaKey.SelectorKey], elementsAssetTimestamp])).values()]}
 	getKey={(elementsAssetTimestamp) => elementsAssetTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: elementsAssetTimestamp })}
 		{@const elementsAssetTimestampFields = { ...elementsAssetTimestamp[EntityMetaKey.Selector], ...elementsAssetTimestamp }}
-		{@const selection = select(EntityType.ElementsAsset_Timestamp, elementsAssetTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ElementsAsset_TimestampView
-			selection={selection}
-			prefetched={elementsAssetTimestampFields}
+		<EntityView
+			entityType={EntityType.ElementsAsset_Timestamp}
+			entitySelector={elementsAssetTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((elementsAssetTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Elements asset observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((elementsAssetTimestampFields.issuedAmount) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ZeroGStorageNode_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ZeroGStorageNode_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZeroGStorageNode_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zeroGStorageNodeTimestamp = $derived(selection({
+	const zeroGStorageNodeTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('zero g storage node timestamp')
-	const viewDomId = $derived('zero-gstorage-node-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'zero g storage node timestamp'
+	const viewDomId = $derived('zero-gstorage-node-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,18 +70,23 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ZeroGStorageNodeView
-						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$storageNode') && prefetched.$storageNode != null}
+			{@const zeroGStorageNode0 = pendingEntity.$storageNode}
+			{#if zeroGStorageNode0 != null && selection.entitySelector.$storageNode != null}
+				<ZeroGStorageNodeView
+					selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode, { sources: selection.sources })}
+					prefetched={zeroGStorageNode0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={zeroGStorageNodeTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<ZeroGStorageNodeView
 						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -87,11 +96,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$storageNode') && prefetched.$storageNode != null}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={zeroGStorageNodeTimestamp}>
 				{#snippet children(entity)}
@@ -111,7 +120,7 @@
 				<dt>storage node</dt>
 				<dd>
 					<ZeroGStorageNodeView
-						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode, {})}
+						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

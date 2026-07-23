@@ -29,7 +29,6 @@
 			catalogSortWeight: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).iso4217) ?? '')].filter(Boolean).join(' ') || 'currency')))
 
 
 	// Components
@@ -39,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • currency • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency' : [String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'))} • currency • Blockhead</title>
 </svelte:head>
 
 

@@ -31,7 +31,6 @@
 			source: params.source,
 		}).source],
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? ''), String((pageSelection.entitySelector.source) ?? '')].filter(Boolean).join(' ') || 'YouTube video observation' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'YouTube video observation'))
 
 
 	// Components
@@ -41,7 +40,31 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • YouTube video observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$video: {
+			videoId: decodeURIComponent(params.videoId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? ''), String(({
+		$video: {
+			videoId: decodeURIComponent(params.videoId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.source) ?? '')].filter(Boolean).join(' ') || 'YouTube video observation' : [String((({ ...{
+		$video: {
+			videoId: decodeURIComponent(params.videoId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? ''), String((({ ...{
+		$video: {
+			videoId: decodeURIComponent(params.videoId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'YouTube video observation')} • YouTube video observation • Blockhead</title>
 </svelte:head>
 
 

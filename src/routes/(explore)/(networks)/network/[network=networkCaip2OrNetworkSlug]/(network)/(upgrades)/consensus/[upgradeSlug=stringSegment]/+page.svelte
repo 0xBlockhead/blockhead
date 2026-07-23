@@ -24,6 +24,7 @@
 			Source.Constants_Internal,
 		],
 		fields: {
+			upgradeId: true,
 			name: true,
 			protocol: true,
 			activationBlock: true,
@@ -33,7 +34,6 @@
 			currentForkVersion: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).upgradeId) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade')))
 
 
 	// Components
@@ -43,7 +43,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Ethereum consensus upgrade • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Ethereum consensus upgrade' : [String((({ ...data.selector, ...pageSelection.entity }).upgradeId) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade'))} • Ethereum consensus upgrade • Blockhead</title>
 </svelte:head>
 
 

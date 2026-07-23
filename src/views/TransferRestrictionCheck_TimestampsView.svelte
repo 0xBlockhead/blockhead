@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Transfer restriction check observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TransferRestrictionCheck_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TransferRestrictionCheck_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TransferRestrictionCheck_TimestampView from '$/views/TransferRestrictionCheck_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(transferRestrictionCheckTimestamps) => [...new Map(transferRestrictionCheckTimestamps.values.map((transferRestrictionCheckTimestamp) => [transferRestrictionCheckTimestamp[EntityMetaKey.SelectorKey], transferRestrictionCheckTimestamp])).values()]}
 	getKey={(transferRestrictionCheckTimestamp) => transferRestrictionCheckTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: transferRestrictionCheckTimestamp })}
 		{@const transferRestrictionCheckTimestampFields = { ...transferRestrictionCheckTimestamp[EntityMetaKey.Selector], ...transferRestrictionCheckTimestamp }}
-		{@const selection = select(EntityType.TransferRestrictionCheck_Timestamp, transferRestrictionCheckTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TransferRestrictionCheck_TimestampView
-			selection={selection}
-			prefetched={transferRestrictionCheckTimestampFields}
+		<EntityView
+			entityType={EntityType.TransferRestrictionCheck_Timestamp}
+			entitySelector={transferRestrictionCheckTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'transfer restriction check timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

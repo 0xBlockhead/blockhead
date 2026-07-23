@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Pyth price feeds',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.PythPriceFeed>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.PythPriceFeed>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import PythPriceFeedView from '$/views/PythPriceFeedView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(pythPriceFeeds) => [...new Map(pythPriceFeeds.values.map((pythPriceFeed) => [pythPriceFeed[EntityMetaKey.SelectorKey], pythPriceFeed])).values()]}
 	getKey={(pythPriceFeed) => pythPriceFeed[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: pythPriceFeed })}
 		{@const pythPriceFeedFields = { ...pythPriceFeed[EntityMetaKey.Selector], ...pythPriceFeed }}
-		{@const selection = select(EntityType.PythPriceFeed, pythPriceFeed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<PythPriceFeedView
-			selection={selection}
-			prefetched={pythPriceFeedFields}
+		<EntityView
+			entityType={EntityType.PythPriceFeed}
+			entitySelector={pythPriceFeed[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((pythPriceFeedFields.symbol) ?? '')].filter(Boolean).join(' ') || [String((pythPriceFeedFields.priceFeedId) ?? '')].filter(Boolean).join(' ') || 'Pyth price feed'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((pythPriceFeedFields.channel) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{['Market'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

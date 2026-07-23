@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadWalletRequest>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadWalletRequest>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadWalletRequest>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadWalletRequest = $derived(selection({
+	const blockheadWalletRequest = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			requestKind: true,
+			requestMethod: true,
+			requestedAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			requestKind: true,
@@ -51,7 +59,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet request')
-	const viewDomId = $derived('blockhead-wallet-request-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-wallet-request-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -78,7 +86,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'requestKind') && Object.hasOwn(prefetched, 'requestMethod') && Object.hasOwn(prefetched, 'requestedAt')}
 			{[String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadWalletRequest}>
@@ -91,7 +99,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'requestKind') && Object.hasOwn(prefetched, 'requestMethod') && Object.hasOwn(prefetched, 'requestedAt')}
 			{[String((pendingEntity.requestMethod) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadWalletRequest}>
@@ -104,7 +112,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'requestKind') && Object.hasOwn(prefetched, 'requestMethod') && Object.hasOwn(prefetched, 'requestedAt')}
 			{@const requestedAt0 = pendingEntity.requestedAt}
 			{#if requestedAt0 !== undefined && requestedAt0 !== null}
 				<span data-text="muted">
@@ -204,9 +212,15 @@
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
 									href={
-										(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey !== undefined ? resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
+										(
+											blockheadWalletConnection[EntityMetaKey.Selector] != null && 'connectionKey' in blockheadWalletConnection[EntityMetaKey.Selector]
+											&& blockheadWalletConnection[EntityMetaKey.Selector].connectionKey != null ?
+												resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
 											connectionKey: String(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -258,7 +272,7 @@
 						<div>
 							<dt>CAIP-10</dt>
 							<dd>
-								<TruncatedValue value={caip10 == null ? '' : String((`${(caip10).namespace}:${(caip10).reference}:${(caip10).accountAddress}`) ?? '')} />
+								<TruncatedValue value={caip10 == null ? '' : String(`${(caip10).namespace}:${(caip10).reference}:${(caip10).accountAddress}`)} />
 							</dd>
 						</div>
 					{/if}
@@ -566,28 +580,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadWalletRequestCallsView
-				selection={
-						selection.$$calls({
-							count: true,
-						})
-					}
-				title='calls'
-				emptyText='No wallet request calls.'
-				id='BlockheadWalletRequestCallsView-calls'
-			/>
-
-			<BlockheadWalletRequest_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No wallet request observations.'
-				id='BlockheadWalletRequest_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource = selection.$$calls}
+		<ResourceBoundary
+			resource={blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadWalletRequestCallsView
+					selection={blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource}
+					countResource={blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource.count}
+					title='calls'
+					id='BlockheadWalletRequestCallsView-calls'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadWalletRequest_TimestampsView
+					selection={blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource}
+					countResource={blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadWalletRequest_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

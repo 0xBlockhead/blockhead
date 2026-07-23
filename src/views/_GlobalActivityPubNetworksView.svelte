@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ActivityPub observeds',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalActivityPubNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalActivityPubNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalActivityPubNetworkView from '$/views/_GlobalActivityPubNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalActivityPubNetworks) => [...new Map(globalActivityPubNetworks.values.map((globalActivityPubNetwork) => [globalActivityPubNetwork[EntityMetaKey.SelectorKey], globalActivityPubNetwork])).values()]}
 	getKey={(globalActivityPubNetwork) => globalActivityPubNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,14 +86,28 @@
 
 	{#snippet Item({ item: globalActivityPubNetwork })}
 		{@const globalActivityPubNetworkFields = { ...globalActivityPubNetwork[EntityMetaKey.Selector], ...globalActivityPubNetwork }}
-		{@const selection = select(EntityType._GlobalActivityPubNetwork, globalActivityPubNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const globalActivityPubNetworkHrefFields = { ...globalActivityPubNetwork, ...globalActivityPubNetwork[EntityMetaKey.Selector] }}
-		<GlobalActivityPubNetworkView
-			selection={selection}
-			prefetched={globalActivityPubNetworkFields}
-			href={(globalActivityPubNetwork[EntityMetaKey.Selector].scope === '_GlobalActivityPubNetwork' ? resolve('/activitypub') : undefined)}
+		<EntityView
+			entityType={EntityType._GlobalActivityPubNetwork}
+			entitySelector={globalActivityPubNetwork[EntityMetaKey.Selector]}
+			href={
+				(
+					globalActivityPubNetwork[EntityMetaKey.Selector].scope === '_GlobalActivityPubNetwork' ?
+						resolve('/activitypub')
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'global ActivityPub network'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((globalActivityPubNetworkFields.scope) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

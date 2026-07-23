@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Aptos transactions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AptosTransaction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AptosTransaction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AptosTransactionView from '$/views/AptosTransactionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(aptosTransactions) => [...new Map(aptosTransactions.values.map((aptosTransaction) => [aptosTransaction[EntityMetaKey.SelectorKey], aptosTransaction])).values()]}
 	getKey={(aptosTransaction) => aptosTransaction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: aptosTransaction })}
 		{@const aptosTransactionFields = { ...aptosTransaction[EntityMetaKey.Selector], ...aptosTransaction }}
-		{@const selection = select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AptosTransactionView
-			selection={selection}
-			prefetched={aptosTransactionFields}
+		<EntityView
+			entityType={EntityType.AptosTransaction}
+			entitySelector={aptosTransaction[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((aptosTransactionFields.hash) ?? '')].filter(Boolean).join(' ') || [String((aptosTransactionFields.version) ?? '')].filter(Boolean).join(' ') || 'aptos transaction'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((aptosTransactionFields.transactionKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((aptosTransactionFields.sender) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

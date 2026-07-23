@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Transactions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadBridgeTransaction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadBridgeTransaction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadBridgeTransactionView from '$/views/BlockheadBridgeTransactionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadBridgeTransactions) => [...new Map(blockheadBridgeTransactions.values.map((blockheadBridgeTransaction) => [blockheadBridgeTransaction[EntityMetaKey.SelectorKey], blockheadBridgeTransaction])).values()]}
 	getKey={(blockheadBridgeTransaction) => blockheadBridgeTransaction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,21 +88,48 @@
 
 	{#snippet Item({ item: blockheadBridgeTransaction })}
 		{@const blockheadBridgeTransactionFields = { ...blockheadBridgeTransaction[EntityMetaKey.Selector], ...blockheadBridgeTransaction }}
-		{@const selection = select(EntityType.BlockheadBridgeTransaction, blockheadBridgeTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const blockheadBridgeTransactionHrefFields = { ...blockheadBridgeTransaction, ...blockheadBridgeTransaction[EntityMetaKey.Selector] }}
-		<BlockheadBridgeTransactionView
-			selection={selection}
-			prefetched={blockheadBridgeTransactionFields}
+		<EntityView
+			entityType={EntityType.BlockheadBridgeTransaction}
+			entitySelector={blockheadBridgeTransaction[EntityMetaKey.Selector]}
 			href={
-				(blockheadBridgeTransactionHrefFields.createdAt !== undefined && blockheadBridgeTransactionHrefFields.$account !== undefined && blockheadBridgeTransactionHrefFields.$account.address !== undefined && blockheadBridgeTransactionHrefFields.$sourceTx !== undefined && blockheadBridgeTransactionHrefFields.$sourceTx.$network !== undefined && blockheadBridgeTransactionHrefFields.$sourceTx.$network.caip2 !== undefined && blockheadBridgeTransactionHrefFields.$sourceTx.$network.caip2.reference !== undefined && blockheadBridgeTransactionHrefFields.$sourceTx.txHash !== undefined ? resolve('/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', {
-					createdAt: String(blockheadBridgeTransactionHrefFields.createdAt ?? ''),
-					address: String(blockheadBridgeTransactionHrefFields.$account.address ?? ''),
-					chainId: String(blockheadBridgeTransactionHrefFields.$sourceTx.$network.caip2.reference ?? ''),
-					sourceTxHash: encodeURIComponent(String(blockheadBridgeTransactionHrefFields.$sourceTx.txHash ?? '')),
-				}) : undefined)
+				(
+					blockheadBridgeTransaction[EntityMetaKey.Selector] != null && 'createdAt' in blockheadBridgeTransaction[EntityMetaKey.Selector]
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector].createdAt != null
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector] != null && '$account' in blockheadBridgeTransaction[EntityMetaKey.Selector]
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector].$account != null && 'address' in blockheadBridgeTransaction[EntityMetaKey.Selector].$account
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector].$account.address != null
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector] != null && '$sourceTx' in blockheadBridgeTransaction[EntityMetaKey.Selector]
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx != null && '$network' in blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx.$network != null && 'caip2' in blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx.$network
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx.$network.caip2 != null && 'reference' in blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx.$network.caip2
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx.$network.caip2.reference != null
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx != null && 'txHash' in blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx
+					&& blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx.txHash != null ?
+						resolve('/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', {
+					createdAt: String(blockheadBridgeTransaction[EntityMetaKey.Selector].createdAt ?? ''),
+					address: String(blockheadBridgeTransaction[EntityMetaKey.Selector].$account.address ?? ''),
+					chainId: String(blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx.$network.caip2.reference ?? ''),
+					sourceTxHash: encodeURIComponent(String(blockheadBridgeTransaction[EntityMetaKey.Selector].$sourceTx.txHash ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadBridgeTransactionFields.createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((blockheadBridgeTransactionFields.$sourceTx.txHash) ?? '')].filter(Boolean).join(' ') || 'EVM transaction'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((blockheadBridgeTransactionFields.$account.address) ?? '')].filter(Boolean).join(' ') || 'EVM account'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

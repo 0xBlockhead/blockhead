@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.TezosBigMapKey_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TezosBigMapKey_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TezosBigMapKey_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,15 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosBigMapKeyTimestamp = $derived(selection({
+	const tezosBigMapKeyTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('tezos big map key timestamp')
-	const viewDomId = $derived('tezos-big-map-key-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'tezos big map key timestamp'
+	const viewDomId = $derived('tezos-big-map-key-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TezosBigMapKeyView from '$/views/TezosBigMapKeyView.svelte'
 </script>
 
@@ -64,12 +69,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={tezosBigMapKeyTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -82,7 +86,7 @@
 				<dt>big map key</dt>
 				<dd>
 					<TezosBigMapKeyView
-						selection={select(EntityType.TezosBigMapKey, selection.entitySelector.$bigMapKey, {})}
+						selection={select(EntityType.TezosBigMapKey, selection.entitySelector.$bigMapKey)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

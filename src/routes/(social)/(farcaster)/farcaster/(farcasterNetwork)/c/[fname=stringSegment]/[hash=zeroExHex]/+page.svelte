@@ -24,8 +24,13 @@
 	}, {
 		sources: [
 			Source.Snapchain_Rest,
+			Source.Neynar_Rest,
+			Source.Farcaster_Rest,
 		],
 		fields: {
+			hash: true,
+			fid: true,
+			clientUrl: true,
 			text: true,
 			timestamp: true,
 			$author: true,
@@ -36,7 +41,6 @@
 			threadHash: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.text) ?? ''), String((pageSelection.entitySelector.hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).text) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast'))
 
 
 	// Components
@@ -46,7 +50,13 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Farcaster cast • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'Farcaster cast' : [String((({ ...{
+		username: params.fname,
+		hashPrefix: params.hash,
+	}, ...pageSelection.entity }).text) ?? ''), String((({ ...{
+		username: params.fname,
+		hashPrefix: params.hash,
+	}, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast')} • Farcaster cast • Blockhead</title>
 </svelte:head>
 
 

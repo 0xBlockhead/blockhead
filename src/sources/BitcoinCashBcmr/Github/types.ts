@@ -11,15 +11,15 @@ export type BcmrRegistry = {
 	identities?: Record<string, BcmrIdentity>
 }
 
-export type BcmrIdentity = {
-	[revision: string]: {
-		name?: string
-		description?: string
-		token?: {
-			category?: string
-			symbol?: string
-			decimals?: number
-		}
-		uris?: Record<string, string>
+export type BcmrIdentitySnapshot = {
+	name?: string
+	description?: string
+	token?: {
+	category?: string
+	symbol?: string
+	decimals?: number
 	}
+	uris?: Record<string, string>
 }
+
+export type BcmrIdentity = Record<string, BcmrIdentitySnapshot>

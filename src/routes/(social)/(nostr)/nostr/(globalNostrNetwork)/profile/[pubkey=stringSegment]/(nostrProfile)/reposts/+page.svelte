@@ -39,13 +39,22 @@
 		}
 		title='Profile reposts'
 		selection={
-			select(EntityType.NostrProfile, data.selector).$$reposts({
-				sources: [
-					Source.Constants_Internal,
-					Source.NostrBand_Rest,
-				],
-				count: true,
-			})
+			select(EntityType.NostrProfile, data.selector)
+				.$$reposts({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.NostrProfile, data.selector)
+				.$$reposts({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				}).count
 		}
 		id='reposts'
 		data-column-item="flexible"

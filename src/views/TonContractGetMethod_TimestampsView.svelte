@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'TON contract get method observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TonContractGetMethod_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TonContractGetMethod_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TonContractGetMethod_TimestampView from '$/views/TonContractGetMethod_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(tonContractGetMethodTimestamps) => [...new Map(tonContractGetMethodTimestamps.values.map((tonContractGetMethodTimestamp) => [tonContractGetMethodTimestamp[EntityMetaKey.SelectorKey], tonContractGetMethodTimestamp])).values()]}
 	getKey={(tonContractGetMethodTimestamp) => tonContractGetMethodTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: tonContractGetMethodTimestamp })}
 		{@const tonContractGetMethodTimestampFields = { ...tonContractGetMethodTimestamp[EntityMetaKey.Selector], ...tonContractGetMethodTimestamp }}
-		{@const selection = select(EntityType.TonContractGetMethod_Timestamp, tonContractGetMethodTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TonContractGetMethod_TimestampView
-			selection={selection}
-			prefetched={tonContractGetMethodTimestampFields}
+		<EntityView
+			entityType={EntityType.TonContractGetMethod_Timestamp}
+			entitySelector={tonContractGetMethodTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'TON contract get method timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

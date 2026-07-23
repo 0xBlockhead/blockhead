@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadSocialPostSession>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadSocialPostSession>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSocialPostSession>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,15 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSocialPostSession = $derived(selection({
+	const blockheadSocialPostSession = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			status: true,
+			protocol: true,
+			updatedAt: true,
+			name: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			status: true,
@@ -52,7 +61,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'blockhead social post session')
-	const viewDomId = $derived('blockhead-social-post-session-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-social-post-session-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -76,7 +85,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'protocol') && Object.hasOwn(prefetched, 'updatedAt')}
 			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadSocialPostSession}>
@@ -89,7 +98,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'protocol') && Object.hasOwn(prefetched, 'updatedAt')}
 			{[String((pendingEntity.status) ?? ''), String((pendingEntity.protocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadSocialPostSession}>
@@ -102,7 +111,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'protocol') && Object.hasOwn(prefetched, 'updatedAt')}
 			{@const updatedAt0 = pendingEntity.updatedAt}
 			{#if updatedAt0 !== undefined && updatedAt0 !== null}
 				<span data-text="muted">
@@ -258,9 +267,15 @@
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
 									href={
-										(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey !== undefined ? resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
+										(
+											blockheadWalletConnection[EntityMetaKey.Selector] != null && 'connectionKey' in blockheadWalletConnection[EntityMetaKey.Selector]
+											&& blockheadWalletConnection[EntityMetaKey.Selector].connectionKey != null ?
+												resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
 											connectionKey: String(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -283,9 +298,15 @@
 									selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConversation}
 									href={
-										(blockheadAgentConversation[EntityMetaKey.Selector].id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]', {
+										(
+											blockheadAgentConversation[EntityMetaKey.Selector] != null && 'id' in blockheadAgentConversation[EntityMetaKey.Selector]
+											&& blockheadAgentConversation[EntityMetaKey.Selector].id != null ?
+												resolve('/~/agents/conversation/[conversationId=stringSegment]', {
 											conversationId: String(blockheadAgentConversation[EntityMetaKey.Selector].id ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -423,17 +444,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<MediaListView
-				selection={
-						selection.$$media({
-							count: true,
-						})
-					}
-				title='media'
-				emptyText='No media.'
-				id='MediaListView-media'
-			/>
-		{/if}
+		{@const blockheadSocialPostSessionMediaListViewMediaResource = selection.$$media}
+		<ResourceBoundary
+			resource={blockheadSocialPostSessionMediaListViewMediaResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<MediaListView
+					selection={blockheadSocialPostSessionMediaListViewMediaResource}
+					countResource={blockheadSocialPostSessionMediaListViewMediaResource.count}
+					title='media'
+					id='MediaListView-media'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

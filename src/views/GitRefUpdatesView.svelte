@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Git ref updates',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.GitRefUpdate>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.GitRefUpdate>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GitRefUpdateView from '$/views/GitRefUpdateView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(gitRefUpdates) => [...new Map(gitRefUpdates.values.map((gitRefUpdate) => [gitRefUpdate[EntityMetaKey.SelectorKey], gitRefUpdate])).values()]}
 	getKey={(gitRefUpdate) => gitRefUpdate[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: gitRefUpdate })}
 		{@const gitRefUpdateFields = { ...gitRefUpdate[EntityMetaKey.Selector], ...gitRefUpdate }}
-		{@const selection = select(EntityType.GitRefUpdate, gitRefUpdate[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<GitRefUpdateView
-			selection={selection}
-			prefetched={gitRefUpdateFields}
+		<EntityView
+			entityType={EntityType.GitRefUpdate}
+			entitySelector={gitRefUpdate[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((gitRefUpdateFields.refName) ?? '')].filter(Boolean).join(' ') || 'Git ref update'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((gitRefUpdateFields.updateKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((gitRefUpdateFields.timestampMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

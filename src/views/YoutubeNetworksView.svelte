@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'YouTube Data API',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.YoutubeNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.YoutubeNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import YoutubeNetworkView from '$/views/YoutubeNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(youtubeNetworks) => [...new Map(youtubeNetworks.values.map((youtubeNetwork) => [youtubeNetwork[EntityMetaKey.SelectorKey], youtubeNetwork])).values()]}
 	getKey={(youtubeNetwork) => youtubeNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,14 +87,24 @@
 
 	{#snippet Item({ item: youtubeNetwork })}
 		{@const youtubeNetworkFields = { ...youtubeNetwork[EntityMetaKey.Selector], ...youtubeNetwork }}
-		{@const selection = select(EntityType.YoutubeNetwork, youtubeNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const youtubeNetworkHrefFields = { ...youtubeNetwork, ...youtubeNetwork[EntityMetaKey.Selector] }}
-		<YoutubeNetworkView
-			selection={selection}
-			prefetched={youtubeNetworkFields}
-			href={(youtubeNetwork[EntityMetaKey.Selector].scope === 'YoutubeNetwork' ? resolve('/youtube/api') : undefined)}
+		<EntityView
+			entityType={EntityType.YoutubeNetwork}
+			entitySelector={youtubeNetwork[EntityMetaKey.Selector]}
+			href={
+				(
+					youtubeNetwork[EntityMetaKey.Selector].scope === 'YoutubeNetwork' ?
+						resolve('/youtube/api')
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((youtubeNetworkFields.protocolName) ?? '')].filter(Boolean).join(' ') || 'YouTube Data API'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

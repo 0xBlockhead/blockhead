@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Dogecoin aux pow merkle branches',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.DogecoinAuxPowMerkleBranch>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.DogecoinAuxPowMerkleBranch>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import DogecoinAuxPowMerkleBranchView from '$/views/DogecoinAuxPowMerkleBranchView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(dogecoinAuxPowMerkleBranches) => [...new Map(dogecoinAuxPowMerkleBranches.values.map((dogecoinAuxPowMerkleBranch) => [dogecoinAuxPowMerkleBranch[EntityMetaKey.SelectorKey], dogecoinAuxPowMerkleBranch])).values()]}
 	getKey={(dogecoinAuxPowMerkleBranch) => dogecoinAuxPowMerkleBranch[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: dogecoinAuxPowMerkleBranch })}
 		{@const dogecoinAuxPowMerkleBranchFields = { ...dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector], ...dogecoinAuxPowMerkleBranch }}
-		{@const selection = select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<DogecoinAuxPowMerkleBranchView
-			selection={selection}
-			prefetched={dogecoinAuxPowMerkleBranchFields}
+		<EntityView
+			entityType={EntityType.DogecoinAuxPowMerkleBranch}
+			entitySelector={dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((dogecoinAuxPowMerkleBranchFields.branchKind) ?? '')].filter(Boolean).join(' ') || 'dogecoin aux pow merkle branch'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[(String((dogecoinAuxPowMerkleBranchFields.$auxPow.$block.height) ?? '') ? 'Block #' + String((dogecoinAuxPowMerkleBranchFields.$auxPow.$block.height) ?? '') : '') || [String((dogecoinAuxPowMerkleBranchFields.$auxPow.$block.hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block'].filter(Boolean).join(' ') || 'dogecoin block aux pow'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -330,15 +330,16 @@ const solanaValidatorTimestampFields = (
 		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], '$validator')]: {
 			[EntityMetaKey.Selector]: validatorId,
 		},
+		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'slot')]: slot,
+		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'source')]: Source.Solana_JsonRpc,
+		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'nodePubkey')]: voteAccount.nodePubkey,
+		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'activatedStakeLamports')]: BigInt(voteAccount.activatedStake),
+		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'commission')]: voteAccount.commission,
+		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'delinquent')]: delinquent,
+		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'lastVoteSlot')]: BigInt(voteAccount.lastVote),
+		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'rootSlot')]: BigInt(voteAccount.rootSlot),
+		[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'epochCredits')]: voteAccount.epochCredits,
 	},
-	slot,
-	source: Source.Solana_JsonRpc,
-	activatedStakeLamports: BigInt(voteAccount.activatedStake),
-	commission: voteAccount.commission,
-	delinquent,
-	lastVoteSlot: BigInt(voteAccount.lastVote),
-	rootSlot: BigInt(voteAccount.rootSlot),
-	epochCredits: voteAccount.epochCredits,
 })
 
 const getTransaction = async ({ $network, signature }: {
@@ -372,9 +373,8 @@ const solanaValidatorRows = (
 				$network: network,
 				votePubkey: voteAccount.votePubkey,
 			},
-			nodePubkey: voteAccount.nodePubkey,
-			$$timestamps: [
-				solanaValidatorTimestampFields(
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SolanaValidator, [], '$$timestamps')]: [solanaValidatorTimestampFields(
 					{
 						$network: network,
 						votePubkey: voteAccount.votePubkey,
@@ -382,17 +382,16 @@ const solanaValidatorRows = (
 					voteAccount,
 					slot,
 					false
-				),
-			],
+				)],
+			},
 		})),
 		...voteAccounts.delinquent.map((voteAccount) => ({
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				votePubkey: voteAccount.votePubkey,
 			},
-			nodePubkey: voteAccount.nodePubkey,
-			$$timestamps: [
-				solanaValidatorTimestampFields(
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SolanaValidator, [], '$$timestamps')]: [solanaValidatorTimestampFields(
 					{
 						$network: network,
 						votePubkey: voteAccount.votePubkey,
@@ -400,8 +399,8 @@ const solanaValidatorRows = (
 					voteAccount,
 					slot,
 					true
-				),
-			],
+				)],
+			},
 		})),
 	]
 )

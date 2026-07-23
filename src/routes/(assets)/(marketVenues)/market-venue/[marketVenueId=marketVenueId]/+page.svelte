@@ -28,7 +28,6 @@
 			label: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.label) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).label) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue'))
 
 
 	// Components
@@ -38,7 +37,13 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Market venue • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		marketVenueId: params.marketVenueId,
+	}.marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue' : [String((({ ...{
+		marketVenueId: params.marketVenueId,
+	}, ...pageSelection.entity }).label) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
+		marketVenueId: params.marketVenueId,
+	}, ...pageSelection.entity }).marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue')} • Market venue • Blockhead</title>
 </svelte:head>
 
 

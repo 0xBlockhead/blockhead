@@ -33,7 +33,6 @@
 			simulationCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'session' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'session'))
 
 
 	// Components
@@ -43,7 +42,13 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • session • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		id: params.sessionId,
+	}.id) ?? '')].filter(Boolean).join(' ') || 'session' : [String((({ ...{
+		id: params.sessionId,
+	}, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
+		id: params.sessionId,
+	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'session')} • session • Blockhead</title>
 </svelte:head>
 
 

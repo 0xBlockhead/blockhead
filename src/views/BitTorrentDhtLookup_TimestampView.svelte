@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -22,7 +23,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BitTorrentDhtLookup_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BitTorrentDhtLookup_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BitTorrentDhtLookup_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -36,14 +37,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bitTorrentDhtLookupTimestamp = $derived(selection({
+	const bitTorrentDhtLookupTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			status: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			status: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent DHT lookup timestamp')
-	const viewDomId = $derived('bit-torrent-dht-lookup-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bit-torrent-dht-lookup-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,11 +71,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const infoHash0 = pendingEntity.infoHash}
-					{#if infoHash0 !== undefined && infoHash0 !== null}
-						<TruncatedValue value={String((infoHash0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
+			{@const infoHash0 = pendingEntity.infoHash}
+			{#if infoHash0 !== undefined && infoHash0 !== null}
+				<TruncatedValue value={String((infoHash0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={bitTorrentDhtLookupTimestamp}>
 				{#snippet children(entity)}
@@ -84,7 +90,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
 			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.infoHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={bitTorrentDhtLookupTimestamp}>
@@ -97,7 +103,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
 			{@const timestampMs0 = pendingEntity.timestampMs}
 			{#if timestampMs0 !== undefined && timestampMs0 !== null}
 				<span data-text="muted">

@@ -24,7 +24,6 @@
 			Source.Mastodon_Rest,
 		],
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance')))
 
 
 	// Components
@@ -34,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ActivityPub instance • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance' : [String((({ ...data.selector, ...pageSelection.entity }).instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance'))} • ActivityPub instance • Blockhead</title>
 </svelte:head>
 
 

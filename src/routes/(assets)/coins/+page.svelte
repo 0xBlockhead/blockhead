@@ -29,14 +29,26 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$coins',
-			}).$$coins({
-				sources: [
-					Source.Constants_Internal,
-					Source.Coinpaprika_OpenApi,
-				],
-				limit: 120,
-				count: true,
 			})
+				.$$coins({
+					sources: [
+						Source.Constants_Internal,
+						Source.Coinpaprika_OpenApi,
+					],
+					limit: 120,
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$coins',
+			})
+				.$$coins({
+					sources: [
+						Source.Constants_Internal,
+						Source.Coinpaprika_OpenApi,
+					],
+					limit: 120,
+				}).count
 		}
 		id='coins'
 		data-column-item="flexible"

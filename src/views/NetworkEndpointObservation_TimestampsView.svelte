@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Network endpoint observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NetworkEndpointObservation_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NetworkEndpointObservation_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkEndpointObservation_TimestampView from '$/views/NetworkEndpointObservation_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(networkEndpointObservationTimestamps) => [...new Map(networkEndpointObservationTimestamps.values.map((networkEndpointObservationTimestamp) => [networkEndpointObservationTimestamp[EntityMetaKey.SelectorKey], networkEndpointObservationTimestamp])).values()]}
 	getKey={(networkEndpointObservationTimestamp) => networkEndpointObservationTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,12 +89,24 @@
 
 	{#snippet Item({ item: networkEndpointObservationTimestamp })}
 		{@const networkEndpointObservationTimestampFields = { ...networkEndpointObservationTimestamp[EntityMetaKey.Selector], ...networkEndpointObservationTimestamp }}
-		{@const selection = select(EntityType.NetworkEndpointObservation_Timestamp, networkEndpointObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<NetworkEndpointObservation_TimestampView
-			selection={selection}
-			prefetched={networkEndpointObservationTimestampFields}
+		<EntityView
+			entityType={EntityType.NetworkEndpointObservation_Timestamp}
+			entitySelector={networkEndpointObservationTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((networkEndpointObservationTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'network endpoint observation timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((networkEndpointObservationTimestampFields.health) ?? ''), String((networkEndpointObservationTimestampFields.latencyMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((networkEndpointObservationTimestampFields.endpointKind) ?? ''), String((networkEndpointObservationTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

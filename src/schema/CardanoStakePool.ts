@@ -52,6 +52,7 @@ export const CardanoStakePool = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.CardanoKoios_Rest,
 			Source.Blockfrost_Rest,
 		],
 	},

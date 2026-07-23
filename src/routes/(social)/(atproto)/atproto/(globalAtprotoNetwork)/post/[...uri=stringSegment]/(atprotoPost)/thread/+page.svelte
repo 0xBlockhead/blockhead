@@ -40,12 +40,22 @@
 		selection={
 			select(EntityType.AtprotoPost, {
 				uri: decodeURIComponent(params.uri),
-			}).$$thread({
-				sources: [
-					Source.Atproto_Xrpc,
-				],
-				count: true,
 			})
+				.$$thread({
+					sources: [
+						Source.Atproto_Xrpc,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.AtprotoPost, {
+				uri: decodeURIComponent(params.uri),
+			})
+				.$$thread({
+					sources: [
+						Source.Atproto_Xrpc,
+					],
+				}).count
 		}
 		id='thread'
 		data-column-item="flexible"

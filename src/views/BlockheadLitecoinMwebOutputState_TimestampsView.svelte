@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Litecoin MWEB output state observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadLitecoinMwebOutputState_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadLitecoinMwebOutputState_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadLitecoinMwebOutputState_TimestampView from '$/views/BlockheadLitecoinMwebOutputState_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadLitecoinMwebOutputStateTimestamps) => [...new Map(blockheadLitecoinMwebOutputStateTimestamps.values.map((blockheadLitecoinMwebOutputStateTimestamp) => [blockheadLitecoinMwebOutputStateTimestamp[EntityMetaKey.SelectorKey], blockheadLitecoinMwebOutputStateTimestamp])).values()]}
 	getKey={(blockheadLitecoinMwebOutputStateTimestamp) => blockheadLitecoinMwebOutputStateTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadLitecoinMwebOutputStateTimestamp })}
 		{@const blockheadLitecoinMwebOutputStateTimestampFields = { ...blockheadLitecoinMwebOutputStateTimestamp[EntityMetaKey.Selector], ...blockheadLitecoinMwebOutputStateTimestamp }}
-		{@const selection = select(EntityType.BlockheadLitecoinMwebOutputState_Timestamp, blockheadLitecoinMwebOutputStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadLitecoinMwebOutputState_TimestampView
-			selection={selection}
-			prefetched={blockheadLitecoinMwebOutputStateTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadLitecoinMwebOutputState_Timestamp}
+			entitySelector={blockheadLitecoinMwebOutputStateTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadLitecoinMwebOutputStateTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead litecoin mweb output state timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadLitecoinMwebOutputStateTimestampFields.spent) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadLitecoinMwebOutputStateTimestampFields.confirmations) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

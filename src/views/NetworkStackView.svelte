@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NetworkStack>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NetworkStack>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NetworkStack>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,14 +38,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const networkStack = $derived(selection({
+	const networkStack = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack')
-	const viewDomId = $derived('network-stack-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('network-stack-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -58,16 +64,22 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.networkStackId !== undefined ? resolve('/network-stack/[networkStackId=stringSegment]', {
-			networkStackId: String(pendingEntity.networkStackId ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'networkStackId' in selection.entitySelector
+			&& selection.entitySelector.networkStackId != null ?
+				resolve('/network-stack/[networkStackId=stringSegment]', {
+			networkStackId: String(selection.entitySelector.networkStackId ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label')}
 			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={networkStack}>

@@ -40,12 +40,22 @@
 		selection={
 			select(EntityType.AtprotoActor, {
 				did: decodeURIComponent(params.did),
-			}).$$posts({
-				sources: [
-					Source.Atproto_Xrpc,
-				],
-				count: true,
 			})
+				.$$posts({
+					sources: [
+						Source.Atproto_Xrpc,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.AtprotoActor, {
+				did: decodeURIComponent(params.did),
+			})
+				.$$posts({
+					sources: [
+						Source.Atproto_Xrpc,
+					],
+				}).count
 		}
 		id='posts'
 		data-column-item="flexible"

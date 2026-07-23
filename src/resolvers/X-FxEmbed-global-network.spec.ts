@@ -109,6 +109,10 @@ describe('X FxEmbed global network', () => {
 						'https://x.com/i/web/status/post-1',
 					[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 						[EntityMetaKey.Selector]: { id: 'user-1' },
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.XUser, [], 'username')]: 'reader',
+							[entityFieldAddressKey(EntityType.XUser, [], 'name')]: 'Fixture Reader',
+						},
 					},
 				},
 			},
@@ -119,6 +123,9 @@ describe('X FxEmbed global network', () => {
 						'https://x.com/i/web/status/post-2',
 					[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 						[EntityMetaKey.Selector]: { id: 'user-2' },
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.XUser, [], 'username')]: 'second',
+						},
 					},
 				},
 			},

@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'TON accounts',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TonAccount>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TonAccount>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TonAccountView from '$/views/TonAccountView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(tonAccounts) => [...new Map(tonAccounts.values.map((tonAccount) => [tonAccount[EntityMetaKey.SelectorKey], tonAccount])).values()]}
 	getKey={(tonAccount) => tonAccount[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,22 +88,40 @@
 
 	{#snippet Item({ item: tonAccount })}
 		{@const tonAccountFields = { ...tonAccount[EntityMetaKey.Selector], ...tonAccount }}
-		{@const selection = select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const tonAccountHrefFields = { ...tonAccount, ...tonAccount[EntityMetaKey.Selector] }}
-		<TonAccountView
-			selection={selection}
-			prefetched={tonAccountFields}
+		<EntityView
+			entityType={EntityType.TonAccount}
+			entitySelector={tonAccount[EntityMetaKey.Selector]}
 			href={
-				(tonAccountHrefFields.address !== undefined && tonAccountHrefFields.$network !== undefined && tonAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-					accountId: String(tonAccountHrefFields.address ?? ''),
-					network: String(caip2StringFromValue(tonAccountHrefFields.$network.caip2) ?? ''),
-				}) : tonAccountHrefFields.address !== undefined && tonAccountHrefFields.$network !== undefined && tonAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-					accountId: String(tonAccountHrefFields.address ?? ''),
-					network: String(tonAccountHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					tonAccount[EntityMetaKey.Selector] != null && 'address' in tonAccount[EntityMetaKey.Selector]
+					&& tonAccount[EntityMetaKey.Selector].address != null
+					&& tonAccount[EntityMetaKey.Selector] != null && '$network' in tonAccount[EntityMetaKey.Selector] ?
+						tonAccount[EntityMetaKey.Selector].$network != null && 'caip2' in tonAccount[EntityMetaKey.Selector].$network
+						&& tonAccount[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+						accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
+						network: String(caip2StringFromValue(tonAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							tonAccount[EntityMetaKey.Selector].$network != null && 'slug' in tonAccount[EntityMetaKey.Selector].$network
+							&& tonAccount[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
+							network: String(tonAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'TON account'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

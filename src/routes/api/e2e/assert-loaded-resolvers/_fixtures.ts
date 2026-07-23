@@ -171,6 +171,13 @@ const mainnet = {
 	},
 } as const
 
+const aptosMainnet = {
+	caip2: {
+		namespace: Caip2Namespace.Aptos,
+		reference: Caip2Reference.AptosMainnet,
+	},
+} as const
+
 const bitcoin = {
 	caip2: {
 		namespace: Caip2Namespace.Bip122,
@@ -490,11 +497,13 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	},
 
 	[EntityType.BlockheadWallet]: { id: 'eip6963:e2e-probe-wallet' },
-	[EntityType.BlockheadWalletAccount]: {
-		caip10: {
-			namespace: Caip2Namespace.Eip155,
-			reference: Caip2Reference.EthereumMainnet,
-			accountAddress: VITALIK_ADDRESS,
+	[EntityType.BlockheadAccount]: {
+		$account: {
+			caip10: {
+				namespace: Caip2Namespace.Eip155,
+				reference: Caip2Reference.EthereumMainnet,
+				accountAddress: VITALIK_ADDRESS,
+			},
 		},
 	},
 	[EntityType.BlockheadWalletConnection]: {
@@ -544,25 +553,25 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	},
 	[EntityType._GlobalAtprotoNetwork]: { scope: '_GlobalAtprotoNetwork' },
 	[EntityType.AptosNetwork]: {
-		$network: mainnet,
+		$network: aptosMainnet,
 	},
 	[EntityType.AptosNetwork_Timestamp]: {
 		$network: {
-			$network: mainnet,
+			$network: aptosMainnet,
 		},
 		ledgerVersion: 0n,
 		source: Source.AptosFullnode_Rest,
 	},
 	[EntityType.AptosAccount]: {
 		$network: {
-			$network: mainnet,
+			$network: aptosMainnet,
 		},
 		address: '0xa11ce',
 	},
 	[EntityType.AptosAccount_Timestamp]: {
 		$account: {
 			$network: {
-				$network: mainnet,
+				$network: aptosMainnet,
 			},
 			address: '0xa11ce',
 		},
@@ -572,7 +581,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	[EntityType.AptosAccountResource]: {
 		$account: {
 			$network: {
-				$network: mainnet,
+				$network: aptosMainnet,
 			},
 			address: '0xa11ce',
 		},
@@ -582,7 +591,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 		$resource: {
 			$account: {
 				$network: {
-					$network: mainnet,
+					$network: aptosMainnet,
 				},
 				address: '0xa11ce',
 			},
@@ -593,20 +602,20 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	},
 	[EntityType.AptosBlock]: {
 		$network: {
-			$network: mainnet,
+			$network: aptosMainnet,
 		},
 		height: 0n,
 	},
 	[EntityType.AptosTransaction]: {
 		$network: {
-			$network: mainnet,
+			$network: aptosMainnet,
 		},
 		version: 0n,
 	},
 	[EntityType.AptosTransaction_Timestamp]: {
 		$transaction: {
 			$network: {
-				$network: mainnet,
+				$network: aptosMainnet,
 			},
 			version: 0n,
 		},
@@ -615,7 +624,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	},
 	[EntityType.AptosEvent]: {
 		$network: {
-			$network: mainnet,
+			$network: aptosMainnet,
 		},
 		transactionVersion: 0n,
 		eventIndex: 0,
@@ -623,7 +632,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	[EntityType.AptosStateChange]: {
 		$transaction: {
 			$network: {
-				$network: mainnet,
+				$network: aptosMainnet,
 			},
 			version: 0n,
 		},
@@ -1831,13 +1840,13 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 	},
 	[EntityType.AptosBlock]: {
 		NetworkVersion: {
-			$network: { $network: mainnet },
+			$network: { $network: aptosMainnet },
 			version: 0n,
 		},
 	},
 	[EntityType.AptosTransaction]: {
 		NetworkHash: {
-			$network: { $network: mainnet },
+			$network: { $network: aptosMainnet },
 			hash: '0xe2e-probe-aptos-transaction',
 		},
 	},
@@ -1957,7 +1966,7 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 	[EntityType.AptosCoinBalance_Timestamp]: {
 		AccountStorageIdLedgerVersionSource: {
 			$account: {
-				$network: { $network: mainnet },
+				$network: { $network: aptosMainnet },
 				address: '0xa11ce',
 			},
 			storageId: '0xe2e-probe-aptos-coin-store',
@@ -1970,7 +1979,7 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 	},
 	[EntityType.AptosTableItem]: {
 		NetworkTableHandleKeyHash: {
-			$network: { $network: mainnet },
+			$network: { $network: aptosMainnet },
 			tableHandle: '0xe2e-probe-table',
 			keyHash: '0xe2e-probe-key',
 		},
@@ -1978,7 +1987,7 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 	[EntityType.AptosTableItem_Timestamp]: {
 		TableItemLedgerVersionSource: {
 			$tableItem: {
-				$network: { $network: mainnet },
+				$network: { $network: aptosMainnet },
 				tableHandle: '0xe2e-probe-table',
 				keyHash: '0xe2e-probe-key',
 			},

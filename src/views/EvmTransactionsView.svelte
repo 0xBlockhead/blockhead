@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EVM transactions',
 		typeAnnotationParagraphs = ['A transaction submitted to or included in an EVM-compatible network.'],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmTransaction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmTransaction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmTransactions) => [...new Map(evmTransactions.values.map((evmTransaction) => [evmTransaction[EntityMetaKey.SelectorKey], evmTransaction])).values()]}
 	getKey={(evmTransaction) => evmTransaction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,22 +88,44 @@
 
 	{#snippet Item({ item: evmTransaction })}
 		{@const evmTransactionFields = { ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }}
-		{@const selection = select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmTransactionHrefFields = { ...evmTransaction, ...evmTransaction[EntityMetaKey.Selector] }}
-		<EvmTransactionView
-			selection={selection}
-			prefetched={evmTransactionFields}
+		<EntityView
+			entityType={EntityType.EvmTransaction}
+			entitySelector={evmTransaction[EntityMetaKey.Selector]}
 			href={
-				(evmTransactionHrefFields.txHash !== undefined && evmTransactionHrefFields.$network !== undefined && evmTransactionHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-					transactionId: String(evmTransactionHrefFields.txHash ?? ''),
-					network: String(caip2StringFromValue(evmTransactionHrefFields.$network.caip2) ?? ''),
-				}) : evmTransactionHrefFields.txHash !== undefined && evmTransactionHrefFields.$network !== undefined && evmTransactionHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-					transactionId: String(evmTransactionHrefFields.txHash ?? ''),
-					network: String(evmTransactionHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					evmTransaction[EntityMetaKey.Selector] != null && 'txHash' in evmTransaction[EntityMetaKey.Selector]
+					&& evmTransaction[EntityMetaKey.Selector].txHash != null
+					&& evmTransaction[EntityMetaKey.Selector] != null && '$network' in evmTransaction[EntityMetaKey.Selector] ?
+						evmTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in evmTransaction[EntityMetaKey.Selector].$network
+						&& evmTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+						transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
+						network: String(caip2StringFromValue(evmTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							evmTransaction[EntityMetaKey.Selector].$network != null && 'slug' in evmTransaction[EntityMetaKey.Selector].$network
+							&& evmTransaction[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+							transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
+							network: String(evmTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((evmTransactionFields.txHash) ?? '')].filter(Boolean).join(' ') || 'EVM transaction'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((evmTransactionFields.txHash) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

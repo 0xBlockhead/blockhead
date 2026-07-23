@@ -5,7 +5,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { NetworkSelector } from '$/schema/Network.ts'
 
@@ -16,6 +19,18 @@ vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
 		providerName: 'Solana Labs',
 	}],
 	getSlot: vi.fn().mockResolvedValue(100),
+	getVoteAccounts: vi.fn().mockResolvedValue({
+		current: [{
+			activatedStake: 1_000,
+			commission: 5,
+			epochCredits: [[1, 2, 3]],
+			lastVote: 99,
+			nodePubkey: 'node-current',
+			rootSlot: 98,
+			votePubkey: 'vote-current',
+		}],
+		delinquent: [],
+	}),
 	getBlocks: vi.fn().mockResolvedValue([100]),
 	getBlock: vi.fn().mockResolvedValue({
 		blockhash: 'block-hash',
@@ -187,5 +202,38 @@ describe('Solana JSON-RPC network state lists', () => {
 				mintAddress: 'token-mint',
 			},
 		}])
+	})
+
+	it('embeds validator observations exclusively through canonical field addresses', async () => {
+		const resolver = solanaJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Solana' in candidate.projections
+			&& '$$validators' in candidate.projections.Solana
+			&& typeof candidate.projections.Solana.$$validators === 'function'
+		))
+		if (resolver == null) throw new Error('Solana validator resolver is missing')
+
+		const validators = resolver.projections.Solana.$$validators(
+			await resolver.resolve[NetworkSelector.Caip2].resolve(networkSelector, context)
+		)
+		expect(validators).toHaveLength(1)
+		expect(Object.keys(validators[0])).toEqual([
+			EntityMetaKey.Selector,
+			EntityMetaKey.Fields,
+		])
+		expect(validators[0][EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.SolanaValidator, [], '$$timestamps')]: [expect.objectContaining({
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'nodePubkey')]: 'node-current',
+					[entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'activatedStakeLamports')]: 1_000n,
+				}),
+			})],
+		})
+		expect(Object.keys(validators[0][EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.SolanaValidator, [], '$$timestamps')
+		][0])).toEqual([
+			EntityMetaKey.Selector,
+			EntityMetaKey.Fields,
+		])
 	})
 })

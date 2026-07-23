@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'CCTP burn fee observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CctpBurnFee_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CctpBurnFee_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CctpBurnFee_TimestampView from '$/views/CctpBurnFee_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,12 +67,21 @@
 			sources: selection.sources,
 			fields: {
 				timestampMs: true,
-				$sourceDomain: true,
-				$destinationDomain: true,
+				$sourceDomain: {
+					fields: {
+						name: true,
+					},
+				},
+				$destinationDomain: {
+					fields: {
+						name: true,
+					},
+				},
 				source: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cctpBurnFeeTimestamps) => [...new Map(cctpBurnFeeTimestamps.values.map((cctpBurnFeeTimestamp) => [cctpBurnFeeTimestamp[EntityMetaKey.SelectorKey], cctpBurnFeeTimestamp])).values()]}
 	getKey={(cctpBurnFeeTimestamp) => cctpBurnFeeTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +96,24 @@
 
 	{#snippet Item({ item: cctpBurnFeeTimestamp })}
 		{@const cctpBurnFeeTimestampFields = { ...cctpBurnFeeTimestamp[EntityMetaKey.Selector], ...cctpBurnFeeTimestamp }}
-		{@const selection = select(EntityType.CctpBurnFee_Timestamp, cctpBurnFeeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CctpBurnFee_TimestampView
-			selection={selection}
-			prefetched={cctpBurnFeeTimestampFields}
+		<EntityView
+			entityType={EntityType.CctpBurnFee_Timestamp}
+			entitySelector={cctpBurnFeeTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cctpBurnFeeTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'CCTP burn fee timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((cctpBurnFeeTimestampFields.$sourceDomain.name) ?? '')].filter(Boolean).join(' ') || 'CCTP domain support', [String((cctpBurnFeeTimestampFields.$destinationDomain.name) ?? '')].filter(Boolean).join(' ') || 'CCTP domain support'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((cctpBurnFeeTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

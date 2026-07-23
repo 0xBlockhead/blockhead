@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AvalanchePChainTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AvalanchePChainTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvalanchePChainTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const avalanchePChainTransaction = $derived(selection({
+	const avalanchePChainTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			txType: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			txType: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche p chain transaction')
-	const viewDomId = $derived('avalanche-pchain-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('avalanche-pchain-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,82 +80,48 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const txId0 = pendingEntity.txId}
-					{#if txId0 !== undefined && txId0 !== null}
-						<TruncatedValue value={String((txId0) ?? '')} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={avalanchePChainTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const txId0 = resolvedEntity.txId}
-					{#if txId0 !== undefined && txId0 !== null}
-						<TruncatedValue value={String((txId0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={avalanchePChainTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const txId0 = resolvedEntity.txId}
+				{#if txId0 !== undefined && txId0 !== null}
+					<TruncatedValue value={String((txId0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.txType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={avalanchePChainTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.txType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.txId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={avalanchePChainTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.txType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.txId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<ResourceBoundary
-				resource={selection.$block}
-			>
-				{#snippet children(avalanchePChainBlock)}
-					{#if avalanchePChainBlock != null && avalanchePChainBlock[EntityMetaKey.Selector] != null}
-						<span data-text="muted">
-							<AvalanchePChainBlockView
-								selection={select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector])}
-								prefetched={avalanchePChainBlock}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{:else}
-						<span data-text="muted">Unavailable</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={avalanchePChainTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$block}
-					>
-						{#snippet children(avalanchePChainBlock)}
-							{#if avalanchePChainBlock != null && avalanchePChainBlock[EntityMetaKey.Selector] != null}
-								<span data-text="muted">
-									<AvalanchePChainBlockView
-										selection={select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector])}
-										prefetched={avalanchePChainBlock}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
-								</span>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={avalanchePChainTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<ResourceBoundary
+					resource={selection.$block}
+				>
+					{#snippet children(avalanchePChainBlock)}
+						{#if avalanchePChainBlock != null && avalanchePChainBlock[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<AvalanchePChainBlockView
+									selection={select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector])}
+									prefetched={avalanchePChainBlock}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -158,13 +130,23 @@
 				<dt>network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -491,17 +473,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AvalanchePChainTransaction_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='AvalanchePChainTransaction_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const avalanchePChainTransactionAvalanchePChainTransactionTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={avalanchePChainTransactionAvalanchePChainTransactionTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvalanchePChainTransaction_TimestampsView
+					selection={avalanchePChainTransactionAvalanchePChainTransactionTimestampsViewTimestampsResource}
+					countResource={avalanchePChainTransactionAvalanchePChainTransactionTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='AvalanchePChainTransaction_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

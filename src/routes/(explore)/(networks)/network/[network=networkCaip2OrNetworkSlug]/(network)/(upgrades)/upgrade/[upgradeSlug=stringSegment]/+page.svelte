@@ -23,6 +23,7 @@
 			Source.Constants_Internal,
 		],
 		fields: {
+			upgradeId: true,
 			name: true,
 			activationBlock: true,
 			activationEpoch: true,
@@ -31,7 +32,6 @@
 			$networkConsensusUpgrade: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).upgradeId) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade')))
 
 
 	// Components
@@ -41,7 +41,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Ethereum network upgrade • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Ethereum network upgrade' : [String((({ ...data.selector, ...pageSelection.entity }).upgradeId) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade'))} • Ethereum network upgrade • Blockhead</title>
 </svelte:head>
 
 

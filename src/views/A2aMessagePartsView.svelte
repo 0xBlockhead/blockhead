@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'A2A message parts',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.A2aMessagePart>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.A2aMessagePart>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import A2aMessagePartView from '$/views/A2aMessagePartView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(a2aMessageParts) => [...new Map(a2aMessageParts.values.map((a2aMessagePart) => [a2aMessagePart[EntityMetaKey.SelectorKey], a2aMessagePart])).values()]}
 	getKey={(a2aMessagePart) => a2aMessagePart[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: a2aMessagePart })}
 		{@const a2aMessagePartFields = { ...a2aMessagePart[EntityMetaKey.Selector], ...a2aMessagePart }}
-		{@const selection = select(EntityType.A2aMessagePart, a2aMessagePart[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<A2aMessagePartView
-			selection={selection}
-			prefetched={a2aMessagePartFields}
+		<EntityView
+			entityType={EntityType.A2aMessagePart}
+			entitySelector={a2aMessagePart[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((a2aMessagePartFields.partIndex) ?? '')].filter(Boolean).join(' ') || 'A2A message part'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((a2aMessagePartFields.partKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((a2aMessagePartFields.mimeType) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

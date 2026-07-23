@@ -37,11 +37,8 @@
 			})
 		}
 		title='Payments'
-		selection={
-			select(EntityType.LightningNetwork, data.selector).$$payments({
-				count: true,
-			})
-		}
+		selection={select(EntityType.LightningNetwork, data.selector).$$payments}
+		countResource={select(EntityType.LightningNetwork, data.selector).$$payments.count}
 		id='payments'
 		data-column-item="flexible"
 		data-card

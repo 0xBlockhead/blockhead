@@ -39,13 +39,22 @@
 		}
 		title='Note reactions'
 		selection={
-			select(EntityType.NostrNote, data.selector).$$reactions({
-				sources: [
-					Source.Constants_Internal,
-					Source.NostrBand_Rest,
-				],
-				count: true,
-			})
+			select(EntityType.NostrNote, data.selector)
+				.$$reactions({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.NostrNote, data.selector)
+				.$$reactions({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				}).count
 		}
 		id='reactions'
 		data-column-item="flexible"

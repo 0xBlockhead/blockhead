@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Cardano script witnesses',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CardanoScriptWitness>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CardanoScriptWitness>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CardanoScriptWitnessView from '$/views/CardanoScriptWitnessView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,8 +65,14 @@
 	resource={
 		selection({
 			sources: selection.sources,
+			fields: {
+				scriptKind: true,
+				witnessIndex: true,
+				scriptHash: true,
+			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cardanoScriptWitnesses) => [...new Map(cardanoScriptWitnesses.values.map((cardanoScriptWitness) => [cardanoScriptWitness[EntityMetaKey.SelectorKey], cardanoScriptWitness])).values()]}
 	getKey={(cardanoScriptWitness) => cardanoScriptWitness[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +87,20 @@
 
 	{#snippet Item({ item: cardanoScriptWitness })}
 		{@const cardanoScriptWitnessFields = { ...cardanoScriptWitness[EntityMetaKey.Selector], ...cardanoScriptWitness }}
-		{@const selection = select(EntityType.CardanoScriptWitness, cardanoScriptWitness[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CardanoScriptWitnessView
-			selection={selection}
-			prefetched={cardanoScriptWitnessFields}
+		<EntityView
+			entityType={EntityType.CardanoScriptWitness}
+			entitySelector={cardanoScriptWitness[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cardanoScriptWitnessFields.scriptKind) ?? ''), (String((cardanoScriptWitnessFields.witnessIndex) ?? '') ? 'Script #' + String((cardanoScriptWitnessFields.witnessIndex) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano script witness'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((cardanoScriptWitnessFields.scriptHash) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

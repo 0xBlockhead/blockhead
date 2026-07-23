@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadSharedAddress>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadSharedAddress>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSharedAddress>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,15 +43,20 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSharedAddress = $derived(selection({
+	const blockheadSharedAddress = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			sharedAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			peerId: true,
 			sharedAt: true,
 		},
 	}))
-	const titleFallback = $derived('blockhead shared address')
-	const viewDomId = $derived('blockhead-shared-address-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'blockhead shared address'
+	const viewDomId = $derived('blockhead-shared-address-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,75 +80,37 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={selection.$account}
-					>
-						{#snippet children(evmAccount)}
-							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
-							<EvmAccountView
-								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-								prefetched={evmAccount}
-								href={
-								(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
-									address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-								}) : undefined)
-							}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={blockheadSharedAddress}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$account}
-					>
-						{#snippet children(evmAccount)}
-							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
-							<EvmAccountView
-								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-								prefetched={evmAccount}
-								href={
-								(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
-									address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-								}) : undefined)
-							}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadSharedAddress}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={selection.$account}
+				>
+					{#snippet children(evmAccount)}
+						{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+						<EvmAccountView
+							selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+							prefetched={evmAccount}
+							href=""
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const sharedAt0 = pendingEntity.sharedAt}
-					{#if sharedAt0 !== undefined && sharedAt0 !== null}
-						<Timestamp timestamp={Number(sharedAt0)} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadSharedAddress}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sharedAt0 = resolvedEntity.sharedAt}
-					{#if sharedAt0 !== undefined && sharedAt0 !== null}
-						<Timestamp timestamp={Number(sharedAt0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadSharedAddress}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const sharedAt0 = resolvedEntity.sharedAt}
+				{#if sharedAt0 !== undefined && sharedAt0 !== null}
+					<Timestamp timestamp={Number(sharedAt0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -183,11 +151,21 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+										(
+											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
+											&& network[EntityMetaKey.Selector].caip2 != null ?
+												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : undefined)
+										})
+										:
+												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
+												&& network[EntityMetaKey.Selector].slug != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+												network: String(network[EntityMetaKey.Selector].slug ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -210,9 +188,15 @@
 									selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
 									prefetched={blockheadRoom}
 									href={
-										(blockheadRoom[EntityMetaKey.Selector].id !== undefined ? resolve('/~/multiplayer/room/[roomId=stringSegment]', {
+										(
+											blockheadRoom[EntityMetaKey.Selector] != null && 'id' in blockheadRoom[EntityMetaKey.Selector]
+											&& blockheadRoom[EntityMetaKey.Selector].id != null ?
+												resolve('/~/multiplayer/room/[roomId=stringSegment]', {
 											roomId: String(blockheadRoom[EntityMetaKey.Selector].id ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -259,9 +243,15 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+										(
+											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
+											&& evmAccount[EntityMetaKey.Selector].address != null ?
+												resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}

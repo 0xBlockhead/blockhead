@@ -28,7 +28,6 @@
 			completed: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.query) ?? '')].filter(Boolean).join(' ') || 'Nostr profile search' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).query) ?? '')].filter(Boolean).join(' ') || 'Nostr profile search'))
 
 
 	// Components
@@ -38,7 +37,11 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Nostr profile search • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		query: params.query,
+	}.query) ?? '')].filter(Boolean).join(' ') || 'Nostr profile search' : [String((({ ...{
+		query: params.query,
+	}, ...pageSelection.entity }).query) ?? '')].filter(Boolean).join(' ') || 'Nostr profile search')} • Nostr profile search • Blockhead</title>
 </svelte:head>
 
 

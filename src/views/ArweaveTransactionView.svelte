@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ArweaveTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ArweaveTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ArweaveTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const arweaveTransaction = $derived(selection({
+	const arweaveTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			quantityWinston: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			quantityWinston: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave transaction')
-	const viewDomId = $derived('arweave-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('arweave-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,130 +77,70 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const transactionId0 = pendingEntity.transactionId}
-					{#if transactionId0 !== undefined && transactionId0 !== null}
-						<TruncatedValue value={String((transactionId0) ?? '')} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={arweaveTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionId0 = resolvedEntity.transactionId}
-					{#if transactionId0 !== undefined && transactionId0 !== null}
-						<TruncatedValue value={String((transactionId0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={arweaveTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const transactionId0 = resolvedEntity.transactionId}
+				{#if transactionId0 !== undefined && transactionId0 !== null}
+					<TruncatedValue value={String((transactionId0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const quantityWinston0 = pendingEntity.quantityWinston}
-					{#if quantityWinston0 !== undefined && quantityWinston0 !== null}
-						<NumberValue
-							value={quantityWinston0}
-						/>
-					{/if}
-		{:else}
-			<ResourceBoundary resource={arweaveTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const quantityWinston0 = resolvedEntity.quantityWinston}
-					{#if quantityWinston0 !== undefined && quantityWinston0 !== null}
-						<NumberValue
-							value={quantityWinston0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={arweaveTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const quantityWinston0 = resolvedEntity.quantityWinston}
+				{#if quantityWinston0 !== undefined && quantityWinston0 !== null}
+					<NumberValue
+						value={quantityWinston0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<ResourceBoundary
-				resource={selection.$block}
-			>
-				{#snippet children(arweaveBlock)}
-					{#if arweaveBlock != null && arweaveBlock[EntityMetaKey.Selector] != null}
-						<span data-text="muted">
-							<ArweaveBlockView
-								selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
-								prefetched={arweaveBlock}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{:else}
-						<span data-text="muted">Unavailable</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+		<ResourceBoundary resource={arweaveTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<ResourceBoundary
+					resource={selection.$block}
+				>
+					{#snippet children(arweaveBlock)}
+						{#if arweaveBlock != null && arweaveBlock[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<ArweaveBlockView
+									selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
+									prefetched={arweaveBlock}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={selection.$resource}
-			>
-				{#snippet children(arweaveResource)}
-					{#if arweaveResource != null && arweaveResource[EntityMetaKey.Selector] != null}
-						<span data-text="muted">
-							<ArweaveResourceView
-								selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
-								prefetched={arweaveResource}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{:else}
-						<span data-text="muted">Unavailable</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={arweaveTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$block}
-					>
-						{#snippet children(arweaveBlock)}
-							{#if arweaveBlock != null && arweaveBlock[EntityMetaKey.Selector] != null}
-								<span data-text="muted">
-									<ArweaveBlockView
-										selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
-										prefetched={arweaveBlock}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
-								</span>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-
-					<ResourceBoundary
-						resource={selection.$resource}
-					>
-						{#snippet children(arweaveResource)}
-							{#if arweaveResource != null && arweaveResource[EntityMetaKey.Selector] != null}
-								<span data-text="muted">
-									<ArweaveResourceView
-										selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
-										prefetched={arweaveResource}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
-								</span>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				<ResourceBoundary
+					resource={selection.$resource}
+				>
+					{#snippet children(arweaveResource)}
+						{#if arweaveResource != null && arweaveResource[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<ArweaveResourceView
+									selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
+									prefetched={arweaveResource}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -203,7 +149,7 @@
 				<dt>network</dt>
 				<dd>
 					<ArweaveNetworkView
-						selection={select(EntityType.ArweaveNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.ArweaveNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

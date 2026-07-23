@@ -3,7 +3,6 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
@@ -36,78 +35,24 @@ export const NostrArticle = entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	title: {
-		label: 'Title',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	summary: {
-		label: 'Summary',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	imageUrl: {
-		label: 'Image URL',
-		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NostrBand_Rest,
-		],
-	},
-	content: {
-		label: 'Content',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NostrBand_Rest,
-		],
-	},
-	sensitive: {
-		label: 'Sensitive',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NostrBand_Rest,
-			Source.Primal_Rest,
-		],
-	},
-	contentWarning: {
-		label: 'Content warning',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NostrBand_Rest,
-			Source.Primal_Rest,
-		],
-	},
-	publishedAt: {
-		label: 'Published',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NostrBand_Rest,
-		],
-	},
-	tags: {
-		label: 'Tags',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$author: {
-		label: 'Author',
+	$latestEvent: {
+		label: 'Latest signed version',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.NostrProfile,
+		entityType: EntityType.NostrArticleEvent,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.NostrBand_Rest,
+			Source.Primal_Rest,
+		],
+	},
+	$$events: {
+		label: 'Signed versions',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.NostrArticleEvent,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.NostrBand_Rest,
+			Source.Primal_Rest,
 		],
 	},
 })({

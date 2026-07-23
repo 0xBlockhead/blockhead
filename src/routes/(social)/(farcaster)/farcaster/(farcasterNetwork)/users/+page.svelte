@@ -29,13 +29,24 @@
 		selection={
 			select(EntityType.FarcasterNetwork, {
 				scope: 'FarcasterNetwork',
-			}).$$users({
-				sources: [
-					Source.Snapchain_Rest,
-					Source.Neynar_Rest,
-				],
-				count: true,
 			})
+				.$$users({
+					sources: [
+						Source.Snapchain_Rest,
+						Source.Neynar_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.FarcasterNetwork, {
+				scope: 'FarcasterNetwork',
+			})
+				.$$users({
+					sources: [
+						Source.Snapchain_Rest,
+						Source.Neynar_Rest,
+					],
+				}).count
 		}
 		id='users'
 		data-column-item="flexible"

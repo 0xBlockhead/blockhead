@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType._GlobalIpfsAccess>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType._GlobalIpfsAccess>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType._GlobalIpfsAccess>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,17 +38,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalIpfsAccess = $derived(selection({
+	const globalIpfsAccess = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('global IPFS access')
-	const viewDomId = $derived('-global-ipfs-access-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'global IPFS access'
+	const viewDomId = $derived('-global-ipfs-access-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IpfsResourcesView from '$/views/IpfsResourcesView.svelte'
-	import GlobalIpfsAccess_TimestampsView from '$/views/_GlobalIpfsAccess_TimestampsView.svelte'
 </script>
 
 
@@ -56,18 +59,24 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? (pendingEntity.scope === '_GlobalIpfsAccess' ? resolve('/ipfs/access') : undefined)}
+	href={
+		href ?? (
+			selection.entitySelector.scope === '_GlobalIpfsAccess' ?
+				resolve('/ipfs/access')
+		:
+				undefined
+		)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={globalIpfsAccess}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -75,12 +84,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{titleFallback}
 		{:else}
 			<ResourceBoundary resource={globalIpfsAccess}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -116,28 +124,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<IpfsResourcesView
-				selection={
-						selection.$$observedResources({
-							count: true,
-						})
-					}
-				title='Observed resources'
-				emptyText='No IPFS resources yet.'
-				id='IpfsResourcesView-observed-resources'
-			/>
-
-			<GlobalIpfsAccess_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Observations'
-				emptyText='No IPFS access observations yet.'
-				id='_GlobalIpfsAccess_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const globalIpfsAccessIpfsResourcesViewObservedResourcesResource = selection.$$observedResources}
+		<ResourceBoundary
+			resource={globalIpfsAccessIpfsResourcesViewObservedResourcesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<IpfsResourcesView
+					selection={globalIpfsAccessIpfsResourcesViewObservedResourcesResource}
+					countResource={globalIpfsAccessIpfsResourcesViewObservedResourcesResource.count}
+					title='Observed resources'
+					id='IpfsResourcesView-observed-resources'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

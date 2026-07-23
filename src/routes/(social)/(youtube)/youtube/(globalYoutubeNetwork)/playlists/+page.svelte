@@ -29,13 +29,24 @@
 		selection={
 			select(EntityType._GlobalYoutubeNetwork, {
 				scope: '_GlobalYoutubeNetwork',
-			}).$$observedPlaylists({
-				sources: [
-					Source.Constants_Internal,
-					Source.Youtube_Rest,
-				],
-				count: true,
 			})
+				.$$observedPlaylists({
+					sources: [
+						Source.Constants_Internal,
+						Source.Youtube_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._GlobalYoutubeNetwork, {
+				scope: '_GlobalYoutubeNetwork',
+			})
+				.$$observedPlaylists({
+					sources: [
+						Source.Constants_Internal,
+						Source.Youtube_Rest,
+					],
+				}).count
 		}
 		id='observed-playlists'
 		data-column-item="flexible"

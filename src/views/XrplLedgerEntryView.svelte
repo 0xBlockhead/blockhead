@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.XrplLedgerEntry>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XrplLedgerEntry>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XrplLedgerEntry>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xrplLedgerEntry = $derived(selection({
+	const xrplLedgerEntry = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('XRPL ledger entry')
-	const viewDomId = $derived('xrpl-ledger-entry-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'XRPL ledger entry'
+	const viewDomId = $derived('xrpl-ledger-entry-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,12 +71,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={xrplLedgerEntry}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -85,15 +88,30 @@
 				<dt>ledger</dt>
 				<dd>
 					<XrplLedgerView
-						selection={select(EntityType.XrplLedger, selection.entitySelector.$ledger, {})}
+						selection={select(EntityType.XrplLedger, selection.entitySelector.$ledger)}
 						href={
-							(selection.entitySelector.$ledger.ledgerIndex !== undefined && selection.entitySelector.$ledger.$network !== undefined && selection.entitySelector.$ledger.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/ledger/[ledgerIndex=nonNegativeBigInt]', {
-								ledgerIndex: String(selection.entitySelector.$ledger.ledgerIndex ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$ledger.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$ledger.ledgerIndex !== undefined && selection.entitySelector.$ledger.$network !== undefined && selection.entitySelector.$ledger.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/ledger/[ledgerIndex=nonNegativeBigInt]', {
-								ledgerIndex: String(selection.entitySelector.$ledger.ledgerIndex ?? ''),
-								network: String(selection.entitySelector.$ledger.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$ledger != null && 'ledgerIndex' in selection.entitySelector.$ledger
+								&& selection.entitySelector.$ledger.ledgerIndex != null
+								&& selection.entitySelector.$ledger != null && '$network' in selection.entitySelector.$ledger ?
+									selection.entitySelector.$ledger.$network != null && 'caip2' in selection.entitySelector.$ledger.$network
+									&& selection.entitySelector.$ledger.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/ledger/[ledgerIndex=nonNegativeBigInt]', {
+									ledgerIndex: String(selection.entitySelector.$ledger.ledgerIndex ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$ledger.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$ledger.$network != null && 'slug' in selection.entitySelector.$ledger.$network
+										&& selection.entitySelector.$ledger.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/ledger/[ledgerIndex=nonNegativeBigInt]', {
+										ledgerIndex: String(selection.entitySelector.$ledger.ledgerIndex ?? ''),
+										network: String(selection.entitySelector.$ledger.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

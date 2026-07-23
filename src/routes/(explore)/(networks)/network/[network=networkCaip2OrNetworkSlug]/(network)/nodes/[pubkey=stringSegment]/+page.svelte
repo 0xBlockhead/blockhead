@@ -24,7 +24,6 @@
 			Source.LightningLnd_Rest,
 		],
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node')))
 
 
 	// Components
@@ -34,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Lightning node • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node' : [String((({ ...data.selector, ...pageSelection.entity }).publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node'))} • Lightning node • Blockhead</title>
 </svelte:head>
 
 

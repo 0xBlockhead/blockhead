@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'AT Protocol',
 		typeAnnotationParagraphs = ['AT Protocol catalog identity for DID, repository, PDS, and appview protocol metadata. Product observeds live on the global AT Protocol hub.'],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AtprotoNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AtprotoNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AtprotoNetworkView from '$/views/AtprotoNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,6 +70,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(atprotoNetworks) => [...new Map(atprotoNetworks.values.map((atprotoNetwork) => [atprotoNetwork[EntityMetaKey.SelectorKey], atprotoNetwork])).values()]}
 	getKey={(atprotoNetwork) => atprotoNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -91,12 +85,16 @@
 
 	{#snippet Item({ item: atprotoNetwork })}
 		{@const atprotoNetworkFields = { ...atprotoNetwork[EntityMetaKey.Selector], ...atprotoNetwork }}
-		{@const selection = select(EntityType.AtprotoNetwork, atprotoNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AtprotoNetworkView
-			selection={selection}
-			prefetched={atprotoNetworkFields}
+		<EntityView
+			entityType={EntityType.AtprotoNetwork}
+			entitySelector={atprotoNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((atprotoNetworkFields.protocolName) ?? '')].filter(Boolean).join(' ') || 'AT Protocol'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

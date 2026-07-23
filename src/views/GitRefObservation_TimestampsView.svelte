@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Git ref observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.GitRefObservation_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.GitRefObservation_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GitRefObservation_TimestampView from '$/views/GitRefObservation_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(gitRefObservationTimestamps) => [...new Map(gitRefObservationTimestamps.values.map((gitRefObservationTimestamp) => [gitRefObservationTimestamp[EntityMetaKey.SelectorKey], gitRefObservationTimestamp])).values()]}
 	getKey={(gitRefObservationTimestamp) => gitRefObservationTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: gitRefObservationTimestamp })}
 		{@const gitRefObservationTimestampFields = { ...gitRefObservationTimestamp[EntityMetaKey.Selector], ...gitRefObservationTimestamp }}
-		{@const selection = select(EntityType.GitRefObservation_Timestamp, gitRefObservationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<GitRefObservation_TimestampView
-			selection={selection}
-			prefetched={gitRefObservationTimestampFields}
+		<EntityView
+			entityType={EntityType.GitRefObservation_Timestamp}
+			entitySelector={gitRefObservationTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((gitRefObservationTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Git ref observation timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((gitRefObservationTimestampFields.source) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((gitRefObservationTimestampFields.targetObjectId) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

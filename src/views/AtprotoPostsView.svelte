@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'AT Protocol posts',
 		typeAnnotationParagraphs = ['A Bluesky feed post record addressed by an at-URI inside an actor repository. Text, author, reply edges, labels, languages, and engagement counts resolve through appview sources.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AtprotoPost>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AtprotoPost>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			limit: 25,
 		})
 	}
+	{countResource}
 	getResourceItems={(atprotoPosts) => [...new Map(atprotoPosts.values.map((atprotoPost) => [atprotoPost[EntityMetaKey.SelectorKey], atprotoPost])).values()]}
 	getKey={(atprotoPost) => atprotoPost[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,18 +89,31 @@
 
 	{#snippet Item({ item: atprotoPost })}
 		{@const atprotoPostFields = { ...atprotoPost[EntityMetaKey.Selector], ...atprotoPost }}
-		{@const selection = select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const atprotoPostHrefFields = { ...atprotoPost, ...atprotoPost[EntityMetaKey.Selector] }}
-		<AtprotoPostView
-			selection={selection}
-			prefetched={atprotoPostFields}
+		<EntityView
+			entityType={EntityType.AtprotoPost}
+			entitySelector={atprotoPost[EntityMetaKey.Selector]}
 			href={
-				(atprotoPostHrefFields.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]', {
-					uri: encodeURIComponent(String(atprotoPostHrefFields.uri ?? '')),
-				}) : undefined)
+				(
+					atprotoPost[EntityMetaKey.Selector] != null && 'uri' in atprotoPost[EntityMetaKey.Selector]
+					&& atprotoPost[EntityMetaKey.Selector].uri != null ?
+						resolve('/atproto/post/[...uri=stringSegment]', {
+					uri: encodeURIComponent(String(atprotoPost[EntityMetaKey.Selector].uri ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((atprotoPostFields.text) ?? '')].filter(Boolean).join(' ') || [String((atprotoPostFields.uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((atprotoPostFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

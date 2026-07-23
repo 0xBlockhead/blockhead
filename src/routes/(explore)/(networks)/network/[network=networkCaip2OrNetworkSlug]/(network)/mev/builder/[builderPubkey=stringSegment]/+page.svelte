@@ -18,7 +18,6 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.MevBuilder, data.selector))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.builderPubkey) ?? '')].filter(Boolean).join(' ') || 'MEV builder' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).builderPubkey) ?? '')].filter(Boolean).join(' ') || 'MEV builder')))
 
 
 	// Components
@@ -28,7 +27,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • MEV builder • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.builderPubkey) ?? '')].filter(Boolean).join(' ') || 'MEV builder' : [String((({ ...data.selector, ...pageSelection.entity }).builderPubkey) ?? '')].filter(Boolean).join(' ') || 'MEV builder'))} • MEV builder • Blockhead</title>
 </svelte:head>
 
 

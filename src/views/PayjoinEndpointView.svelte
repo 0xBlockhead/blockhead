@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.PayjoinEndpoint>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.PayjoinEndpoint>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.PayjoinEndpoint>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const payjoinEndpoint = $derived(selection({
+	const payjoinEndpoint = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			protocolVersion: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			protocolVersion: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'payjoin endpoint')
-	const viewDomId = $derived('payjoin-endpoint-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('payjoin-endpoint-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,76 +76,45 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={payjoinEndpoint}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={payjoinEndpoint}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.protocolVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={payjoinEndpoint}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.protocolVersion) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={payjoinEndpoint}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.protocolVersion) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<ResourceBoundary
-				resource={selection.$directory}
-			>
-				{#snippet children(payjoinDirectory)}
-					{#if payjoinDirectory != null && payjoinDirectory[EntityMetaKey.Selector] != null}
-						<span data-text="muted">
-							<PayjoinDirectoryView
-								selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
-								prefetched={payjoinDirectory}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{:else}
-						<span data-text="muted">Unavailable</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={payjoinEndpoint}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$directory}
-					>
-						{#snippet children(payjoinDirectory)}
-							{#if payjoinDirectory != null && payjoinDirectory[EntityMetaKey.Selector] != null}
-								<span data-text="muted">
-									<PayjoinDirectoryView
-										selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
-										prefetched={payjoinDirectory}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
-								</span>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={payjoinEndpoint}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<ResourceBoundary
+					resource={selection.$directory}
+				>
+					{#snippet children(payjoinDirectory)}
+						{#if payjoinDirectory != null && payjoinDirectory[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<PayjoinDirectoryView
+									selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
+									prefetched={payjoinDirectory}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -222,28 +197,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<PayjoinEndpoint_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='PayjoinEndpoint_TimestampsView-timestamps'
-			/>
-
-			<BlockheadPayjoinSessionsView
-				selection={
-						selection.$$blockheadSessions({
-							count: true,
-						})
-					}
-				title='blockhead sessions'
-				emptyText='No local payjoin sessions.'
-				id='BlockheadPayjoinSessionsView-blockhead-sessions'
-			/>
-		{/if}
+		{@const payjoinEndpointPayjoinEndpointTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={payjoinEndpointPayjoinEndpointTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<PayjoinEndpoint_TimestampsView
+					selection={payjoinEndpointPayjoinEndpointTimestampsViewTimestampsResource}
+					countResource={payjoinEndpointPayjoinEndpointTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='PayjoinEndpoint_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const payjoinEndpointBlockheadPayjoinSessionsViewBlockheadSessionsResource = selection.$$blockheadSessions}
+		<ResourceBoundary
+			resource={payjoinEndpointBlockheadPayjoinSessionsViewBlockheadSessionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadPayjoinSessionsView
+					selection={payjoinEndpointBlockheadPayjoinSessionsViewBlockheadSessionsResource}
+					countResource={payjoinEndpointBlockheadPayjoinSessionsViewBlockheadSessionsResource.count}
+					title='blockhead sessions'
+					id='BlockheadPayjoinSessionsView-blockhead-sessions'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -1,5 +1,8 @@
 import { defineResolver } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { NetworkSelector } from '$/schema/Network.ts'
 import { Network_Activity_DaySelector, OptimisticProviderResult } from '$/schema/Network_Activity_Day.ts'
@@ -68,13 +71,31 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				[NetworkSelector.Caip2]: {
-					resolve: async (network) => [{
-						[EntityMetaKey.Selector]: {
-							$network: network,
+					resolve: async (network) => {
+						const activityDay = await resolveNetworkActivityDay({
+							binding,
+							network,
 							dayStartTimestampMs: Math.floor(Date.now() / millisecondsPerUtcDay) * millisecondsPerUtcDay - millisecondsPerUtcDay,
-							source: Source.SpaceAndTime_MakeInfinite,
-						},
-					}],
+						})
+						if (activityDay == null)
+							return []
+
+						return [{
+							[EntityMetaKey.Selector]: {
+								$network: activityDay.$network,
+								dayStartTimestampMs: activityDay.dayStartTimestampMs,
+								source: activityDay.source,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'blockCount')]: activityDay.blockCount,
+								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'transactionCount')]: activityDay.transactionCount,
+								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'endBlockNumber')]: activityDay.endBlockNumber,
+								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'indexedThroughTimestampMs')]: activityDay.indexedThroughTimestampMs,
+								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'resolvedAtMs')]: activityDay.resolvedAtMs,
+								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'trustModel')]: activityDay.trustModel,
+							},
+						}]
+					},
 				},
 			},
 		})({

@@ -22,8 +22,10 @@
 		sources: [
 			Source.Atproto_Xrpc,
 		],
+		fields: {
+			handle: true,
+		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account')))
 
 
 	// Components
@@ -33,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • AT Protocol account • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account' : [String((({ ...data.selector, ...pageSelection.entity }).did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account'))} • AT Protocol account • Blockhead</title>
 </svelte:head>
 
 

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ElementsAsset>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ElementsAsset>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ElementsAsset>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const elementsAsset = $derived(selection({
+	const elementsAsset = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			name: true,
+			ticker: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			name: true,
@@ -49,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.ticker) ?? ''), String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || 'Elements asset')
-	const viewDomId = $derived('elements-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('elements-asset-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,7 +80,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'ticker')}
 			{[String((pendingEntity.name) ?? ''), String((pendingEntity.ticker) ?? ''), String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={elementsAsset}>
@@ -86,7 +93,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'ticker')}
 			{[String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.ticker) ?? ''), String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={elementsAsset}>
@@ -99,7 +106,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'ticker')}
 			{@const assetId0 = pendingEntity.assetId}
 			{#if assetId0 !== undefined && assetId0 !== null}
 				<span data-text="muted">
@@ -127,7 +134,7 @@
 				<dt>Network</dt>
 				<dd>
 					<ElementsNetworkView
-						selection={select(EntityType.ElementsNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.ElementsNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -309,29 +316,40 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<ElementsAsset_TimestampsView
-				selection={
-						selection.$$timestamps({
-							sources: [
-								Source.Esplora_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Observations'
-				id='ElementsAsset_TimestampsView-timestamps'
-			/>
-
-			<ElementsIssuancesView
-				selection={
-						selection.$$issuances({
-							count: true,
-						})
-					}
-				title='Issuances'
-				id='ElementsIssuancesView-issuances'
-			/>
-		{/if}
+				{@const elementsAssetElementsAssetTimestampsViewTimestampsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.Esplora_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={elementsAssetElementsAssetTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<ElementsAsset_TimestampsView
+							selection={elementsAssetElementsAssetTimestampsViewTimestampsResource}
+							countResource={elementsAssetElementsAssetTimestampsViewTimestampsResource.count}
+							title='Observations'
+							id='ElementsAsset_TimestampsView-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const elementsAssetElementsIssuancesViewIssuancesResource = selection.$$issuances}
+				<ResourceBoundary
+					resource={elementsAssetElementsIssuancesViewIssuancesResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<ElementsIssuancesView
+							selection={elementsAssetElementsIssuancesViewIssuancesResource}
+							countResource={elementsAssetElementsIssuancesViewIssuancesResource.count}
+							title='Issuances'
+							id='ElementsIssuancesView-issuances'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

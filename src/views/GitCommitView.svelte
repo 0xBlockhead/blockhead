@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.GitCommit>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.GitCommit>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitCommit>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitCommit = $derived(selection({
+	const gitCommit = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			message: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			message: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git commit')
-	const viewDomId = $derived('git-commit-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('git-commit-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,11 +77,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const objectId0 = pendingEntity.objectId}
-					{#if objectId0 !== undefined && objectId0 !== null}
-						<TruncatedValue value={String((objectId0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'message')}
+			{@const objectId0 = pendingEntity.objectId}
+			{#if objectId0 !== undefined && objectId0 !== null}
+				<TruncatedValue value={String((objectId0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={gitCommit}>
 				{#snippet children(entity)}
@@ -90,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'message')}
 			{[String((pendingEntity.message) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={gitCommit}>
@@ -103,7 +109,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'message')}
 			{@const objectFormat0 = pendingEntity.objectFormat}
 			{#if objectFormat0 !== undefined && objectFormat0 !== null}
 				<span data-text="muted">
@@ -387,17 +393,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<GitSignaturesView
-				selection={
-						selection.$$signatures({
-							count: true,
-						})
-					}
-				title='signatures'
-				emptyText='No signatures.'
-				id='GitSignaturesView-signatures'
-			/>
-		{/if}
+		{@const gitCommitGitSignaturesViewSignaturesResource = selection.$$signatures}
+		<ResourceBoundary
+			resource={gitCommitGitSignaturesViewSignaturesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<GitSignaturesView
+					selection={gitCommitGitSignaturesViewSignaturesResource}
+					countResource={gitCommitGitSignaturesViewSignaturesResource.count}
+					title='signatures'
+					id='GitSignaturesView-signatures'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

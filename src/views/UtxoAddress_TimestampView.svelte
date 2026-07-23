@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.UtxoAddress_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.UtxoAddress_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.UtxoAddress_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const utxoAddressTimestamp = $derived(selection({
+	const utxoAddressTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			balanceSats: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			balanceSats: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'UTXO address timestamp')
-	const viewDomId = $derived('utxo-address-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('utxo-address-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,28 +73,48 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$address !== undefined && pendingEntity.$address.address !== undefined && pendingEntity.$address.$network !== undefined && pendingEntity.$address.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			address: String(pendingEntity.$address.address ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$address.$network.caip2) ?? ''),
-		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$address !== undefined && pendingEntity.$address.address !== undefined && pendingEntity.$address.$network !== undefined && pendingEntity.$address.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			address: String(pendingEntity.$address.address ?? ''),
-			network: String(pendingEntity.$address.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$address' in selection.entitySelector
+			&& selection.entitySelector.$address != null && 'address' in selection.entitySelector.$address
+			&& selection.entitySelector.$address.address != null
+			&& selection.entitySelector.$address != null && '$network' in selection.entitySelector.$address ?
+				selection.entitySelector.$address.$network != null && 'caip2' in selection.entitySelector.$address.$network
+				&& selection.entitySelector.$address.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+				timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+				source: String(selection.entitySelector.source ?? ''),
+				address: String(selection.entitySelector.$address.address ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$address.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$address.$network != null && 'slug' in selection.entitySelector.$address.$network
+					&& selection.entitySelector.$address.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+					source: String(selection.entitySelector.source ?? ''),
+					address: String(selection.entitySelector.$address.address ?? ''),
+					network: String(selection.entitySelector.$address.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balanceSats')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={utxoAddressTimestamp}>
 				{#snippet children(entity)}
@@ -103,13 +129,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const balanceSats0 = pendingEntity.balanceSats}
-					{#if balanceSats0 !== undefined && balanceSats0 !== null}
-						<NumberValue
-							value={balanceSats0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balanceSats')}
+			{@const balanceSats0 = pendingEntity.balanceSats}
+			{#if balanceSats0 !== undefined && balanceSats0 !== null}
+				<NumberValue
+					value={balanceSats0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={utxoAddressTimestamp}>
 				{#snippet children(entity)}
@@ -126,7 +152,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balanceSats')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -404,15 +430,30 @@
 				<dt>Address</dt>
 				<dd>
 					<UtxoAddressView
-						selection={select(EntityType.UtxoAddress, selection.entitySelector.$address, {})}
+						selection={select(EntityType.UtxoAddress, selection.entitySelector.$address)}
 						href={
-							(selection.entitySelector.$address.address !== undefined && selection.entitySelector.$address.$network !== undefined && selection.entitySelector.$address.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-								address: String(selection.entitySelector.$address.address ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$address.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$address.address !== undefined && selection.entitySelector.$address.$network !== undefined && selection.entitySelector.$address.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-								address: String(selection.entitySelector.$address.address ?? ''),
-								network: String(selection.entitySelector.$address.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$address != null && 'address' in selection.entitySelector.$address
+								&& selection.entitySelector.$address.address != null
+								&& selection.entitySelector.$address != null && '$network' in selection.entitySelector.$address ?
+									selection.entitySelector.$address.$network != null && 'caip2' in selection.entitySelector.$address.$network
+									&& selection.entitySelector.$address.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+									address: String(selection.entitySelector.$address.address ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$address.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$address.$network != null && 'slug' in selection.entitySelector.$address.$network
+										&& selection.entitySelector.$address.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+										address: String(selection.entitySelector.$address.address ?? ''),
+										network: String(selection.entitySelector.$address.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

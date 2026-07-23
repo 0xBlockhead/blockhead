@@ -196,7 +196,7 @@ test('ResourceBoundary keeps count row totals authoritative through the await su
 	await expect(page.getByTestId('real-resource-boundary-count')).toHaveCount(0)
 
 	await page.getByTestId('show-real-selection-count-boundary').click()
-	await expect(page.getByTestId('real-resource-boundary-count')).toHaveText('2:', {
+	await expect(page.getByTestId('real-resource-boundary-count')).toHaveText('2', {
 		timeout: 120_000,
 	})
 	await expect(sectionLoading(page, 'real-selection-boundary-section')).toHaveCount(0)

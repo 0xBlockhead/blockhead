@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import {
 	copyFileSync,
 	existsSync,
+	globSync,
 	mkdtempSync,
 	mkdirSync,
 	readFileSync,
@@ -345,13 +346,15 @@ test('projects APP field enums and navigation structure into runtime modules', (
 		generatedFile.path,
 		renderGeneratedFile(generatedFile),
 	]))
-	const viewsIndex = generatedFileByPath.get('src/views/index.ts')
-
-	assert.ok(viewsIndex)
-	assert.match(viewsIndex, /export const entityViewComponentByType: Record<EntityType, EntityViewComponent> = \{/)
-	assert.match(viewsIndex, /\[EntityType\.Network\]: NetworkView,/)
-	assert.doesNotMatch(viewsIndex, /export const View =/)
-	assert.doesNotMatch(viewsIndex, /: View\.[A-Za-z_]/)
+	assert.equal(generatedFileByPath.has('src/views/index.ts'), false)
+	const polymorphicPages = [...generatedFileByPath.entries()].filter(([, source]) => (
+		source.includes('const entityViewComponentByType = {')
+	))
+	assert.equal(polymorphicPages.length, 9)
+	for (const [, source] of polymorphicPages) {
+		assert.doesNotMatch(source, /from '\$\/views\/index\.ts'/)
+		assert.match(source, /import [A-Za-z0-9_]+View from '\$\/views\/[A-Za-z0-9_]+View\.svelte'/)
+	}
 
 	assert.equal(
 		generatedFileByPath.get('src/schema/EntityField.ts'),
@@ -418,79 +421,212 @@ test('keeps APP compiler registries internally aligned', () => {
 	assert.equal(appResolverModulePaths.length, new Set(appResolverModulePaths).size)
 })
 
-test('keeps prefetched list cards from expanding singular root queries to every entity field', () => {
+test('loads only fields rendered by prefetched list-card summaries', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const singularRootQuery = (source: string) => (
 		source.match(/const \w+ = \$derived\(selection\(([\s\S]*?)\)\)\n\tconst titleFallback = \$derived\(/)?.[1]
 	)
-	const singularViewRootQueries = generatedFiles.flatMap((generatedFile) => {
-		if (!/^src\/views\/[^/]+View\.svelte$/.test(generatedFile.path))
-			return []
+	const evmBalanceView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/EvmNetworkActorCoinBalanceView.svelte')
+	const filecoinMessageView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/FilecoinMessageView.svelte')
+	const cardanoTxInputView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CardanoTxInputView.svelte')
+	const cardanoGovernancePage = generatedFiles.find((generatedFile) => generatedFile.path.endsWith('/governance/+page.svelte'))
+	const cardanoTxOutputView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CardanoTxOutputView.svelte')
+	const cardanoTxOutputAssetView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CardanoTxOutputAssetView.svelte')
+	const cardanoCertificateView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CardanoCertificateView.svelte')
+	const cardanoScriptWitnessView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CardanoScriptWitnessView.svelte')
+	const cardanoGovernanceProposalView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CardanoGovernanceProposalView.svelte')
+	const cardanoGovernanceVoteView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CardanoGovernanceVoteView.svelte')
+	const cardanoNativeAssetView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CardanoNativeAssetView.svelte')
 
-		const source = renderGeneratedFile(generatedFile)
-		const query = singularRootQuery(source)
-		return query == null ? [] : [{
-			path: generatedFile.path,
-			query,
-		}]
-	})
-	const xrplLedgerView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/XrplLedgerView.svelte')
-	const xrplLedgersView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/XrplLedgersView.svelte')
-	const singularViewSources = generatedFiles
-		.filter((generatedFile) => /^src\/views\/[^/]+View\.svelte$/.test(generatedFile.path))
-		.map(renderGeneratedFile)
-
-	assert.ok(xrplLedgerView)
-	assert.ok(xrplLedgersView)
-	assert.ok(singularViewRootQueries.length > 400)
+	assert.ok(evmBalanceView)
+	assert.ok(filecoinMessageView)
+	assert.ok(cardanoTxInputView)
+	assert.ok(cardanoTxOutputView)
+	assert.ok(cardanoTxOutputAssetView)
+	assert.ok(cardanoCertificateView)
+	assert.ok(cardanoScriptWitnessView)
+	assert.ok(cardanoGovernanceProposalView)
+	assert.ok(cardanoGovernanceVoteView)
+	assert.ok(cardanoNativeAssetView)
+	const evmBalanceSource = renderGeneratedFile(evmBalanceView)
+	const evmBalanceSummaryQuery = (
+		singularRootQuery(evmBalanceSource)
+			?.match(/prefetched\[EntityMetaKey\.Selector\] != null && layout !== EntityLayout\.SummaryDetails \? \{([\s\S]*?)\n\t\} : \{/)?.[1]
+		?? ''
+	)
+	assert.match(evmBalanceSummaryQuery, /fields: \{\s*symbol: true,\s*\}/)
+	assert.doesNotMatch(evmBalanceSummaryQuery, /\bdecimals:/)
+	assert.match(
+		evmBalanceSource,
+		/\{#snippet Title\(\)\}\s*<ResourceBoundary resource=\{evmNetworkActorCoinBalance\}>[\s\S]*?resolvedEntity\.symbol/
+	)
+	assert.match(
+		evmBalanceSource,
+		/\{#snippet Value\(\)\}\s*<ResourceBoundary resource=\{evmNetworkActorCoinBalance\}>[\s\S]*?<EvmAccountView/
+	)
+	for (const path of [
+		'src/views/YoutubeChannelView.svelte',
+		'src/views/YoutubePlaylistView.svelte',
+		'src/views/YoutubeVideoView.svelte',
+	]) {
+		const generatedView = generatedFiles.find((generatedFile) => generatedFile.path === path)
+		assert.ok(generatedView)
+		const renderedView = renderGeneratedFile(generatedView)
+		assert.match(renderedView, /\{#snippet Title\(\)\}\s*<ResourceBoundary resource=\{youtube(?:Channel|Playlist|Video)\}>/)
+		assert.doesNotMatch(renderedView, /\{#if layout !== EntityLayout\.SummaryDetails/)
+		if (path === 'src/views/YoutubeVideoView.svelte')
+			assert.match(renderedView, /resource=\{selection\.\$author\}/)
+	}
+	assert.match(renderGeneratedFile(filecoinMessageView), /<ResourceBoundary resource=\{filecoinMessage\}>[\s\S]*?selection\s*\.\$from\([\s\S]*?selection\s*\.\$to\(/)
+	assert.match(renderGeneratedFile(cardanoTxInputView), /resolvedEntity\.inputIndex[\s\S]*?spent transaction hash[\s\S]*?spent output[\s\S]*?redeemer index/)
+	assert.match(renderGeneratedFile(cardanoTxOutputView), /selection\s*\.\$\$assets\(\{[\s\S]*?Source\.Blockfrost_Rest[\s\S]*?<CardanoTxOutputAssetsView[\s\S]*?data-card[\s\S]*?data-scroll-container/)
+	assert.match(renderGeneratedFile(cardanoTxOutputAssetView), /CardanoNativeAssetView[\s\S]*?resolvedEntity\.quantity/)
+	assert.match(renderGeneratedFile(cardanoCertificateView), /resolvedEntity\.certificateKind[\s\S]*?Certificate #[\s\S]*?resolvedEntity\.certificateIndex/)
+	assert.match(renderGeneratedFile(cardanoScriptWitnessView), /resolvedEntity\.scriptKind[\s\S]*?Script #[\s\S]*?resolvedEntity\.witnessIndex[\s\S]*?resolvedEntity\.scriptHash/)
+	assert.match(renderGeneratedFile(cardanoGovernanceProposalView), /proposalPayload[\s\S]*?<code>[\s\S]*?JSON\.stringify\(\(proposalPayload\), null, 2\)[\s\S]*?<\/code>/)
+	assert.match(renderGeneratedFile(cardanoGovernanceVoteView), /resolvedEntity\.vote[\s\S]*?resolvedEntity\.voterKind[\s\S]*?resolvedEntity\.voterCredential/)
+	assert.match(renderGeneratedFile(cardanoNativeAssetView), /resolvedEntity\.assetName[\s\S]*?resolvedEntity\.policyId[\s\S]*?resolvedEntity\.fingerprint/)
+	assert.ok(cardanoGovernancePage)
+	assert.match(renderGeneratedFile(cardanoGovernancePage), /projection\s*\.\$\$governanceProposals\(/)
 	assert.deepEqual(
-		singularViewRootQueries
-			.filter(({ query }) => !/prefetched\[EntityMetaKey\.Selector\] != null && layout !== EntityLayout\.SummaryDetails \? \{[\s\S]*?\bfields: \{\}/.test(query))
-			.map(({ path }) => path),
+		app.schema.entities
+			.find((entity) => entity.entityType === EntityType.CardanoTransaction)
+			?.fields
+			.filter((field) => [
+				'$$certificates',
+				'$$scripts',
+				'$$governanceProposals',
+				'$$governanceVotes',
+			].includes(field.name))
+			.map((field) => field.defaultSources),
+		Array.from({ length: 4 }, () => [Source.CardanoKoios_Rest])
+	)
+})
+
+test('lowers plural rows to direct declarative EntityView summaries without registries', () => {
+	const generatedFileByPath = new Map(baselineCompiledApp.generatedFiles.map((file) => [file.path, file]))
+	const cardanoGovernanceProposalsView = generatedFileByPath.get('src/views/CardanoGovernanceProposalsView.svelte')
+	assert.ok(cardanoGovernanceProposalsView)
+
+	const renderedPluralView = renderGeneratedFile(cardanoGovernanceProposalsView)
+	assert.doesNotMatch(renderedPluralView, /import CardanoGovernanceProposalView from/)
+	assert.match(renderedPluralView, /import EntityView, \{ EntityLayout \} from '\$\/components\/EntityView\.svelte'/)
+	assert.match(renderedPluralView, /<EntityView[\s\S]*?entityType=\{EntityType\.CardanoGovernanceProposal\}[\s\S]*?\{#snippet Title\(\)\}/)
+	assert.doesNotMatch(renderedPluralView, /getContext|entityViewComponentContext|installEntityViewComponents/)
+	const singularComponentNames = new Set(app.schema.entities.map((entity) => `${entity.entityType}View`))
+	for (const generatedView of baselineCompiledApp.generatedFiles.filter((file) => (
+		file.path.startsWith('src/views/') && renderGeneratedFile(file).includes('<EntitiesList')
+	)))
+		assert.deepEqual(
+			[...renderGeneratedFile(generatedView).matchAll(/from '\$\/views\/([^']+\.svelte)'/g)]
+				.map((match) => path.basename(match[1] ?? '', '.svelte'))
+				.filter((componentName) => singularComponentNames.has(componentName)),
+			[],
+			`${generatedView.path} retains a generated singular-view import edge`
+		)
+
+	assert.deepEqual(
+		baselineCompiledApp.generatedFiles
+			.map((file) => file.path)
+			.filter((filePath) => filePath.startsWith('src/views/_entityViewRegistries/')),
 		[]
 	)
-	assert.match(
-		singularRootQuery(renderGeneratedFile(xrplLedgerView)) ?? '',
-		/prefetched\[EntityMetaKey\.Selector\] != null && layout !== EntityLayout\.SummaryDetails \? \{[\s\S]*?fields: \{\}[\s\S]*?: \{[\s\S]*?sources: selection\.sources,[\s\S]*?\}/
+	assert.equal(
+		baselineCompiledApp.generatedFiles
+			.filter((file) => file.kind === 'svelte')
+			.map(renderGeneratedFile)
+			.some((source) => /entityViewComponentContext|installEntityViewComponents/.test(source)),
+		false
 	)
-	assert.match(
-		renderGeneratedFile(xrplLedgersView),
-		/prefetched=\{xrplLedgerFields\}[\s\S]*?layout=\{EntityLayout\.Summary\}/
-	)
-	assert.ok(singularViewSources.filter((source) => (
-		source.includes('{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}')
-	)).length > 300)
-	for (const [path, snippets] of [
-		['src/views/CosmosBlockView.svelte', ['HeadingAfter']],
-		['src/views/CosmosValidatorView.svelte', ['Title', 'Value', 'HeadingAfter']],
-		['src/views/CosmosAccountView.svelte', ['Title', 'Value', 'HeadingAfter']],
-		['src/views/CosmosGovernanceProposalView.svelte', ['Title', 'Value', 'HeadingAfter']],
-	] as const) {
-		const source = generatedFiles.find((generatedFile) => generatedFile.path === path)
-		assert.ok(source)
-		for (const snippetName of snippets)
-			assert.match(
-				renderGeneratedFile(source),
-				new RegExp(
-					`\\{#snippet ${snippetName}\\(\\)\\}\\s*\\{#if prefetched\\[EntityMetaKey\\.Selector\\] != null && layout !== EntityLayout\\.SummaryDetails\\}[\\s\\S]*?\\{:else\\}[\\s\\S]*?<ResourceBoundary resource=`
-				)
-			)
-	}
+})
 
-	const rootQueryWithoutExplicitFields = renderGeneratedFile(xrplLedgerView).replace('\n\t\tfields: {},', '')
-	assert.doesNotMatch(
-		singularRootQuery(rootQueryWithoutExplicitFields) ?? '',
-		/prefetched\[EntityMetaKey\.Selector\] != null && layout !== EntityLayout\.SummaryDetails \? \{[\s\S]*?\bfields:/
-	)
-	const titleWithoutPrefetchedBranch = renderGeneratedFile(xrplLedgerView)
-		.replace(
-			'{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}',
-			'{#if false}'
-		)
-	assert.doesNotMatch(
-		titleWithoutPrefetchedBranch,
-		/\{#snippet Title\(\)\}\s*\{#if prefetched\[EntityMetaKey\.Selector\] != null && layout !== EntityLayout\.SummaryDetails\}/
-	)
+test('guards compact summary fast paths with complete declarative prefetched fields', () => {
+	const mutatedApp = structuredClone(app)
+	const blockheadWallet = mutatedApp.schema.entities.find((entity) => entity.entityType === EntityType.BlockheadWallet)
+	const xrplLedger = mutatedApp.schema.entities.find((entity) => entity.entityType === EntityType.XrplLedger)
+	const filecoinMessage = mutatedApp.schema.entities.find((entity) => entity.entityType === EntityType.FilecoinMessage)
+	const network = mutatedApp.schema.entities.find((entity) => entity.entityType === EntityType.Network)
+	const xrplTransaction = mutatedApp.schema.entities.find((entity) => entity.entityType === EntityType.XrplTransaction)
+	assert.ok(blockheadWallet && xrplLedger && filecoinMessage && network && xrplTransaction)
+	xrplLedger.views.singular = {
+		summary: {
+			title: ['closeTimeMs'],
+		},
+	}
+	filecoinMessage.views.singular = {
+		summary: {
+			title: ['$from'],
+		},
+	}
+	network.views.singular = {
+		summary: {
+			title: [['Evm', 'shortName']],
+		},
+	}
+	xrplTransaction.views.singular = {
+		query: {
+			fields: ['transactionType'],
+		},
+		summary: {
+			Title: {
+				raw: '{titleFallback}',
+			},
+		},
+	}
+	const generatedFiles = compileApp(mutatedApp).generatedFiles
+	const renderedViewByPath = Object.fromEntries([
+		'src/views/BlockheadWalletConnectionView.svelte',
+		'src/views/BlockheadWalletConnectionsView.svelte',
+		'src/views/XrplLedgerView.svelte',
+		'src/views/FilecoinMessageView.svelte',
+		'src/views/NetworkView.svelte',
+		'src/views/XrplTransactionView.svelte',
+	].map((path) => {
+		const generatedView = generatedFiles.find((generatedFile) => generatedFile.path === path)
+		assert.ok(generatedView)
+		return [path, renderGeneratedFile(generatedView)]
+	}))
+
+	assert.match(renderedViewByPath['src/views/XrplLedgerView.svelte'], /fields: \{\s*closeTimeMs: true,\s*\}/)
+	assert.match(renderedViewByPath['src/views/XrplLedgerView.svelte'], /layout !== EntityLayout\.SummaryDetails && Object\.hasOwn\(prefetched, 'closeTimeMs'\)[\s\S]*?pendingEntity\.closeTimeMs[\s\S]*?\{:else\}[\s\S]*?<ResourceBoundary resource=\{xrplLedger\}>/)
+	assert.match(renderedViewByPath['src/views/FilecoinMessageView.svelte'], /\{#snippet Title\(\)\}\s*<ResourceBoundary resource=\{filecoinMessage\}>[\s\S]*?selection\s*\.\$from/)
+	assert.match(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /layout !== EntityLayout\.SummaryDetails[\s\S]*?Object\.hasOwn\(prefetched, '\$wallet'\)[\s\S]*?prefetched\.\$wallet\[EntityMetaKey\.Selector\] != null[\s\S]*?Object\.hasOwn\(prefetched\.\$wallet, 'name'\)[\s\S]*?Object\.hasOwn\(prefetched\.\$wallet, 'protocol'\)[\s\S]*?Object\.hasOwn\(prefetched, 'status'\)/)
+	assert.match(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /\{@const blockheadWallet0 = pendingEntity\.\$wallet\}[\s\S]*?prefetched=\{blockheadWallet0\}[\s\S]*?\{:else\}[\s\S]*?<ResourceBoundary resource=\{blockheadWalletConnection\}>[\s\S]*?resource=\{\s*selection\s*\.\$wallet/)
+	assert.match(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /selection=\{select\(EntityType\.BlockheadWallet, blockheadWallet0\[EntityMetaKey\.Selector\], \{ sources: selection\.sources \}\)\}/)
+	assert.doesNotMatch(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /select\(EntityType\.BlockheadWallet, blockheadWallet0\[EntityMetaKey\.Selector\]\)/)
+	assert.match(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /selection=\{select\(EntityType\.Account, account\[EntityMetaKey\.Selector\]\)\}/)
+	assert.doesNotMatch(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /select\(EntityType\.Account, account\[EntityMetaKey\.Selector\], \{ sources: selection\.sources \}\)/)
+	assert.match(renderedViewByPath['src/views/BlockheadWalletConnectionsView.svelte'], /sources: selection\.sources,[\s\S]*?\$wallet: \{[\s\S]*?fields: \{[\s\S]*?name: true,[\s\S]*?protocol: true,[\s\S]*?\}/)
+	assert.doesNotMatch(renderedViewByPath['src/views/BlockheadWalletConnectionsView.svelte'], /\$wallet: true/)
+	assert.match(renderedViewByPath['src/views/NetworkView.svelte'], /\{#snippet Title\(\)\}\s*<ResourceBoundary resource=\{network\}>[\s\S]*?selection\s*\.Evm/)
+	assert.match(renderedViewByPath['src/views/XrplTransactionView.svelte'], /const xrplTransaction = \$derived\(selection\(\{[\s\S]*?fields: \{\s*transactionType: true,\s*\}/)
+	assert.doesNotMatch(renderedViewByPath['src/views/XrplTransactionView.svelte'], /prefetched\[EntityMetaKey\.Selector\][\s\S]*?layout !== EntityLayout\.SummaryDetails \?/)
+	assert.doesNotMatch(renderedViewByPath['src/views/NetworkView.svelte'], /\{#if layout !== EntityLayout\.SummaryDetails/)
+	assert.doesNotMatch(renderedViewByPath['src/views/XrplTransactionView.svelte'], /\{#if layout !== EntityLayout\.SummaryDetails/)
+
+	blockheadWallet.views.singular.summary.value = ['discoveryKind']
+	const walletConnectionWithChangedChildSummary = compileApp(mutatedApp).generatedFiles.find((generatedFile) => (
+		generatedFile.path === 'src/views/BlockheadWalletConnectionsView.svelte'
+	))
+	assert.ok(walletConnectionWithChangedChildSummary)
+	const changedChildSummary = renderGeneratedFile(walletConnectionWithChangedChildSummary)
+	assert.match(changedChildSummary, /\$wallet: \{[\s\S]*?fields: \{[\s\S]*?name: true,[\s\S]*?discoveryKind: true,[\s\S]*?\}/)
+	assert.doesNotMatch(changedChildSummary, /\$wallet: \{[\s\S]*?protocol: true/)
+	blockheadWallet.views.singular.summary.value = ['protocol']
+
+	blockheadWallet.views.singular = {
+		...blockheadWallet.views.singular,
+		summary: {
+			Title: {
+				raw: '{titleFallback}',
+			},
+		},
+	}
+	const walletConnectionWithOpaqueChildSummary = compileApp(mutatedApp).generatedFiles.find((generatedFile) => (
+		generatedFile.path === 'src/views/BlockheadWalletConnectionView.svelte'
+	))
+	assert.ok(walletConnectionWithOpaqueChildSummary)
+	assert.doesNotMatch(renderGeneratedFile(walletConnectionWithOpaqueChildSummary), /\{#if layout !== EntityLayout\.SummaryDetails/)
 })
 
 test('renders value display facts and their query dependencies in definition lists', () => {
@@ -564,6 +700,13 @@ test('lowers source-backed social hub lists as carousel cards', () => {
 			new RegExp(`<CollapsibleTabs[\\s\\S]*?<${listName}[\\s\\S]*?data-column-item="flexible"[\\s\\S]*?data-card[\\s\\S]*?data-scroll-container`)
 		)
 	}
+	const rssFeedsView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/RssFeedsView.svelte')
+	assert.ok(rssFeedsView)
+	assert.match(renderGeneratedFile(rssFeedsView), /RegisteredEntityProxyEntitiesSelection<EntityType\.RssFeed>/)
+	assert.doesNotMatch(renderGeneratedFile(rssFeedsView), /RegisteredEntityProxyEntitiesResource/)
+	assert.match(renderGeneratedFile(rssFeedsView), /import EntitiesList, \{ type EntitiesListForwardProps \} from '\$\/components\/EntitiesList\.svelte'/)
+	assert.match(renderGeneratedFile(rssFeedsView), /WithRest<[\s\S]*?EntitiesListForwardProps[\s\S]*?> = \$props\(\)/)
+	assert.doesNotMatch(renderGeneratedFile(rssFeedsView), /ComponentProps<typeof EntitiesList>|Pick<[\s\S]*?ComponentProps<typeof EntitiesList>/)
 })
 
 test('keeps entity-list selection props distinct from projection boundary props', () => {
@@ -575,8 +718,9 @@ test('keeps entity-list selection props distinct from projection boundary props'
 	const renderedNostrRelayView = renderGeneratedFile(nostrRelayView)
 	assert.match(
 		renderedNostrRelayView,
-		/<Projection projection=\{projectionValue\}>[\s\S]*?<NostrNotesView[\s\S]*?selection=\{[\s\S]*?projection\.\$\$notes\(/
+		/<NostrNotesView[\s\S]*?selection=\{[\s\S]*?selection\.\$\$notes\(/
 	)
+	assert.doesNotMatch(renderedNostrRelayView, /<NostrNotesView[\s\S]{0,500}?\bprojection=\{/)
 	assert.doesNotMatch(
 		baselineCompiledApp.generatedFiles
 			.filter(({ path }) => /\/[^/]+sView\.svelte$/.test(path))
@@ -588,24 +732,46 @@ test('keeps entity-list selection props distinct from projection boundary props'
 
 test('emits declarative Network enrichment and stable carousel article boundaries', () => {
 	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
+	const aptosAccount = app.schema.entities.find((entity) => entity.entityType === EntityType.AptosAccount)
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const networkView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/NetworkView.svelte')
+	const coinView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CoinView.svelte')
 	const xrplLedgersView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/XrplLedgersView.svelte')
 	const urlsView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/UrlsView.svelte')
 	const evmUserOperationView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/EvmUserOperationView.svelte')
+	const accountView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/AccountView.svelte')
+	const blockheadAccountView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/BlockheadAccountView.svelte')
+	const blockheadAccountBalancesView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/BlockheadAccountsBalancesView.svelte')
+	const blockheadAccountTransactionsView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/BlockheadAccountsTransactionsView.svelte')
+	const blockheadAccountBalancesPage = generatedFiles.find((generatedFile) => generatedFile.path === 'src/routes/~/accounts/balances/+page.svelte')
+	const blockheadAccountTransactionsPage = generatedFiles.find((generatedFile) => generatedFile.path === 'src/routes/~/accounts/transactions/+page.svelte')
 	const networksPage = generatedFiles.find((generatedFile) => generatedFile.path === 'src/routes/(explore)/networks/+page.svelte')
 	const collapsibleTabs = readFileSync(path.join(root, 'src/components/CollapsibleTabs.svelte'), 'utf8')
 
 	assert.ok(network?.views.singular?.pending)
+	assert.ok(aptosAccount)
 	assert.ok(networkView)
+	assert.ok(coinView)
 	assert.ok(xrplLedgersView)
 	assert.ok(urlsView)
 	assert.ok(evmUserOperationView)
+	assert.ok(accountView)
+	assert.ok(blockheadAccountView)
+	assert.equal(blockheadAccountBalancesView, undefined)
+	assert.equal(blockheadAccountTransactionsView, undefined)
+	assert.ok(blockheadAccountBalancesPage)
+	assert.ok(blockheadAccountTransactionsPage)
 	assert.ok(networksPage)
-	assert.match(collapsibleTabs, /\{#each sections as section \(section\.id\)\}[\s\S]*?\{#if Section\}[\s\S]*?\{@render Section\(/)
-	assert.doesNotMatch(collapsibleTabs, /loadedSectionIds|Section &&|section\.id === activeSectionId \|\|/)
+	assert.match(collapsibleTabs, /\{#each sections as section \(section\.id\)\}[\s\S]*?\{@const Marker = markerSnippetForSection\(section\)\}[\s\S]*?\{@render Marker\([\s\S]*?MarkerContent/)
+	assert.match(collapsibleTabs, /\{#each sections as section \(section\.id\)\}[\s\S]*?\{@const Section = sectionSnippetForSection\(section\)\}[\s\S]*?\{#if section\.ownsSection\}[\s\S]*?\{@render Section\(/)
+	assert.match(collapsibleTabs, /sections\[0\]\.ownsSection \? undefined : sections\[0\]\.id/)
+	assert.doesNotMatch(collapsibleTabs, /\{#if Section\}|loadedSectionIds|Section &&|section\.id === activeSectionId \|\|/)
+	assert.doesNotMatch(collapsibleTabs, /availableSection|visibleSection|sectionPresence|\$effect/)
 
 	const renderedNetworkView = renderGeneratedFile(networkView)
+	const renderedCoinView = renderGeneratedFile(coinView)
+	assert.match(renderedCoinView, /\{@const [A-Za-z0-9]+Resource = selection\.\$\$marketsWithCoinAsBase\([\s\S]*?Source\.Constants_Internal[\s\S]*?limit: 1[\s\S]*?MarkerCatalogUsdMarket[\s\S]*?<ResourceBoundary[\s\S]*?resource=\{[A-Za-z0-9]+Resource\}/)
+	assert.doesNotMatch(renderedCoinView, /seededCoinSpotUsdMarkets|catalogUsdMarket/)
 	const networkRootQuery = renderedNetworkView.slice(
 		renderedNetworkView.indexOf('const network = $derived('),
 		renderedNetworkView.indexOf('const titleFallback = $derived(')
@@ -614,15 +780,41 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	assert.match(renderedNetworkView, /import \{ beaconRestBaseByExecutionChainId \} from '\$\/constants\/BeaconConsensus\.ts'/)
 	assert.match(renderedNetworkView, /import \{[^}]*networkByCaip2, networkBySlug[^}]*\} from '\$\/constants\/Network\.ts'/)
 	assert.match(renderedNetworkView, /import \{ SourceTargetKind \} from '\$\/sources\/SourceBinding\.ts'/)
+	assert.match(renderedNetworkView, /const networkApplicableSources = \([\s\S]*?slug\?: string[\s\S]*?caip2\?:/)
+	assert.doesNotMatch(renderedNetworkView, /\{#if (?:entity|resolvedEntity)\.executionModels\.values\.includes\('Evm'\)\}/)
 	assert.match(renderedNetworkView, /const pendingEntity = \$derived\([\s\S]*?networkByCaip2\[caip2Key\][\s\S]*?networkBySlug\[base\.slug\][\s\S]*?beaconRestBaseByExecutionChainId/)
 	assert.doesNotMatch(networkRootQuery, /\$networkStack|\$icon|\$\$nativeAssets|\$\$blockExplorerUrls|\$\$faucetUrls/)
-	assert.match(renderedNetworkView, /SectionEvmAssetsNativeCoin[\s\S]*?<article[\s\S]*?data-card[\s\S]*?data-scroll-container[\s\S]*?<ResourceBoundary[\s\S]*?<p data-text="muted" data-section-state="resolved-empty">No native coin available\.<\/p>[\s\S]*?layout=\{EntityLayout\.SummaryInline\}/)
-	assert.match(renderedNetworkView, /SectionEvmConsensusEndpoints[\s\S]*?\{:else\}\s*<p data-text="muted" data-section-state="resolved-empty">Consensus endpoints are not listed for this network\.<\/p>/)
-	assert.match(renderedNetworkView, /import Projection from '\$\/components\/Projection\.svelte'/)
-	assert.match(renderedNetworkView, /resource=\{selection\.Evm\}[\s\S]*?<Projection projection=\{projectionValue\}>[\s\S]*?\{#snippet Applicable\(projection\)\}[\s\S]*?<CollapsibleTabs/)
-	assert.doesNotMatch(renderedNetworkView, /\{#snippet (?:NotApplicable|Blocked|Unsupported)\(/)
-	assert.doesNotMatch(renderedNetworkView, /data-section-state="projection-(?:not-applicable|blocked|unsupported)"/)
-	assert.match(renderedNetworkView, /SectionEvmExecutionBlocks[\s\S]*?<EvmBlocksView[\s\S]*?emptyText='No blocks available\.'[\s\S]*?\/>/)
+	assert.match(renderedNetworkView, /\{#snippet Icon\(\)\}\s*<ResourceBoundary resource=\{network\}>[\s\S]*?<IconComponent/)
+	assert.match(renderedNetworkView, /\{#snippet Title\(\)\}\s*<ResourceBoundary resource=\{network\}>[\s\S]*?resolvedEntity\.name/)
+	assert.match(renderedNetworkView, /\{#snippet Value\(\)\}\s*<ResourceBoundary resource=\{network\}>[\s\S]*?resolvedEntity\.caip2/)
+	assert.match(renderedNetworkView, /MarkerEvmAssetsNativeCoin[\s\S]*?<ResourceBoundary[\s\S]*?\{#snippet children\(_resolved\)\}[\s\S]*?\{@render Content\(\)\}/)
+	assert.match(renderedNetworkView, /SectionEvmAssetsNativeCoin[\s\S]*?<ResourceBoundary[\s\S]*?<section[\s\S]*?<article[\s\S]*?data-card[\s\S]*?data-scroll-container[\s\S]*?layout=\{EntityLayout\.SummaryInline\}/)
+	assert.match(renderedNetworkView, /SectionEvmConsensusEndpoints[\s\S]*?<ResourceBoundary[\s\S]*?\{#snippet children\(consensusEndpointsField\)\}[\s\S]*?Consensus endpoints are not listed for this network\.[\s\S]*?<ul data-column="gap-2" data-section-state="resolved-nonempty">[\s\S]*?\{#each consensusEndpointsField\.values as consensusEndpoint/)
+	assert.match(renderedNetworkView, /import ProjectionBoundary from '\$\/components\/ProjectionBoundary\.svelte'/)
+	assert.match(renderedNetworkView, /<ProjectionBoundary[\s\S]*?resource=\{selection\.Evm\}[\s\S]*?\{#snippet Applicable\(projection\)\}[\s\S]*?<CollapsibleTabs/)
+	assert.doesNotMatch(renderedNetworkView, /<ResourceBoundary[\s\S]{0,300}?<Projection projection=\{projectionValue\}>/)
+	assert.doesNotMatch(renderedNetworkView, /\{#snippet NotApplicable\(/)
+	assert.doesNotMatch(renderedNetworkView, /\{#snippet (?:Blocked|Unsupported)\(\)\}|data-section-state="projection-(?:blocked|unsupported)"/)
+	assert.match(renderedNetworkView, /MarkerEvmExecutionBlocks[\s\S]*?<ResourceBoundary[\s\S]*?\{#snippet children\(_resolved\)\}[\s\S]*?\{@render Content\(\)\}/)
+	assert.doesNotMatch(renderedNetworkView, /CarouselSectionBoundary/)
+	assert.match(renderedNetworkView, /SectionEvmExecutionBlocks[\s\S]*?<section[\s\S]*?<EvmBlocksView[\s\S]*?\/>/)
+	const executionBlocksResource = renderedNetworkView.match(/\{@const ([A-Za-z0-9]*BlocksResource) = [\s\S]*?(?:projection|selection\.Evm)\.\$\$blocks\(/)?.[1]
+	assert.ok(executionBlocksResource)
+	const executionBlocksCarousel = renderedNetworkView.slice(
+		renderedNetworkView.indexOf('{#snippet MarkerEvmExecutionBlocks'),
+		renderedNetworkView.indexOf('{#snippet MarkerEvmExecutionTransactions')
+	)
+	assert.match(
+		executionBlocksCarousel,
+		new RegExp(`resource=\\{${executionBlocksResource}\\}[\\s\\S]*?SectionEvmExecutionBlocks[\\s\\S]*?resource=\\{${executionBlocksResource}\\}[\\s\\S]*?<EvmBlocksView[\\s\\S]*?selection=\\{${executionBlocksResource}\\}`)
+	)
+	assert.match(
+		renderedNetworkView,
+		/\{@const [A-Za-z0-9]+ResourceSources = networkApplicableSources\([\s\S]*?\{@const [A-Za-z0-9]+Resource = [A-Za-z0-9]+ResourceSources\.length === 0 \? undefined : [\s\S]*?\{#if [A-Za-z0-9]+Resource != null\}/
+	)
+	assert.match(renderedNetworkView, /No native coin available\.|Consensus endpoints are not listed for this network\.|emptyText='No blocks available\.'/)
+	assert.doesNotMatch(renderedNetworkView, /\{#if detailsOpen\}/)
+	assert.doesNotMatch(renderedNetworkView, /\{:else if pendingEntity\./)
 	for (const [collapsibleTabs] of renderedNetworkView.matchAll(/<CollapsibleTabs[\s\S]*?>/g))
 		assert.doesNotMatch(collapsibleTabs, /networkApplicableSources/)
 	const executionBlocksSection = renderedNetworkView.slice(
@@ -630,12 +822,160 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 		renderedNetworkView.indexOf('{#snippet SectionEvmExecutionTransactions')
 	)
 	assert.doesNotMatch(executionBlocksSection, /\{#if (?:open|!open)|\{#if [^}]*\bopen\b/)
+	assert.match(executionBlocksSection, /\{#snippet Pending\(\)\}[\s\S]*?<section[\s\S]*?data-column-item="flexible"[\s\S]*?<article[\s\S]*?data-card[\s\S]*?data-scroll-container[\s\S]*?data-resource-state="pending"/)
+	assert.match(executionBlocksSection, /\{#snippet Failed\(_error, _retry\)\}[\s\S]*?<section[\s\S]*?data-column-item="flexible"[\s\S]*?<article[\s\S]*?data-card[\s\S]*?data-scroll-container[\s\S]*?data-resource-state="failed"/)
+	assert.doesNotMatch(executionBlocksSection, /\{#snippet (?:Pending|Failed)[\s\S]*?<article[\s\S]*?<ResourceBoundary[\s\S]*?<\/article>/)
 	assert.match(renderedNetworkView, /<XrplLedgersView[\s\S]*?CollapsibleProps=\{\{ canToggle: false \}\}[\s\S]*?collapsible=\{false\}[\s\S]*?open=\{open\}/)
-	assert.doesNotMatch(renderedNetworkView, /SectionEvmExecutionUpgrades[\s\S]*?projection\.\$\$executionUpgrades\(\{[\s\S]*?count: true,[\s\S]*?<\/snippet>/)
+	assert.doesNotMatch(renderedNetworkView, /count: true/)
 	assert.match(renderGeneratedFile(xrplLedgersView), /<EntitiesList[\s\S]*?resource=\{[\s\S]*?getResourceItems=/)
 	assert.doesNotMatch(renderGeneratedFile(xrplLedgersView), /\{#if open \|\| !collapsible\}|\{#snippet Pending\(\)\}/)
-	assert.match(renderGeneratedFile(urlsView), /url: encodeURIComponent\(String\(urlHrefFields\.url \?\? ''\)\)/)
+	assert.match(renderGeneratedFile(urlsView), /url: encodeURIComponent\(String\(url\[EntityMetaKey\.Selector\]\.url \?\? ''\)\)/)
+	assert.doesNotMatch(renderGeneratedFile(urlsView), /urlHrefFields/)
 	assert.match(renderGeneratedFile(networksPage), /data-column-item="flexible"[\s\S]*?data-card[\s\S]*?data-scroll-container/)
+	assert.match(renderGeneratedFile(networksPage), /\.\$\$networks\(\{[\s\S]*?Source\.Constants_Internal/)
+	assert.match(
+		renderGeneratedFile(accountView),
+		/const viewDomId = \$derived\('account-' \+ encodeURIComponent\(stringify\(selection\.entitySelector \?\? prefetched\[EntityMetaKey\.Selector\]\)\)\)[\s\S]*?\{#if layout !== EntityLayout\.SummaryDetails\}[\s\S]*?pendingEntity\.caip10/
+	)
+	assert.match(
+		renderGeneratedFile(accountView),
+		/String\(`\$\{\(pendingEntity\.caip10\)\.namespace\}:\$\{\(pendingEntity\.caip10\)\.reference\}:\$\{\(pendingEntity\.caip10\)\.accountAddress\}`\)/
+	)
+	assert.doesNotMatch(renderGeneratedFile(accountView), /String\(\(`[^`]+`\) \?\? ''\)/)
+	for (const generatedPath of [
+		'src/views/CardanoNetwork_TimestampView.svelte',
+		'src/views/TonNetwork_TimestampView.svelte',
+		'src/views/TronBlockView.svelte',
+		'src/views/TronNetwork_TimestampView.svelte',
+	]) {
+		const generatedTimestampView = generatedFiles.find((generatedFile) => generatedFile.path === generatedPath)
+		assert.ok(generatedTimestampView)
+		assert.match(
+			renderGeneratedFile(generatedTimestampView),
+			/import Timestamp from '\$\/components\/Timestamp\.svelte'/
+		)
+	}
+	const bittensorNeuronView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/BittensorNeuronView.svelte')
+	assert.ok(bittensorNeuronView)
+	assert.match(
+		renderGeneratedFile(bittensorNeuronView),
+		/selection=\{select\(EntityType\.BittensorSubnet, selection\.entitySelector\.\$subnet, \{ sources: selection\.sources \}\)\}/
+	)
+	assert.doesNotMatch(
+		renderGeneratedFile(bittensorNeuronView),
+		/prefetched\.\$subnet\[EntityMetaKey\.Selector\]/
+	)
+	const coinBridgeCapabilityView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CoinBridgeCapabilityView.svelte')
+	const coinBridgeCapabilitiesView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CoinBridgeCapabilitiesView.svelte')
+	assert.ok(coinBridgeCapabilityView)
+	assert.ok(coinBridgeCapabilitiesView)
+	assert.match(
+		renderGeneratedFile(coinBridgeCapabilityView),
+		/href \?\? \(selection\.entitySelector != null/
+	)
+	assert.doesNotMatch(renderGeneratedFile(coinBridgeCapabilityView), /href \?\? \(pendingEntity/)
+	assert.doesNotMatch(renderGeneratedFile(coinBridgeCapabilitiesView), /coinBridgeCapabilityHrefFields/)
+	assert.doesNotMatch(renderGeneratedFile(coinBridgeCapabilityView), /String\('native' \?\? ''\)/)
+	assert.match(
+		renderGeneratedFile(coinBridgeCapabilityView),
+		/type === 'Erc20Token' \? selection\.entitySelector\.\$fromInstance\.\$contract\.address : ''/
+	)
+	assert.doesNotMatch(
+		renderGeneratedFile(coinBridgeCapabilityView),
+		/type === 'NativeCurrency' \? 'native' : selection\.entitySelector\.\$fromInstance\.\$contract\.address/
+	)
+	for (const generatedPath of [
+		'src/views/BeaconCommitteeView.svelte',
+		'src/views/BeaconSyncCommitteeView.svelte',
+	]) {
+		const generatedCommitteeView = generatedFiles.find((generatedFile) => generatedFile.path === generatedPath)
+		assert.ok(generatedCommitteeView)
+		assert.match(
+			renderGeneratedFile(generatedCommitteeView),
+			/validatorIndices\.map\(\(value\) => String\(value \?\? ''\)\)\.filter\(Boolean\)\.join\(', '\)/
+		)
+		assert.doesNotMatch(renderGeneratedFile(generatedCommitteeView), /<NumberValue\s+value=\{validatorIndices\}/)
+	}
+	const beaconEpochView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/BeaconEpochView.svelte')
+	assert.ok(beaconEpochView)
+	for (const label of [
+		'Start slot',
+		'End slot',
+		'Attester slashings',
+		'Proposer slashings',
+	])
+		assert.match(renderGeneratedFile(beaconEpochView), new RegExp(`<dt>${label}</dt>`))
+	assert.doesNotMatch(renderGeneratedFile(beaconEpochView), /Slot range|entity\.attesterSlashingsCount|entity\.proposerSlashingsCount/)
+	assert.doesNotMatch(
+		renderGeneratedFile(blockheadAccountView),
+		/select\(EntityType\.Account, selection\.entitySelector\.\$account, \{\s*sources: \[\s*Source\.Local_Internal/
+	)
+	const renderedBlockheadAccountBalancesPage = renderGeneratedFile(blockheadAccountBalancesPage)
+	const renderedBlockheadAccountTransactionsPage = renderGeneratedFile(blockheadAccountTransactionsPage)
+	assert.deepEqual(
+		Object.fromEntries(aptosAccount.fields
+			.filter((field) => field.name.startsWith('$$'))
+			.map((field) => [field.name, field.defaultSources])),
+		{
+			'$$timestamps': [Source.AptosFullnode_Rest],
+			'$$balances': [Source.AptosIndexer_Graphql],
+			'$$resources': [Source.AptosFullnode_Rest],
+			'$$transactions': [
+				Source.AptosIndexer_Graphql,
+				Source.AptosFullnode_Rest,
+			],
+		}
+	)
+	assert.match(
+		renderedBlockheadAccountTransactionsPage,
+		/resource=\{collectionRoot0Selection\.Aptos\}[\s\S]*?projection\.\$account\([\s\S]*?\.\$\$transactions\(\{\s*sources: \[\s*Source\.AptosIndexer_Graphql,\s*Source\.AptosFullnode_Rest,/
+	)
+	for (const [
+		renderedPage,
+		components,
+	] of [
+		[
+			renderedBlockheadAccountBalancesPage,
+			[
+				'EvmNetworkActorCoinBalancesView',
+				'AptosCoinBalance_TimestampsView',
+				'CardanoAddress_TimestampsView',
+				'PolkadotAccount_TimestampsView',
+				'SolanaAccount_TimestampsView',
+					'TronAccount_TimestampsView',
+					'TronAccountTokenBalance_TimestampsView',
+					'TonAccount_TimestampsView',
+					'UtxoAddress_TimestampsView',
+			],
+		],
+		[
+			renderedBlockheadAccountTransactionsPage,
+			[
+				'EvmTransactionsView',
+				'AptosTransactionsView',
+				'CardanoTransactionsView',
+				'TronTransactionsView',
+				'UtxoTransactionsView',
+			],
+		],
+	] as const) {
+		assert.doesNotMatch(renderedPage, /EntityProxyPath/)
+		assert.doesNotMatch(renderedPage, /BlockheadAccounts(?:Balances|Transactions)View|relationshipSurface/)
+		assert.equal([
+			...renderedPage.matchAll(/\.\$\$blockheadAccounts\(\{[\s\S]*?Source\.Local_Internal[\s\S]*?\}\)\.\$account\(\{[\s\S]*?Source\.Local_Internal/g),
+		].length, 1)
+		assert.match(renderedPage, /const collectionRoot0Selection = \$derived\(/)
+		assert.match(renderedPage, /<ProjectionBoundary[\s\S]*?resource=\{collectionRoot0Selection\.Evm\}[\s\S]*?\{#snippet Applicable\(projection\)\}/)
+		assert.match(
+			renderedPage,
+			/projection\.\$account\(\{[\s\S]*?Source\.Constants_Internal/
+		)
+		assert.doesNotMatch(renderedPage, /collectionRoot0Selection\.Evm\.\$account/)
+		assert.doesNotMatch(renderedPage, /countResource=/)
+		assert.match(renderedPage, /<ResourceBoundary resource=\{[\s\S]*?\{#snippet children\(entities\)\}[\s\S]*?\{#if entities\.values\.length > 0\}/)
+		for (const component of components)
+			assert.match(renderedPage, new RegExp(`<${component}[\\s\\S]*?data-column-item="flexible"[\\s\\S]*?data-card[\\s\\S]*?data-scroll-container`))
+	}
 	const renderedEvmUserOperationView = renderGeneratedFile(evmUserOperationView)
 	for (const tab of ['participants', 'gas-fees', 'payloads'])
 		assert.match(renderedEvmUserOperationView, new RegExp(`id=\\{\\\`\\$\\{id\\}-${tab}-fields\\\`\\} data-column-item="flexible" data-card data-scroll-container`))
@@ -645,8 +985,8 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 		renderedNetworkView.indexOf('{#snippet SectionEvmConsensusUpgrades'),
 		renderedNetworkView.indexOf('{#snippet SectionEvmDataAvailability')
 	)
-	assert.match(ethereumBeaconCarousel, /selection\.Evm\.\$\$consensusUpgrades\(/)
-	assert.match(ethereumBeaconCarousel, /selection\.Evm\.consensusEndpoints\(/)
+	assert.match(renderedNetworkView, /\{@const [A-Za-z0-9]+Resource = [\s\S]*?selection\.Evm\.\$\$consensusUpgrades\(/)
+	assert.match(renderedNetworkView, /\{@const [A-Za-z0-9]+Resource = [\s\S]*?selection\.Evm\.consensusEndpoints\(/)
 	assert.doesNotMatch(ethereumBeaconCarousel, /projection\.Evm/)
 	assert.doesNotMatch(
 		ethereumBeaconCarousel,
@@ -694,9 +1034,37 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 
 	const hederaFacet = network.facets.find((facet) => facet.name === 'Hedera')
 	const xrplFacet = network.facets.find((facet) => facet.name === 'Xrpl')
+	const tonFacet = network.facets.find((facet) => facet.name === 'Ton')
+	const cardanoFacet = network.facets.find((facet) => facet.name === 'Cardano')
 
 	assert.ok(hederaFacet?.singularView)
 	assert.ok(xrplFacet?.singularView)
+	assert.ok(tonFacet?.singularView)
+	assert.ok(cardanoFacet?.singularView)
+	assert.deepEqual(
+		tonFacet.fields.find((field) => field.name === '$$timestamps')?.defaultSources,
+		[Source.TonApi_Rest]
+	)
+	assert.deepEqual(
+		tonFacet.singularView.carousels?.flatMap((carousel) => carousel.sections.map((section) => section.id)),
+		['ton-chain-observations']
+	)
+	assert.deepEqual(
+		cardanoFacet.fields
+			.filter((field) => field.name.startsWith('$$'))
+			.map((field) => [field.name, field.defaultSources]),
+		[
+			['$$timestamps', [Source.CardanoKoios_Rest]],
+			['$$blocks', [Source.CardanoKoios_Rest]],
+			['$$transactions', [Source.CardanoKoios_Rest]],
+			['$$stakePools', [Source.CardanoKoios_Rest]],
+			['$$dReps', [Source.CardanoKoios_Rest]],
+			['$$governanceProposals', [Source.CardanoKoios_Rest]],
+			['$$assets', [Source.CardanoKoios_Rest]],
+			['$$protocolParameterEpochs', [Source.CardanoKoios_Rest]],
+			['$$committeeEpochs', [Source.CardanoKoios_Rest]],
+		]
+	)
 	assert.deepEqual(hederaFacet.fields.map((field) => field.name), [
 		'shard',
 		'realm',
@@ -778,23 +1146,69 @@ test('keeps every projection-carousel field at its declared facet owner', () => 
 				const snippet = renderedView.slice(snippetStart, snippetEnd === -1 ? undefined : snippetEnd)
 
 				assert.ok(snippetStart !== -1, `${entity.entityType}.${snippetName} must be generated`)
+				assert.ok(
+					fieldFacetPath.length <= carousel.projectionPath.length
+					&& fieldFacetPath.every((facetName, index) => carousel.projectionPath?.[index] === facetName),
+					`${entity.entityType}.${snippetName} must remain at its field owner or a descendant facet`
+				)
 				if (fieldFacetPath.length === carousel.projectionPath.length && fieldFacetPath.every((facetName, index) => carousel.projectionPath[index] === facetName)) {
 					assert.match(snippet, new RegExp(`projection\\.${section.field.at(-1)}`), `${entity.entityType}.${snippetName} must read a current-projection field directly`)
 					assert.doesNotMatch(snippet, new RegExp(`selection\\.${section.field.join('\\.')}`), `${entity.entityType}.${snippetName} must not escape its current projection`)
 				} else if (fieldFacetPath.length < carousel.projectionPath.length && fieldFacetPath.every((facetName, index) => carousel.projectionPath[index] === facetName)) {
 					assert.match(snippet, new RegExp(`selection\\.${section.field.join('\\.')}`), `${entity.entityType}.${snippetName} must retain its ancestor field owner`)
 					assert.doesNotMatch(snippet, new RegExp(`projection\\.${fieldFacetPath[0]}`), `${entity.entityType}.${snippetName} must not reinterpret an ancestor facet through the current projection`)
-				} else {
-					assert.match(snippet, new RegExp(`resource=\\{[\\s\\S]*?selection\\.${fieldFacetPath.join('\\.')}`), `${entity.entityType}.${snippetName} must gate a descendant or sibling field through its declared projection`)
-					assert.match(snippet, new RegExp(`projection\\.${section.field.at(-1)}`), `${entity.entityType}.${snippetName} must read the field relative to that projection`)
-					assert.doesNotMatch(snippet, new RegExp(`projection\\.${fieldFacetPath.join('\\.')}`), `${entity.entityType}.${snippetName} must not repeat an absolute facet path inside its projection`)
 				}
+				assert.doesNotMatch(snippet, /<ProjectionBoundary|<Projection projection=|resource=\{selection\.[A-Z][\s\S]*?\{#snippet children\(projectionValue\)/)
 			}
 		}
 	}
 })
 
+test('rejects carousel sections owned by incompatible facets', () => {
+	const mutatedApp = structuredClone(app)
+	const transaction = mutatedApp.schema.entities.find((entity) => entity.entityType === EntityType.EvmTransaction)
+	const blobFacet = transaction?.facets?.find((facet) => facet.name === 'Blob')
+	const carousel = blobFacet?.singularView?.carousels?.[0]
+	assert.ok(carousel)
+	carousel.sections[0].field = ['SetCode', '$$authorizations']
+
+	assert.throws(
+		() => compileApp(mutatedApp),
+		/EvmTransaction carousel evm-tx-blobs section evm-tx-blobs field SetCode\.\$\$authorizations is not owned by carousel facet Blob/
+	)
+})
+
+test('keeps proposal catalog relationships on explicit Constants authority', () => {
+	const global = app.schema.entities.find((entity) => entity.entityType === EntityType._Global)
+	const specificationProposalsView = baselineCompiledApp.generatedFiles.find((generatedFile) => (
+		generatedFile.path === 'src/views/SpecificationProposalsView.svelte'
+	))
+	const specificationProposalKindView = baselineCompiledApp.generatedFiles.find((generatedFile) => (
+		generatedFile.path === 'src/views/SpecificationProposalKindView.svelte'
+	))
+	assert.ok(specificationProposalsView)
+	assert.ok(specificationProposalKindView)
+	assert.deepEqual(
+		global?.fields
+			.filter((field) => ['$$proposals', '$$specificationRealms', '$$proposalKinds'].includes(field.name))
+			.map((field) => field.defaultSources),
+		Array.from({ length: 3 }, () => [Source.Constants_Internal])
+	)
+	assert.match(renderGeneratedFile(specificationProposalsView), /sources: selectedSources/)
+	assert.doesNotMatch(renderGeneratedFile(specificationProposalsView), /selection\.sources \?\? selectedSources/)
+	assert.match(renderGeneratedFile(specificationProposalsView), /import \{ defaultSpecificationProposalSources, specificationProposalSourceSelectionByKey \} from '\$\/sources\/\$sourceSelections\.ts'/)
+	assert.match(renderGeneratedFile(specificationProposalsView), /const selectedSources = \$derived\(specificationProposalSourceSelectionByKey\[\[String\(filterRealm\), String\(filterCategory\)\]\.join\(':'\)\] \?\? defaultSpecificationProposalSources\)/)
+	assert.doesNotMatch(renderGeneratedFile(specificationProposalsView), /const selectedSources = \$derived\(\{[\s\S]*?'Bitcoin:Bip'/)
+	assert.match(renderGeneratedFile(specificationProposalKindView), /sources: specificationProposalSourceSelectionByKey\[\[String\(pendingEntity\.realm\), String\(pendingEntity\.category\)\]\.join\(':'\)\] \?\? defaultSpecificationProposalSources/)
+	assert.match(renderGeneratedFile(specificationProposalKindView), /import \{ defaultSpecificationProposalSources, specificationProposalSourceSelectionByKey \} from '\$\/sources\/\$sourceSelections\.ts'/)
+	assert.doesNotMatch(renderGeneratedFile(specificationProposalKindView), /sources: \[\s*Source\.BitcoinBips_Github,[\s\S]*?Source\.ZcashZips_Github/)
+})
+
 test('renders every generated entity-list item through a card-backed singular summary', () => {
+	const entityView = readFileSync(path.join(root, 'src/components/EntityView.svelte'), 'utf8')
+	const generatedViewSources = baselineCompiledApp.generatedFiles
+		.filter((generatedFile) => generatedFile.path.startsWith('src/views/'))
+		.map(renderGeneratedFile)
 	const pluralViews = baselineCompiledApp.generatedFiles.flatMap((generatedFile) => {
 		const source = renderGeneratedFile(generatedFile)
 
@@ -814,13 +1228,18 @@ test('renders every generated entity-list item through a card-backed singular su
 		assert.doesNotMatch(pluralView.source, /\{#snippet Item\b[\s\S]*?layout=\{EntityLayout\.(?:Title|Value)\}/, pluralView.path)
 		assert.match(pluralView.source, /<\/EntitiesList>\s*$/, pluralView.path)
 	}
+	assert.match(entityView, /<article[\s\S]*?data-card=\{articleProps\['data-card'\] \?\? true\}[\s\S]*?data-scroll-container=\{articleProps\['data-scroll-container'\] \?\? true\}/)
+	assert.match(entityView, /<Collapsible[\s\S]*?\{\.\.\.CollapsibleProps\}[\s\S]*?data-card=\{undefined\}[\s\S]*?data-scroll-container=\{undefined\}/)
+	assert.doesNotMatch(generatedViewSources.join('\n'), />Unavailable<\/span>/)
 })
 
 test('renders selected entity titles on every multi-selector detail page', () => {
 	const multiSelectorPages = baselineCompiledApp.generatedFiles.flatMap((generatedFile) => {
 		const source = renderGeneratedFile(generatedFile)
 
-		return generatedFile.path.endsWith('/+page.svelte') && source.includes('data.selectorMapping') ?
+		return generatedFile.path.endsWith('/+page.svelte')
+			&& source.includes('data.entityType')
+			&& source.includes('const entityViewComponentByType') ?
 			[{
 				path: generatedFile.path,
 				source,
@@ -832,8 +1251,8 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 	assert.ok(multiSelectorPages.length > 0)
 	for (const page of multiSelectorPages) {
 		assert.match(page.source, /const pageSelection = \$derived\(/, page.path)
-		assert.match(page.source, /const pageEntityTitle = \$derived\(/, page.path)
-		assert.match(page.source, /<svelte:head>[\s\S]*?<title>\{pageEntityTitle\} • \{pageEntityTypeLabel\} • Blockhead<\/title>[\s\S]*?<\/svelte:head>/, page.path)
+		assert.match(page.source, /<svelte:head>[\s\S]*?<title>\{data\.entityType[\s\S]*? • (?:\{data\.entityType[\s\S]*? • )?Blockhead<\/title>[\s\S]*?<\/svelte:head>/, page.path)
+		assert.doesNotMatch(page.source, /pageEntity(?:Title|TypeLabel)/, page.path)
 		assert.match(page.source, /selection=\{pageSelection\}/, page.path)
 		assert.doesNotMatch(page.source, /^\s*[A-Za-z_$][A-Za-z0-9_$]*,[A-Za-z_$][A-Za-z0-9_$]*:\s*true,/m, page.path)
 	}
@@ -841,6 +1260,17 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 	const networkPage = multiSelectorPages.find((page) => page.path.endsWith('/network/[network=networkCaip2OrNetworkSlug]/+page.svelte'))
 	assert.ok(networkPage)
 	assert.match(networkPage.source, /Evm: \{[\s\S]*?consensusProtocol: true,[\s\S]*?registryStatus: true,[\s\S]*?\}/)
+	assert.match(networkPage.source, /fields: \{[\s\S]*?caip2: true,/)
+	assert.match(networkPage.source, /data\.selector\.caip2/)
+	assert.doesNotMatch(networkPage.source, /pageSelection\.entitySelector\.(?:name|caip2)/)
+	assert.doesNotMatch(networkPage.source, /\.\.\.pageSelection\.entitySelector/)
+	assert.doesNotMatch(networkPage.source, /const pageSelection = \$derived\([\s\S]*? : undefined\)/)
+	const networkLayout = baselineCompiledApp.generatedFiles.find((file) => (
+		file.path.endsWith('/network/[network=networkCaip2OrNetworkSlug]/+layout.ts')
+	))
+	assert.ok(networkLayout)
+	assert.match(renderGeneratedFile(networkLayout), /readonly selectorName: 'Caip2'[\s\S]*?EntitySelectorForSelectorName<[\s\S]*?EntityType\.Network,[\s\S]*?'Caip2'[\s\S]*?readonly selectorName: 'Slug'[\s\S]*?'Slug'/)
+	assert.doesNotMatch(renderGeneratedFile(networkLayout), /selectorName: string|EntitySelector<typeof schema/)
 })
 
 test('gates subject-specific carousels through schema facets', () => {
@@ -1243,13 +1673,9 @@ test('keeps ActivityPub relation list hrefs scoped to their owning entity', () =
 	const activityPubNoteView = baselineCompiledApp.generatedFiles.find((generatedFile) => (
 		generatedFile.path === 'src/views/ActivityPubNoteView.svelte'
 	))
-	const globalActivityPubNetworkView = baselineCompiledApp.generatedFiles.find((generatedFile) => (
-		generatedFile.path === 'src/views/_GlobalActivityPubNetworkView.svelte'
-	))
 
 	assert.ok(activityPubActorView)
 	assert.ok(activityPubNoteView)
-	assert.ok(globalActivityPubNetworkView)
 	assert.match(
 		renderGeneratedFile(activityPubActorView),
 		/resolve\('\/activitypub\/actor\/\[instanceOrigin=absoluteUrl\]\/\[localAccountId=stringSegment\]\/notes', \{[\s\S]*instanceOrigin: encodeURIComponent\(String\(entity\.instanceOrigin \?\? ''\)\)[\s\S]*localAccountId: entity\.localAccountId/
@@ -1262,7 +1688,6 @@ test('keeps ActivityPub relation list hrefs scoped to their owning entity', () =
 	)
 	assert.doesNotMatch(renderGeneratedFile(activityPubNoteView), /href=\{resolve\('\/activitypub\/notes'\)\}/)
 	assert.doesNotMatch(renderGeneratedFile(activityPubNoteView), /encodeURIComponent\(encodeURIComponent/)
-	assert.match(renderGeneratedFile(globalActivityPubNetworkView), /href=\{resolve\('\/activitypub\/notes'\)\}/)
 
 	const routeMutationApp = structuredClone(app)
 	const actorChildren = routeMutationApp.routes.children['(social)']?.children?.['(activitypub)']?.children?.activitypub
@@ -1324,6 +1749,7 @@ test('lowers ActivityPub content warnings as selector-scoped native disclosure',
 	const notesSource = renderGeneratedFile(notesView)
 	assert.match(noteSource, /const contentWarningSelectorKey = \$derived\(stringify\(/)
 	assert.match(noteSource, /open=\{revealedContentWarningSelectorKey === contentWarningSelectorKey\}/)
+	assert.match(noteSource, /\{#if revealedContentWarningSelectorKey === contentWarningSelectorKey\}\s+\{@render ContentWarningContent\(content\)\}\s+\{\/if\}/)
 	assert.match(noteSource, /<Collapsible[\s\S]*?<header[^>]*>[\s\S]*?Show content/)
 	assert.match(noteSource, /<Collapsible\n\s+open=\{revealedContentWarningSelectorKey[\s\S]{0,500}\{#snippet Summary\(\)\}/)
 	assert.doesNotMatch(noteSource, /<Collapsible\n\s+open=\{revealedContentWarningSelectorKey[\s\S]{0,500}\{#snippet Summary\(\{\}\)\}/)
@@ -1439,6 +1865,28 @@ test('keeps ATProto actor aliases converged on DID and observation routes source
 		}),
 		/references missing selector AtprotoActor_Timestamp\.AtprotoActorTimestampMsSource/
 	)
+})
+
+test('keeps arbitrary ATProto entities on appview authority without catalog fallback', () => {
+	const actor = app.schema.entities.find(({ entityType }) => entityType === EntityType.AtprotoActor)
+	const globalNetwork = app.schema.entities.find(({ entityType }) => entityType === EntityType._GlobalAtprotoNetwork)
+	const post = app.schema.entities.find(({ entityType }) => entityType === EntityType.AtprotoPost)
+	const postPage = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/routes/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/+page.svelte')
+
+	assert.ok(actor?.views.singular?.query)
+	assert.ok(globalNetwork?.views.singular?.query)
+	assert.ok(post?.views.singular?.query)
+	assert.ok(postPage)
+	assert.deepEqual(actor.views.singular.query.sources, [Source.Atproto_Xrpc])
+	assert.deepEqual(post.views.singular.query.sources, [Source.Atproto_Xrpc])
+	assert.deepEqual(globalNetwork.views.singular.query.sources, [Source.Constants_Internal])
+	for (const fieldName of ['$$thread', '$$timestamps'])
+		assert.deepEqual(
+			post.fields.find(({ name }) => name === fieldName)?.defaultSources,
+			[Source.Atproto_Xrpc]
+		)
+	assert.match(renderGeneratedFile(postPage), /sources: \[\s*Source\.Atproto_Xrpc,?\s*\]/)
+	assert.doesNotMatch(renderGeneratedFile(postPage), /Source\.Constants_Internal/)
 })
 
 test('derives disjoint CAIP-2 and slug domains from structured value types', () => {
@@ -1703,11 +2151,11 @@ test('proves facet disjointness only on one canonical scalar path', () => {
 	)
 })
 
-test('retains selector identity in generated route results and detail dispatch', () => {
+test('returns discriminated route identity for detail dispatch', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 
-	assert.match(generatorSource, /selectorMappings\.push\(\{ entityType: EntityType\.\$\{context\.entityType\}, selectorName:/)
-	assert.match(generatorSource, /data\.selectorMapping\.entityType === EntityType\.\$\{detail\.entityType\} && data\.selectorMapping\.selectorName ===/)
+	assert.match(generatorSource, /routeCandidates\.push\(\{ entityType: EntityType\.\$\{context\.entityType\}, selectorName:/)
+	assert.match(generatorSource, /data\.entityType === EntityType\.\$\{detail\.entityType\} && data\.selectorName ===/)
 })
 
 test('groups inherited selector fields under one route mapping', () => {
@@ -1912,7 +2360,8 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 			path.join(generatedOutputRoot, 'src/routes/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]/+page.svelte'),
 			'utf8'
 		)
-		assert.match(serviceAgentPage, /\$contract: \{[\s\S]*?reference: Number\(params\.chainId\),[\s\S]*?address: params\.contractAddress,/)
+		assert.match(serviceAgentPage, /\$contract: \{[\s\S]*?reference: params\.chainId,[\s\S]*?address: params\.contractAddress,/)
+		assert.doesNotMatch(serviceAgentPage, /reference: Number\(params\.chainId\)/)
 
 		const ipfsResourcePage = readFileSync(
 			path.join(generatedOutputRoot, 'src/routes/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]/+page.svelte'),
@@ -1930,7 +2379,23 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 			'utf8'
 		)
 		assert.match(coinInstancePage, /if \([^\n]*matchNativeCurrencySlug\(params\.coinInstanceSlug\)[^\n]*\) \{[\s\S]*?type: 'NativeCurrency'/)
+		assert.match(coinInstancePage, /reference: params\.chainId,/)
+		assert.doesNotMatch(coinInstancePage, /reference: Number\(params\.chainId\)/)
 		assert.match(coinInstancePage, /if \([^\n]*matchEvmAddress\(params\.coinInstanceSlug\)[^\n]*\) \{[\s\S]*?type: 'Erc20Token',[\s\S]*?\$contract: \{[\s\S]*?address: params\.coinInstanceSlug,/)
+
+		const bridgeCapabilityPage = readFileSync(
+			path.join(generatedOutputRoot, 'src/routes/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]/+page.svelte'),
+			'utf8'
+		)
+		assert.match(bridgeCapabilityPage, /\$fromInstance: \([\s\S]*?reference: params\.fromChainId,/)
+		assert.match(bridgeCapabilityPage, /\$toInstance: \([\s\S]*?reference: params\.toChainId,/)
+		assert.doesNotMatch(bridgeCapabilityPage, /reference: Number\(params\.(?:from|to)ChainId\)/)
+
+		const networkEpochPage = readFileSync(
+			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/epoch/[epoch=nonNegativeInteger]/+page.ts'),
+			'utf8'
+		)
+		assert.match(networkEpochPage, /epoch: Number\(params\.epoch\),/)
 
 		const networkTransactionLayout = readFileSync(
 			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/+layout.ts'),
@@ -1941,6 +2406,23 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 		assert.match(networkTransactionLayout, /matchUtxoTxId\(params\.transactionId\)/)
 		assert.match(networkTransactionLayout, /projectionNetwork\.executionModels[\s\S]*?'Evm'/)
 		assert.match(networkTransactionLayout, /projectionNetwork\.ledgerModels[\s\S]*?'Utxo'/)
+		assert.match(networkTransactionLayout, /projectionNetwork\.namespace === 'Cardano'[\s\S]*?EntityType\.CardanoTransaction/)
+
+		const transactionInputsPage = readFileSync(
+			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/inputs/+page.svelte'),
+			'utf8'
+		)
+		assert.match(transactionInputsPage, /\{#if data\.entityType === EntityType\.CardanoTransaction\}[\s\S]*?select\(EntityType\.CardanoTransaction, data\.selector\)[\s\S]*?\.\$\$inputs/)
+		assert.match(transactionInputsPage, /\{#if data\.entityType === EntityType\.UtxoTransaction\}[\s\S]*?select\(EntityType\.UtxoTransaction, data\.selector\)[\s\S]*?\.\$\$inputs/)
+		assert.doesNotMatch(transactionInputsPage, /const collection\d+Selection = \$derived/)
+
+		const networkValidatorsPage = readFileSync(
+			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validators/+page.svelte'),
+			'utf8'
+		)
+		assert.match(networkValidatorsPage, /\{#snippet Applicable\(projection\)\}[\s\S]*?<BeaconValidatorsView[\s\S]*?selection=\{[\s\S]*?projection\s*\.\$\$beaconValidators/)
+		assert.doesNotMatch(networkValidatorsPage, /\{@const collection\d+Selection =/)
+		assert.doesNotMatch(networkValidatorsPage, /const collection\d+Selection = \$derived\(projection\./)
 
 		const evmTokenTransferPage = readFileSync(
 			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-transfer/[transferIndex=nonNegativeInteger]/+page.svelte'),
@@ -1949,14 +2431,19 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 		assert.match(evmTokenTransferPage, /let \{[\s\S]*?data,[\s\S]*?params,[\s\S]*?\}: PageProps = \$props\(\)/)
 		assert.match(evmTokenTransferPage, /\$log: data\.selector/)
 
-		const utxoOutputPage = readFileSync(
+		const transactionOutputPage = readFileSync(
 			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/+page.svelte'),
 			'utf8'
 		)
 		assert.match(
-			utxoOutputPage,
-			/select\(EntityType\.UtxoOutput, \{[\s\S]*?\$transaction: data\.selector,[\s\S]*?indexInTransaction: Number\(params\.outputIndex\),[\s\S]*?\}, \{/
+			transactionOutputPage,
+			/data\.entityType === EntityType\.CardanoTxOutput[\s\S]*?select\(EntityType\.CardanoTxOutput, data\.selector/
 		)
+		assert.match(
+			transactionOutputPage,
+			/: select\(EntityType\.UtxoOutput, data\.selector/
+		)
+		assert.match(transactionOutputPage, /\[EntityType\.UtxoOutput\]: UtxoOutputView/)
 
 		const activityPubActorLayout = readFileSync(
 			path.join(generatedOutputRoot, 'src/routes/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/+layout.ts'),
@@ -1969,13 +2456,13 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 			'utf8'
 		)
 		assert.match(activityPubParentLayout, /selection=\{select\(EntityType\._GlobalActivityPubNetwork, data\.selector, \{ sources: \[[\s\S]*?Source\.Constants_Internal,[\s\S]*?Source\.Mastodon_Rest,[\s\S]*?\] \}\)\}/)
-		assert.doesNotMatch(activityPubParentLayout, /data\.selectorMapping/)
+		assert.doesNotMatch(activityPubParentLayout, /data\.entityType|data\.selectorName/)
 
 		const proposalView = readFileSync(
 			path.join(generatedOutputRoot, 'src/views/SpecificationProposalView.svelte'),
 			'utf8'
 		)
-		assert.match(proposalView, /resolve\('\/proposals\/\[specificationRealmSlug=specificationRealmSlug\]\/\[proposalKindSlug=proposalKindSlug\]\/\[proposalRef=proposalRef\]'/)
+		assert.match(proposalView, /resolve\('\/proposals\/\[specificationRealmSlug=specificationRealmSlug\]\/\[proposalKindSlug=proposalKindSlug\]\/\[proposalRef=proposalRef\]', \{[\s\S]*?specificationRealmSlug: String\(specificationRealmById[\s\S]*?proposalKindSlug: String\(proposalCategoryById/)
 		assert.doesNotMatch(proposalView, /\/observations\//)
 		assert.doesNotMatch(proposalView, /pendingEntity\.category !== undefined && pendingEntity\.category !== undefined/)
 
@@ -1983,8 +2470,9 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 			path.join(generatedOutputRoot, 'src/views/EvmContractsView.svelte'),
 			'utf8'
 		)
-		assert.match(evmContractsView, /evmContractHrefFields\.\$network\.caip2 !== undefined[\s\S]*?network: String\(caip2StringFromValue\(evmContractHrefFields\.\$network\.caip2\) \?\? ''\)/)
-		assert.match(evmContractsView, /evmContractHrefFields\.\$network\.slug !== undefined[\s\S]*?network: String\(evmContractHrefFields\.\$network\.slug \?\? ''\)/)
+		assert.match(evmContractsView, /'\$network' in evmContract\[EntityMetaKey\.Selector\][\s\S]*?'caip2' in evmContract\[EntityMetaKey\.Selector\]\.\$network[\s\S]*?resolve\('\/network\/\[network=networkCaip2OrNetworkSlug\]\/contract\/\[address=evmAddress\]', \{[\s\S]*?network: String\(caip2StringFromValue\(evmContract\[EntityMetaKey\.Selector\]\.\$network\.caip2\) \?\? ''\)/)
+		assert.match(evmContractsView, /'\$network' in evmContract\[EntityMetaKey\.Selector\][\s\S]*?'slug' in evmContract\[EntityMetaKey\.Selector\]\.\$network[\s\S]*?resolve\('\/network\/\[network=networkCaip2OrNetworkSlug\]\/contract\/\[address=evmAddress\]', \{[\s\S]*?network: String\(evmContract\[EntityMetaKey\.Selector\]\.\$network\.slug \?\? ''\)/)
+		assert.doesNotMatch(evmContractsView, /evmContractHrefFields\.\$network\.(?:caip2|slug) !== undefined/)
 		const evmContractLayout = readFileSync(
 			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]/+layout.ts'),
 			'utf8'
@@ -2086,6 +2574,35 @@ test('compiles selector-owned IPFS and Swarm path variants without duplicate map
 	assert.equal(selectorMappingCount({ ipfs: ipfsRoutes }, EntityType.IpfsResource), 1)
 	assert.equal(selectorMappingCount({ swarm: swarmRoutes }, EntityType.SwarmResource), 1)
 
+	const numericMatcherStringTargetRoutes = structuredClone(swarmRoutes)
+	const numericMatcherStringTarget = numericMatcherStringTargetRoutes.children?.swarm
+		?.children?.['[reference]']
+		?.children?.path
+		?.children?.['[...contentPath]']
+	assert.ok(numericMatcherStringTarget?.selectorVariant)
+	numericMatcherStringTarget.params = {
+		contentPath: ['Eip155ChainId'],
+	}
+	numericMatcherStringTarget.selectorVariant.derivations = {
+		contentPath: {
+			kind: 'param',
+			name: 'contentPath',
+		},
+	}
+	const numericMatcherStringTargetPage = compileApp({
+		...app,
+		routes: {
+			children: {
+				'(swarm)': numericMatcherStringTargetRoutes,
+			},
+		},
+	}).generatedFiles.find((generatedFile) => generatedFile.path.endsWith(
+		'/path/[...contentPath=eip155ChainId]/+page.svelte'
+	))
+	assert.ok(numericMatcherStringTargetPage)
+	assert.match(renderGeneratedFile(numericMatcherStringTargetPage), /contentPath: params\.contentPath/)
+	assert.doesNotMatch(renderGeneratedFile(numericMatcherStringTargetPage), /contentPath: Number\(params\.contentPath\)/)
+
 	const ipfsNamespaceRoute = ipfsRoutes.children?.['[namespace]']
 	const ipfsTargetRoute = ipfsNamespaceRoute?.children?.['[target]']
 	const ipfsPathRoute = ipfsTargetRoute?.children?.path
@@ -2145,7 +2662,7 @@ test('compiles selector-owned IPFS and Swarm path variants without duplicate map
 
 test('keeps calldata navigation on the explicit decoder while Hex remains owned by [hex]', () => {
 	const evmRoutes = app.routes.children['(explore)']?.children?.['(protocols)']?.children?.evm
-	const calldataRoute = evmRoutes?.children?.calldata
+	const calldataRoute = evmRoutes?.children?.['(calldata)']?.children?.calldata
 	const calldataNavigation = app.navigation.items
 		.flatMap((item) => [item, ...(item.children ?? [])])
 		.flatMap((item) => [item, ...(item.children ?? [])])
@@ -2178,14 +2695,15 @@ test('derives reusable entity hrefs from selector detail pages without empty hre
 	const renderedYoutubeVideosView = renderGeneratedFile(youtubeVideosView)
 	assert.match(
 		renderGeneratedFile(youtubeVideoView),
-		/resolve\('\/youtube\/video\/\[videoId=stringSegment\]'[\s\S]*?videoId: encodeURIComponent\(String\(pendingEntity\.videoId \?\? ''\)\)/
+		/resolve\('\/youtube\/video\/\[videoId=stringSegment\]', \{[\s\S]*?videoId: encodeURIComponent\(String\(selection\.entitySelector\.videoId \?\? ''\)\)/
 	)
 	assert.match(
 		renderedYoutubeVideosView,
-		/resolve\('\/youtube\/video\/\[videoId=stringSegment\]'[\s\S]*?videoId: encodeURIComponent\(String\(youtubeVideoHrefFields\.videoId \?\? ''\)\)/
+		/resolve\('\/youtube\/video\/\[videoId=stringSegment\]', \{[\s\S]*?videoId: encodeURIComponent\(String\(youtubeVideo\[EntityMetaKey\.Selector\]\.videoId \?\? ''\)\)/
 	)
-	assert.match(renderedYoutubeVideosView, /const collectionSelection = \$derived\(selection\)/)
-	assert.match(renderedYoutubeVideosView, /sources: collectionSelection\.sources/)
+	assert.match(renderGeneratedFile(youtubeVideoView), /prefetched\?: RegisteredEntityProxyPrefetchedData<EntityType\.YoutubeVideo>/)
+	assert.doesNotMatch(renderedYoutubeVideosView, /collectionSelection/)
+	assert.match(renderedYoutubeVideosView, /sources: selection\.sources/)
 })
 
 test('derives inverse ancestor and local href parameters from normalized selector mappings', () => {
@@ -2198,7 +2716,7 @@ test('derives inverse ancestor and local href parameters from normalized selecto
 	assert.ok(evmContractsView)
 	const renderedEvmContractsView = renderGeneratedFile(evmContractsView)
 
-	assert.match(renderedEvmContractsView, /resolve\('\/network\/\[network=networkCaip2OrNetworkSlug\]\/contract\/\[address=evmAddress\]'/)
+	assert.match(renderedEvmContractsView, /resolve\('\/\(explore\)\/\(networks\)\/network\/\[network=networkCaip2OrNetworkSlug\]\/\(network\)\/\(contracts\)\/contract\/\[address=evmAddress\]'/)
 	assert.match(renderedEvmContractsView, /network: String\(caip2StringFromValue\(evmContractHrefFields\.\$network\.caip2\) \?\? ''\)/)
 	assert.match(renderedEvmContractsView, /address: String\(evmContractHrefFields\.address \?\? ''\)/)
 })
@@ -2827,20 +3345,22 @@ test('loads sibling facet row fields only after eligibility without per-field re
 	assert.match(singularView, /projection\.symbol\(\{[\s\S]*?Source\.Blockscout_Rest/)
 	assert.match(pluralView, /NativeCurrency: \{[\s\S]*?symbol: true,[\s\S]*?name: true/)
 	assert.match(pluralView, /Erc20Token: \{[\s\S]*?symbol: true,[\s\S]*?name: true/)
-	assert.match(singularView, /pendingEntity\.NativeCurrency\?\.fields\.symbol/)
-	assert.match(singularView, /pendingEntity\.Erc20Token\?\.fields\.symbol/)
+	assert.doesNotMatch(singularView, /pendingEntity\.(?:NativeCurrency|Erc20Token)/)
 	assert.match(singularView, /\{#snippet Title\(\)\}[\s\S]*?resource=\{selection\.NativeCurrency\}[\s\S]*?projection\.symbol/)
 	assert.match(singularView, /\{#snippet Title\(\)\}[\s\S]*?resource=\{selection\.Erc20Token\}[\s\S]*?projection\.symbol/)
-	assert.match(singularView, /resource=\{selection\.NativeCurrency\}[\s\S]*?projection\.NativeCurrency\.\$icon/)
-	assert.match(singularView, /resource=\{selection\.Erc20Token\}[\s\S]*?projection\.Erc20Token\.\$icon/)
+	assert.match(singularView, /resource=\{selection\.NativeCurrency\}[\s\S]*?projection\.\$icon/)
+	assert.match(singularView, /resource=\{selection\.Erc20Token\}[\s\S]*?projection\.\$icon/)
 	assert.match(singularView, /resource=\{selection\.NativeCurrency\}[\s\S]*?projection\.\$\$marketsWithInstanceAsBase/)
 	assert.match(singularView, /resource=\{selection\.Erc20Token\}[\s\S]*?projection\.\$\$marketsWithInstanceAsBase/)
+	assert.match(singularView, /resource=\{selection\.Erc20Token\}[\s\S]*?projection\.\$\$outboundBridgeCapabilities\(/)
+	assert.doesNotMatch(singularView, /\{@const [^=\n]*\.[^=\n]* =/)
 	assert.doesNotMatch(rootResource, /NativeCurrency|Erc20Token|Blockscout_Rest|Constants_Internal|symbol|name/)
 })
 
-test('keeps Network base sources selector-neutral and protocol sources facet-scoped', () => {
+test('defaults Network base sources without widening protocol facet sources', () => {
 	const compiled = baselineCompiledApp
 	const generatedFile = compiled.generatedFiles.find((file) => file.path === 'src/views/NetworkView.svelte')
+	const baseSourceExpressionPattern = 'selection\\.sources \\?\\? \\[\\s*Source\\.Constants_Internal,?\\s*\\]'
 
 	assert.ok(generatedFile)
 	for (const path of [
@@ -2856,7 +3376,7 @@ test('keeps Network base sources selector-neutral and protocol sources facet-sco
 		)
 		assert.doesNotMatch(
 			generatedRouteProduct,
-			/select\(data\.selectorMapping\.entityType, data\.selectorMapping\.selector\)/
+			/select\(data\.entityType, data\.selector\)/
 		)
 		assert.doesNotMatch(
 			generatedRouteProduct,
@@ -2874,7 +3394,7 @@ test('keeps Network base sources selector-neutral and protocol sources facet-sco
 	)
 	const cosmosProjection = generatedView.slice(generatedView.indexOf('resource={selection.Cosmos}'))
 
-	assert.match(rootResource, /sources: selection\.sources/)
+	assert.match(rootResource, new RegExp(`sources: ${baseSourceExpressionPattern}`))
 	assert.doesNotMatch(
 		rootResource,
 		/Source\.(?:Chainlist_Rest|CosmosChainRegistry_Github|EthereumLists_Rest|Superchain_Github)/
@@ -2886,17 +3406,17 @@ test('keeps Network base sources selector-neutral and protocol sources facet-sco
 	] as const)
 		assert.equal(
 			[...generatedView.matchAll(new RegExp(`<dt>${label}</dt>[\\s\\S]{0,900}`, 'g'))].some(([markup]) => (
-				new RegExp(`selection\\(\\{\\s*sources: selection\\.sources,\\s*fields: \\{\\s*${field}: true,`).test(markup)
+				new RegExp(`selection\\(\\{\\s*sources: ${baseSourceExpressionPattern},\\s*fields: \\{\\s*${field}: true,`).test(markup)
 			)),
 			true,
-			`${field} must inherit the Network view source selection`
+			`${field} must preserve an explicit source selection and default to the Network view source`
 		)
 	const namespaceQueries = [...generatedView.matchAll(/namespace: true,/g)].map((match) => (
 		generatedView.slice(Math.max(0, match.index - 300), match.index + match[0].length)
 	))
 	assert.equal(namespaceQueries.length, 2)
 	for (const namespaceQuery of namespaceQueries) {
-		assert.match(namespaceQuery, /sources: selection\.sources/)
+		assert.match(namespaceQuery, new RegExp(`sources: ${baseSourceExpressionPattern}`))
 		assert.doesNotMatch(namespaceQuery, /Source\.(?:Chainlist_Rest|CosmosChainRegistry_Github|EthereumLists_Rest|Superchain_Github)/)
 	}
 	const utxoTransactions = generatedView.slice(
@@ -2956,12 +3476,12 @@ test('keeps audited source truth mutation-complete', () => {
 		if (family === 'Cosmos')
 			return [
 				[EntityType.CosmosAccount, '$$timestamps'],
+				[EntityType.CosmosAccount, '$$transactions'],
 				[EntityType.CosmosValidator, '$$timestamps'],
 				[EntityType.CosmosGovernanceProposal, '$$timestamps'],
 				[EntityType.CosmosTransaction, '$$messages'],
 			].flatMap(([entityType, fieldName]) => field(entityType as EntityType, fieldName as string)?.defaultSources?.includes(Source.CosmosSdk_Rest) ? [] : [`${entityType}.${fieldName}`]).concat(
-				field(EntityType.CosmosAccount, '$$transactions') == null && field(EntityType.CosmosBlock, '$$transactions') == null
-					&& !renderedEntity(EntityType.CosmosAccount).includes('CosmosTransactionsView')
+				field(EntityType.CosmosBlock, '$$transactions') == null
 					&& !renderedEntity(EntityType.CosmosBlock).includes('CosmosTransactionsView') ? [] : ['unsupported Cosmos transactions']
 			)
 		if (family === 'Polkadot')
@@ -3003,10 +3523,26 @@ test('keeps audited source truth mutation-complete', () => {
 				) ? [] : [`${entityType} live summary sources`]
 			})
 
-		return field(EntityType.CardanoGovernanceProposal, '$$timestamps')?.defaultSources?.includes(Source.Blockfrost_Rest)
+		return (
+			[
+				'proposalKind',
+				'$transaction',
+				'depositLovelace',
+				'returnAddress',
+				'anchorUrl',
+				'anchorHash',
+				'proposalPayload',
+			].every((fieldName) => JSON.stringify(field(EntityType.CardanoGovernanceProposal, fieldName)?.defaultSources) === JSON.stringify([Source.CardanoKoios_Rest]))
+			&& [
+				'governanceActionId',
+				'$$timestamps',
+				'$$votes',
+			].every((fieldName) => JSON.stringify(field(EntityType.CardanoGovernanceProposal, fieldName)?.defaultSources) === JSON.stringify([Source.Blockfrost_Rest]))
+			&& entity(EntityType.CardanoGovernanceProposal).views.singular?.query?.sources == null
 			&& field(EntityType.CardanoGovernanceProposal_Timestamp, 'expirationEpoch') != null
 			&& field(EntityType.CardanoCommittee_Epoch, '$seatingProposal')?.defaultSources?.includes(Source.Blockfrost_Rest)
-			&& field(EntityType.CardanoCommittee_Epoch, 'dissolved')?.defaultSources?.includes(Source.Blockfrost_Rest) ? [] : ['Cardano lifecycle/committee source truth']
+			&& field(EntityType.CardanoCommittee_Epoch, 'dissolved')?.defaultSources?.includes(Source.Blockfrost_Rest)
+		) ? [] : ['Cardano lifecycle/committee source truth']
 	}
 
 	for (const [family, mutate] of [
@@ -3092,6 +3628,55 @@ test('keeps audited source truth mutation-complete', () => {
 	}
 })
 
+test('keeps Cardano list identity source authority mutation-complete', () => {
+	for (const [entityType, facetName, fieldName, expectedSources] of [
+		[EntityType.Network, 'Cardano', '$$stakePools', [Source.CardanoKoios_Rest]],
+		[EntityType.Network, 'Cardano', '$$dReps', [Source.CardanoKoios_Rest]],
+		[EntityType.CardanoStakePool, undefined, 'ticker', [Source.CardanoKoios_Rest, Source.Blockfrost_Rest]],
+		[EntityType.CardanoDRep, undefined, 'displayName', [Source.Blockfrost_Rest]],
+	] as const) {
+		const assertSources = (candidateApp: typeof app, sources: readonly Source[]) => {
+			const entity = candidateApp.schema.entities.find((candidate) => candidate.entityType === entityType)
+			assert.ok(entity)
+			const field = (
+				facetName == null ? entity.fields : entity.facets.find((facet) => facet.name === facetName)?.fields
+			)?.find((candidate) => candidate.name === fieldName)
+			assert.ok(field)
+			assert.deepEqual(field.defaultSources, sources)
+			return field
+		}
+
+		assertSources(app, expectedSources)
+		const mutatedApp = structuredClone(app)
+		assertSources(mutatedApp, expectedSources).defaultSources = [Source.Constants_Internal]
+		assert.throws(() => assertSources(mutatedApp, expectedSources))
+	}
+})
+
+test('keeps Farcaster relationship source applicability mutation-complete', () => {
+	for (const [entityType, fieldName, expectedSources] of [
+		[EntityType.FarcasterCast, '$$directReplies', [Source.Neynar_Rest, Source.Farcaster_Rest]],
+		[EntityType.FarcasterChannel, '$$casts', [Source.Neynar_Rest, Source.Snapchain_Rest]],
+		[EntityType.FarcasterFeed, '$$entries', [Source.Neynar_Rest, Source.Snapchain_Rest]],
+		[EntityType.FarcasterNetwork, '$$channels', [Source.Farcaster_Rest]],
+		[EntityType.FarcasterUser, '$$casts', [Source.Neynar_Rest, Source.Snapchain_Rest]],
+	] as const) {
+		const assertSources = (candidateApp: typeof app, sources: readonly Source[]) => {
+			const entity = candidateApp.schema.entities.find((candidate) => candidate.entityType === entityType)
+			assert.ok(entity)
+			const field = entity.fields.find((candidate) => candidate.name === fieldName)
+			assert.ok(field)
+			assert.deepEqual(field.defaultSources, sources)
+			return field
+		}
+
+		assertSources(app, expectedSources)
+		const mutatedApp = structuredClone(app)
+		assertSources(mutatedApp, expectedSources).defaultSources = [Source.Constants_Internal]
+		assert.throws(() => assertSources(mutatedApp, expectedSources))
+	}
+})
+
 test('keeps plural rows on their caller source selection and detail fields on their owning source selection', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const farcasterCast = app.schema.entities.find((entity) => entity.entityType === EntityType.FarcasterCast)
@@ -3103,11 +3688,44 @@ test('keeps plural rows on their caller source selection and detail fields on th
 	assert.ok(castFile)
 	const castsView = renderGeneratedFile(castsFile)
 	const castView = renderGeneratedFile(castFile)
+	assert.match(castView, /selection\.\$\$directReplies\(\{[\s\S]*?Source\.Neynar_Rest,[\s\S]*?Source\.Farcaster_Rest/)
+	const userViewFile = generatedFiles.find((file) => file.path === 'src/views/FarcasterUserView.svelte')
+	assert.ok(userViewFile)
+	assert.match(
+		renderGeneratedFile(userViewFile),
+		/resolve\('\/farcaster\/user\/\[userId=farcasterFid\]\/casts',[\s\S]*?userId: String\(selection\.entitySelector\.fid \?\? ''\)/
+	)
+	const redditLinkTimestampViewFile = generatedFiles.find((file) => file.path === 'src/views/RedditLink_TimestampView.svelte')
+	assert.ok(redditLinkTimestampViewFile)
+	const redditLinkTimestampView = renderGeneratedFile(redditLinkTimestampViewFile)
+	assert.match(
+		redditLinkTimestampView,
+		/fullname: encodeURIComponent\(String\(pendingEntity\.\$link\.fullname \?\? ''\)\)/
+	)
+	assert.doesNotMatch(redditLinkTimestampView, /String\(pendingEntity\.\$link \?\? ''\)\.fullname/)
+	assert.match(castView, /FarcasterCastsView/)
+	assert.doesNotMatch(castView, /\/farcaster\/feed\/trending/)
 	assert.match(
 		castsView,
 		/selection\(\{\s*sources: selection\.sources,\s*fields: \{[\s\S]*?text: true,[\s\S]*?timestamp: true,[\s\S]*?username: true,/
 	)
 	assert.doesNotMatch(castsView, /sources: \[\s*Source\.Snapchain_Rest/)
+	const nostrNotesFile = generatedFiles.find((file) => file.path === 'src/views/NostrNotesView.svelte')
+	assert.ok(nostrNotesFile)
+	const nostrNotesView = renderGeneratedFile(nostrNotesFile)
+	assert.match(
+		nostrNotesView,
+		/sources: selection\.sources/
+	)
+	assert.doesNotMatch(
+		nostrNotesView,
+		/sources: \[\s*Source\.Constants_Internal,?\s*\]/
+	)
+	const redditCommentsFile = generatedFiles.find((file) => file.path === 'src/views/RedditCommentsView.svelte')
+	assert.ok(redditCommentsFile)
+	const redditCommentsView = renderGeneratedFile(redditCommentsFile)
+	assert.match(redditCommentsView, /sources: selection\.sources \?\? \[\s*Source\.Reddit_PublicJson,/)
+	assert.doesNotMatch(redditCommentsView, /Source\.Constants_Internal/)
 	for (const field of ['text', 'timestamp']) {
 		const detailQueries = [...castView.matchAll(new RegExp(`${field}: true,`, 'g'))].map((match) => (
 			castView.slice(Math.max(0, match.index - 300), match.index + match[0].length)
@@ -3138,8 +3756,7 @@ test('keeps plural rows on their caller source selection and detail fields on th
 	}).generatedFiles.find((file) => file.path === 'src/views/FarcasterCastsView.svelte')
 	assert.ok(explicitPluralSources)
 	const explicitPluralSourcesView = renderGeneratedFile(explicitPluralSources)
-	assert.match(explicitPluralSourcesView, /sources: \[\s*Source\.Neynar_Rest,?\s*\]/)
-	assert.doesNotMatch(explicitPluralSourcesView, /sources: selection\.sources/)
+	assert.match(explicitPluralSourcesView, /sources: selection\.sources \?\? \[\s*Source\.Neynar_Rest,?\s*\]/)
 })
 
 test('keeps YouTube hierarchy, observation provenance, and bounded discovery truthful', () => {
@@ -3212,14 +3829,15 @@ test('preserves facet syntax and paths and unwraps primitive-list resources', ()
 			networkView,
 			/selection\.Evm\.consensusEndpoints\(\{[\s\S]*?fields:\s*\{\s*Evm:/
 		)
-		assert.match(networkView, /\{#snippet children\(consensusEndpoints\)\}/)
+		assert.match(networkView, /\{#snippet Resolved\(consensusEndpointsField\)\}[\s\S]*?\{#each consensusEndpointsField\.values as consensusEndpoint/)
 		assert.doesNotMatch(networkView, /entity\.consensusEndpoints(?:\.values)?/)
 
 		const networkBlocksPage = readFileSync(path.join(
 			generatedOutputRoot,
 			'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/blocks/+page.svelte'
 		), 'utf8')
-		assert.match(networkBlocksPage, /projection\.\$\$blocks\(\{[\s\S]+?count: true,/)
+		assert.match(networkBlocksPage, /resource=\{select\(EntityType\.Network, data\.selector\)\.Evm\}[\s\S]+?selection=\{[\s\S]+?projection\.\$\$blocks\(\{/)
+		assert.doesNotMatch(networkBlocksPage, /countResource=|count:\s*true/)
 
 		const evmTransactionSchema = readFileSync(path.join(generatedOutputRoot, 'src/schema/EvmTransaction.ts'), 'utf8')
 		assert.match(evmTransactionSchema, /FeeMarket: facet\([\s\S]+?\}\),\n\s+Blob: facet/)
@@ -3249,7 +3867,7 @@ test('preserves facet syntax and paths and unwraps primitive-list resources', ()
 		assert.match(evmTokenTransfersView, /resource=\{selection\.Nft\}/)
 
 		const evmLogView = readFileSync(path.join(generatedOutputRoot, 'src/views/EvmLogView.svelte'), 'utf8')
-			assert.match(evmLogView, /resource=\{selection\.Event\.TokenTransfer\}[\s\S]+?projection\.\$\$tokenTransfers\(\{[\s\S]+?count: true,/)
+			assert.match(evmLogView, /resource=\{selection\.Event\.TokenTransfer\}[\s\S]+?countResource=\{projection\.\$\$tokenTransfers\.count\}/)
 			assert.doesNotMatch(evmLogView, /projection\.Event\.TokenTransfer\.\$\$tokenTransfers/)
 
 		const networkTimestampView = readFileSync(path.join(generatedOutputRoot, 'src/views/Network_TimestampView.svelte'), 'utf8')
@@ -3281,6 +3899,26 @@ test('guards generated entity references when field resources complete without a
 			farcasterVerifiedAddressView,
 			/\{#snippet children\(evmAccount\)\}\s+\{#if evmAccount != null && evmAccount\[EntityMetaKey\.Selector\] != null\}/
 		)
+
+		const blockheadWalletConnectionView = readFileSync(
+			path.join(generatedOutputRoot, 'src/views/BlockheadWalletConnectionView.svelte'),
+			'utf8'
+		)
+		assert.match(
+			blockheadWalletConnectionView,
+			/<BlockheadWalletView[\s\S]+?href=""[\s\S]+?layout=\{EntityLayout\.Title\}/,
+			'relationship summaries inside the parent entity link must not emit a nested link'
+		)
+
+		for (const [generatedPath, childEntityType] of [
+			['src/views/NostrArticleEventView.svelte', 'NostrProfile'],
+			['src/views/NostrProfileMetadataEventView.svelte', 'NostrProfile'],
+		] as const)
+			assert.match(
+				readFileSync(path.join(generatedOutputRoot, generatedPath), 'utf8'),
+				new RegExp(`selection=\\{select\\(EntityType\\.${childEntityType}, [^\\n]+, \\{ sources: selection\\.sources \\}\\)\\}`),
+				`${generatedPath} must preserve parent source intent for nested entity views`
+			)
 	} finally {
 		removeFreshRoot(generatedOutputRoot)
 	}

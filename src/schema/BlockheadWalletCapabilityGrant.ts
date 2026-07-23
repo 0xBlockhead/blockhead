@@ -30,7 +30,7 @@ export const BlockheadWalletCapabilityGrant = entity({
 	$account: {
 		label: 'account',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.BlockheadWalletAccount,
+		entityType: EntityType.Account,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	authorizationKind: {

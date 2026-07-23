@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Liquidity pool observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LiquidityPool_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LiquidityPool_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LiquidityPool_TimestampView from '$/views/LiquidityPool_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -84,6 +77,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(liquidityPoolTimestamps) => [...new Map(liquidityPoolTimestamps.values.map((liquidityPoolTimestamp) => [liquidityPoolTimestamp[EntityMetaKey.SelectorKey], liquidityPoolTimestamp])).values()]}
 	getKey={(liquidityPoolTimestamp) => liquidityPoolTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -98,21 +92,47 @@
 
 	{#snippet Item({ item: liquidityPoolTimestamp })}
 		{@const liquidityPoolTimestampFields = { ...liquidityPoolTimestamp[EntityMetaKey.Selector], ...liquidityPoolTimestamp }}
-		{@const selection = select(EntityType.LiquidityPool_Timestamp, liquidityPoolTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const liquidityPoolTimestampHrefFields = { ...liquidityPoolTimestamp, ...liquidityPoolTimestamp[EntityMetaKey.Selector] }}
-		<LiquidityPool_TimestampView
-			selection={selection}
-			prefetched={liquidityPoolTimestampFields}
+		<EntityView
+			entityType={EntityType.LiquidityPool_Timestamp}
+			entitySelector={liquidityPoolTimestamp[EntityMetaKey.Selector]}
 			href={
-				(liquidityPoolTimestampHrefFields.timestampMs !== undefined && liquidityPoolTimestampHrefFields.feedKey !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.$network !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.$network.caip2 !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.$network.caip2.reference !== undefined && liquidityPoolTimestampHrefFields.$liquidityPool.id !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
-					timestampMs: String(liquidityPoolTimestampHrefFields.timestampMs ?? ''),
-					feedKey: encodeURIComponent(String(liquidityPoolTimestampHrefFields.feedKey ?? '')),
-					chainId: String(liquidityPoolTimestampHrefFields.$liquidityPool.$network.caip2.reference ?? ''),
-					poolId: String(liquidityPoolTimestampHrefFields.$liquidityPool.id ?? ''),
-				}) : undefined)
+				(
+					liquidityPoolTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in liquidityPoolTimestamp[EntityMetaKey.Selector]
+					&& liquidityPoolTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& liquidityPoolTimestamp[EntityMetaKey.Selector] != null && 'feedKey' in liquidityPoolTimestamp[EntityMetaKey.Selector]
+					&& liquidityPoolTimestamp[EntityMetaKey.Selector].feedKey != null
+					&& liquidityPoolTimestamp[EntityMetaKey.Selector] != null && '$liquidityPool' in liquidityPoolTimestamp[EntityMetaKey.Selector]
+					&& liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool != null && '$network' in liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool
+					&& liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool.$network != null && 'caip2' in liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool.$network
+					&& liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool.$network.caip2 != null && 'reference' in liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool.$network.caip2
+					&& liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool.$network.caip2.reference != null
+					&& liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool != null && 'id' in liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool
+					&& liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool.id != null ?
+						resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
+					timestampMs: String(liquidityPoolTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					feedKey: encodeURIComponent(String(liquidityPoolTimestamp[EntityMetaKey.Selector].feedKey ?? '')),
+					chainId: String(liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool.$network.caip2.reference ?? ''),
+					poolId: String(liquidityPoolTimestamp[EntityMetaKey.Selector].$liquidityPool.id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((liquidityPoolTimestampFields.baseTokenSymbol) ?? ''), String((liquidityPoolTimestampFields.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((liquidityPoolTimestampFields.priceUsd) ?? ''), String((liquidityPoolTimestampFields.liquidityUsd) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((liquidityPoolTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

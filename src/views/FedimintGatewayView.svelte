@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -22,7 +23,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FedimintGateway>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FedimintGateway>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FedimintGateway>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -36,14 +37,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const fedimintGateway = $derived(selection({
+	const fedimintGateway = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			apiUrl: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			apiUrl: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || 'Fedimint gateway')
-	const viewDomId = $derived('fedimint-gateway-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('fedimint-gateway-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,7 +71,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'apiUrl')}
 			{[String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={fedimintGateway}>
@@ -78,7 +84,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'apiUrl')}
 			{[String((pendingEntity.apiUrl) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={fedimintGateway}>
@@ -174,28 +180,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<FedimintGateway_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='FedimintGateway_TimestampsView-timestamps'
-			/>
-
-			<FedimintFederationsView
-				selection={
-						selection.$$federations({
-							count: true,
-						})
-					}
-				title='federations'
-				emptyText='No federations found.'
-				id='FedimintFederationsView-federations'
-			/>
-		{/if}
+		{@const fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<FedimintGateway_TimestampsView
+					selection={fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource}
+					countResource={fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='FedimintGateway_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const fedimintGatewayFedimintFederationsViewFederationsResource = selection.$$federations}
+		<ResourceBoundary
+			resource={fedimintGatewayFedimintFederationsViewFederationsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<FedimintFederationsView
+					selection={fedimintGatewayFedimintFederationsViewFederationsResource}
+					countResource={fedimintGatewayFedimintFederationsViewFederationsResource.count}
+					title='federations'
+					id='FedimintFederationsView-federations'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

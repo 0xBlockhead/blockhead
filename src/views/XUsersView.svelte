@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'X users',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.XUser>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.XUser>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import XUserView from '$/views/XUserView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(xUsers) => [...new Map(xUsers.values.map((xUser) => [xUser[EntityMetaKey.SelectorKey], xUser])).values()]}
 	getKey={(xUser) => xUser[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,18 +90,35 @@
 
 	{#snippet Item({ item: xUser })}
 		{@const xUserFields = { ...xUser[EntityMetaKey.Selector], ...xUser }}
-		{@const selection = select(EntityType.XUser, xUser[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const xUserHrefFields = { ...xUser, ...xUser[EntityMetaKey.Selector] }}
-		<XUserView
-			selection={selection}
-			prefetched={xUserFields}
+		<EntityView
+			entityType={EntityType.XUser}
+			entitySelector={xUser[EntityMetaKey.Selector]}
 			href={
-				(xUserHrefFields.id !== undefined ? resolve('/x/user/[userId=stringSegment]', {
-					userId: String(xUserHrefFields.id ?? ''),
-				}) : undefined)
+				(
+					xUser[EntityMetaKey.Selector] != null && 'id' in xUser[EntityMetaKey.Selector]
+					&& xUser[EntityMetaKey.Selector].id != null ?
+						resolve('/x/user/[userId=stringSegment]', {
+					userId: String(xUser[EntityMetaKey.Selector].id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((xUserFields.name) ?? ''), String((xUserFields.username) ?? ''), String((xUserFields.id) ?? '')].filter(Boolean).join(' ') || 'X user'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[(String((xUserFields.username) ?? '') ? '@' + String((xUserFields.username) ?? '') : ''), String((xUserFields.id) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((xUserFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

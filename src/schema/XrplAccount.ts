@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum XrplAccountSelector {
@@ -32,24 +33,36 @@ export const XrplAccount = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.XrplLedgerEntry,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+		],
 	},
 	$$transactions: {
 		label: 'transactions',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.XrplTransaction,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+		],
 	},
 	$$trustlines: {
 		label: 'trustlines',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.XrplTrustline,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+		],
 	},
 	$$timestamps: {
 		label: 'timestamps',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.XrplAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+		],
 	},
 })({
 	selectors: {

@@ -12,7 +12,7 @@ import type {
 export const jsonRpc2 = async <_Result>(
 	binding: SourceBinding,
 	method: string,
-	params?: readonly unknown[]
+	params?: readonly unknown[] | Readonly<Record<string, unknown>>
 ): Promise<_Result> => {
 	const body = {
 		jsonrpc: '2.0',

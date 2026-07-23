@@ -16,6 +16,7 @@ const loadingSnapshot = {
 	isError: false,
 	isReady: false,
 	status: 'loading',
+	[Symbol.toStringTag]: undefined,
 } satisfies TanStackLiveQuerySnapshot<string | undefined>
 
 const readySnapshot = (
@@ -40,14 +41,18 @@ const errorSnapshot = (
 }) satisfies TanStackLiveQuerySnapshot<string>
 
 const createFixture = (
-	initialSnapshot: TanStackLiveQuerySnapshot<string> = loadingSnapshot,
+	initialSnapshot: TanStackLiveQuerySnapshot<string | undefined> = loadingSnapshot,
 	initialize: () => Promise<void> = () => Promise.resolve()
 ) => {
 	let snapshot = initialSnapshot
+	let queryCount = 0
 	let sourceSubscriptionCount = 0
 	const listeners = new Set<() => void>()
-	const resource = new TanStackLiveQueryResource(
-		() => snapshot,
+	const resource = new TanStackLiveQueryResource<string | undefined>(
+		() => {
+			queryCount += 1
+			return snapshot
+		},
 		(update) => {
 			sourceSubscriptionCount += 1
 			listeners.add(update)
@@ -61,10 +66,13 @@ const createFixture = (
 
 	return {
 		resource,
+		get queryCount() {
+			return queryCount
+		},
 		get sourceSubscriptionCount() {
 			return sourceSubscriptionCount
 		},
-		setSnapshot(nextSnapshot: TanStackLiveQuerySnapshot<string>) {
+		setSnapshot(nextSnapshot: TanStackLiveQuerySnapshot<string | undefined>) {
 			snapshot = nextSnapshot
 			for (const listener of listeners)
 				listener()
@@ -102,6 +110,19 @@ describe('TanStackLiveQueryResource', () => {
 		expect(fixture.resource.loading).toBe(false)
 		expect(fixture.resource.ready).toBe(true)
 		expect(fixture.resource.error).toBeUndefined()
+	})
+
+	it('does not reapply a snapshot from promise callbacks', async () => {
+		const fixture = createFixture(readySnapshot('ready'))
+
+		await expect(Promise.all([
+			fixture.resource.then((value) => value),
+			fixture.resource.then((value) => value),
+		])).resolves.toEqual([
+			'ready',
+			'ready',
+		])
+		expect(fixture.queryCount).toBe(1)
 	})
 
 	it('keeps the last ready value during refresh loading', async () => {
@@ -184,6 +205,7 @@ describe('TanStackLiveQueryResource', () => {
 		await expect(failed).resolves.toBe('failure')
 
 		fixture.setSnapshot(loadingSnapshot)
+		expect(fixture.resource.loading).toBe(true)
 		const recovered = fixture.resource.then((value) => value)
 		fixture.setSnapshot(readySnapshot('recovered'))
 		await expect(recovered).resolves.toBe('recovered')

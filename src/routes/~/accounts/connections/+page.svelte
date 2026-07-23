@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$blockheadWalletConnections',
-			}).$$blockheadWalletConnections({
-				sources: [
-					Source.Local_Internal,
-				],
-				count: true,
 			})
+				.$$blockheadWalletConnections({
+					sources: [
+						Source.Local_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$blockheadWalletConnections',
+			})
+				.$$blockheadWalletConnections({
+					sources: [
+						Source.Local_Internal,
+					],
+				}).count
 		}
 		id='blockhead-wallet-connections'
 		data-column-item="flexible"

@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EVM network observations',
 		typeAnnotationParagraphs = ['A point-in-time observation of an EVM-compatible network.'],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmNetwork_TimestampView from '$/views/EvmNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmNetworkTimestamps) => [...new Map(evmNetworkTimestamps.values.map((evmNetworkTimestamp) => [evmNetworkTimestamp[EntityMetaKey.SelectorKey], evmNetworkTimestamp])).values()]}
 	getKey={(evmNetworkTimestamp) => evmNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,24 +90,52 @@
 
 	{#snippet Item({ item: evmNetworkTimestamp })}
 		{@const evmNetworkTimestampFields = { ...evmNetworkTimestamp[EntityMetaKey.Selector], ...evmNetworkTimestamp }}
-		{@const selection = select(EntityType.EvmNetwork_Timestamp, evmNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmNetworkTimestampHrefFields = { ...evmNetworkTimestamp, ...evmNetworkTimestamp[EntityMetaKey.Selector] }}
-		<EvmNetwork_TimestampView
-			selection={selection}
-			prefetched={evmNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType.EvmNetwork_Timestamp}
+			entitySelector={evmNetworkTimestamp[EntityMetaKey.Selector]}
 			href={
-				(evmNetworkTimestampHrefFields.timestampMs !== undefined && evmNetworkTimestampHrefFields.source !== undefined && evmNetworkTimestampHrefFields.$network !== undefined && evmNetworkTimestampHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(evmNetworkTimestampHrefFields.timestampMs ?? ''),
-					source: String(evmNetworkTimestampHrefFields.source ?? ''),
-					network: String(caip2StringFromValue(evmNetworkTimestampHrefFields.$network.caip2) ?? ''),
-				}) : evmNetworkTimestampHrefFields.timestampMs !== undefined && evmNetworkTimestampHrefFields.source !== undefined && evmNetworkTimestampHrefFields.$network !== undefined && evmNetworkTimestampHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(evmNetworkTimestampHrefFields.timestampMs ?? ''),
-					source: String(evmNetworkTimestampHrefFields.source ?? ''),
-					network: String(evmNetworkTimestampHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					evmNetworkTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in evmNetworkTimestamp[EntityMetaKey.Selector]
+					&& evmNetworkTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& evmNetworkTimestamp[EntityMetaKey.Selector] != null && 'source' in evmNetworkTimestamp[EntityMetaKey.Selector]
+					&& evmNetworkTimestamp[EntityMetaKey.Selector].source != null
+					&& evmNetworkTimestamp[EntityMetaKey.Selector] != null && '$network' in evmNetworkTimestamp[EntityMetaKey.Selector] ?
+						evmNetworkTimestamp[EntityMetaKey.Selector].$network != null && 'caip2' in evmNetworkTimestamp[EntityMetaKey.Selector].$network
+						&& evmNetworkTimestamp[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+						timestampMs: String(evmNetworkTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+						source: String(evmNetworkTimestamp[EntityMetaKey.Selector].source ?? ''),
+						network: String(caip2StringFromValue(evmNetworkTimestamp[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							evmNetworkTimestamp[EntityMetaKey.Selector].$network != null && 'slug' in evmNetworkTimestamp[EntityMetaKey.Selector].$network
+							&& evmNetworkTimestamp[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+							timestampMs: String(evmNetworkTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+							source: String(evmNetworkTimestamp[EntityMetaKey.Selector].source ?? ''),
+							network: String(evmNetworkTimestamp[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[(String((evmNetworkTimestampFields.blockHeight) ?? '') ? 'Block ' + String((evmNetworkTimestampFields.blockHeight) ?? '') : ''), String((evmNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((evmNetworkTimestampFields.blockHeight) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((evmNetworkTimestampFields.$network.name) ?? '')].filter(Boolean).join(' ') || [evmNetworkTimestampFields.$network.caip2 == null ? '' : String(`${(evmNetworkTimestampFields.$network.caip2).namespace}:${(evmNetworkTimestampFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,9 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,13 +13,12 @@
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Filecoin actors',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -30,7 +30,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FilecoinActor>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FilecoinActor>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -40,20 +41,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FilecoinActorView from '$/views/FilecoinActorView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,7 +67,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.Lotus_JsonRpc,
 			],
 			fields: {
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(filecoinActors) => [...new Map(filecoinActors.values.map((filecoinActor) => [filecoinActor[EntityMetaKey.SelectorKey], filecoinActor])).values()]}
 	getKey={(filecoinActor) => filecoinActor[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,22 +91,40 @@
 
 	{#snippet Item({ item: filecoinActor })}
 		{@const filecoinActorFields = { ...filecoinActor[EntityMetaKey.Selector], ...filecoinActor }}
-		{@const selection = select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const filecoinActorHrefFields = { ...filecoinActor, ...filecoinActor[EntityMetaKey.Selector] }}
-		<FilecoinActorView
-			selection={selection}
-			prefetched={filecoinActorFields}
+		<EntityView
+			entityType={EntityType.FilecoinActor}
+			entitySelector={filecoinActor[EntityMetaKey.Selector]}
 			href={
-				(filecoinActorHrefFields.address !== undefined && filecoinActorHrefFields.$network !== undefined && filecoinActorHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-					address: String(filecoinActorHrefFields.address ?? ''),
-					network: String(caip2StringFromValue(filecoinActorHrefFields.$network.caip2) ?? ''),
-				}) : filecoinActorHrefFields.address !== undefined && filecoinActorHrefFields.$network !== undefined && filecoinActorHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-					address: String(filecoinActorHrefFields.address ?? ''),
-					network: String(filecoinActorHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					filecoinActor[EntityMetaKey.Selector] != null && 'address' in filecoinActor[EntityMetaKey.Selector]
+					&& filecoinActor[EntityMetaKey.Selector].address != null
+					&& filecoinActor[EntityMetaKey.Selector] != null && '$network' in filecoinActor[EntityMetaKey.Selector] ?
+						filecoinActor[EntityMetaKey.Selector].$network != null && 'caip2' in filecoinActor[EntityMetaKey.Selector].$network
+						&& filecoinActor[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+						address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
+						network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							filecoinActor[EntityMetaKey.Selector].$network != null && 'slug' in filecoinActor[EntityMetaKey.Selector].$network
+							&& filecoinActor[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+							address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
+							network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((filecoinActorFields.address) ?? '')].filter(Boolean).join(' ') || 'filecoin actor'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

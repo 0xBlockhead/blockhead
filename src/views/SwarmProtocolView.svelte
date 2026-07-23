@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.SwarmProtocol>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SwarmProtocol>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SwarmProtocol>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -38,7 +39,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const swarmProtocol = $derived(selection({
+	const swarmProtocol = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			protocolName: true,
+			relationshipModel: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			protocolName: true,
@@ -46,7 +53,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'Swarm protocol')
-	const viewDomId = $derived('swarm-protocol-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('swarm-protocol-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,13 +67,20 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? (pendingEntity.scope === 'SwarmProtocol' ? resolve('/swarm') : undefined)}
+	href={
+		href ?? (
+			selection.entitySelector.scope === 'SwarmProtocol' ?
+				resolve('/swarm')
+		:
+				undefined
+		)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName') && Object.hasOwn(prefetched, 'relationshipModel')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={swarmProtocol}>
@@ -79,7 +93,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName') && Object.hasOwn(prefetched, 'relationshipModel')}
 			{[String((pendingEntity.relationshipModel) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={swarmProtocol}>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Litecoin MWEB blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LitecoinMwebBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LitecoinMwebBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LitecoinMwebBlockView from '$/views/LitecoinMwebBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,12 +66,18 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				$block: true,
+				$block: {
+					fields: {
+						hash: true,
+						transactionCount: true,
+					},
+				},
 				hogExTransactionId: true,
 				kernelRoot: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(litecoinMwebBlocks) => [...new Map(litecoinMwebBlocks.values.map((litecoinMwebBlock) => [litecoinMwebBlock[EntityMetaKey.SelectorKey], litecoinMwebBlock])).values()]}
 	getKey={(litecoinMwebBlock) => litecoinMwebBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +92,24 @@
 
 	{#snippet Item({ item: litecoinMwebBlock })}
 		{@const litecoinMwebBlockFields = { ...litecoinMwebBlock[EntityMetaKey.Selector], ...litecoinMwebBlock }}
-		{@const selection = select(EntityType.LitecoinMwebBlock, litecoinMwebBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<LitecoinMwebBlockView
-			selection={selection}
-			prefetched={litecoinMwebBlockFields}
+		<EntityView
+			entityType={EntityType.LitecoinMwebBlock}
+			entitySelector={litecoinMwebBlock[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[(String((litecoinMwebBlockFields.$block.height) ?? '') ? 'Block #' + String((litecoinMwebBlockFields.$block.height) ?? '') : '') || [String((litecoinMwebBlockFields.$block.hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block'].filter(Boolean).join(' ') || 'litecoin MWEB block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((litecoinMwebBlockFields.hogExTransactionId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((litecoinMwebBlockFields.kernelRoot) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

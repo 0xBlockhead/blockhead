@@ -5,9 +5,18 @@ import {
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
+import {
+	Caip2Namespace,
+	Caip2Reference,
+	networkBySlug,
+} from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import type {
 	TronScanBlock,
 	TronScanContract,
@@ -27,18 +36,114 @@ import { TronAccountTokenBalance_TimestampSelector } from '$/schema/TronAccountT
 import { TronTokenTransferSelector } from '$/schema/TronTokenTransfer.ts'
 import { TronTransactionReceiptSelector } from '$/schema/TronTransactionReceipt.ts'
 
-type NetworkId = { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
-const tronScanRestBaseUrl = async () => (
-	(await import('$/sources/TronScan/Rest/queries.ts')).tronScanRestEndpoints[0].restBaseUrl
-)
+const tronMainnetCaip2 = {
+	namespace: Caip2Namespace.Tron,
+	reference: Caip2Reference.TronMainnet,
+} as const
+
+const tronScanBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.TronScan_Rest
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === `${tronMainnetCaip2.namespace}:${tronMainnetCaip2.reference}`
+	))
+
+if (tronScanBindings.length !== 1)
+	throw new Error('TronScan_Rest: canonical TRON mainnet source binding is missing or ambiguous')
+
+const tronScanBinding = tronScanBindings[0]
+
+const tronNetworkApplicability = [
+	{
+		caip2: tronMainnetCaip2,
+	},
+	{
+		slug: networkBySlug.tron.slug,
+	},
+] as const
+
+const tronNetworkReferenceApplicability = [
+	{
+		$network: tronNetworkApplicability[0],
+	},
+	{
+		$network: tronNetworkApplicability[1],
+	},
+] as const
+
+const tronAccountTimestampApplicability = [
+	{
+		$account: tronNetworkReferenceApplicability[0],
+		source: Source.TronScan_Rest,
+	},
+	{
+		$account: tronNetworkReferenceApplicability[1],
+		source: Source.TronScan_Rest,
+	},
+] as const
+
+const tronContractTimestampApplicability = [
+	{
+		$contract: tronNetworkReferenceApplicability[0],
+		source: Source.TronScan_Rest,
+	},
+	{
+		$contract: tronNetworkReferenceApplicability[1],
+		source: Source.TronScan_Rest,
+	},
+] as const
+
+const tronTransactionReferenceApplicability = [
+	{
+		$transaction: tronNetworkReferenceApplicability[0],
+	},
+	{
+		$transaction: tronNetworkReferenceApplicability[1],
+	},
+] as const
+
+const tronTokenTimestampApplicability = [
+	{
+		$token: tronNetworkReferenceApplicability[0],
+		source: Source.TronScan_Rest,
+	},
+	{
+		$token: tronNetworkReferenceApplicability[1],
+		source: Source.TronScan_Rest,
+	},
+] as const
+
+const tronAccountTokenTimestampApplicability = [
+	{
+		$account: tronNetworkReferenceApplicability[0],
+		$token: tronNetworkReferenceApplicability[0],
+		source: Source.TronScan_Rest,
+	},
+	{
+		$account: tronNetworkReferenceApplicability[1],
+		$token: tronNetworkReferenceApplicability[1],
+		source: Source.TronScan_Rest,
+	},
+] as const
 
 const assertTronMainnet = (network: NetworkId) => {
-	if (!('slug' in network) || network.slug !== 'tron')
-		throw new Error('TronScan_Rest: unsupported network')
+	if (
+		(
+			'slug' in network
+			&& network.slug === networkBySlug.tron.slug
+		)
+		|| (
+			'caip2' in network
+			&& network.caip2.namespace === tronMainnetCaip2.namespace
+			&& network.caip2.reference === tronMainnetCaip2.reference
+		)
+	)
+		return
+
+	throw new Error('TronScan_Rest: unsupported network')
 }
 
 const bigintFromWire = (value: number | string | null | undefined): bigint | undefined => (
@@ -132,13 +237,11 @@ const transactionFieldsFromTronScanTransaction = (
 					height: BigInt(blockHeight),
 				},
 			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.TronTransaction, [], 'blockHeight')]: BigInt(blockHeight),
-			},
+			blockHeight: BigInt(blockHeight),
 		}),
 		timestampMs: transaction.timestamp,
 		contractType: transaction.contractType?.toString(),
-		result: transaction.contractRet,
+		result: transaction.contractRet ?? transaction.result,
 		feeSun: bigintFromWire(transaction.cost?.fee),
 		...(transactionId != null && {
 			$receipt: {
@@ -351,13 +454,14 @@ export default {
 			entityType: EntityType.TronBlock,
 			resolve: {
 				[TronBlockSelector.NetworkHeightHash]: {
+					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, height }) => {
 						assertTronMainnet($network)
 						const { getBlock } = await import('$/sources/TronScan/Rest/queries.ts')
-						const block = (await getBlock({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							height: height,
-						})).data.at(0)
+						const block = (await getBlock(
+							tronScanBinding,
+							height
+						)).data.at(0)
 						if (block == null) throw new Error(`TronScan_Rest: block not found for ${height.toString()}`)
 						return blockFieldsFromTronScanBlock($network, block)
 					},
@@ -378,13 +482,11 @@ export default {
 			entityType: EntityType.TronAccount,
 			resolve: {
 				[TronAccountSelector.NetworkAddress]: {
+					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
 						const { getAccount } = await import('$/sources/TronScan/Rest/queries.ts')
-						const account = await getAccount({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							address: address,
-						})
+						const account = await getAccount(tronScanBinding, address)
 						return {
 							name: account.name,
 							...(account.contractMap?.[address] === true && {
@@ -418,16 +520,98 @@ export default {
 			}),
 
 		defineResolver(Source.TronScan_Rest, {
+			entityType: EntityType.TronAccount,
+			resolve: {
+				[TronAccountSelector.NetworkAddress]: {
+					appliesTo: tronNetworkReferenceApplicability,
+					resolve: async ({ $network, address }, context) => {
+						assertTronMainnet($network)
+						const start = context.providerContinuationToken == null ?
+							0
+						:
+							Number(context.providerContinuationToken)
+						if (!Number.isSafeInteger(start) || start < 0 || start > 10_000)
+							throw new Error('TronScan_Rest: invalid account transaction continuation')
+
+						const limit = Math.min(
+							resolverContextRowLimit(context),
+							50,
+							10_000 - start
+						)
+						if (limit === 0)
+							return {
+								limit,
+								start,
+								total: start,
+								transactions: [],
+							}
+
+						const { getAccountTransactions } = await import('$/sources/TronScan/Rest/queries.ts')
+						const page = await getAccountTransactions(
+							tronScanBinding,
+							address,
+							limit,
+							start
+						)
+
+						return {
+							limit,
+							start,
+							total: page.total,
+							transactions: page.data.map((transaction) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									transactionId: transaction.hash,
+								},
+								[EntityMetaKey.Fields]: Object.fromEntries(
+									Object.entries(transactionFieldsFromTronScanTransaction(
+										$network,
+										transaction
+									)).map(([fieldName, value]) => [
+										entityFieldAddressKey(EntityType.TronTransaction, [], fieldName),
+										value,
+									])
+								),
+							})),
+						}
+					},
+				}
+			},
+		})({
+			$$transactions: {
+				select: (page) => page.transactions,
+				continuation: (page, account) => {
+					const nextStart = page.start + page.transactions.length
+					return (
+						page.limit === 0
+						|| page.transactions.length < page.limit
+						|| nextStart >= Math.min(page.total, 10_000) ?
+							{
+								operation: 'account-transactions',
+								target: account.address,
+								terminal: true,
+							}
+						:
+							{
+								operation: 'account-transactions',
+								target: account.address,
+								terminal: false,
+								token: nextStart.toString(),
+							}
+					)
+				},
+			},
+		}),
+
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronAccount_Timestamp,
 			resolve: {
 				[TronAccount_TimestampSelector.AccountTimestampMsSource]: {
+					appliesTo: tronAccountTimestampApplicability,
 					resolve: async ({ $account }) => {
 						assertTronMainnet($account.$network)
 						const { getAccount } = await import('$/sources/TronScan/Rest/queries.ts')
-						const account = await getAccount({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							address: $account.address,
-						})
+						const account = await getAccount(tronScanBinding, $account.address)
 						return {
 							balanceSun: bigintFromWire(account.balanceStr ?? account.balance),
 							createdTimestampMs: account.date_created,
@@ -454,13 +638,11 @@ export default {
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				[TronTransactionSelector.NetworkTransactionId]: {
+					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, transactionId }) => {
 						assertTronMainnet($network)
 						const { getTransaction } = await import('$/sources/TronScan/Rest/queries.ts')
-						const detail = await getTransaction({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							transactionId: transactionId,
-						})
+						const detail = await getTransaction(tronScanBinding, transactionId)
 						return transactionFieldsFromTronScanTransaction(
 							$network,
 							detail.data?.[0] ?? detail
@@ -487,13 +669,11 @@ export default {
 			entityType: EntityType.TronContract,
 			resolve: {
 				[TronContractSelector.NetworkAddress]: {
+					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
 						const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
-						const contract = (await getContract({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							address: address,
-						})).data.at(0)
+						const contract = (await getContract(tronScanBinding, address)).data.at(0)
 						if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${address}`)
 						return contractFieldsFromTronScanContract($network, address, contract)
 					},
@@ -512,13 +692,14 @@ export default {
 			entityType: EntityType.TronContract_Timestamp,
 			resolve: {
 				[TronContract_TimestampSelector.ContractTimestampMsSource]: {
+					appliesTo: tronContractTimestampApplicability,
 					resolve: async ({ $contract }) => {
 						assertTronMainnet($contract.$network)
 						const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
-						const contract = (await getContract({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							address: $contract.address,
-						})).data.at(0)
+						const contract = (await getContract(
+							tronScanBinding,
+							$contract.address
+						)).data.at(0)
 						if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${$contract.address}`)
 						return {
 							compiler: contract.compiler,
@@ -547,13 +728,14 @@ export default {
 			entityType: EntityType.TronTransactionReceipt,
 			resolve: {
 				[TronTransactionReceiptSelector.Transaction]: {
+					appliesTo: tronTransactionReferenceApplicability,
 					resolve: async ({ $transaction }) => {
 						assertTronMainnet($transaction.$network)
 						const { getTransaction } = await import('$/sources/TronScan/Rest/queries.ts')
-						const transaction = await getTransaction({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							transactionId: $transaction.transactionId,
-						})
+						const transaction = await getTransaction(
+							tronScanBinding,
+							$transaction.transactionId
+						)
 						return transactionFieldsFromTronScanTransaction(
 							$transaction.$network,
 							transaction.data?.[0] ?? transaction
@@ -570,6 +752,7 @@ export default {
 			entityType: EntityType.TronToken,
 			resolve: {
 				[TronTokenSelector.NetworkTokenId]: {
+					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, tokenId }) => {
 						assertTronMainnet($network)
 						const {
@@ -577,14 +760,8 @@ export default {
 							getTrc10Token,
 						} = await import('$/sources/TronScan/Rest/queries.ts')
 						const token = (
-							(await getTokenOverview({
-								restBaseUrl: await tronScanRestBaseUrl(),
-								tokenId: tokenId,
-							})).tokens[0]
-						?? (await getTrc10Token({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							tokenId: tokenId,
-						})).data.at(0)
+							(await getTokenOverview(tronScanBinding, tokenId)).tokens[0]
+						?? (await getTrc10Token(tronScanBinding, tokenId)).data.at(0)
 						)
 						return tokenFieldsFromTronScanToken($network, token)
 					},
@@ -602,6 +779,7 @@ export default {
 			entityType: EntityType.TronToken_Timestamp,
 			resolve: {
 				[TronToken_TimestampSelector.TokenTimestampMsSource]: {
+					appliesTo: tronTokenTimestampApplicability,
 					resolve: async ({ $token }) => {
 						assertTronMainnet($token.$network)
 						const {
@@ -609,14 +787,8 @@ export default {
 							getTrc10Token,
 						} = await import('$/sources/TronScan/Rest/queries.ts')
 						const token = (
-							(await getTokenOverview({
-								restBaseUrl: await tronScanRestBaseUrl(),
-								tokenId: $token.tokenId,
-							})).tokens[0]
-						?? (await getTrc10Token({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							tokenId: $token.tokenId,
-						})).data.at(0)
+							(await getTokenOverview(tronScanBinding, $token.tokenId)).tokens[0]
+						?? (await getTrc10Token(tronScanBinding, $token.tokenId)).data.at(0)
 						)
 						return {
 							name: token.name ?? token.tokenName,
@@ -640,15 +812,16 @@ export default {
 			entityType: EntityType.TronTokenTransfer,
 			resolve: {
 				[TronTokenTransferSelector.NetworkTransactionIdTransferIndex]: {
+					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, transactionId, transferIndex }) => {
 						assertTronMainnet($network)
 						const { getTrc20Transfers } = await import('$/sources/TronScan/Rest/queries.ts')
 						const transfer = (
-							(await getTrc20Transfers({
-								restBaseUrl: await tronScanRestBaseUrl(),
-								transactionId: transactionId,
-								limit: transferIndex + 1,
-							})).token_transfers
+							(await getTrc20Transfers(
+								tronScanBinding,
+								transactionId,
+								transferIndex + 1
+							)).token_transfers
 						?? []
 						).at(transferIndex)
 						if (transfer == null) throw new Error(`TronScan_Rest: token transfer not found for ${transactionId}:${transferIndex.toString()}`)
@@ -674,14 +847,16 @@ export default {
 			entityType: EntityType.TronAccountTokenBalance_Timestamp,
 			resolve: {
 				[TronAccountTokenBalance_TimestampSelector.AccountTokenTimestampMsSource]: {
+					appliesTo: tronAccountTokenTimestampApplicability,
 					resolve: async ({ $account, $token }, context) => {
+						assertTronMainnet($token.$network)
 						assertTronMainnet($account.$network)
 						const { getAccountTokens } = await import('$/sources/TronScan/Rest/queries.ts')
-						const token = (await getAccountTokens({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							address: $account.address,
-							limit: resolverContextRowLimit(context),
-						})).data.find((accountToken) => (
+						const token = (await getAccountTokens(
+							tronScanBinding,
+							$account.address,
+							resolverContextRowLimit(context)
+						)).data.find((accountToken) => (
 							tokenIdFromTronScanToken(accountToken) === $token.tokenId
 						))
 						if (token == null)
@@ -702,14 +877,15 @@ export default {
 			entityType: EntityType.TronAccount,
 			resolve: {
 				[TronAccountSelector.NetworkAddress]: {
+					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }, context) => {
 						assertTronMainnet($network)
 						const { getAccountTokens } = await import('$/sources/TronScan/Rest/queries.ts')
-							return (await getAccountTokens({
-								restBaseUrl: await tronScanRestBaseUrl(),
-								address: address,
-								limit: resolverContextRowLimit(context),
-							})).data.flatMap((token) => {
+							return (await getAccountTokens(
+								tronScanBinding,
+								address,
+								resolverContextRowLimit(context)
+							)).data.flatMap((token) => {
 								const tokenId = tokenIdFromTronScanToken(token)
 								return (
 									tokenId == null ?
@@ -758,13 +934,11 @@ export default {
 			entityType: EntityType.TronContract,
 			resolve: {
 				[TronContractSelector.NetworkAddress]: {
+					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
 						const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
-						const contract = (await getContract({
-							restBaseUrl: await tronScanRestBaseUrl(),
-							address: address,
-						})).data.at(0)
+						const contract = (await getContract(tronScanBinding, address)).data.at(0)
 						if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${address}`)
 						return contractFieldsFromTronScanContract($network, address, contract).$$tokens
 					},
@@ -778,15 +952,16 @@ export default {
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				[TronTransactionSelector.NetworkTransactionId]: {
+					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, transactionId }, context) => {
 						assertTronMainnet($network)
 						const { getTrc20Transfers } = await import('$/sources/TronScan/Rest/queries.ts')
 						return (
-							(await getTrc20Transfers({
-								restBaseUrl: await tronScanRestBaseUrl(),
-								transactionId: transactionId,
-								limit: resolverContextRowLimit(context),
-							})).token_transfers
+							(await getTrc20Transfers(
+								tronScanBinding,
+								transactionId,
+								resolverContextRowLimit(context)
+							)).token_transfers
 						?? []
 						).map((transfer, transferIndex) => (
 							tokenTransferFieldsFromTronScanTransfer(

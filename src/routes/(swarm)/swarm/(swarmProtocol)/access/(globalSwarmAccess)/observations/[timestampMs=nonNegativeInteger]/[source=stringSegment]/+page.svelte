@@ -39,7 +39,6 @@
 			reachable: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'global Swarm access timestamp' : 'global Swarm access timestamp'))
 
 
 	// Components
@@ -49,7 +48,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • global Swarm access timestamp • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'global Swarm access timestamp' : 'global Swarm access timestamp')} • global Swarm access timestamp • Blockhead</title>
 </svelte:head>
 
 

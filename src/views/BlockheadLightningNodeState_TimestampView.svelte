@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadLightningNodeState_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadLightningNodeState_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLightningNodeState_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLightningNodeStateTimestamp = $derived(selection({
+	const blockheadLightningNodeStateTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			syncedToChain: true,
+			syncedToGraph: true,
+			blockHeight: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			syncedToChain: true,
@@ -49,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state timestamp')
-	const viewDomId = $derived('blockhead-lightning-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-lightning-node-state-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,11 +79,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'syncedToChain') && Object.hasOwn(prefetched, 'syncedToGraph') && Object.hasOwn(prefetched, 'blockHeight')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
 				{#snippet children(entity)}
@@ -90,7 +98,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'syncedToChain') && Object.hasOwn(prefetched, 'syncedToGraph') && Object.hasOwn(prefetched, 'blockHeight')}
 			{[String((pendingEntity.syncedToChain) ?? ''), String((pendingEntity.syncedToGraph) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
@@ -103,7 +111,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'syncedToChain') && Object.hasOwn(prefetched, 'syncedToGraph') && Object.hasOwn(prefetched, 'blockHeight')}
 			{@const blockHeight0 = pendingEntity.blockHeight}
 			{#if blockHeight0 !== undefined && blockHeight0 !== null}
 				<span data-text="muted">
@@ -135,7 +143,7 @@
 				<dt>local node state</dt>
 				<dd>
 					<BlockheadLightningNodeStateView
-						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState, {})}
+						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

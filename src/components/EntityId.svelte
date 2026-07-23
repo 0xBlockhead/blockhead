@@ -72,7 +72,7 @@
 {:else}
 	<span
 		class="entity-id-draggable"
-		role="group"
+		role="none"
 		draggable={true}
 		ondragstart={onDragStart}
 		style:view-transition-name={`EntitySelector-${stringify(entitySelector)}`}

@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Lens account observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LensAccount_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LensAccount_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LensAccount_TimestampView from '$/views/LensAccount_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(lensAccountTimestamps) => [...new Map(lensAccountTimestamps.values.map((lensAccountTimestamp) => [lensAccountTimestamp[EntityMetaKey.SelectorKey], lensAccountTimestamp])).values()]}
 	getKey={(lensAccountTimestamp) => lensAccountTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,19 +87,35 @@
 
 	{#snippet Item({ item: lensAccountTimestamp })}
 		{@const lensAccountTimestampFields = { ...lensAccountTimestamp[EntityMetaKey.Selector], ...lensAccountTimestamp }}
-		{@const selection = select(EntityType.LensAccount_Timestamp, lensAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const lensAccountTimestampHrefFields = { ...lensAccountTimestamp, ...lensAccountTimestamp[EntityMetaKey.Selector] }}
-		<LensAccount_TimestampView
-			selection={selection}
-			prefetched={lensAccountTimestampFields}
+		<EntityView
+			entityType={EntityType.LensAccount_Timestamp}
+			entitySelector={lensAccountTimestamp[EntityMetaKey.Selector]}
 			href={
-				(lensAccountTimestampHrefFields.timestampMs !== undefined && lensAccountTimestampHrefFields.$account !== undefined && lensAccountTimestampHrefFields.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]', {
-					timestampMs: String(lensAccountTimestampHrefFields.timestampMs ?? ''),
-					address: String(lensAccountTimestampHrefFields.$account.address ?? ''),
-				}) : undefined)
+				(
+					lensAccountTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in lensAccountTimestamp[EntityMetaKey.Selector]
+					&& lensAccountTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& lensAccountTimestamp[EntityMetaKey.Selector] != null && '$account' in lensAccountTimestamp[EntityMetaKey.Selector]
+					&& lensAccountTimestamp[EntityMetaKey.Selector].$account != null && 'address' in lensAccountTimestamp[EntityMetaKey.Selector].$account
+					&& lensAccountTimestamp[EntityMetaKey.Selector].$account.address != null ?
+						resolve('/lens/account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]', {
+					timestampMs: String(lensAccountTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					address: String(lensAccountTimestamp[EntityMetaKey.Selector].$account.address ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((lensAccountTimestampFields.$account.displayName) ?? ''), String((lensAccountTimestampFields.$account.localName) ?? ''), String((lensAccountTimestampFields.$account.address) ?? ''), String((lensAccountTimestampFields.$account.legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account'].filter(Boolean).join(' ') || 'Lens account observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((lensAccountTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

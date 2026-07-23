@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ACP agent programs',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AcpAgentProgram>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AcpAgentProgram>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AcpAgentProgramView from '$/views/AcpAgentProgramView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(acpAgentPrograms) => [...new Map(acpAgentPrograms.values.map((acpAgentProgram) => [acpAgentProgram[EntityMetaKey.SelectorKey], acpAgentProgram])).values()]}
 	getKey={(acpAgentProgram) => acpAgentProgram[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,20 @@
 
 	{#snippet Item({ item: acpAgentProgram })}
 		{@const acpAgentProgramFields = { ...acpAgentProgram[EntityMetaKey.Selector], ...acpAgentProgram }}
-		{@const selection = select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AcpAgentProgramView
-			selection={selection}
-			prefetched={acpAgentProgramFields}
+		<EntityView
+			entityType={EntityType.AcpAgentProgram}
+			entitySelector={acpAgentProgram[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((acpAgentProgramFields.label) ?? '')].filter(Boolean).join(' ') || [String((acpAgentProgramFields.registryAgentId) ?? ''), String((acpAgentProgramFields.packageName) ?? ''), String((acpAgentProgramFields.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((acpAgentProgramFields.packageName) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

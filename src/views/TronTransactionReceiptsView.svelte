@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Tron transaction receipts',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TronTransactionReceipt>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TronTransactionReceipt>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TronTransactionReceiptView from '$/views/TronTransactionReceiptView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(tronTransactionReceipts) => [...new Map(tronTransactionReceipts.values.map((tronTransactionReceipt) => [tronTransactionReceipt[EntityMetaKey.SelectorKey], tronTransactionReceipt])).values()]}
 	getKey={(tronTransactionReceipt) => tronTransactionReceipt[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: tronTransactionReceipt })}
 		{@const tronTransactionReceiptFields = { ...tronTransactionReceipt[EntityMetaKey.Selector], ...tronTransactionReceipt }}
-		{@const selection = select(EntityType.TronTransactionReceipt, tronTransactionReceipt[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TronTransactionReceiptView
-			selection={selection}
-			prefetched={tronTransactionReceiptFields}
+		<EntityView
+			entityType={EntityType.TronTransactionReceipt}
+			entitySelector={tronTransactionReceipt[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'tron transaction receipt'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

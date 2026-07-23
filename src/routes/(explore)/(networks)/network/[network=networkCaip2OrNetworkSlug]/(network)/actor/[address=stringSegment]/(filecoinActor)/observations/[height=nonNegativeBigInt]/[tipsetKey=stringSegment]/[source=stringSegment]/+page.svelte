@@ -40,7 +40,6 @@
 			stateRootCid: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin actor timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin actor timestamp')))
 
 
 	// Components
@@ -50,7 +49,12 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • filecoin actor timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'filecoin actor timestamp' : [String((({ ...{
+		$actor: data.selector,
+		height: BigInt(params.height),
+		tipsetKey: params.tipsetKey,
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin actor timestamp'))} • filecoin actor timestamp • Blockhead</title>
 </svelte:head>
 
 

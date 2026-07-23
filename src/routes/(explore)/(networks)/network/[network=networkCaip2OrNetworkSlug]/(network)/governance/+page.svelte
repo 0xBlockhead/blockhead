@@ -19,6 +19,7 @@
 	}: PageProps = $props()
 
 
+
 	// Components
 	import Page from '$/components/Page.svelte'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
@@ -34,7 +35,14 @@
 
 <Page>
 	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Cosmos}
+		resource={
+			select(EntityType.Network, data.selector).Cosmos
+				.$$governanceProposals({
+					sources: [
+						Source.CosmosSdk_Rest,
+					],
+				}).Cosmos
+		}
 	>
 		{#snippet Applicable(projection)}
 			<CosmosGovernanceProposalsView
@@ -45,14 +53,14 @@
 				}
 				title='Governance'
 				selection={
-					projection.$$governanceProposals({
-						sources: [
-							Source.CosmosSdk_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$governanceProposals({
+							sources: [
+								Source.CosmosSdk_Rest,
+							],
+						})
 				}
-				id='governance-proposals'
+				id='account-cosmos-governance-proposal'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container
@@ -61,7 +69,14 @@
 	</ProjectionBoundary>
 
 	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Cardano}
+		resource={
+			select(EntityType.Network, data.selector).Cardano
+				.$$governanceProposals({
+					sources: [
+						Source.CardanoKoios_Rest,
+					],
+				}).Cardano
+		}
 	>
 		{#snippet Applicable(projection)}
 			<CardanoGovernanceProposalsView
@@ -72,14 +87,14 @@
 				}
 				title='Governance'
 				selection={
-					projection.$$governanceProposals({
-						sources: [
-							Source.CardanoKoios_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$governanceProposals({
+							sources: [
+								Source.CardanoKoios_Rest,
+							],
+						})
 				}
-				id='governance-proposals'
+				id='account-cardano-governance-proposal'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

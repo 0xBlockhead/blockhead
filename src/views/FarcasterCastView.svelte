@@ -4,12 +4,14 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -28,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FarcasterCast>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterCast>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FarcasterCast>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +44,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const farcasterCast = $derived(selection({
+	const farcasterCast = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			text: true,
+			timestamp: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			text: true,
@@ -50,13 +58,14 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.text) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast')
-	const viewDomId = $derived('farcaster-cast-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('farcaster-cast-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 	import FarcasterCastEmbedsView from '$/views/FarcasterCastEmbedsView.svelte'
 	import FarcasterCast_TimestampsView from '$/views/FarcasterCast_TimestampsView.svelte'
 	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
@@ -71,20 +80,34 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.fid !== undefined && pendingEntity.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
-			fid: String(pendingEntity.fid ?? ''),
-			hash: String(pendingEntity.hash ?? ''),
-		}) : pendingEntity.username !== undefined && pendingEntity.hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-			fname: String(pendingEntity.username ?? ''),
-			hash: String(pendingEntity.hashPrefix ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'fid' in selection.entitySelector
+			&& selection.entitySelector.fid != null
+			&& selection.entitySelector != null && 'hash' in selection.entitySelector
+			&& selection.entitySelector.hash != null ?
+				resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
+			fid: String(selection.entitySelector.fid ?? ''),
+			hash: String(selection.entitySelector.hash ?? ''),
+		})
+		:
+				selection.entitySelector != null && 'username' in selection.entitySelector
+				&& selection.entitySelector.username != null
+				&& selection.entitySelector != null && 'hashPrefix' in selection.entitySelector
+				&& selection.entitySelector.hashPrefix != null ?
+					resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+				fname: String(selection.entitySelector.username ?? ''),
+				hash: String(selection.entitySelector.hashPrefix ?? ''),
+			})
+			:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'text') && Object.hasOwn(prefetched, 'hash') && Object.hasOwn(prefetched, 'fid') && Object.hasOwn(prefetched, 'timestamp')}
 			{[String((pendingEntity.text) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={farcasterCast}>
@@ -97,7 +120,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'text') && Object.hasOwn(prefetched, 'hash') && Object.hasOwn(prefetched, 'fid') && Object.hasOwn(prefetched, 'timestamp')}
 			{[String((pendingEntity.fid) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.text) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={farcasterCast}>
@@ -110,7 +133,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'text') && Object.hasOwn(prefetched, 'hash') && Object.hasOwn(prefetched, 'fid') && Object.hasOwn(prefetched, 'timestamp')}
 			{@const timestamp0 = pendingEntity.timestamp}
 			{#if timestamp0 !== undefined && timestamp0 !== null}
 				<span data-text="muted">
@@ -146,9 +169,15 @@
 									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 									prefetched={farcasterUser}
 									href={
-										(farcasterUser[EntityMetaKey.Selector].fid !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]', {
+										(
+											farcasterUser[EntityMetaKey.Selector] != null && 'fid' in farcasterUser[EntityMetaKey.Selector]
+											&& farcasterUser[EntityMetaKey.Selector].fid != null ?
+												resolve('/farcaster/user/[userId=farcasterFid]', {
 											userId: String(farcasterUser[EntityMetaKey.Selector].fid ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -199,9 +228,15 @@
 									selection={select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector])}
 									prefetched={farcasterChannel}
 									href={
-										(farcasterChannel[EntityMetaKey.Selector].id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
+										(
+											farcasterChannel[EntityMetaKey.Selector] != null && 'id' in farcasterChannel[EntityMetaKey.Selector]
+											&& farcasterChannel[EntityMetaKey.Selector].id != null ?
+												resolve('/farcaster/channel/[channelId=stringSegment]', {
 											channelId: String(farcasterChannel[EntityMetaKey.Selector].id ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -226,13 +261,27 @@
 									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 									prefetched={farcasterCast}
 									href={
-										(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
+										(
+											farcasterCast[EntityMetaKey.Selector] != null && 'fid' in farcasterCast[EntityMetaKey.Selector]
+											&& farcasterCast[EntityMetaKey.Selector].fid != null
+											&& farcasterCast[EntityMetaKey.Selector] != null && 'hash' in farcasterCast[EntityMetaKey.Selector]
+											&& farcasterCast[EntityMetaKey.Selector].hash != null ?
+												resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 											fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
 											hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
-										}) : farcasterCast[EntityMetaKey.Selector].username !== undefined && farcasterCast[EntityMetaKey.Selector].hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-											fname: String(farcasterCast[EntityMetaKey.Selector].username ?? ''),
-											hash: String(farcasterCast[EntityMetaKey.Selector].hashPrefix ?? ''),
-										}) : undefined)
+										})
+										:
+												farcasterCast[EntityMetaKey.Selector] != null && 'username' in farcasterCast[EntityMetaKey.Selector]
+												&& farcasterCast[EntityMetaKey.Selector].username != null
+												&& farcasterCast[EntityMetaKey.Selector] != null && 'hashPrefix' in farcasterCast[EntityMetaKey.Selector]
+												&& farcasterCast[EntityMetaKey.Selector].hashPrefix != null ?
+													resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+												fname: String(farcasterCast[EntityMetaKey.Selector].username ?? ''),
+												hash: String(farcasterCast[EntityMetaKey.Selector].hashPrefix ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -390,28 +439,56 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<FarcasterCastEmbedsView
-				selection={
-						selection.$$embeds({
-							count: true,
-						})
-					}
-				title='Embeds'
-				emptyText='No Farcaster cast embeds.'
-				id='FarcasterCastEmbedsView-embeds'
-			/>
-
-			<FarcasterCast_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Observations'
-				emptyText='No Farcaster cast observations yet.'
-				id='FarcasterCast_TimestampsView-timestamps'
-			/>
-		{/if}
+				{@const farcasterCastFarcasterCastsViewDirectRepliesResource = selection
+		.$$directReplies({
+			sources: [
+				Source.Neynar_Rest,
+				Source.Farcaster_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={farcasterCastFarcasterCastsViewDirectRepliesResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<FarcasterCastsView
+							selection={farcasterCastFarcasterCastsViewDirectRepliesResource}
+							countResource={farcasterCastFarcasterCastsViewDirectRepliesResource.count}
+							title='Direct replies'
+							id='FarcasterCastsView-direct-replies'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const farcasterCastFarcasterCastEmbedsViewEmbedsResource = selection.$$embeds}
+				<ResourceBoundary
+					resource={farcasterCastFarcasterCastEmbedsViewEmbedsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<FarcasterCastEmbedsView
+							selection={farcasterCastFarcasterCastEmbedsViewEmbedsResource}
+							countResource={farcasterCastFarcasterCastEmbedsViewEmbedsResource.count}
+							title='Embeds'
+							id='FarcasterCastEmbedsView-embeds'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const farcasterCastFarcasterCastTimestampsViewTimestampsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={farcasterCastFarcasterCastTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<FarcasterCast_TimestampsView
+							selection={farcasterCastFarcasterCastTimestampsViewTimestampsResource}
+							countResource={farcasterCastFarcasterCastTimestampsViewTimestampsResource.count}
+							title='Observations'
+							id='FarcasterCast_TimestampsView-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

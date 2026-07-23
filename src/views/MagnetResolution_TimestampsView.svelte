@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Magnet resolution observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.MagnetResolution_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MagnetResolution_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MagnetResolution_TimestampView from '$/views/MagnetResolution_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(magnetResolutionTimestamps) => [...new Map(magnetResolutionTimestamps.values.map((magnetResolutionTimestamp) => [magnetResolutionTimestamp[EntityMetaKey.SelectorKey], magnetResolutionTimestamp])).values()]}
 	getKey={(magnetResolutionTimestamp) => magnetResolutionTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: magnetResolutionTimestamp })}
 		{@const magnetResolutionTimestampFields = { ...magnetResolutionTimestamp[EntityMetaKey.Selector], ...magnetResolutionTimestamp }}
-		{@const selection = select(EntityType.MagnetResolution_Timestamp, magnetResolutionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<MagnetResolution_TimestampView
-			selection={selection}
-			prefetched={magnetResolutionTimestampFields}
+		<EntityView
+			entityType={EntityType.MagnetResolution_Timestamp}
+			entitySelector={magnetResolutionTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((magnetResolutionTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'magnet resolution timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((magnetResolutionTimestampFields.status) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((magnetResolutionTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Reddit submissions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.RedditLink>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.RedditLink>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import RedditLinkView from '$/views/RedditLinkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,8 +66,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
-				Source.Constants_Internal,
+			sources: selection.sources ?? [
 				Source.Reddit_PublicJson,
 			],
 			fields: {
@@ -84,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(redditLinks) => [...new Map(redditLinks.values.map((redditLink) => [redditLink[EntityMetaKey.SelectorKey], redditLink])).values()]}
 	getKey={(redditLink) => redditLink[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -98,18 +91,31 @@
 
 	{#snippet Item({ item: redditLink })}
 		{@const redditLinkFields = { ...redditLink[EntityMetaKey.Selector], ...redditLink }}
-		{@const selection = select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const redditLinkHrefFields = { ...redditLink, ...redditLink[EntityMetaKey.Selector] }}
-		<RedditLinkView
-			selection={selection}
-			prefetched={redditLinkFields}
+		<EntityView
+			entityType={EntityType.RedditLink}
+			entitySelector={redditLink[EntityMetaKey.Selector]}
 			href={
-				(redditLinkHrefFields.fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]', {
-					fullname: encodeURIComponent(String(redditLinkHrefFields.fullname ?? '')),
-				}) : undefined)
+				(
+					redditLink[EntityMetaKey.Selector] != null && 'fullname' in redditLink[EntityMetaKey.Selector]
+					&& redditLink[EntityMetaKey.Selector].fullname != null ?
+						resolve('/reddit/link/[fullname=stringSegment]', {
+					fullname: encodeURIComponent(String(redditLink[EntityMetaKey.Selector].fullname ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((redditLinkFields.title) ?? '')].filter(Boolean).join(' ') || [String((redditLinkFields.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((redditLinkFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

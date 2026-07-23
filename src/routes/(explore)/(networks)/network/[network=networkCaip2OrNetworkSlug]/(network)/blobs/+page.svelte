@@ -44,14 +44,14 @@
 				}
 				title='Blobs'
 				selection={
-					projection.$$blobs({
-						sources: [
-							Source.Voltaire_JsonRpc,
-						],
-						count: true,
-					})
+					projection
+						.$$blobs({
+							sources: [
+								Source.Voltaire_JsonRpc,
+							],
+						})
 				}
-				id='blobs'
+				id='account-evm-blob'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

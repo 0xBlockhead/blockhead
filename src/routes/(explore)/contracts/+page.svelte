@@ -39,15 +39,15 @@
 				href={resolve('/contracts')}
 				title='Contracts'
 				selection={
-					projection.$$contracts({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						limit: 16,
-						count: true,
-					})
+					projection
+						.$$contracts({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+							limit: 16,
+						})
 				}
-				id='contracts'
+				id='account-evm-contract'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

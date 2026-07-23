@@ -29,13 +29,24 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			}).$$observedNotes({
-				sources: [
-					Source.Constants_Internal,
-					Source.NostrBand_Rest,
-				],
-				count: true,
 			})
+				.$$observedNotes({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._GlobalNostrNetwork, {
+				scope: '_GlobalNostrNetwork',
+			})
+				.$$observedNotes({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				}).count
 		}
 		id='observed-notes'
 		data-column-item="flexible"

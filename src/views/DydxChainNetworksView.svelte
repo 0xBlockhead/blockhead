@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'dYdX chain networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.DydxChainNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.DydxChainNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import DydxChainNetworkView from '$/views/DydxChainNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,6 +70,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(dydxChainNetworks) => [...new Map(dydxChainNetworks.values.map((dydxChainNetwork) => [dydxChainNetwork[EntityMetaKey.SelectorKey], dydxChainNetwork])).values()]}
 	getKey={(dydxChainNetwork) => dydxChainNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -91,12 +85,16 @@
 
 	{#snippet Item({ item: dydxChainNetwork })}
 		{@const dydxChainNetworkFields = { ...dydxChainNetwork[EntityMetaKey.Selector], ...dydxChainNetwork }}
-		{@const selection = select(EntityType.DydxChainNetwork, dydxChainNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<DydxChainNetworkView
-			selection={selection}
-			prefetched={dydxChainNetworkFields}
+		<EntityView
+			entityType={EntityType.DydxChainNetwork}
+			entitySelector={dydxChainNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((dydxChainNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [dydxChainNetworkFields.$network.caip2 == null ? '' : String(`${(dydxChainNetworkFields.$network.caip2).namespace}:${(dydxChainNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'dydx chain network'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

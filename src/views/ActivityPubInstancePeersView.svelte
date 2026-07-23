@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ActivityPub instance peers',
 		typeAnnotationParagraphs = ['A domain that a declared ActivityPub instance reports as a known connected domain.'],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ActivityPubInstancePeer>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ActivityPubInstancePeer>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubInstancePeerView from '$/views/ActivityPubInstancePeerView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,10 +67,17 @@
 			sources: selection.sources,
 			fields: {
 				peerDomain: true,
-				$observation: true,
+				$observation: {
+					fields: {
+						title: true,
+						$instance: true,
+						version: true,
+					},
+				},
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(activityPubInstancePeers) => [...new Map(activityPubInstancePeers.values.map((activityPubInstancePeer) => [activityPubInstancePeer[EntityMetaKey.SelectorKey], activityPubInstancePeer])).values()]}
 	getKey={(activityPubInstancePeer) => activityPubInstancePeer[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +92,20 @@
 
 	{#snippet Item({ item: activityPubInstancePeer })}
 		{@const activityPubInstancePeerFields = { ...activityPubInstancePeer[EntityMetaKey.Selector], ...activityPubInstancePeer }}
-		{@const selection = select(EntityType.ActivityPubInstancePeer, activityPubInstancePeer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ActivityPubInstancePeerView
-			selection={selection}
-			prefetched={activityPubInstancePeerFields}
+		<EntityView
+			entityType={EntityType.ActivityPubInstancePeer}
+			entitySelector={activityPubInstancePeer[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((activityPubInstancePeerFields.peerDomain) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance peer'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((activityPubInstancePeerFields.$observation.title) ?? ''), String((activityPubInstancePeerFields.$observation.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance observation'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -9,10 +9,25 @@ import {
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { LiquidityPoolSelector } from '$/schema/LiquidityPool.ts'
 import { LiquidityPool_BlockSelector } from '$/schema/LiquidityPool_Block.ts'
 import { LiquidityPool_TimestampSelector } from '$/schema/LiquidityPool_Timestamp.ts'
+
+const dexscreenerBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.Dexscreener_OpenApi
+		&& binding.target.kind === SourceTargetKind.Global
+		&& binding.target.key === 'dexscreener-openapi'
+	))
+
+if (dexscreenerBindings.length !== 1)
+	throw new Error('Dexscreener_OpenApi: canonical global source binding is missing or ambiguous')
+
+const dexscreenerBinding = dexscreenerBindings[0]
 
 export default {
 	source: Source.Dexscreener_OpenApi,
@@ -32,17 +47,18 @@ export default {
 							throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
 
 						const latestDexPair = (
-							(await getLatestPairs({
+							await getLatestPairs({
+								binding: dexscreenerBinding,
 								chainId: apiChainId,
 								pairId: id,
-							})).pairs?.[0]
-						)
+							})
+						).pairs.at(0)
 
 						if (latestDexPair == null)
 							throw new Error('Dexscreener_OpenApi: liquidity pool / pair not found for id')
 
-						const baseTokenAddress = hexLowerOfByteSize(latestDexPair.baseToken?.address ?? '', 20)
-						const quoteTokenAddress = hexLowerOfByteSize(latestDexPair.quoteToken?.address ?? '', 20)
+						const baseTokenAddress = hexLowerOfByteSize(latestDexPair.baseToken.address, 20)
+						const quoteTokenAddress = hexLowerOfByteSize(latestDexPair.quoteToken.address, 20)
 						return {
 							...(baseTokenAddress != null && {
 								$baseToken: {
@@ -87,29 +103,30 @@ export default {
 							throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
 
 						const latestDexPair = (
-							(await getLatestPairs({
+							await getLatestPairs({
+								binding: dexscreenerBinding,
 								chainId: apiChainId,
 								pairId: $liquidityPool.id,
-							})).pairs?.[0]
-						)
+							})
+						).pairs.at(0)
 
 						if (latestDexPair == null)
 							throw new Error('Dexscreener_OpenApi: liquidity pool / pair not found for timestamp id')
 
 						return {
-							...(latestDexPair.baseToken?.symbol != null && { baseTokenSymbol: latestDexPair.baseToken.symbol }),
-							...(latestDexPair.quoteToken?.symbol != null && { quoteTokenSymbol: latestDexPair.quoteToken.symbol }),
+							baseTokenSymbol: latestDexPair.baseToken.symbol,
+							quoteTokenSymbol: latestDexPair.quoteToken.symbol,
 							...(latestDexPair.pairCreatedAt != null && { pairCreatedAtMs: latestDexPair.pairCreatedAt }),
-							...(latestDexPair.labels != null && { dexscreenerLabels: latestDexPair.labels }),
-							...(latestDexPair.dexId != null && latestDexPair.dexId !== '' && { dexId: latestDexPair.dexId }),
+							dexscreenerLabels: latestDexPair.labels,
+							dexId: latestDexPair.dexId,
 							...(latestDexPair.url != null && latestDexPair.url !== '' && { dexscreenerPairUrl: latestDexPair.url }),
 							...(latestDexPair.priceUsd != null && { priceUsd: latestDexPair.priceUsd }),
 							...(latestDexPair.priceNative != null && { priceNative: latestDexPair.priceNative }),
 							...(latestDexPair.liquidity?.usd != null && { liquidityUsd: latestDexPair.liquidity.usd }),
-							...(latestDexPair.volume?.h24 != null && { volumeUsd24h: latestDexPair.volume.h24 }),
-							...(latestDexPair.priceChange?.h24 != null && { priceChangePercent24h: latestDexPair.priceChange.h24 }),
-							...(latestDexPair.txns?.h24.buys != null && { transactionBuys24h: latestDexPair.txns.h24.buys }),
-							...(latestDexPair.txns?.h24.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
+							...(latestDexPair.volume.h24 != null && { volumeUsd24h: latestDexPair.volume.h24 }),
+							...(latestDexPair.priceChange.h24 != null && { priceChangePercent24h: latestDexPair.priceChange.h24 }),
+							...(latestDexPair.txns.h24?.buys != null && { transactionBuys24h: latestDexPair.txns.h24.buys }),
+							...(latestDexPair.txns.h24?.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
 							...(latestDexPair.marketCap != null && { marketCapUsd: latestDexPair.marketCap }),
 							...(latestDexPair.fdv != null && { fdvUsd: latestDexPair.fdv }),
 							transport: 'Dexscreener OpenAPI',
@@ -121,7 +138,7 @@ export default {
 				baseTokenSymbol: (snapshot) => snapshot.baseTokenSymbol,
 				quoteTokenSymbol: (snapshot) => snapshot.quoteTokenSymbol,
 				pairCreatedAtMs: (snapshot) => snapshot.pairCreatedAtMs,
-				dexscreenerLabels: (snapshot) => snapshot.dexscreenerLabels ?? [],
+				dexscreenerLabels: (snapshot) => snapshot.dexscreenerLabels,
 				dexId: (snapshot) => snapshot.dexId,
 				dexscreenerPairUrl: (snapshot) => snapshot.dexscreenerPairUrl,
 				priceUsd: (snapshot) => snapshot.priceUsd,
@@ -146,15 +163,13 @@ export default {
 						)
 						const { getPairSearch } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 						const liquidityPools = (
-							((await getPairSearch({ q: 'WETH USDC uniswap' })).pairs ?? [])
+							(await getPairSearch({
+								binding: dexscreenerBinding,
+								q: 'WETH USDC uniswap',
+							})).pairs
 								.flatMap((pair) => {
-									const chainId = (
-										pair.chainId != null && pair.chainId !== '' ?
-											numericChainIdByDexscreenerApiChainLabel[pair.chainId]
-										:
-											undefined
-									)
-									const pairId = hexLowerOfByteSize(pair.pairAddress ?? '', 20)
+									const chainId = numericChainIdByDexscreenerApiChainLabel[pair.chainId]
+									const pairId = hexLowerOfByteSize(pair.pairAddress, 20)
 
 									return (
 										chainId == null || pairId == null ?
@@ -194,15 +209,29 @@ export default {
 			entityType: EntityType.LiquidityPool,
 			resolve: {
 				[LiquidityPoolSelector.EvmNetworkId]: {
-					resolve: async (entitySelector) => [
-						{
+					resolve: async (entitySelector) => {
+						const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
+						const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
+						const apiChainId = apiChainIdByChainId[Number(entitySelector.$network.caip2.reference)]
+						if (apiChainId == null)
+							throw new Error('Dexscreener_OpenApi: unsupported liquidity pool chain')
+						const pair = (
+							await getLatestPairs({
+								binding: dexscreenerBinding,
+								chainId: apiChainId,
+								pairId: entitySelector.id,
+							})
+						).pairs.at(0)
+						if (pair == null)
+							throw new Error('Dexscreener_OpenApi: liquidity pool / pair not found for observation')
+						return [{
 							[EntityMetaKey.Selector]: {
 								$liquidityPool: entitySelector,
-								timestampMs: Date.now(),
+								timestampMs: pair.resolvedAtMs,
 								feedKey: 'dexscreener',
 							},
-						},
-					],
+						}]
+					},
 				},
 			},
 		})({

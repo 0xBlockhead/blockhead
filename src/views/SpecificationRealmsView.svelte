@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { specificationRealmById } from '$/constants/SpecificationProposal.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Specification realms',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.SpecificationRealm>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SpecificationRealm>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import SpecificationRealmView from '$/views/SpecificationRealmView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(specificationRealms) => [...new Map(specificationRealms.values.map((specificationRealm) => [specificationRealm[EntityMetaKey.SelectorKey], specificationRealm])).values()]}
 	getKey={(specificationRealm) => specificationRealm[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,18 +88,31 @@
 
 	{#snippet Item({ item: specificationRealm })}
 		{@const specificationRealmFields = { ...specificationRealm[EntityMetaKey.Selector], ...specificationRealm }}
-		{@const selection = select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const specificationRealmHrefFields = { ...specificationRealm, ...specificationRealm[EntityMetaKey.Selector] }}
-		<SpecificationRealmView
-			selection={selection}
-			prefetched={specificationRealmFields}
+		<EntityView
+			entityType={EntityType.SpecificationRealm}
+			entitySelector={specificationRealm[EntityMetaKey.Selector]}
 			href={
-				(specificationRealmHrefFields.realm !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-					specificationRealmSlug: String(specificationRealmById[String(specificationRealmHrefFields.realm)].slug ?? ''),
-				}) : undefined)
+				(
+					specificationRealm[EntityMetaKey.Selector] != null && 'realm' in specificationRealm[EntityMetaKey.Selector]
+					&& specificationRealm[EntityMetaKey.Selector].realm != null ?
+						resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+					specificationRealmSlug: String(specificationRealmById[String(specificationRealm[EntityMetaKey.Selector].realm)].slug ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((specificationRealmFields.label) ?? '')].filter(Boolean).join(' ') || [String((specificationRealmFields.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((specificationRealmFields.realm) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

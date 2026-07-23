@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Kaspa address UTXO observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.KaspaAddressUtxo_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.KaspaAddressUtxo_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import KaspaAddressUtxo_TimestampView from '$/views/KaspaAddressUtxo_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(kaspaAddressUtxoTimestamps) => [...new Map(kaspaAddressUtxoTimestamps.values.map((kaspaAddressUtxoTimestamp) => [kaspaAddressUtxoTimestamp[EntityMetaKey.SelectorKey], kaspaAddressUtxoTimestamp])).values()]}
 	getKey={(kaspaAddressUtxoTimestamp) => kaspaAddressUtxoTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: kaspaAddressUtxoTimestamp })}
 		{@const kaspaAddressUtxoTimestampFields = { ...kaspaAddressUtxoTimestamp[EntityMetaKey.Selector], ...kaspaAddressUtxoTimestamp }}
-		{@const selection = select(EntityType.KaspaAddressUtxo_Timestamp, kaspaAddressUtxoTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<KaspaAddressUtxo_TimestampView
-			selection={selection}
-			prefetched={kaspaAddressUtxoTimestampFields}
+		<EntityView
+			entityType={EntityType.KaspaAddressUtxo_Timestamp}
+			entitySelector={kaspaAddressUtxoTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'kaspa address UTXO timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

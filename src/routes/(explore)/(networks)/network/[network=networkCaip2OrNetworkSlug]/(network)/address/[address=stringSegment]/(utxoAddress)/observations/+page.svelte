@@ -38,11 +38,8 @@
 			})
 		}
 		title='UTXO address observations'
-		selection={
-			select(EntityType.UtxoAddress, data.selector).$$timestamps({
-				count: true,
-			})
-		}
+		selection={select(EntityType.UtxoAddress, data.selector).$$timestamps}
+		countResource={select(EntityType.UtxoAddress, data.selector).$$timestamps.count}
 		id='timestamps'
 		data-column-item="flexible"
 		data-card

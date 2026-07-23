@@ -30,8 +30,13 @@ import type {
 	BlockfrostTransactions,
 } from '$/sources/Blockfrost/Rest/types.ts'
 import type {
+	CardanoKoiosAsset,
 	CardanoKoiosBlock,
+	CardanoKoiosDRep,
+	CardanoKoiosGovernanceProposal,
+	CardanoKoiosStakePool,
 	CardanoKoiosTip,
+	CardanoKoiosTransactionInfo,
 } from '$/sources/CardanoKoios/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -148,7 +153,6 @@ const drepVotes = [{
 	proposal_cert_index: 1,
 	vote: 'yes',
 }] satisfies BlockfrostDRepVotes
-const stakePools = ['pool1fixture'] satisfies BlockfrostStakePools
 const stakePool = {
 	pool_id: 'pool1fixture',
 	hex: 'cd',
@@ -298,8 +302,48 @@ const koiosBlocks = [{
 	...koiosTip,
 	tx_count: 4,
 }] satisfies CardanoKoiosBlock[]
+const koiosProposals = [{
+	proposal_tx_hash: 'proposal-hash',
+	proposal_index: 1,
+	proposal_type: 'info_action',
+}] satisfies CardanoKoiosGovernanceProposal[]
+const koiosTransactionInfo = {
+	tx_hash: 'proposal-hash',
+	epoch_no: 599,
+	absolute_slot: 130_000_000,
+	tx_timestamp: 1_720_000_000,
+	certificates: [],
+	native_scripts: [],
+	plutus_contracts: [],
+	voting_procedures: [],
+	proposal_procedures: [
+		{
+			type: 'NoConfidence',
+			index: 0,
+			deposit: '900000',
+			meta_url: 'https://example.com/cardano/wrong-proposal.json',
+			meta_hash: 'wrong-proposal-anchor-hash',
+			description: {
+				tag: 'NoConfidence',
+			},
+			return_address: 'stake1wrongproposal',
+		},
+		{
+			type: 'InfoAction',
+			index: 1,
+			deposit: '1000000',
+			meta_url: 'https://example.com/cardano/koios-proposal.json',
+			meta_hash: 'koios-proposal-anchor-hash',
+			description: {
+				tag: 'InfoAction',
+				title: 'Koios proposal payload',
+			},
+			return_address: 'stake1koiosproposal',
+		},
+	],
+} satisfies CardanoKoiosTransactionInfo
 
-type Scenario = 'happy' | 'optional-empty' | 'proposal-error'
+type Scenario = 'happy' | 'optional-empty' | 'proposal-error' | 'wrong-index'
 
 const installCardanoGovernanceFixtures = async (
 	page: Page,
@@ -323,13 +367,30 @@ const installCardanoGovernanceFixtures = async (
 		'GET governance/proposals/proposal-hash/1': proposal,
 		'GET governance/proposals/proposal-hash/1/metadata': proposalMetadata,
 		'GET governance/proposals/proposal-hash/1/votes?count=100': proposalVotes,
-		'GET pools?count=16': stakePools,
+		'GET governance/proposals/proposal-hash/2': {
+			...proposal,
+			cert_index: 2,
+		},
+		'GET governance/proposals/proposal-hash/2/metadata': {
+			...proposalMetadata,
+			cert_index: 2,
+		},
+		'GET governance/proposals/proposal-hash/2/votes?count=100': proposalVotes,
+		'GET pools?count=16': ['pool1fixture'] satisfies BlockfrostStakePools,
 		'GET pools/pool1fixture': stakePool,
 		'GET pools/pool1fixture/metadata': stakePoolMetadata,
 	}))
 	const koiosResponseByRequest = new Map<string, JsonValue>(Object.entries({
+		'GET asset_list?limit=16': [] satisfies CardanoKoiosAsset[],
 		'GET blocks?limit=16': koiosBlocks,
+		'GET drep_list?limit=16': [] satisfies CardanoKoiosDRep[],
+		'GET proposal_list?limit=16': koiosProposals,
+		'GET pool_list?limit=16': [{
+			pool_id_bech32: 'pool1fixture',
+			ticker: 'FIX',
+		}] satisfies CardanoKoiosStakePool[],
 		'GET tip': [koiosTip],
+		'POST tx_info': [koiosTransactionInfo],
 	}))
 
 	await page.route(
@@ -467,13 +528,21 @@ test.describe('Cardano governance reading journey', () => {
 		await expectMainVisible(page, 120_000, diagnostics)
 		await diagnostics.step(assertMainSettled(page, 120_000, diagnostics))
 
-		const paneHost = page.locator('.network-view-collapsible-cardano-explorer [data-collapsible-tabs-pane-host]')
-		await expect(paneHost).toHaveCount(1)
+		const eligibleSections = page.locator('#main :is([id*="-carousel-utxo-"], [id*="-carousel-cardano-"]) [data-collapsible-tabs-pane-host] > section[data-column][data-column-item="flexible"]')
+		await expect(eligibleSections).toHaveCount(15)
+		await expect(eligibleSections.locator(':scope > article[data-column-item="flexible"][data-card][data-scroll-container]')).toHaveCount(15)
+		const paneHosts = page.locator('#main [id*="-carousel-cardano-"] [data-collapsible-tabs-pane-host]')
+		await expect(paneHosts).toHaveCount(5)
+		const sections = paneHosts.locator(':scope > section[data-column][data-column-item="flexible"]')
+		await expect(sections).toHaveCount(cardanoSections.length)
+		await expect(sections.locator(':scope > article[data-column-item="flexible"][data-card][data-scroll-container]')).toHaveCount(cardanoSections.length)
 		for (const [sectionId, marker] of cardanoSections) {
-			const section = paneHost.locator(`section[id$=":${sectionId}"][data-scroll-marker-label="${marker}"][data-column][data-column-item="flexible"]`)
+			const section = paneHosts.locator(`:scope > section[id$=":${sectionId}"][data-scroll-marker-label="${marker}"][data-column][data-column-item="flexible"]`)
 			await expect(section).toHaveCount(1)
 			await expect(section.locator(`:scope > article[id$=":${sectionId}-list"][data-column-item="flexible"][data-card][data-scroll-container]`)).toHaveCount(1)
 		}
+		await expect(paneHosts.locator(':scope > section[data-scroll-marker-label="DReps"]')).toContainText('Fixture DRep')
+		await expect(paneHosts.locator(':scope > section[data-scroll-marker-label="Stake pools"]')).toContainText('FIX')
 
 		const traverse = async ({
 			marker,
@@ -484,7 +553,7 @@ test.describe('Cardano governance reading journey', () => {
 			pathname: string
 			expectedText: string | RegExp
 		}) => {
-			const section = paneHost.locator(`section[data-scroll-marker-label="${marker}"]`)
+			const section = paneHosts.locator(`:scope > section[data-scroll-marker-label="${marker}"]`)
 			await section.locator('article[data-card][data-scroll-container] a').first().click()
 			await expect(page).toHaveURL((url) => url.pathname === pathname)
 			await expect(page.locator('#main article[data-card][data-scroll-container]').first()).toBeAttached(attach)
@@ -500,8 +569,23 @@ test.describe('Cardano governance reading journey', () => {
 			pathname: proposalPath,
 			expectedText: 'proposal-metadata-hash',
 		})
+		const proposalCard = page.locator('#main article[id^="cardano-governance-proposal-"]')
+		await expect(proposalCard).toContainText('InfoAction')
+		await expect(proposalCard).toContainText('1000000')
+		await expect(proposalCard).toContainText('stake1koiosproposal')
+		await expect(proposalCard.getByRole('link', {
+			name: 'https://example.com/cardano/koios-proposal.json',
+		})).toHaveAttribute('href', 'https://example.com/cardano/koios-proposal.json')
+		await expect(proposalCard).toContainText('koios-proposal-anchor-hash')
+		await expect(proposalCard).toContainText('Koios proposal payload')
+		await expect(proposalCard.locator('dt', { hasText: 'transaction' }).locator('+ dd a')).toHaveAttribute(
+			'href',
+			'/network/cardano/tx/proposal-hash'
+		)
+		await expect(proposalCard).toContainText('gov_action1fixture')
 		await expect(page.locator('#CardanoGovernanceProposal_TimestampsView-timestamps')).toContainText(/599|596|597/)
 		await expect(page.locator('#CardanoGovernanceVotesView-votes')).toContainText('proposal-vote-hash')
+		await expect(proposalCard.getByText(/yes votes|no votes|abstain votes|approval|quorum/i)).toHaveCount(0)
 
 		await page.goBack({ waitUntil: 'domcontentloaded' })
 		await diagnostics.step(assertMainSettled(page, 120_000, diagnostics))
@@ -532,7 +616,6 @@ test.describe('Cardano governance reading journey', () => {
 		expect(diagnostics.issues).toEqual([])
 		expect(fixture.unexpected).toEqual([])
 		for (const requestKey of [
-			'GET governance/proposals?count=16',
 			'GET governance/proposals/proposal-hash/1',
 			'GET governance/proposals/proposal-hash/1/metadata',
 			'GET governance/proposals/proposal-hash/1/votes?count=100',
@@ -547,6 +630,36 @@ test.describe('Cardano governance reading journey', () => {
 			'GET governance/committee/votes?count=100',
 		])
 			expect(fixture.requests.get(requestKey), requestKey).toBeGreaterThan(0)
+		expect(fixture.requests.get('GET proposal_list?limit=16')).toBeGreaterThan(0)
+		expect(fixture.requests.get('POST tx_info')).toBeGreaterThan(0)
+	})
+
+	test('fails a mismatched Koios proposal index through the proposal boundary', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
+		const fixture = await preparePage(page, testInfo, 'wrong-index')
+		const diagnostics = setupPageRuntimeDiagnostics(page, {
+			failFast: false,
+			failOnDevServerContamination: true,
+			failOnTanStackWarnings: true,
+		})
+
+		await page.goto('/network/cardano/governance/proposal/proposal-hash/2', {
+			waitUntil: 'domcontentloaded',
+		})
+		await expect(page.locator('#layout')).toBeVisible(attach)
+		const settled = await waitForBoundarySettle(page, {
+			timeoutMs: 120_000,
+			quietMs: 4_000,
+		})
+		expect(settled.loading).toEqual([])
+		expect(settled.failed.length).toBeGreaterThan(0)
+		await expect(page.locator('#main article[id^="cardano-governance-proposal-"] [data-error]').first()).toBeAttached()
+		await expectNoWalletActions(page)
+		expect(fixture.requests.get('POST tx_info')).toBeGreaterThan(0)
+		expect(fixture.unexpected).toEqual([])
+		expect(diagnostics.issues.filter((issue) => (
+			!issue.includes('CardanoKoios_Rest: proposal response does not match the subject')
+		))).toEqual([])
 	})
 
 	test('keeps optional metadata and an empty vote collection non-failing', async ({ page }, testInfo) => {

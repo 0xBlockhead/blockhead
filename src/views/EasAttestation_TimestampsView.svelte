@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EAS attestation observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EasAttestation_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EasAttestation_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EasAttestation_TimestampView from '$/views/EasAttestation_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(easAttestationTimestamps) => [...new Map(easAttestationTimestamps.values.map((easAttestationTimestamp) => [easAttestationTimestamp[EntityMetaKey.SelectorKey], easAttestationTimestamp])).values()]}
 	getKey={(easAttestationTimestamp) => easAttestationTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: easAttestationTimestamp })}
 		{@const easAttestationTimestampFields = { ...easAttestationTimestamp[EntityMetaKey.Selector], ...easAttestationTimestamp }}
-		{@const selection = select(EntityType.EasAttestation_Timestamp, easAttestationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<EasAttestation_TimestampView
-			selection={selection}
-			prefetched={easAttestationTimestampFields}
+		<EntityView
+			entityType={EntityType.EasAttestation_Timestamp}
+			entitySelector={easAttestationTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((easAttestationTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EAS attestation timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((easAttestationTimestampFields.valid) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((easAttestationTimestampFields.revoked) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

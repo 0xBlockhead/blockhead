@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Token mints',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.SolanaTokenMint>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SolanaTokenMint>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import SolanaTokenMintView from '$/views/SolanaTokenMintView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(solanaTokenMints) => [...new Map(solanaTokenMints.values.map((solanaTokenMint) => [solanaTokenMint[EntityMetaKey.SelectorKey], solanaTokenMint])).values()]}
 	getKey={(solanaTokenMint) => solanaTokenMint[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,22 +88,48 @@
 
 	{#snippet Item({ item: solanaTokenMint })}
 		{@const solanaTokenMintFields = { ...solanaTokenMint[EntityMetaKey.Selector], ...solanaTokenMint }}
-		{@const selection = select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const solanaTokenMintHrefFields = { ...solanaTokenMint, ...solanaTokenMint[EntityMetaKey.Selector] }}
-		<SolanaTokenMintView
-			selection={selection}
-			prefetched={solanaTokenMintFields}
+		<EntityView
+			entityType={EntityType.SolanaTokenMint}
+			entitySelector={solanaTokenMint[EntityMetaKey.Selector]}
 			href={
-				(solanaTokenMintHrefFields.mintAddress !== undefined && solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-					mintAddress: String(solanaTokenMintHrefFields.mintAddress ?? ''),
-					network: String(caip2StringFromValue(solanaTokenMintHrefFields.$network.caip2) ?? ''),
-				}) : solanaTokenMintHrefFields.mintAddress !== undefined && solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-					mintAddress: String(solanaTokenMintHrefFields.mintAddress ?? ''),
-					network: String(solanaTokenMintHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					solanaTokenMint[EntityMetaKey.Selector] != null && 'mintAddress' in solanaTokenMint[EntityMetaKey.Selector]
+					&& solanaTokenMint[EntityMetaKey.Selector].mintAddress != null
+					&& solanaTokenMint[EntityMetaKey.Selector] != null && '$network' in solanaTokenMint[EntityMetaKey.Selector] ?
+						solanaTokenMint[EntityMetaKey.Selector].$network != null && 'caip2' in solanaTokenMint[EntityMetaKey.Selector].$network
+						&& solanaTokenMint[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+						mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+						network: String(caip2StringFromValue(solanaTokenMint[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							solanaTokenMint[EntityMetaKey.Selector].$network != null && 'slug' in solanaTokenMint[EntityMetaKey.Selector].$network
+							&& solanaTokenMint[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+							mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+							network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((solanaTokenMintFields.mintAddress) ?? '')].filter(Boolean).join(' ') || 'solana token mint'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((solanaTokenMintFields.mintAddress) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((solanaTokenMintFields.$network.name) ?? '')].filter(Boolean).join(' ') || [solanaTokenMintFields.$network.caip2 == null ? '' : String(`${(solanaTokenMintFields.$network.caip2).namespace}:${(solanaTokenMintFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

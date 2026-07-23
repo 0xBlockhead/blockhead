@@ -44,14 +44,14 @@
 				}
 				title='ERC-4337 smart accounts'
 				selection={
-					projection.$$erc4337SmartAccounts({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$erc4337SmartAccounts({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
-				id='erc4337-smart-accounts'
+				id='account-erc4337-smart-account'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

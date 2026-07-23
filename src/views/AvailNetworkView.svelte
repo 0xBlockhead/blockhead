@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AvailNetwork>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AvailNetwork>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvailNetwork>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const availNetwork = $derived(selection({
+	const availNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('avail network')
-	const viewDomId = $derived('avail-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'avail network'
+	const viewDomId = $derived('avail-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,51 +74,24 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={availNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={availNetwork}>
+			{#snippet children(entity)}
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{titleFallback}
-		{:else}
-			<ResourceBoundary resource={availNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={availNetwork}>
+			{#snippet children(entity)}
+				{titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -123,13 +100,23 @@
 				<dt>network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -140,50 +127,65 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AvailNetwork_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='AvailNetwork_TimestampsView-timestamps'
-			/>
-
-			<AvailBlocksView
-				selection={
-						selection.$$blocks({
-							count: true,
-						})
-					}
-				title='blocks'
-				emptyText='No blocks found.'
-				id='AvailBlocksView-blocks'
-			/>
-
-			<AvailAppIdsView
-				selection={
-						selection.$$appIds({
-							count: true,
-						})
-					}
-				title='app ids'
-				emptyText='No app IDs found.'
-				id='AvailAppIdsView-app-ids'
-			/>
-
-			<AvailDataSubmissionsView
-				selection={
-						selection.$$dataSubmissions({
-							count: true,
-						})
-					}
-				title='data submissions'
-				emptyText='No data submissions found.'
-				id='AvailDataSubmissionsView-data-submissions'
-			/>
-		{/if}
+		{@const availNetworkAvailNetworkTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={availNetworkAvailNetworkTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvailNetwork_TimestampsView
+					selection={availNetworkAvailNetworkTimestampsViewTimestampsResource}
+					countResource={availNetworkAvailNetworkTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='AvailNetwork_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const availNetworkAvailBlocksViewBlocksResource = selection.$$blocks}
+		<ResourceBoundary
+			resource={availNetworkAvailBlocksViewBlocksResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvailBlocksView
+					selection={availNetworkAvailBlocksViewBlocksResource}
+					countResource={availNetworkAvailBlocksViewBlocksResource.count}
+					title='blocks'
+					id='AvailBlocksView-blocks'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const availNetworkAvailAppIdsViewAppIdsResource = selection.$$appIds}
+		<ResourceBoundary
+			resource={availNetworkAvailAppIdsViewAppIdsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvailAppIdsView
+					selection={availNetworkAvailAppIdsViewAppIdsResource}
+					countResource={availNetworkAvailAppIdsViewAppIdsResource.count}
+					title='app ids'
+					id='AvailAppIdsView-app-ids'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const availNetworkAvailDataSubmissionsViewDataSubmissionsResource = selection.$$dataSubmissions}
+		<ResourceBoundary
+			resource={availNetworkAvailDataSubmissionsViewDataSubmissionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvailDataSubmissionsView
+					selection={availNetworkAvailDataSubmissionsViewDataSubmissionsResource}
+					countResource={availNetworkAvailDataSubmissionsViewDataSubmissionsResource.count}
+					title='data submissions'
+					id='AvailDataSubmissionsView-data-submissions'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

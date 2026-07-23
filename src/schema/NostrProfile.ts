@@ -3,7 +3,6 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
@@ -24,102 +23,24 @@ export const NostrProfile = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	displayName: {
-		label: 'Display name',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.NostrBand_Rest,
-		],
-	},
-	about: {
-		label: 'About',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.NostrBand_Rest,
-		],
-	},
-	nip05: {
-		label: 'NIP-05',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.NostrBand_Rest,
-		],
-	},
-	lud16: {
-		label: 'Lightning address',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NostrBand_Rest,
-		],
-	},
-	lud06: {
-		label: 'Lightning invoice',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NostrBand_Rest,
-		],
-	},
-	website: {
-		label: 'Website',
-		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.NostrBand_Rest,
-		],
-	},
-	metadataUpdatedAt: {
-		label: 'Metadata updated',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-			Source.NostrBand_Rest,
-		],
-	},
-	iconUrl: {
-		label: 'Icon URL',
-		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$icon: {
-		label: 'Icon',
+	$latestMetadataEvent: {
+		label: 'Latest signed metadata',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.Media,
+		entityType: EntityType.NostrProfileMetadataEvent,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.NostrBand_Rest,
+			Source.Primal_Rest,
 		],
 	},
-	bannerUrl: {
-		label: 'Banner URL',
-		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$banner: {
-		label: 'Banner',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.Media,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+	$$metadataEvents: {
+		label: 'Signed metadata versions',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.NostrProfileMetadataEvent,
+		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.NostrBand_Rest,
+			Source.Primal_Rest,
 		],
 	},
 	$$notes: {

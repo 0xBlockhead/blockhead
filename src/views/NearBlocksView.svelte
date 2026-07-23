@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Near blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NearBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NearBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NearBlockView from '$/views/NearBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,7 +65,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.NearRpc_JsonRpc,
 				Source.NearBlocks_Rest,
 				Source.ThreeXpl_Rest,
@@ -84,6 +77,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nearBlocks) => [...new Map(nearBlocks.values.map((nearBlock) => [nearBlock[EntityMetaKey.SelectorKey], nearBlock])).values()]}
 	getKey={(nearBlock) => nearBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -98,12 +92,24 @@
 
 	{#snippet Item({ item: nearBlock })}
 		{@const nearBlockFields = { ...nearBlock[EntityMetaKey.Selector], ...nearBlock }}
-		{@const selection = select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<NearBlockView
-			selection={selection}
-			prefetched={nearBlockFields}
+		<EntityView
+			entityType={EntityType.NearBlock}
+			entitySelector={nearBlock[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nearBlockFields.height) ?? '')].filter(Boolean).join(' ') || 'near block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((nearBlockFields.hash) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((nearBlockFields.timestampMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

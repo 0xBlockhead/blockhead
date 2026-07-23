@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmRollup_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmRollup_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmRollup_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmRollupTimestamp = $derived(selection({
+	const evmRollupTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			listingStage: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			listingStage: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.listingStage) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp')
-	const viewDomId = $derived('evm-rollup-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('evm-rollup-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,89 +71,97 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$rollup !== undefined && pendingEntity.$rollup.projectId !== undefined && pendingEntity.$rollup.$network !== undefined && pendingEntity.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			projectId: String(pendingEntity.$rollup.projectId ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$rollup.$network.caip2) ?? ''),
-		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$rollup !== undefined && pendingEntity.$rollup.projectId !== undefined && pendingEntity.$rollup.$network !== undefined && pendingEntity.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			projectId: String(pendingEntity.$rollup.projectId ?? ''),
-			network: String(pendingEntity.$rollup.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$rollup' in selection.entitySelector
+			&& selection.entitySelector.$rollup != null && 'projectId' in selection.entitySelector.$rollup
+			&& selection.entitySelector.$rollup.projectId != null
+			&& selection.entitySelector.$rollup != null && '$network' in selection.entitySelector.$rollup ?
+				selection.entitySelector.$rollup.$network != null && 'caip2' in selection.entitySelector.$rollup.$network
+				&& selection.entitySelector.$rollup.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+				timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+				source: String(selection.entitySelector.source ?? ''),
+				projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$rollup.$network != null && 'slug' in selection.entitySelector.$rollup.$network
+					&& selection.entitySelector.$rollup.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+					source: String(selection.entitySelector.source ?? ''),
+					projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+					network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.listingStage) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={evmRollupTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.listingStage) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmRollupTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.listingStage) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.listingStage) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.listingStage) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={evmRollupTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.listingStage) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.listingStage) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmRollupTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.listingStage) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.listingStage) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<span data-text="muted">
-				<EvmRollupView
-					selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
-					href={
-						(selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-							projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-							projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
-							network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
-						}) : undefined)
-					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={evmRollupTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<span data-text="muted">
-						<EvmRollupView
-							selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
-							href={
-								(selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+		<ResourceBoundary resource={evmRollupTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<EvmRollupView
+						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
+						href={
+							(
+								selection.entitySelector.$rollup != null && 'projectId' in selection.entitySelector.$rollup
+								&& selection.entitySelector.$rollup.projectId != null
+								&& selection.entitySelector.$rollup != null && '$network' in selection.entitySelector.$rollup ?
+									selection.entitySelector.$rollup.$network != null && 'caip2' in selection.entitySelector.$rollup.$network
+									&& selection.entitySelector.$rollup.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
 									projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
 									network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
-								}) : selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-									projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
-									network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+								})
+								:
+										selection.entitySelector.$rollup.$network != null && 'slug' in selection.entitySelector.$rollup.$network
+										&& selection.entitySelector.$rollup.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+										projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+										network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -328,15 +342,30 @@
 				<dt>Rollup</dt>
 				<dd>
 					<EvmRollupView
-						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup, {})}
+						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
 						href={
-							(selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
-								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$rollup != null && 'projectId' in selection.entitySelector.$rollup
+								&& selection.entitySelector.$rollup.projectId != null
+								&& selection.entitySelector.$rollup != null && '$network' in selection.entitySelector.$rollup ?
+									selection.entitySelector.$rollup.$network != null && 'caip2' in selection.entitySelector.$rollup.$network
+									&& selection.entitySelector.$rollup.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+									projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$rollup.$network != null && 'slug' in selection.entitySelector.$rollup.$network
+										&& selection.entitySelector.$rollup.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+										projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+										network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

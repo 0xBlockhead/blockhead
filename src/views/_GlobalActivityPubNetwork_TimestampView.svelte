@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType._GlobalActivityPubNetwork_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType._GlobalActivityPubNetwork_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType._GlobalActivityPubNetwork_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalActivityPubNetworkTimestamp = $derived(selection({
+	const globalActivityPubNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			instanceTitle: true,
+			instanceOrigin: true,
+			reachable: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			instanceTitle: true,
@@ -51,7 +59,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.instanceTitle) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global ActivityPub network timestamp')
-	const viewDomId = $derived('-global-activity-pub-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('-global-activity-pub-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,7 +82,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'instanceTitle') && Object.hasOwn(prefetched, 'instanceOrigin') && Object.hasOwn(prefetched, 'reachable')}
 			{[String((pendingEntity.instanceTitle) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={globalActivityPubNetworkTimestamp}>
@@ -87,7 +95,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'instanceTitle') && Object.hasOwn(prefetched, 'instanceOrigin') && Object.hasOwn(prefetched, 'reachable')}
 			{[String((pendingEntity.instanceOrigin) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.instanceTitle) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={globalActivityPubNetworkTimestamp}>
@@ -100,7 +108,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'instanceTitle') && Object.hasOwn(prefetched, 'instanceOrigin') && Object.hasOwn(prefetched, 'reachable')}
 			{@const reachable0 = pendingEntity.reachable}
 			{#if reachable0 !== undefined && reachable0 !== null}
 				<span data-text="muted">
@@ -128,8 +136,15 @@
 				<dt>Hub</dt>
 				<dd>
 					<GlobalActivityPubNetworkView
-						selection={select(EntityType._GlobalActivityPubNetwork, selection.entitySelector.$hub, {})}
-						href={(selection.entitySelector.$hub.scope === '_GlobalActivityPubNetwork' ? resolve('/activitypub') : undefined)}
+						selection={select(EntityType._GlobalActivityPubNetwork, selection.entitySelector.$hub)}
+						href={
+							(
+								selection.entitySelector.$hub.scope === '_GlobalActivityPubNetwork' ?
+									resolve('/activitypub')
+							:
+									undefined
+							)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

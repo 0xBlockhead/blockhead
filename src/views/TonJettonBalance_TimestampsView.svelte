@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'TON jetton balance observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TonJettonBalance_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TonJettonBalance_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TonJettonBalance_TimestampView from '$/views/TonJettonBalance_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(tonJettonBalanceTimestamps) => [...new Map(tonJettonBalanceTimestamps.values.map((tonJettonBalanceTimestamp) => [tonJettonBalanceTimestamp[EntityMetaKey.SelectorKey], tonJettonBalanceTimestamp])).values()]}
 	getKey={(tonJettonBalanceTimestamp) => tonJettonBalanceTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: tonJettonBalanceTimestamp })}
 		{@const tonJettonBalanceTimestampFields = { ...tonJettonBalanceTimestamp[EntityMetaKey.Selector], ...tonJettonBalanceTimestamp }}
-		{@const selection = select(EntityType.TonJettonBalance_Timestamp, tonJettonBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TonJettonBalance_TimestampView
-			selection={selection}
-			prefetched={tonJettonBalanceTimestampFields}
+		<EntityView
+			entityType={EntityType.TonJettonBalance_Timestamp}
+			entitySelector={tonJettonBalanceTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'TON jetton balance timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

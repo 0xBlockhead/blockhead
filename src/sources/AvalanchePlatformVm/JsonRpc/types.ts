@@ -1,3 +1,90 @@
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+export type AvalanchePlatformVmHeight = {
+	height: string
+}
 
-export type AvalanchePlatformVmWire = JsonValue
+export type AvalanchePlatformVmBlockchain = {
+	id: string
+	name: string
+	subnetID: string
+	vmID: string
+}
+
+export type AvalanchePlatformVmBlockchains = {
+	blockchains: AvalanchePlatformVmBlockchain[]
+}
+
+export type AvalanchePlatformVmOutputOwner = {
+	locktime: string
+	threshold: string
+	addresses: string[]
+}
+
+export type AvalanchePlatformVmDelegator = {
+	txID: string
+	startTime: string
+	endTime: string
+	weight: string
+	nodeID: string
+	rewardOwner: AvalanchePlatformVmOutputOwner
+	potentialReward: string
+}
+
+export type AvalanchePlatformVmValidator = {
+	txID?: string
+	startTime: string
+	endTime?: string
+	nodeID: string
+	weight: string
+	validationID?: string
+	publicKey?: string
+	validationRewardOwner?: AvalanchePlatformVmOutputOwner
+	delegationRewardOwner?: AvalanchePlatformVmOutputOwner
+	potentialReward?: string
+	delegationFee?: string
+	uptime?: string
+	connected?: boolean
+	delegators?: AvalanchePlatformVmDelegator[]
+}
+
+export type AvalanchePlatformVmValidators = {
+	validators: AvalanchePlatformVmValidator[]
+}
+
+export type AvalanchePlatformVmBalance = {
+	balance: string
+	unlocked: string
+	lockedStakeable: string
+	lockedNotStakeable: string
+	balances: Record<string, string>
+	unlockeds: Record<string, string>
+	lockedStakeables: Record<string, string>
+	lockedNotStakeables: Record<string, string>
+	utxoIDs: {
+		txID: string
+		outputIndex: number
+	}[]
+}
+
+export type AvalanchePlatformVmStake = {
+	staked: string
+	stakeds: Record<string, string>
+	stakedOutputs: string[]
+	encoding: string
+}
+
+export type AvalanchePlatformVmUtxoIndex = {
+	address: string
+	utxo: string
+}
+
+export type AvalanchePlatformVmUtxos = {
+	numFetched: string
+	utxos: string[]
+	endIndex: AvalanchePlatformVmUtxoIndex
+	encoding: string
+}
+
+export type AvalanchePlatformVmTxStatus = {
+	status: 'Committed' | 'Processing' | 'Dropped' | 'Unknown'
+	reason?: string
+}

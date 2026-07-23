@@ -22,8 +22,13 @@
 	const pageSelection = $derived(select(EntityType.FarcasterCast, data.selector, {
 		sources: [
 			Source.Snapchain_Rest,
+			Source.Neynar_Rest,
+			Source.Farcaster_Rest,
 		],
 		fields: {
+			username: true,
+			hashPrefix: true,
+			clientUrl: true,
 			text: true,
 			timestamp: true,
 			$author: true,
@@ -34,7 +39,6 @@
 			threadHash: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.text) ?? ''), String((pageSelection.entitySelector.hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).text) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast')))
 
 
 	// Components
@@ -44,7 +48,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Farcaster cast • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast' : [String((({ ...data.selector, ...pageSelection.entity }).text) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast'))} • Farcaster cast • Blockhead</title>
 </svelte:head>
 
 

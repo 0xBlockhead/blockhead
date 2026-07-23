@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ENS',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalEnsNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalEnsNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalEnsNetworkView from '$/views/_GlobalEnsNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalEnsNetworks) => [...new Map(globalEnsNetworks.values.map((globalEnsNetwork) => [globalEnsNetwork[EntityMetaKey.SelectorKey], globalEnsNetwork])).values()]}
 	getKey={(globalEnsNetwork) => globalEnsNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,14 +86,24 @@
 
 	{#snippet Item({ item: globalEnsNetwork })}
 		{@const globalEnsNetworkFields = { ...globalEnsNetwork[EntityMetaKey.Selector], ...globalEnsNetwork }}
-		{@const selection = select(EntityType._GlobalEnsNetwork, globalEnsNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const globalEnsNetworkHrefFields = { ...globalEnsNetwork, ...globalEnsNetwork[EntityMetaKey.Selector] }}
-		<GlobalEnsNetworkView
-			selection={selection}
-			prefetched={globalEnsNetworkFields}
-			href={(globalEnsNetwork[EntityMetaKey.Selector].scope === '_GlobalEnsNetwork' ? resolve('/ens') : undefined)}
+		<EntityView
+			entityType={EntityType._GlobalEnsNetwork}
+			entitySelector={globalEnsNetwork[EntityMetaKey.Selector]}
+			href={
+				(
+					globalEnsNetwork[EntityMetaKey.Selector].scope === '_GlobalEnsNetwork' ?
+						resolve('/ens')
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'ENS'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

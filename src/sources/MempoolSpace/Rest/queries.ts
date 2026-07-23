@@ -1,4 +1,8 @@
-import { getJson } from '$/lib/http.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	MempoolSpaceAddress,
 	MempoolSpaceBlock,
@@ -7,125 +11,94 @@ import type {
 	MempoolSpaceTransaction,
 } from '$/sources/MempoolSpace/Rest/types.ts'
 
-const mempoolSpaceOrigins = [
-	{
-		origin: 'https://mempool.space',
-		corsEnabled: true,
-	},
-] as const
+const mempoolSpaceRestUrl = (
+	binding: SourceBinding,
+	path: string
+) => new URL(
+	path,
+	`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/`
+).toString()
 
-const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
-
-export const getBlock = ({
-	restBaseUrl,
-	blockHash,
-}: {
-	restBaseUrl: string
+export const getBlock = (
+	binding: SourceBinding,
 	blockHash: string
-}) => (
-	getJson<MempoolSpaceBlock>(
-		`${base(restBaseUrl)}/block/${blockHash}`,
-		{ origins: mempoolSpaceOrigins }
-	)
+) => sourceGetJson<MempoolSpaceBlock>(
+	binding,
+	mempoolSpaceRestUrl(binding, `block/${encodeURIComponent(blockHash)}`)
 )
 
-export const getBlockHashByHeight = ({
-	restBaseUrl,
-	height,
-}: {
-	restBaseUrl: string
-	height: bigint
-}) => (
-	getJson<string>(
-		`${base(restBaseUrl)}/block-height/${height.toString()}`,
-		{ origins: mempoolSpaceOrigins }
-	)
-)
-
-export const getBlockTransactionIds = ({
-	restBaseUrl,
-	blockHash,
-}: {
-	restBaseUrl: string
+export const getBlockTransactionIds = (
+	binding: SourceBinding,
 	blockHash: string
-}) => (
-	getJson<string[]>(
-		`${base(restBaseUrl)}/block/${blockHash}/txids`,
-		{ origins: mempoolSpaceOrigins }
-	)
+) => sourceGetJson<string[]>(
+	binding,
+	mempoolSpaceRestUrl(binding, `block/${encodeURIComponent(blockHash)}/txids`)
 )
 
-export const getTransaction = ({
-	restBaseUrl,
-	txId,
-}: {
-	restBaseUrl: string
+export const getTransaction = (
+	binding: SourceBinding,
 	txId: string
-}) => (
-	getJson<MempoolSpaceTransaction>(
-		`${base(restBaseUrl)}/tx/${txId}`,
-		{ origins: mempoolSpaceOrigins }
-	)
+) => sourceGetJson<MempoolSpaceTransaction>(
+	binding,
+	mempoolSpaceRestUrl(binding, `tx/${encodeURIComponent(txId)}`)
 )
 
-export const getBlocks = ({
-	restBaseUrl,
-	startHeight,
-}: {
-	restBaseUrl: string
+export const getBlocks = (
+	binding: SourceBinding,
 	startHeight?: bigint
-}) => (
-	getJson<MempoolSpaceBlock[]>(
-		startHeight != null ?
-			`${base(restBaseUrl)}/v1/blocks/${startHeight.toString()}`
+) => sourceGetJson<MempoolSpaceBlock[]>(
+	binding,
+	mempoolSpaceRestUrl(
+		binding,
+		startHeight == null ?
+			'v1/blocks'
 		:
-			`${base(restBaseUrl)}/v1/blocks`,
-		{ origins: mempoolSpaceOrigins }
+			`v1/blocks/${startHeight.toString()}`
 	)
 )
 
-export const getMempoolStats = ({
-	restBaseUrl,
-}: {
-	restBaseUrl: string
-}) => (
-	getJson<MempoolSpaceMempoolStats>(
-		`${base(restBaseUrl)}/mempool`,
-		{ origins: mempoolSpaceOrigins }
-	)
+export const getMempoolStats = (
+	binding: SourceBinding
+) => sourceGetJson<MempoolSpaceMempoolStats>(
+	binding,
+	mempoolSpaceRestUrl(binding, 'mempool')
 )
 
-export const getMempoolTxids = ({
-	restBaseUrl,
-}: {
-	restBaseUrl: string
-}) => (
-	getJson<string[]>(
-		`${base(restBaseUrl)}/mempool/txids`,
-		{ origins: mempoolSpaceOrigins }
-	)
+export const getMempoolTxids = (
+	binding: SourceBinding
+) => sourceGetJson<string[]>(
+	binding,
+	mempoolSpaceRestUrl(binding, 'mempool/txids')
 )
 
-export const getAddress = ({
-	restBaseUrl,
-	address,
-}: {
-	restBaseUrl: string
+export const getAddress = (
+	binding: SourceBinding,
 	address: string
-}) => (
-	getJson<MempoolSpaceAddress>(
-		`${base(restBaseUrl)}/address/${address}`,
-		{ origins: mempoolSpaceOrigins }
+) => sourceGetJson<MempoolSpaceAddress>(
+	binding,
+	mempoolSpaceRestUrl(binding, `address/${encodeURIComponent(address)}`)
+)
+
+export const getAddressTransactions = (
+	binding: SourceBinding,
+	address: string,
+	lastSeenTransactionId?: string
+) => sourceGetJson<MempoolSpaceTransaction[]>(
+	binding,
+	mempoolSpaceRestUrl(
+		binding,
+		`address/${encodeURIComponent(address)}/txs/chain${
+			lastSeenTransactionId == null ?
+				''
+			:
+				`/${encodeURIComponent(lastSeenTransactionId)}`
+		}`
 	)
 )
 
-export const getRecommendedFees = ({
-	restBaseUrl,
-}: {
-	restBaseUrl: string
-}) => (
-	getJson<MempoolSpaceRecommendedFees>(
-		`${base(restBaseUrl)}/v1/fees/recommended`,
-		{ origins: mempoolSpaceOrigins }
-	)
+export const getRecommendedFees = (
+	binding: SourceBinding
+) => sourceGetJson<MempoolSpaceRecommendedFees>(
+	binding,
+	mempoolSpaceRestUrl(binding, 'v1/fees/recommended')
 )

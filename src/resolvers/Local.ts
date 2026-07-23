@@ -17,7 +17,6 @@ import { XmtpConversationSelector } from '$/schema/XmtpConversation.ts'
 import { WalletConnectionMethodSelector } from '$/schema/WalletConnectionMethod.ts'
 import { BlockheadSourceSelector } from '$/schema/BlockheadSource.ts'
 import { BlockheadWalletSelector } from '$/schema/BlockheadWallet.ts'
-import { BlockheadWalletAccountSelector } from '$/schema/BlockheadWalletAccount.ts'
 import { BlockheadWalletConnectionSelector } from '$/schema/BlockheadWalletConnection.ts'
 import { BlockheadWorkspaceSelector } from '$/schema/BlockheadWorkspace.ts'
 import { BlockheadPanelSelector } from '$/schema/BlockheadPanel.ts'
@@ -285,41 +284,6 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.BlockheadWalletAccount,
-			resolve: {
-				[BlockheadWalletAccountSelector.Caip10]: {
-					resolve: async ({ caip10 }) => {
-					const catalog = await readNormalizedLocalInternal()
-					const blockheadWalletAccount = catalog.blockheadWalletAccounts.find((candidate) => (
-						candidate.namespace === caip10.namespace
-						&& candidate.reference === caip10.reference
-						&& candidate.accountAddress === caip10.accountAddress
-					))
-					if (blockheadWalletAccount == null) throw new Error('Local_Internal: BlockheadWalletAccount not present in local catalog')
-					return {
-						$network: {
-							[EntityMetaKey.Selector]: {
-								caip2: {
-									namespace: blockheadWalletAccount.namespace,
-									reference: blockheadWalletAccount.reference,
-								},
-							},
-						},
-						address: blockheadWalletAccount.accountAddress,
-						...(blockheadWalletAccount.label != null && { label: blockheadWalletAccount.label }),
-						capabilities: [...blockheadWalletAccount.capabilities],
-					}
-				},
-				}
-			},
-		})({
-				$network: (account) => account.$network,
-				address: (account) => account.address,
-				label: (account) => account.label,
-				capabilities: (account) => account.capabilities,
-			}),
-
-		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWalletConnection,
 			resolve: {
 				[BlockheadWalletConnectionSelector.ConnectionKey]: {
@@ -343,7 +307,7 @@ export default {
 							methods: [...scope.methods],
 							events: [...scope.events],
 						})),
-						$$connectedAccounts: blockheadWalletConnection.accountIds.map((accountId) => ({
+						$$accounts: blockheadWalletConnection.accountIds.map((accountId) => ({
 							[EntityMetaKey.Selector]: {
 								caip10: accountId,
 							},
@@ -372,7 +336,7 @@ export default {
 				protocol: (connection) => connection.protocol,
 				transportKind: (connection) => connection.transportKind,
 				scopes: (connection) => connection.scopes,
-				$$connectedAccounts: (connection) => connection.$$connectedAccounts,
+				$$accounts: (connection) => connection.$$accounts,
 				$activeAccount: (connection) => connection.$activeAccount,
 				selected: (connection) => connection.selected,
 				connectedAt: (connection) => connection.connectedAt,
@@ -1438,31 +1402,6 @@ export default {
 			},
 		})({
 				$$blockheadWalletConnections: (entity) => entity,
-			}),
-
-		defineResolver(Source.Local_Internal, {
-			entityType: EntityType._Global,
-			resolve: {
-				[_GlobalSelector.Scope]: {
-					resolve: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
-					sliceNormalizedRowsForSubset(
-						(await readNormalizedLocalInternal()).blockheadWalletAccounts,
-						context
-					)
-						.map((blockheadWalletAccount) => ({
-							[EntityMetaKey.Selector]: {
-								caip10: {
-									namespace: blockheadWalletAccount.namespace,
-									reference: blockheadWalletAccount.reference,
-									accountAddress: blockheadWalletAccount.accountAddress,
-								},
-							},
-						}))
-				),
-				}
-			},
-		})({
-				$$blockheadWalletAccounts: (entity) => entity,
 			}),
 
 		defineResolver(Source.Local_Internal, {

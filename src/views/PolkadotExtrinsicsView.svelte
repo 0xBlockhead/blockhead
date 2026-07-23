@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Extrinsics',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.PolkadotExtrinsic>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.PolkadotExtrinsic>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import PolkadotExtrinsicView from '$/views/PolkadotExtrinsicView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(polkadotExtrinsics) => [...new Map(polkadotExtrinsics.values.map((polkadotExtrinsic) => [polkadotExtrinsic[EntityMetaKey.SelectorKey], polkadotExtrinsic])).values()]}
 	getKey={(polkadotExtrinsic) => polkadotExtrinsic[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,26 +90,57 @@
 
 	{#snippet Item({ item: polkadotExtrinsic })}
 		{@const polkadotExtrinsicFields = { ...polkadotExtrinsic[EntityMetaKey.Selector], ...polkadotExtrinsic }}
-		{@const selection = select(EntityType.PolkadotExtrinsic, polkadotExtrinsic[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const polkadotExtrinsicHrefFields = { ...polkadotExtrinsic, ...polkadotExtrinsic[EntityMetaKey.Selector] }}
-		<PolkadotExtrinsicView
-			selection={selection}
-			prefetched={polkadotExtrinsicFields}
+		<EntityView
+			entityType={EntityType.PolkadotExtrinsic}
+			entitySelector={polkadotExtrinsic[EntityMetaKey.Selector]}
 			href={
-				(polkadotExtrinsicHrefFields.indexInBlock !== undefined && polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.blockNumber !== undefined && polkadotExtrinsicHrefFields.$block.hash !== undefined && polkadotExtrinsicHrefFields.$block.$network !== undefined && polkadotExtrinsicHrefFields.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {
-					extrinsicIndex: String(polkadotExtrinsicHrefFields.indexInBlock ?? ''),
-					blockNumber: String(polkadotExtrinsicHrefFields.$block.blockNumber ?? ''),
-					hash: String(polkadotExtrinsicHrefFields.$block.hash ?? ''),
-					network: String(caip2StringFromValue(polkadotExtrinsicHrefFields.$block.$network.caip2) ?? ''),
-				}) : polkadotExtrinsicHrefFields.indexInBlock !== undefined && polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.blockNumber !== undefined && polkadotExtrinsicHrefFields.$block.hash !== undefined && polkadotExtrinsicHrefFields.$block.$network !== undefined && polkadotExtrinsicHrefFields.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {
-					extrinsicIndex: String(polkadotExtrinsicHrefFields.indexInBlock ?? ''),
-					blockNumber: String(polkadotExtrinsicHrefFields.$block.blockNumber ?? ''),
-					hash: String(polkadotExtrinsicHrefFields.$block.hash ?? ''),
-					network: String(polkadotExtrinsicHrefFields.$block.$network.slug ?? ''),
-				}) : undefined)
+				(
+					polkadotExtrinsic[EntityMetaKey.Selector] != null && 'indexInBlock' in polkadotExtrinsic[EntityMetaKey.Selector]
+					&& polkadotExtrinsic[EntityMetaKey.Selector].indexInBlock != null
+					&& polkadotExtrinsic[EntityMetaKey.Selector] != null && '$block' in polkadotExtrinsic[EntityMetaKey.Selector]
+					&& polkadotExtrinsic[EntityMetaKey.Selector].$block != null && 'blockNumber' in polkadotExtrinsic[EntityMetaKey.Selector].$block
+					&& polkadotExtrinsic[EntityMetaKey.Selector].$block.blockNumber != null
+					&& polkadotExtrinsic[EntityMetaKey.Selector].$block != null && 'hash' in polkadotExtrinsic[EntityMetaKey.Selector].$block
+					&& polkadotExtrinsic[EntityMetaKey.Selector].$block.hash != null
+					&& polkadotExtrinsic[EntityMetaKey.Selector].$block != null && '$network' in polkadotExtrinsic[EntityMetaKey.Selector].$block ?
+						polkadotExtrinsic[EntityMetaKey.Selector].$block.$network != null && 'caip2' in polkadotExtrinsic[EntityMetaKey.Selector].$block.$network
+						&& polkadotExtrinsic[EntityMetaKey.Selector].$block.$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {
+						extrinsicIndex: String(polkadotExtrinsic[EntityMetaKey.Selector].indexInBlock ?? ''),
+						blockNumber: String(polkadotExtrinsic[EntityMetaKey.Selector].$block.blockNumber ?? ''),
+						hash: String(polkadotExtrinsic[EntityMetaKey.Selector].$block.hash ?? ''),
+						network: String(caip2StringFromValue(polkadotExtrinsic[EntityMetaKey.Selector].$block.$network.caip2) ?? ''),
+					})
+					:
+							polkadotExtrinsic[EntityMetaKey.Selector].$block.$network != null && 'slug' in polkadotExtrinsic[EntityMetaKey.Selector].$block.$network
+							&& polkadotExtrinsic[EntityMetaKey.Selector].$block.$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {
+							extrinsicIndex: String(polkadotExtrinsic[EntityMetaKey.Selector].indexInBlock ?? ''),
+							blockNumber: String(polkadotExtrinsic[EntityMetaKey.Selector].$block.blockNumber ?? ''),
+							hash: String(polkadotExtrinsic[EntityMetaKey.Selector].$block.hash ?? ''),
+							network: String(polkadotExtrinsic[EntityMetaKey.Selector].$block.$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((polkadotExtrinsicFields.indexInBlock) ?? '') ? 'Extrinsic #' + String((polkadotExtrinsicFields.indexInBlock) ?? '') : '') || 'Polkadot extrinsic'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((polkadotExtrinsicFields.callName) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((polkadotExtrinsicFields.success) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

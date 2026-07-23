@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hyperliquid fills',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HyperliquidFill>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HyperliquidFill>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HyperliquidFillView from '$/views/HyperliquidFillView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(hyperliquidFills) => [...new Map(hyperliquidFills.values.map((hyperliquidFill) => [hyperliquidFill[EntityMetaKey.SelectorKey], hyperliquidFill])).values()]}
 	getKey={(hyperliquidFill) => hyperliquidFill[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: hyperliquidFill })}
 		{@const hyperliquidFillFields = { ...hyperliquidFill[EntityMetaKey.Selector], ...hyperliquidFill }}
-		{@const selection = select(EntityType.HyperliquidFill, hyperliquidFill[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HyperliquidFillView
-			selection={selection}
-			prefetched={hyperliquidFillFields}
+		<EntityView
+			entityType={EntityType.HyperliquidFill}
+			entitySelector={hyperliquidFill[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'hyperliquid fill'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

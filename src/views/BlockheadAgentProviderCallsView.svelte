@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead agent provider calls',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadAgentProviderCall>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadAgentProviderCall>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadAgentProviderCallView from '$/views/BlockheadAgentProviderCallView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadAgentProviderCalls) => [...new Map(blockheadAgentProviderCalls.values.map((blockheadAgentProviderCall) => [blockheadAgentProviderCall[EntityMetaKey.SelectorKey], blockheadAgentProviderCall])).values()]}
 	getKey={(blockheadAgentProviderCall) => blockheadAgentProviderCall[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: blockheadAgentProviderCall })}
 		{@const blockheadAgentProviderCallFields = { ...blockheadAgentProviderCall[EntityMetaKey.Selector], ...blockheadAgentProviderCall }}
-		{@const selection = select(EntityType.BlockheadAgentProviderCall, blockheadAgentProviderCall[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadAgentProviderCallView
-			selection={selection}
-			prefetched={blockheadAgentProviderCallFields}
+		<EntityView
+			entityType={EntityType.BlockheadAgentProviderCall}
+			entitySelector={blockheadAgentProviderCall[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((blockheadAgentProviderCallFields.indexInTurn) ?? '') ? 'Call #' + String((blockheadAgentProviderCallFields.indexInTurn) ?? '') : '') || 'blockhead agent provider call'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadAgentProviderCallFields.status) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

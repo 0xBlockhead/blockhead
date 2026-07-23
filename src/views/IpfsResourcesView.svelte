@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'IPFS resources',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.IpfsResource>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.IpfsResource>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import IpfsResourceView from '$/views/IpfsResourceView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(ipfsResources) => [...new Map(ipfsResources.values.map((ipfsResource) => [ipfsResource[EntityMetaKey.SelectorKey], ipfsResource])).values()]}
 	getKey={(ipfsResource) => ipfsResource[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,23 +91,46 @@
 
 	{#snippet Item({ item: ipfsResource })}
 		{@const ipfsResourceFields = { ...ipfsResource[EntityMetaKey.Selector], ...ipfsResource }}
-		{@const selection = select(EntityType.IpfsResource, ipfsResource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const ipfsResourceHrefFields = { ...ipfsResource, ...ipfsResource[EntityMetaKey.Selector] }}
-		<IpfsResourceView
-			selection={selection}
-			prefetched={ipfsResourceFields}
+		<EntityView
+			entityType={EntityType.IpfsResource}
+			entitySelector={ipfsResource[EntityMetaKey.Selector]}
 			href={
-				(ipfsResource[EntityMetaKey.Selector].contentPath === '' && ipfsResourceHrefFields.namespace !== undefined && ipfsResourceHrefFields.target !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
-					namespace: String(ipfsResourceHrefFields.namespace ?? ''),
-					target: String(ipfsResourceHrefFields.target ?? ''),
-				}) : ipfsResource[EntityMetaKey.Selector].contentPath !== '' && ipfsResourceHrefFields.namespace !== undefined && ipfsResourceHrefFields.target !== undefined && ipfsResourceHrefFields.contentPath !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]', {
-					namespace: String(ipfsResourceHrefFields.namespace ?? ''),
-					target: String(ipfsResourceHrefFields.target ?? ''),
-					contentPath: String(ipfsResourceHrefFields.contentPath ?? ''),
-				}) : undefined)
+				(
+					ipfsResource[EntityMetaKey.Selector] != null && 'namespace' in ipfsResource[EntityMetaKey.Selector]
+					&& ipfsResource[EntityMetaKey.Selector].namespace != null
+					&& ipfsResource[EntityMetaKey.Selector] != null && 'target' in ipfsResource[EntityMetaKey.Selector]
+					&& ipfsResource[EntityMetaKey.Selector].target != null ?
+						ipfsResource[EntityMetaKey.Selector].target != null ?
+							resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
+						namespace: String(ipfsResource[EntityMetaKey.Selector].namespace ?? ''),
+						target: String(ipfsResource[EntityMetaKey.Selector].target ?? ''),
+					})
+					:
+							ipfsResource[EntityMetaKey.Selector].target != null
+							&& ipfsResource[EntityMetaKey.Selector] != null && 'contentPath' in ipfsResource[EntityMetaKey.Selector]
+							&& ipfsResource[EntityMetaKey.Selector].contentPath != null ?
+								resolve('/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]', {
+							namespace: String(ipfsResource[EntityMetaKey.Selector].namespace ?? ''),
+							target: String(ipfsResource[EntityMetaKey.Selector].target ?? ''),
+							contentPath: String(ipfsResource[EntityMetaKey.Selector].contentPath ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((ipfsResourceFields.canonicalUri) ?? '')].filter(Boolean).join(' ') || 'IPFS resource'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((ipfsResourceFields.contentType) ?? ''), String((ipfsResourceFields.displayType) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

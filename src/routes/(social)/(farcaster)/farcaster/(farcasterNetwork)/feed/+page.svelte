@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType.FarcasterNetwork, {
 				scope: 'FarcasterNetwork',
-			}).$$feeds({
-				sources: [
-					Source.Constants_Internal,
-				],
-				count: true,
 			})
+				.$$feeds({
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.FarcasterNetwork, {
+				scope: 'FarcasterNetwork',
+			})
+				.$$feeds({
+					sources: [
+						Source.Constants_Internal,
+					],
+				}).count
 		}
 		id='feeds'
 		data-column-item="flexible"

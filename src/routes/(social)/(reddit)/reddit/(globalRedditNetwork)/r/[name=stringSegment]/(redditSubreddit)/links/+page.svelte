@@ -40,13 +40,22 @@
 		selection={
 			select(EntityType.RedditSubreddit, {
 				name: decodeURIComponent(params.name),
-			}).$$links({
-				sources: [
-					Source.Constants_Internal,
-					Source.Reddit_PublicJson,
-				],
-				count: true,
 			})
+				.$$links({
+					sources: [
+						Source.Reddit_PublicJson,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.RedditSubreddit, {
+				name: decodeURIComponent(params.name),
+			})
+				.$$links({
+					sources: [
+						Source.Reddit_PublicJson,
+					],
+				}).count
 		}
 		id='links'
 		data-column-item="flexible"

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadSessionSimulationLog>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadSessionSimulationLog>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSessionSimulationLog>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSessionSimulationLog = $derived(selection({
+	const blockheadSessionSimulationLog = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			address: true,
+			callPath: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			address: true,
@@ -49,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.logIndex) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation log')
-	const viewDomId = $derived('blockhead-session-simulation-log-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-session-simulation-log-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,13 +78,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const logIndex0 = pendingEntity.logIndex}
-					{#if logIndex0 !== undefined && logIndex0 !== null}
-						<NumberValue
-							value={logIndex0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'address') && Object.hasOwn(prefetched, 'callPath')}
+			{@const logIndex0 = pendingEntity.logIndex}
+			{#if logIndex0 !== undefined && logIndex0 !== null}
+				<NumberValue
+					value={logIndex0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadSessionSimulationLog}>
 				{#snippet children(entity)}
@@ -94,7 +101,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'address') && Object.hasOwn(prefetched, 'callPath')}
 			{[String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.logIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadSessionSimulationLog}>
@@ -107,7 +114,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'address') && Object.hasOwn(prefetched, 'callPath')}
 			{@const callPath0 = pendingEntity.callPath}
 			{#if callPath0 !== undefined && callPath0 !== null}
 				<span data-text="muted">

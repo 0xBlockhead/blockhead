@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hedera NFTs',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HederaNft>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HederaNft>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HederaNftView from '$/views/HederaNftView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,8 +65,19 @@
 	resource={
 		selection({
 			sources: selection.sources,
+			fields: {
+				serialNumber: true,
+				$token: {
+					fields: {
+						tokenType: true,
+						decimals: true,
+					},
+				},
+				createdTimestamp: true,
+			},
 		})
 	}
+	{countResource}
 	getResourceItems={(hederaNfts) => [...new Map(hederaNfts.values.map((hederaNft) => [hederaNft[EntityMetaKey.SelectorKey], hederaNft])).values()]}
 	getKey={(hederaNft) => hederaNft[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +92,24 @@
 
 	{#snippet Item({ item: hederaNft })}
 		{@const hederaNftFields = { ...hederaNft[EntityMetaKey.Selector], ...hederaNft }}
-		{@const selection = select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HederaNftView
-			selection={selection}
-			prefetched={hederaNftFields}
+		<EntityView
+			entityType={EntityType.HederaNft}
+			entitySelector={hederaNft[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((hederaNftFields.serialNumber) ?? '')].filter(Boolean).join(' ') || 'hedera NFT'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((hederaNftFields.$token.tokenId) ?? '')].filter(Boolean).join(' ') || 'hedera token'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((hederaNftFields.createdTimestamp) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

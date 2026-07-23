@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -19,19 +18,17 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.CardanoGovernanceProposal, data.selector, {
-		sources: [
-			Source.Blockfrost_Rest,
-		],
 		fields: {
 			proposalKind: true,
+			governanceActionId: true,
 			$transaction: true,
 			depositLovelace: true,
 			returnAddress: true,
 			anchorUrl: true,
 			anchorHash: true,
+			proposalPayload: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.proposalKind) ?? ''), (String((pageSelection.entitySelector.proposalTxHash) ?? '') ? 'Proposal ' + String((pageSelection.entitySelector.proposalTxHash) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano governance proposal' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).proposalKind) ?? ''), (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).proposalTxHash) ?? '') ? 'Proposal ' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).proposalTxHash) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano governance proposal')))
 
 
 	// Components
@@ -41,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Cardano governance proposal • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Cardano governance proposal' : [String((({ ...data.selector, ...pageSelection.entity }).proposalKind) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).governanceActionId) ?? '')].filter(Boolean).join(' ') || 'Cardano governance proposal'))} • Cardano governance proposal • Blockhead</title>
 </svelte:head>
 
 

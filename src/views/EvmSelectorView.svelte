@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmSelector>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmSelector>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmSelector>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -44,8 +45,8 @@
 			signatures: true,
 		},
 	}))
-	const titleFallback = $derived('EVM selector')
-	const viewDomId = $derived('evm-selector-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'EVM selector'
+	const viewDomId = $derived('evm-selector-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,9 +62,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.hex !== undefined ? resolve('/evm/selector/[hex=zeroExHex]', {
-			hex: String(pendingEntity.hex ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'hex' in selection.entitySelector
+			&& selection.entitySelector.hex != null ?
+				resolve('/evm/selector/[hex=zeroExHex]', {
+			hex: String(selection.entitySelector.hex ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -148,17 +155,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<EvmSelector_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Observations'
-				emptyText='No Openchain observations for this selector.'
-				id='EvmSelector_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const evmSelectorEvmSelectorTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={evmSelectorEvmSelectorTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<EvmSelector_TimestampsView
+					selection={evmSelectorEvmSelectorTimestampsViewTimestampsResource}
+					countResource={evmSelectorEvmSelectorTimestampsViewTimestampsResource.count}
+					title='Observations'
+					id='EvmSelector_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

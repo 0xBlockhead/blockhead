@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AiModelProvider>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AiModelProvider>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiModelProvider>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,7 +38,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiModelProvider = $derived(selection({
+	const aiModelProvider = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+			organizationKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
@@ -45,7 +52,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerId) ?? ''), String((pendingEntity.domain) ?? '')].filter(Boolean).join(' ') || 'AI model provider')
-	const viewDomId = $derived('ai-model-provider-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('ai-model-provider-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,7 +77,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'organizationKind') && Object.hasOwn(prefetched, 'providerId') && Object.hasOwn(prefetched, 'domain')}
 			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={aiModelProvider}>
@@ -83,7 +90,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'organizationKind') && Object.hasOwn(prefetched, 'providerId') && Object.hasOwn(prefetched, 'domain')}
 			{[String((pendingEntity.organizationKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={aiModelProvider}>
@@ -260,99 +267,253 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-ai-provider-catalog'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'ai-provider-catalog-entries',
-							label: 'Catalog entries',
-						},
-						{
-							id: 'ai-provider-models',
-							label: 'Models',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-catalog'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Catalog and models</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-ai-provider-catalog'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'ai-provider-catalog-entries',
+						label: 'Catalog entries',
+						ownsSection: true,
+					},
+					{
+						id: 'ai-provider-models',
+						label: 'Models',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-catalog'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Catalog and models</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionAiProviderCatalogEntries({ id, label, open })}
-					<AiProviderCatalogEntriesView
-						selection={selection.$$catalogEntries}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No AI provider catalog entries.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerAiProviderCatalogEntries(_context, Content)}
+				{@const aiProviderCatalogEntriesResource = selection.$$catalogEntries}
+				<ResourceBoundary
+					resource={aiProviderCatalogEntriesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionAiProviderModels({ id, label, open })}
-					<AiModelsView
-						selection={selection.$$models}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No AI models.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-ai-provider-api'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'ai-provider-api-operations',
-							label: 'API operations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-api'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>API operations</HeadingComponent>
-					</header>
-				{/snippet}
+			{#snippet SectionAiProviderCatalogEntries({ id, label, open, active })}
+				{@const aiProviderCatalogEntriesResource = selection.$$catalogEntries}
+				<ResourceBoundary
+					resource={aiProviderCatalogEntriesResource}
+				>
+					{#snippet children(aiProviderCatalogEntry)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<AiProviderCatalogEntriesView
+								selection={aiProviderCatalogEntriesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No AI provider catalog entries.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-				{#snippet SectionAiProviderApiOperations({ id, label, open })}
-					<AiProviderApiOperationsView
-						selection={selection.$$apiOperations}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No AI provider API operations.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerAiProviderModels(_context, Content)}
+				{@const aiProviderCatalogAiProviderModelsResource = selection.$$models}
+				<ResourceBoundary
+					resource={aiProviderCatalogAiProviderModelsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionAiProviderModels({ id, label, open, active })}
+				{@const aiProviderCatalogAiProviderModelsResource = selection.$$models}
+				<ResourceBoundary
+					resource={aiProviderCatalogAiProviderModelsResource}
+				>
+					{#snippet children(aiModel)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<AiModelsView
+								selection={aiProviderCatalogAiProviderModelsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No AI models.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-ai-provider-api'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'ai-provider-api-operations',
+						label: 'API operations',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-api'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>API operations</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerAiProviderApiOperations(_context, Content)}
+				{@const aiProviderApiOperationsResource = selection.$$apiOperations}
+				<ResourceBoundary
+					resource={aiProviderApiOperationsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionAiProviderApiOperations({ id, label, open, active })}
+				{@const aiProviderApiOperationsResource = selection.$$apiOperations}
+				<ResourceBoundary
+					resource={aiProviderApiOperationsResource}
+				>
+					{#snippet children(aiProviderApiOperation)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<AiProviderApiOperationsView
+								selection={aiProviderApiOperationsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No AI provider API operations.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

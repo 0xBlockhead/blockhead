@@ -31,7 +31,6 @@
 			userOperationsCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster timestamp')))
 
 
 	// Components
@@ -41,7 +40,15 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ERC-4337 paymaster timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
+		$paymaster: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster timestamp' : [String((({ ...{
+		$paymaster: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster timestamp'))} • ERC-4337 paymaster timestamp • Blockhead</title>
 </svelte:head>
 
 

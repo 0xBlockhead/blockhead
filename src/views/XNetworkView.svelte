@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.XNetwork>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XNetwork>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XNetwork>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -38,7 +39,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xNetwork = $derived(selection({
+	const xNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			protocolName: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			protocolName: true,
@@ -49,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'X')
-	const viewDomId = $derived('xnetwork-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('xnetwork-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,13 +73,20 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? (pendingEntity.scope === 'XNetwork' ? resolve('/x') : undefined)}
+	href={
+		href ?? (
+			selection.entitySelector.scope === 'XNetwork' ?
+				resolve('/x')
+		:
+				undefined
+		)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={xNetwork}>
@@ -86,7 +99,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={xNetwork}>
@@ -251,76 +264,186 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-x-network-directory'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'x-network-users',
-							label: 'Users',
-						},
-						{
-							id: 'x-network-posts',
-							label: 'Posts',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-directory'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Directory</HeadingComponent>
-					</header>
-				{/snippet}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-x-network-directory'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'x-network-users',
+								label: 'Users',
+								ownsSection: true,
+							},
+							{
+								id: 'x-network-posts',
+								label: 'Posts',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-directory'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Directory</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet SectionXNetworkUsers({ id, label, open })}
-					<XUsersView
-						selection={
-							selection.$$xUsers({
-								sources: [
-									Source.X_FxEmbed_Rest,
-								],
-							})
-						}
-						href={resolve('/x/users')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No X users here yet.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet MarkerXNetworkUsers(_context, Content)}
+						{@const xNetworkDirectoryXNetworkUsersResource = selection
+		.$$xUsers({
+			sources: [
+				Source.X_FxEmbed_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={xNetworkDirectoryXNetworkUsersResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
 
-				{#snippet SectionXNetworkPosts({ id, label, open })}
-					<XPostsView
-						selection={
-							selection.$$xPosts({
-								sources: [
-									Source.X_FxEmbed_Rest,
-								],
-							})
-						}
-						href={resolve('/x/posts')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No X posts here yet.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionXNetworkUsers({ id, label, open, active })}
+						{@const xNetworkDirectoryXNetworkUsersResource = selection
+		.$$xUsers({
+			sources: [
+				Source.X_FxEmbed_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={xNetworkDirectoryXNetworkUsersResource}
+						>
+							{#snippet children(xUser)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<XUsersView
+										selection={xNetworkDirectoryXNetworkUsersResource}
+										href={resolve('/x/users')}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No X users here yet.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet MarkerXNetworkPosts(_context, Content)}
+						{@const xNetworkDirectoryXNetworkPostsResource = selection
+		.$$xPosts({
+			sources: [
+				Source.X_FxEmbed_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={xNetworkDirectoryXNetworkPostsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionXNetworkPosts({ id, label, open, active })}
+						{@const xNetworkDirectoryXNetworkPostsResource = selection
+		.$$xPosts({
+			sources: [
+				Source.X_FxEmbed_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={xNetworkDirectoryXNetworkPostsResource}
+						>
+							{#snippet children(xPost)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<XPostsView
+										selection={xNetworkDirectoryXNetworkPostsResource}
+										href={resolve('/x/posts')}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No X posts here yet.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
 	{/snippet}
 </EntityView>

@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Filecoin networks',
 		typeAnnotationParagraphs = ['Filecoin-specific view over a canonical Network row, including Lotus endpoints, chain head observations, and tipsets.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FilecoinNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FilecoinNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FilecoinNetworkView from '$/views/FilecoinNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,7 +65,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.Lotus_JsonRpc,
 			],
 			fields: {
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(filecoinNetworks) => [...new Map(filecoinNetworks.values.map((filecoinNetwork) => [filecoinNetwork[EntityMetaKey.SelectorKey], filecoinNetwork])).values()]}
 	getKey={(filecoinNetwork) => filecoinNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,16 @@
 
 	{#snippet Item({ item: filecoinNetwork })}
 		{@const filecoinNetworkFields = { ...filecoinNetwork[EntityMetaKey.Selector], ...filecoinNetwork }}
-		{@const selection = select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<FilecoinNetworkView
-			selection={selection}
-			prefetched={filecoinNetworkFields}
+		<EntityView
+			entityType={EntityType.FilecoinNetwork}
+			entitySelector={filecoinNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((filecoinNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [filecoinNetworkFields.$network.caip2 == null ? '' : String(`${(filecoinNetworkFields.$network.caip2).namespace}:${(filecoinNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'filecoin network'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

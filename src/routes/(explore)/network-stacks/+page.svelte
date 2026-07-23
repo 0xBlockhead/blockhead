@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$networkStacks',
-			}).$$networkStacks({
-				sources: [
-					Source.Constants_Internal,
-				],
-				count: true,
 			})
+				.$$networkStacks({
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$networkStacks',
+			})
+				.$$networkStacks({
+					sources: [
+						Source.Constants_Internal,
+					],
+				}).count
 		}
 		id='network-stacks'
 		data-column-item="flexible"

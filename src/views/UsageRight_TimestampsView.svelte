@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Usage right observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.UsageRight_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.UsageRight_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import UsageRight_TimestampView from '$/views/UsageRight_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(usageRightTimestamps) => [...new Map(usageRightTimestamps.values.map((usageRightTimestamp) => [usageRightTimestamp[EntityMetaKey.SelectorKey], usageRightTimestamp])).values()]}
 	getKey={(usageRightTimestamp) => usageRightTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: usageRightTimestamp })}
 		{@const usageRightTimestampFields = { ...usageRightTimestamp[EntityMetaKey.Selector], ...usageRightTimestamp }}
-		{@const selection = select(EntityType.UsageRight_Timestamp, usageRightTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<UsageRight_TimestampView
-			selection={selection}
-			prefetched={usageRightTimestampFields}
+		<EntityView
+			entityType={EntityType.UsageRight_Timestamp}
+			entitySelector={usageRightTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'usage right timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

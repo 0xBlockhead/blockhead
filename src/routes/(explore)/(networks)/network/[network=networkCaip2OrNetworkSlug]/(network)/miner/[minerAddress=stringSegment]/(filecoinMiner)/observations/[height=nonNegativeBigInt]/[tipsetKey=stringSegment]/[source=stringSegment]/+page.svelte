@@ -45,7 +45,6 @@
 			faultySectorCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin miner timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin miner timestamp')))
 
 
 	// Components
@@ -55,7 +54,12 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • filecoin miner timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'filecoin miner timestamp' : [String((({ ...{
+		$miner: data.selector,
+		height: BigInt(params.height),
+		tipsetKey: params.tipsetKey,
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin miner timestamp'))} • filecoin miner timestamp • Blockhead</title>
 </svelte:head>
 
 

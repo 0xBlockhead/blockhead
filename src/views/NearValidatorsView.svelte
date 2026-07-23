@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Near validators',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NearValidator>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NearValidator>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NearValidatorView from '$/views/NearValidatorView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,7 +65,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.NearRpc_JsonRpc,
 			],
 			fields: {
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nearValidators) => [...new Map(nearValidators.values.map((nearValidator) => [nearValidator[EntityMetaKey.SelectorKey], nearValidator])).values()]}
 	getKey={(nearValidator) => nearValidator[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,12 +90,24 @@
 
 	{#snippet Item({ item: nearValidator })}
 		{@const nearValidatorFields = { ...nearValidator[EntityMetaKey.Selector], ...nearValidator }}
-		{@const selection = select(EntityType.NearValidator, nearValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<NearValidatorView
-			selection={selection}
-			prefetched={nearValidatorFields}
+		<EntityView
+			entityType={EntityType.NearValidator}
+			entitySelector={nearValidator[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nearValidatorFields.accountId) ?? '')].filter(Boolean).join(' ') || 'near validator'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((nearValidatorFields.stakeYoctoNear) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((nearValidatorFields.isSlashed) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

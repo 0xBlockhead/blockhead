@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Balances',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmNetworkActorCoinBalance>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmNetworkActorCoinBalance>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmNetworkActorCoinBalanceView from '$/views/EvmNetworkActorCoinBalanceView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmNetworkActorCoinBalances) => [...new Map(evmNetworkActorCoinBalances.values.map((evmNetworkActorCoinBalance) => [evmNetworkActorCoinBalance[EntityMetaKey.SelectorKey], evmNetworkActorCoinBalance])).values()]}
 	getKey={(evmNetworkActorCoinBalance) => evmNetworkActorCoinBalance[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,20 +89,45 @@
 
 	{#snippet Item({ item: evmNetworkActorCoinBalance })}
 		{@const evmNetworkActorCoinBalanceFields = { ...evmNetworkActorCoinBalance[EntityMetaKey.Selector], ...evmNetworkActorCoinBalance }}
-		{@const selection = select(EntityType.EvmNetworkActorCoinBalance, evmNetworkActorCoinBalance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmNetworkActorCoinBalanceHrefFields = { ...evmNetworkActorCoinBalance, ...evmNetworkActorCoinBalance[EntityMetaKey.Selector] }}
-		<EvmNetworkActorCoinBalanceView
-			selection={selection}
-			prefetched={evmNetworkActorCoinBalanceFields}
+		<EntityView
+			entityType={EntityType.EvmNetworkActorCoinBalance}
+			entitySelector={evmNetworkActorCoinBalance[EntityMetaKey.Selector]}
 			href={
-				(evmNetworkActorCoinBalanceHrefFields.$actor !== undefined && evmNetworkActorCoinBalanceHrefFields.$actor.address !== undefined && evmNetworkActorCoinBalanceHrefFields.$contract !== undefined && evmNetworkActorCoinBalanceHrefFields.$contract.$network !== undefined && evmNetworkActorCoinBalanceHrefFields.$contract.$network.caip2 !== undefined && evmNetworkActorCoinBalanceHrefFields.$contract.$network.caip2.reference !== undefined && evmNetworkActorCoinBalanceHrefFields.$contract.address !== undefined ? resolve('/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', {
-					owner: String(evmNetworkActorCoinBalanceHrefFields.$actor.address ?? ''),
-					chainId: String(evmNetworkActorCoinBalanceHrefFields.$contract.$network.caip2.reference ?? ''),
-					coin: String(evmNetworkActorCoinBalanceHrefFields.$contract.address ?? ''),
-				}) : undefined)
+				(
+					evmNetworkActorCoinBalance[EntityMetaKey.Selector] != null && '$actor' in evmNetworkActorCoinBalance[EntityMetaKey.Selector]
+					&& evmNetworkActorCoinBalance[EntityMetaKey.Selector].$actor != null && 'address' in evmNetworkActorCoinBalance[EntityMetaKey.Selector].$actor
+					&& evmNetworkActorCoinBalance[EntityMetaKey.Selector].$actor.address != null
+					&& evmNetworkActorCoinBalance[EntityMetaKey.Selector] != null && '$contract' in evmNetworkActorCoinBalance[EntityMetaKey.Selector]
+					&& evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract != null && '$network' in evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract
+					&& evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract.$network != null && 'caip2' in evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract.$network
+					&& evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract.$network.caip2 != null && 'reference' in evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract.$network.caip2
+					&& evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract.$network.caip2.reference != null
+					&& evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract != null && 'address' in evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract
+					&& evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract.address != null ?
+						resolve('/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', {
+					owner: String(evmNetworkActorCoinBalance[EntityMetaKey.Selector].$actor.address ?? ''),
+					chainId: String(evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract.$network.caip2.reference ?? ''),
+					coin: String(evmNetworkActorCoinBalance[EntityMetaKey.Selector].$contract.address ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((evmNetworkActorCoinBalanceFields.symbol) ?? '')].filter(Boolean).join(' ') || ['EVM coin instance'].filter(Boolean).join(' ') || 'balance'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((evmNetworkActorCoinBalanceFields.$actor.address) ?? '')].filter(Boolean).join(' ') || 'EVM account'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((evmNetworkActorCoinBalanceFields.$actor.address) ?? '')].filter(Boolean).join(' ') || 'EVM account'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

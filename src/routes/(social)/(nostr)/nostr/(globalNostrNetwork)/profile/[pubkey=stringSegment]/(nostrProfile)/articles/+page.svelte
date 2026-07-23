@@ -39,13 +39,22 @@
 		}
 		title='Profile articles'
 		selection={
-			select(EntityType.NostrProfile, data.selector).$$articles({
-				sources: [
-					Source.Constants_Internal,
-					Source.NostrBand_Rest,
-				],
-				count: true,
-			})
+			select(EntityType.NostrProfile, data.selector)
+				.$$articles({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.NostrProfile, data.selector)
+				.$$articles({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				}).count
 		}
 		id='articles'
 		data-column-item="flexible"

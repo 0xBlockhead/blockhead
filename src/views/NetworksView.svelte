@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Networks',
 		typeAnnotationParagraphs = ['A blockchain, ledger, or protocol network with its own identity and supporting metadata.'],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.Network>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Network>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(networks) => [...new Map(networks.values.map((network) => [network[EntityMetaKey.SelectorKey], network])).values()]}
 	getKey={(network) => network[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,20 +90,37 @@
 
 	{#snippet Item({ item: network })}
 		{@const networkFields = { ...network[EntityMetaKey.Selector], ...network }}
-		{@const selection = select(EntityType.Network, network[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const networkHrefFields = { ...network, ...network[EntityMetaKey.Selector] }}
-		<NetworkView
-			selection={selection}
-			prefetched={networkFields}
+		<EntityView
+			entityType={EntityType.Network}
+			entitySelector={network[EntityMetaKey.Selector]}
 			href={
-				(networkHrefFields.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-					network: String(caip2StringFromValue(networkHrefFields.caip2) ?? ''),
-				}) : networkHrefFields.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-					network: String(networkHrefFields.slug ?? ''),
-				}) : undefined)
+				(
+					network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
+					&& network[EntityMetaKey.Selector].caip2 != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+					network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+				})
+				:
+						network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
+						&& network[EntityMetaKey.Selector].slug != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+						network: String(network[EntityMetaKey.Selector].slug ?? ''),
+					})
+					:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((networkFields.name) ?? '')].filter(Boolean).join(' ') || [networkFields.caip2 == null ? '' : String(`${(networkFields.caip2).namespace}:${(networkFields.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[networkFields.caip2 == null ? '' : String(`${(networkFields.caip2).namespace}:${(networkFields.caip2).reference}`)].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

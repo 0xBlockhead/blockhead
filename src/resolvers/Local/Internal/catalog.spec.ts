@@ -5,6 +5,7 @@ import {
 	findNormalizedBridgeTransactionRow,
 	readNormalizedLocalInternal,
 } from '$/resolvers/Local/Internal/catalog.ts'
+import localResolver from '$/resolvers/Local.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -24,6 +25,13 @@ const bridgeTransactionSelector = {
 } satisfies EntitySelector<typeof schema, EntityType.BlockheadBridgeTransaction>
 
 describe('Local_Internal catalog selectors', () => {
+	it('does not synthesize locally enrolled accounts', () => {
+		expect(readNormalizedLocalInternal()).not.toHaveProperty('blockheadAccounts')
+		expect(localResolver.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.BlockheadAccount
+	))).toBe(false)
+	})
+
 	it('finds a bridge transaction through equivalent Network Caip2 and Slug selectors', () => {
 		expect(findNormalizedBridgeTransactionRow(
 			readNormalizedLocalInternal(),

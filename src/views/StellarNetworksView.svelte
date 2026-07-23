@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Stellar networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.StellarNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.StellarNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(stellarNetworks) => [...new Map(stellarNetworks.values.map((stellarNetwork) => [stellarNetwork[EntityMetaKey.SelectorKey], stellarNetwork])).values()]}
 	getKey={(stellarNetwork) => stellarNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: stellarNetwork })}
 		{@const stellarNetworkFields = { ...stellarNetwork[EntityMetaKey.Selector], ...stellarNetwork }}
-		{@const selection = select(EntityType.StellarNetwork, stellarNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<StellarNetworkView
-			selection={selection}
-			prefetched={stellarNetworkFields}
+		<EntityView
+			entityType={EntityType.StellarNetwork}
+			entitySelector={stellarNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((stellarNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [stellarNetworkFields.$network.caip2 == null ? '' : String(`${(stellarNetworkFields.$network.caip2).namespace}:${(stellarNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'stellar network'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((stellarNetworkFields.passphrase) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

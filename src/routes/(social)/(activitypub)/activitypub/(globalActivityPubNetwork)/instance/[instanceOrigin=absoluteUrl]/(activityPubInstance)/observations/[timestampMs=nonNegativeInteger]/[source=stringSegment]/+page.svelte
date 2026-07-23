@@ -37,7 +37,6 @@
 			description: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.title) ?? ''), String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance observation' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).title) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance observation'))
 
 
 	// Components
@@ -47,7 +46,25 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ActivityPub instance observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$instance: {
+			instanceOrigin: decodeURIComponent(params.instanceOrigin),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance observation' : [String((({ ...{
+		$instance: {
+			instanceOrigin: decodeURIComponent(params.instanceOrigin),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).title) ?? ''), String((({ ...{
+		$instance: {
+			instanceOrigin: decodeURIComponent(params.instanceOrigin),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance observation')} • ActivityPub instance observation • Blockhead</title>
 </svelte:head>
 
 

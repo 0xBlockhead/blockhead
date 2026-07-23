@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LiquidityPool_Block>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LiquidityPool_Block>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LiquidityPool_Block>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const liquidityPoolBlock = $derived(selection({
+	const liquidityPoolBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			tick: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			tick: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block')
-	const viewDomId = $derived('liquidity-pool-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('liquidity-pool-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,97 +71,86 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.blockNumber !== undefined && pendingEntity.$liquidityPool !== undefined && pendingEntity.$liquidityPool.$network !== undefined && pendingEntity.$liquidityPool.$network.caip2 !== undefined && pendingEntity.$liquidityPool.$network.caip2.reference !== undefined && pendingEntity.$liquidityPool.id !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/block/[blockNumber=nonNegativeBigInt]', {
-			blockNumber: String(pendingEntity.blockNumber ?? ''),
-			chainId: String(pendingEntity.$liquidityPool.$network.caip2.reference ?? ''),
-			poolId: String(pendingEntity.$liquidityPool.id ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'blockNumber' in selection.entitySelector
+			&& selection.entitySelector.blockNumber != null
+			&& selection.entitySelector != null && '$liquidityPool' in selection.entitySelector
+			&& selection.entitySelector.$liquidityPool != null && '$network' in selection.entitySelector.$liquidityPool
+			&& selection.entitySelector.$liquidityPool.$network != null && 'caip2' in selection.entitySelector.$liquidityPool.$network
+			&& selection.entitySelector.$liquidityPool.$network.caip2 != null && 'reference' in selection.entitySelector.$liquidityPool.$network.caip2
+			&& selection.entitySelector.$liquidityPool.$network.caip2.reference != null
+			&& selection.entitySelector.$liquidityPool != null && 'id' in selection.entitySelector.$liquidityPool
+			&& selection.entitySelector.$liquidityPool.id != null ?
+				resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/block/[blockNumber=nonNegativeBigInt]', {
+			blockNumber: String(selection.entitySelector.blockNumber ?? ''),
+			chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
+			poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const blockNumber0 = pendingEntity.blockNumber}
-					{#if blockNumber0 !== undefined && blockNumber0 !== null}
-						<NumberValue
-							value={blockNumber0}
-						/>
-					{/if}
-		{:else}
-			<ResourceBoundary resource={liquidityPoolBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber0 = resolvedEntity.blockNumber}
-					{#if blockNumber0 !== undefined && blockNumber0 !== null}
-						<NumberValue
-							value={blockNumber0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={liquidityPoolBlock}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const blockNumber0 = resolvedEntity.blockNumber}
+				{#if blockNumber0 !== undefined && blockNumber0 !== null}
+					<NumberValue
+						value={blockNumber0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const tick0 = pendingEntity.tick}
-					{#if tick0 !== undefined && tick0 !== null}
-						<NumberValue
-							value={tick0}
-						/>
-					{/if}
-		{:else}
-			<ResourceBoundary resource={liquidityPoolBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tick0 = resolvedEntity.tick}
-					{#if tick0 !== undefined && tick0 !== null}
-						<NumberValue
-							value={tick0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={liquidityPoolBlock}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const tick0 = resolvedEntity.tick}
+				{#if tick0 !== undefined && tick0 !== null}
+					<NumberValue
+						value={tick0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<span data-text="muted">
-				<LiquidityPoolView
-					selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
-					href={
-						(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-							poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
-							chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
-						}) : undefined)
-					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={liquidityPoolBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<span data-text="muted">
-						<LiquidityPoolView
-							selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
-							href={
-								(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-									poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
-									chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={liquidityPoolBlock}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<LiquidityPoolView
+						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
+						href={
+							(
+								selection.entitySelector.$liquidityPool != null && 'id' in selection.entitySelector.$liquidityPool
+								&& selection.entitySelector.$liquidityPool.id != null
+								&& selection.entitySelector.$liquidityPool != null && '$network' in selection.entitySelector.$liquidityPool
+								&& selection.entitySelector.$liquidityPool.$network != null && 'caip2' in selection.entitySelector.$liquidityPool.$network
+								&& selection.entitySelector.$liquidityPool.$network.caip2 != null && 'reference' in selection.entitySelector.$liquidityPool.$network.caip2
+								&& selection.entitySelector.$liquidityPool.$network.caip2.reference != null ?
+									resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
+								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
+								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
+							})
+							:
+									undefined
+							)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -164,12 +159,22 @@
 				<dt>Liquidity pool</dt>
 				<dd>
 					<LiquidityPoolView
-						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool, {})}
+						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
 						href={
-							(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
+							(
+								selection.entitySelector.$liquidityPool != null && 'id' in selection.entitySelector.$liquidityPool
+								&& selection.entitySelector.$liquidityPool.id != null
+								&& selection.entitySelector.$liquidityPool != null && '$network' in selection.entitySelector.$liquidityPool
+								&& selection.entitySelector.$liquidityPool.$network != null && 'caip2' in selection.entitySelector.$liquidityPool.$network
+								&& selection.entitySelector.$liquidityPool.$network.caip2 != null && 'reference' in selection.entitySelector.$liquidityPool.$network.caip2
+								&& selection.entitySelector.$liquidityPool.$network.caip2.reference != null ?
+									resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
 								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
 								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -208,11 +213,12 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection.$parentLiquidityPool({
-								sources: [
-									Source.Dexscreener_OpenApi,
-								],
-							})
+							selection
+								.$parentLiquidityPool({
+									sources: [
+										Source.Dexscreener_OpenApi,
+									],
+								})
 						}
 					>
 						{#snippet children(liquidityPool)}
@@ -221,10 +227,20 @@
 									selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
 									prefetched={liquidityPool}
 									href={
-										(liquidityPool[EntityMetaKey.Selector].id !== undefined && liquidityPool[EntityMetaKey.Selector].$network !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2 !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
+										(
+											liquidityPool[EntityMetaKey.Selector] != null && 'id' in liquidityPool[EntityMetaKey.Selector]
+											&& liquidityPool[EntityMetaKey.Selector].id != null
+											&& liquidityPool[EntityMetaKey.Selector] != null && '$network' in liquidityPool[EntityMetaKey.Selector]
+											&& liquidityPool[EntityMetaKey.Selector].$network != null && 'caip2' in liquidityPool[EntityMetaKey.Selector].$network
+											&& liquidityPool[EntityMetaKey.Selector].$network.caip2 != null && 'reference' in liquidityPool[EntityMetaKey.Selector].$network.caip2
+											&& liquidityPool[EntityMetaKey.Selector].$network.caip2.reference != null ?
+												resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
 											poolId: String(liquidityPool[EntityMetaKey.Selector].id ?? ''),
 											chainId: String(liquidityPool[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}

@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Network observations',
 		typeAnnotationParagraphs = ['A point-in-time observation of network status or metrics.'],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.Network_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Network_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Network_TimestampView from '$/views/Network_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(networkTimestamps) => [...new Map(networkTimestamps.values.map((networkTimestamp) => [networkTimestamp[EntityMetaKey.SelectorKey], networkTimestamp])).values()]}
 	getKey={(networkTimestamp) => networkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,24 +89,48 @@
 
 	{#snippet Item({ item: networkTimestamp })}
 		{@const networkTimestampFields = { ...networkTimestamp[EntityMetaKey.Selector], ...networkTimestamp }}
-		{@const selection = select(EntityType.Network_Timestamp, networkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const networkTimestampHrefFields = { ...networkTimestamp, ...networkTimestamp[EntityMetaKey.Selector] }}
-		<Network_TimestampView
-			selection={selection}
-			prefetched={networkTimestampFields}
+		<EntityView
+			entityType={EntityType.Network_Timestamp}
+			entitySelector={networkTimestamp[EntityMetaKey.Selector]}
 			href={
-				(networkTimestampHrefFields.timestampMs !== undefined && networkTimestampHrefFields.source !== undefined && networkTimestampHrefFields.$network !== undefined && networkTimestampHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(networkTimestampHrefFields.timestampMs ?? ''),
-					source: String(networkTimestampHrefFields.source ?? ''),
-					network: String(caip2StringFromValue(networkTimestampHrefFields.$network.caip2) ?? ''),
-				}) : networkTimestampHrefFields.timestampMs !== undefined && networkTimestampHrefFields.source !== undefined && networkTimestampHrefFields.$network !== undefined && networkTimestampHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(networkTimestampHrefFields.timestampMs ?? ''),
-					source: String(networkTimestampHrefFields.source ?? ''),
-					network: String(networkTimestampHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					networkTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in networkTimestamp[EntityMetaKey.Selector]
+					&& networkTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& networkTimestamp[EntityMetaKey.Selector] != null && 'source' in networkTimestamp[EntityMetaKey.Selector]
+					&& networkTimestamp[EntityMetaKey.Selector].source != null
+					&& networkTimestamp[EntityMetaKey.Selector] != null && '$network' in networkTimestamp[EntityMetaKey.Selector] ?
+						networkTimestamp[EntityMetaKey.Selector].$network != null && 'caip2' in networkTimestamp[EntityMetaKey.Selector].$network
+						&& networkTimestamp[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+						timestampMs: String(networkTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+						source: String(networkTimestamp[EntityMetaKey.Selector].source ?? ''),
+						network: String(caip2StringFromValue(networkTimestamp[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							networkTimestamp[EntityMetaKey.Selector].$network != null && 'slug' in networkTimestamp[EntityMetaKey.Selector].$network
+							&& networkTimestamp[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+							timestampMs: String(networkTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+							source: String(networkTimestamp[EntityMetaKey.Selector].source ?? ''),
+							network: String(networkTimestamp[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((networkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((networkTimestampFields.source) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

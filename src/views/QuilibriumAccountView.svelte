@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.QuilibriumAccount>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.QuilibriumAccount>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.QuilibriumAccount>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const quilibriumAccount = $derived(selection({
+	const quilibriumAccount = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			accountKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			accountKind: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.accountAddress) ?? '')].filter(Boolean).join(' ') || 'quilibrium account')
-	const viewDomId = $derived('quilibrium-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('quilibrium-account-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,74 +77,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.accountAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={quilibriumAccount}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.accountAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={quilibriumAccount}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.accountAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={quilibriumAccount}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={quilibriumAccount}>
+			{#snippet children(entity)}
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const accountKind0 = pendingEntity.accountKind}
-			{#if accountKind0 !== undefined && accountKind0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String((accountKind0) ?? '')} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={quilibriumAccount}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const accountKind0 = resolvedEntity.accountKind}
-					{#if accountKind0 !== undefined && accountKind0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String((accountKind0) ?? '')} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={quilibriumAccount}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const accountKind0 = resolvedEntity.accountKind}
+				{#if accountKind0 !== undefined && accountKind0 !== null}
+					<span data-text="muted">
+						<TruncatedValue value={String((accountKind0) ?? '')} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,13 +118,23 @@
 				<dt>network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -212,17 +193,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadQuilibriumAccountStatesView
-				selection={
-						selection.$$blockheadAccountStates({
-							count: true,
-						})
-					}
-				title='blockhead account states'
-				emptyText='No connected account states.'
-				id='BlockheadQuilibriumAccountStatesView-blockhead-account-states'
-			/>
-		{/if}
+		{@const quilibriumAccountBlockheadQuilibriumAccountStatesViewBlockheadAccountStatesResource = selection.$$blockheadAccountStates}
+		<ResourceBoundary
+			resource={quilibriumAccountBlockheadQuilibriumAccountStatesViewBlockheadAccountStatesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadQuilibriumAccountStatesView
+					selection={quilibriumAccountBlockheadQuilibriumAccountStatesViewBlockheadAccountStatesResource}
+					countResource={quilibriumAccountBlockheadQuilibriumAccountStatesViewBlockheadAccountStatesResource.count}
+					title='blockhead account states'
+					id='BlockheadQuilibriumAccountStatesView-blockhead-account-states'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

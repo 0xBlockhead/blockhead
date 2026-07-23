@@ -38,11 +38,8 @@
 			})
 		}
 		title='Account factory observations'
-		selection={
-			select(EntityType.Erc4337AccountFactory, data.selector).$$timestamps({
-				count: true,
-			})
-		}
+		selection={select(EntityType.Erc4337AccountFactory, data.selector).$$timestamps}
+		countResource={select(EntityType.Erc4337AccountFactory, data.selector).$$timestamps.count}
 		id='timestamps'
 		data-column-item="flexible"
 		data-card

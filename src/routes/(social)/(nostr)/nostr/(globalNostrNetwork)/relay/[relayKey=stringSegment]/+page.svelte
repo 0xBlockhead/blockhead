@@ -18,7 +18,6 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.NostrRelay, data.selector))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay')))
 
 
 	// Components
@@ -28,7 +27,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Nostr relay • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay' : [String((({ ...data.selector, ...pageSelection.entity }).relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay'))} • Nostr relay • Blockhead</title>
 </svelte:head>
 
 

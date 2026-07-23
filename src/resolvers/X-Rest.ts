@@ -19,9 +19,61 @@ import type {
 } from '$/sources/X/Rest/types.ts'
 import { XUserSelector } from '$/schema/XUser.ts'
 import { XPostSelector } from '$/schema/XPost.ts'
-import { XUser_TimestampSelector } from '$/schema/XUser_Timestamp.ts'
-import { XPost_TimestampSelector } from '$/schema/XPost_Timestamp.ts'
 import { XNetworkSelector } from '$/schema/XNetwork.ts'
+
+const xUserReference = (
+	id: string,
+	users: XApiV2User[] | undefined
+) => {
+	const user = users?.find((candidate) => candidate.id === id)
+	return {
+		[EntityMetaKey.Selector]: { id },
+		...(user != null && {
+			[EntityMetaKey.Fields]: {
+				...(optionalNonemptyString(user.username) != null && {
+					[entityFieldAddressKey(EntityType.XUser, [], 'username')]:
+						optionalNonemptyString(user.username),
+				}),
+				...(optionalNonemptyString(user.name) != null && {
+					[entityFieldAddressKey(EntityType.XUser, [], 'name')]:
+						optionalNonemptyString(user.name),
+				}),
+				...((icon) => icon == null ? {} : {
+					[entityFieldAddressKey(EntityType.XUser, [], '$icon')]: icon,
+				})(mediaFromUrl(user.profile_image_url, MediaType.Image)),
+			},
+		}),
+	}
+}
+
+const xPostReference = (
+	id: string,
+	tweets: XApiV2Tweet[] | undefined,
+	users: XApiV2User[] | undefined
+) => {
+	const tweet = tweets?.find((candidate) => candidate.id === id)
+	const createdAt = Date.parse(tweet?.created_at ?? '')
+	return {
+		[EntityMetaKey.Selector]: { id },
+		...(tweet != null && {
+			[EntityMetaKey.Fields]: {
+				...(optionalNonemptyString(tweet.text) != null && {
+					[entityFieldAddressKey(EntityType.XPost, [], 'text')]:
+						optionalNonemptyString(tweet.text),
+				}),
+				...(Number.isFinite(createdAt) && {
+					[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]: createdAt,
+				}),
+				[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
+					UrlString.assert(`https://x.com/i/web/status/${id}`),
+				...(tweet.author_id != null && {
+					[entityFieldAddressKey(EntityType.XPost, [], '$author')]:
+						xUserReference(tweet.author_id, users),
+				}),
+			},
+		}),
+	}
+}
 
 export default {
 	source: Source.X_Rest,
@@ -55,7 +107,7 @@ export default {
 						const name = optionalNonemptyString(xUser.name)
 						const description = optionalNonemptyString(xUser.description)
 						const location = optionalNonemptyString(xUser.location)
-						if (xUser.id != null && xUser.id !== id)
+						if (xUser.id !== id)
 							throw new Error(`X_Rest: user id mismatch ${xUser.id} !== ${id}`)
 						if (username == null) throw new Error('X_Rest: user username not found')
 
@@ -108,6 +160,7 @@ export default {
 						const response = await getTweet(context.publicEnv, id)
 						const tweet = response.data
 						if (tweet == null) throw new Error('X_Rest: post not found')
+						if (tweet.id !== id) throw new Error('X_Rest: post id mismatch')
 						const mediaByKey = new Map(
 							(response.includes?.media ?? []).flatMap((media) => (
 							media.media_key == null ?
@@ -129,14 +182,23 @@ export default {
 						)
 						const text = optionalNonemptyString(tweet.text)
 						return {
+							id,
 							...(text != null && { text }),
 							...(Number.isFinite(createdAt) && { createdAt }),
 							...(conversationId != null && { conversationId }),
 							...(replyToId != null && {
-								$replyToPost: { [EntityMetaKey.Selector]: { id: replyToId } },
+								$replyToPost: xPostReference(
+									replyToId,
+									response.includes?.tweets,
+									response.includes?.users
+								),
 							}),
 							...(quotedId != null && {
-								$quotedPost: { [EntityMetaKey.Selector]: { id: quotedId } },
+								$quotedPost: xPostReference(
+									quotedId,
+									response.includes?.tweets,
+									response.includes?.users
+								),
 							}),
 							postUrl: UrlString.assert(`https://x.com/i/web/status/${id}`),
 							$$media: (
@@ -156,15 +218,14 @@ export default {
 								tweet.author_id == null ?
 									undefined
 								:
-									{
-										[EntityMetaKey.Selector]: { id: tweet.author_id },
-									}
+									xUserReference(tweet.author_id, response.includes?.users)
 							),
 						}
 					},
 				}
 			},
 		})({
+				id: (post) => post.id,
 				text: (post) => post.text,
 				createdAt: (post) => post.createdAt,
 				conversationId: (post) => post.conversationId,
@@ -176,56 +237,6 @@ export default {
 			}),
 
 		defineResolver(Source.X_Rest, {
-			entityType: EntityType.XUser_Timestamp,
-			resolve: {
-				[XUser_TimestampSelector.XUserTimestampMs]: {
-					resolve: async ({ $user }, context) => {
-						if (!('id' in $user)) throw new Error('X_Rest: user timestamp requires id selector')
-
-						const { getUser } = await import('$/sources/X/Rest/queries.ts')
-						const user = (await getUser(context.publicEnv, $user.id)).data
-						if (user == null) throw new Error('X_Rest: user not found')
-						return {
-							followerCount: user.public_metrics?.followers_count,
-							followingCount: user.public_metrics?.following_count,
-							tweetCount: user.public_metrics?.tweet_count,
-							listedCount: user.public_metrics?.listed_count,
-						}
-					},
-				}
-			},
-		})({
-				followerCount: (timestamp) => timestamp.followerCount,
-				followingCount: (timestamp) => timestamp.followingCount,
-				tweetCount: (timestamp) => timestamp.tweetCount,
-				listedCount: (timestamp) => timestamp.listedCount,
-			}),
-
-		defineResolver(Source.X_Rest, {
-			entityType: EntityType.XPost_Timestamp,
-			resolve: {
-				[XPost_TimestampSelector.XPostTimestampMs]: {
-					resolve: async ({ $post }, context) => {
-						const { getTweet } = await import('$/sources/X/Rest/queries.ts')
-						const tweet = (await getTweet(context.publicEnv, $post.id)).data
-						if (tweet == null) throw new Error('X_Rest: post not found')
-						return {
-							likeCount: tweet.public_metrics?.like_count,
-							retweetCount: tweet.public_metrics?.retweet_count,
-							replyCount: tweet.public_metrics?.reply_count,
-							quoteCount: tweet.public_metrics?.quote_count,
-						}
-					},
-				}
-			},
-		})({
-				likeCount: (timestamp) => timestamp.likeCount,
-				retweetCount: (timestamp) => timestamp.retweetCount,
-				replyCount: (timestamp) => timestamp.replyCount,
-				quoteCount: (timestamp) => timestamp.quoteCount,
-			}),
-
-		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost,
 			resolve: {
 				[XPostSelector.Id]: {
@@ -233,11 +244,13 @@ export default {
 						const { getTweet } = await import('$/sources/X/Rest/queries.ts')
 						const tweet = (await getTweet(context.publicEnv, id)).data
 						if (tweet == null) throw new Error('X_Rest: post not found')
+						if (tweet.id !== id) throw new Error('X_Rest: post id mismatch')
 						return [
 							{
 								[EntityMetaKey.Selector]: {
 									$post: { id },
 									timestampMs: Date.now(),
+									source: Source.X_Rest,
 								},
 								likeCount: tweet.public_metrics?.like_count,
 								retweetCount: tweet.public_metrics?.retweet_count,
@@ -276,6 +289,7 @@ export default {
 						const { getUser } = await import('$/sources/X/Rest/queries.ts')
 						const user = (await getUser(context.publicEnv, id)).data
 						if (user == null) throw new Error('X_Rest: user not found')
+						if (user.id !== id) throw new Error('X_Rest: user id mismatch')
 						return [
 							{
 								[EntityMetaKey.Selector]: {
@@ -283,6 +297,7 @@ export default {
 										id,
 									},
 									timestampMs: Date.now(),
+									source: Source.X_Rest,
 								},
 								followerCount: user.public_metrics?.followers_count,
 								followingCount: user.public_metrics?.following_count,
@@ -320,23 +335,59 @@ export default {
 					resolve: async ({ id }, context) => {
 						const { listUserTweets } = await import('$/sources/X/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						const { data = [] } = await listUserTweets(context.publicEnv, id, limit)
-						return (
-							data
-								.flatMap((wirePost) => (
-								wirePost.id == null ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: { id: wirePost.id },
-									}]
-								))
+						return listUserTweets(
+							context.publicEnv,
+							id,
+							limit,
+							context.providerContinuationToken
 						)
 					},
 				},
 			},
 		})({
-				$$posts: (posts) => posts,
+				$$posts: {
+					select: (page, { id }) => (
+						(page.data ?? [])
+							.flatMap((wirePost) => (
+								wirePost.id == null
+								|| wirePost.author_id !== id ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: { id: wirePost.id },
+										[EntityMetaKey.Fields]: {
+											...(optionalNonemptyString(wirePost.text) != null && {
+												[entityFieldAddressKey(EntityType.XPost, [], 'text')]:
+													optionalNonemptyString(wirePost.text),
+											}),
+											...(Number.isFinite(Date.parse(wirePost.created_at ?? '')) && {
+												[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:
+													Date.parse(wirePost.created_at ?? ''),
+											}),
+											[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
+												UrlString.assert(`https://x.com/i/web/status/${wirePost.id}`),
+											[entityFieldAddressKey(EntityType.XPost, [], '$author')]:
+												xUserReference(id, page.includes?.users),
+										},
+									}]
+								))
+					),
+					continuation: (page, { id }) => (
+						page.meta?.next_token == null || page.meta.next_token === '' ?
+							{
+								operation: 'users/:id/tweets',
+								target: id,
+								terminal: true,
+							}
+						:
+							{
+								operation: 'users/:id/tweets',
+								target: id,
+								terminal: false,
+								token: page.meta.next_token,
+							}
+					),
+				},
 			}),
 	],
 }

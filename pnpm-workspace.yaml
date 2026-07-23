@@ -14,3 +14,6 @@ allowBuilds:
   '@journeyapps/wa-sqlite': true
   es5-ext: false
   esbuild: true
+
+patchedDependencies:
+  '@tanstack/db-sqlite-persistence-core@0.1.11': patches/@tanstack__db-sqlite-persistence-core@0.1.11.patch

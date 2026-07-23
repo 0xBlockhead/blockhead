@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AvalancheSubnet_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AvalancheSubnet_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvalancheSubnet_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const avalancheSubnetTimestamp = $derived(selection({
+	const avalancheSubnetTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			validatorCount: true,
+			delegatorCount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			validatorCount: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet timestamp')
-	const viewDomId = $derived('avalanche-subnet-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('avalanche-subnet-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,11 +77,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'validatorCount') && Object.hasOwn(prefetched, 'delegatorCount')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={avalancheSubnetTimestamp}>
 				{#snippet children(entity)}
@@ -89,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'validatorCount') && Object.hasOwn(prefetched, 'delegatorCount')}
 			{[String((pendingEntity.validatorCount) ?? ''), String((pendingEntity.delegatorCount) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={avalancheSubnetTimestamp}>
@@ -102,7 +109,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'validatorCount') && Object.hasOwn(prefetched, 'delegatorCount')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -130,7 +137,7 @@
 				<dt>subnet</dt>
 				<dd>
 					<AvalancheSubnetView
-						selection={select(EntityType.AvalancheSubnet, selection.entitySelector.$subnet, {})}
+						selection={select(EntityType.AvalancheSubnet, selection.entitySelector.$subnet)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead swap intents',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadSwapIntent>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadSwapIntent>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadSwapIntentView from '$/views/BlockheadSwapIntentView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadSwapIntents) => [...new Map(blockheadSwapIntents.values.map((blockheadSwapIntent) => [blockheadSwapIntent[EntityMetaKey.SelectorKey], blockheadSwapIntent])).values()]}
 	getKey={(blockheadSwapIntent) => blockheadSwapIntent[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadSwapIntent })}
 		{@const blockheadSwapIntentFields = { ...blockheadSwapIntent[EntityMetaKey.Selector], ...blockheadSwapIntent }}
-		{@const selection = select(EntityType.BlockheadSwapIntent, blockheadSwapIntent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadSwapIntentView
-			selection={selection}
-			prefetched={blockheadSwapIntentFields}
+		<EntityView
+			entityType={EntityType.BlockheadSwapIntent}
+			entitySelector={blockheadSwapIntent[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((blockheadSwapIntentFields.$sessionAction.actionType) ?? '')].filter(Boolean).join(' ') || 'blockhead session action'].filter(Boolean).join(' ') || 'blockhead swap intent'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadSwapIntentFields.amount) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((blockheadSwapIntentFields.$network.name) ?? '')].filter(Boolean).join(' ') || [blockheadSwapIntentFields.$network.caip2 == null ? '' : String(`${(blockheadSwapIntentFields.$network.caip2).namespace}:${(blockheadSwapIntentFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Algorand TEAL program observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AlgorandTealProgram_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AlgorandTealProgram_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AlgorandTealProgram_TimestampView from '$/views/AlgorandTealProgram_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(algorandTealProgramTimestamps) => [...new Map(algorandTealProgramTimestamps.values.map((algorandTealProgramTimestamp) => [algorandTealProgramTimestamp[EntityMetaKey.SelectorKey], algorandTealProgramTimestamp])).values()]}
 	getKey={(algorandTealProgramTimestamp) => algorandTealProgramTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: algorandTealProgramTimestamp })}
 		{@const algorandTealProgramTimestampFields = { ...algorandTealProgramTimestamp[EntityMetaKey.Selector], ...algorandTealProgramTimestamp }}
-		{@const selection = select(EntityType.AlgorandTealProgram_Timestamp, algorandTealProgramTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AlgorandTealProgram_TimestampView
-			selection={selection}
-			prefetched={algorandTealProgramTimestampFields}
+		<EntityView
+			entityType={EntityType.AlgorandTealProgram_Timestamp}
+			entitySelector={algorandTealProgramTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'algorand teal program timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

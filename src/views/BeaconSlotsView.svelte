@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Slots',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BeaconSlot>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BeaconSlot>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(beaconSlots) => [...new Map(beaconSlots.values.map((beaconSlot) => [beaconSlot[EntityMetaKey.SelectorKey], beaconSlot])).values()]}
 	getKey={(beaconSlot) => beaconSlot[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,22 +89,44 @@
 
 	{#snippet Item({ item: beaconSlot })}
 		{@const beaconSlotFields = { ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }}
-		{@const selection = select(EntityType.BeaconSlot, beaconSlot[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const beaconSlotHrefFields = { ...beaconSlot, ...beaconSlot[EntityMetaKey.Selector] }}
-		<BeaconSlotView
-			selection={selection}
-			prefetched={beaconSlotFields}
+		<EntityView
+			entityType={EntityType.BeaconSlot}
+			entitySelector={beaconSlot[EntityMetaKey.Selector]}
 			href={
-				(beaconSlotHrefFields.slot !== undefined && beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-					slot: String(beaconSlotHrefFields.slot ?? ''),
-					network: String(caip2StringFromValue(beaconSlotHrefFields.$network.caip2) ?? ''),
-				}) : beaconSlotHrefFields.slot !== undefined && beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-					slot: String(beaconSlotHrefFields.slot ?? ''),
-					network: String(beaconSlotHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					beaconSlot[EntityMetaKey.Selector] != null && 'slot' in beaconSlot[EntityMetaKey.Selector]
+					&& beaconSlot[EntityMetaKey.Selector].slot != null
+					&& beaconSlot[EntityMetaKey.Selector] != null && '$network' in beaconSlot[EntityMetaKey.Selector] ?
+						beaconSlot[EntityMetaKey.Selector].$network != null && 'caip2' in beaconSlot[EntityMetaKey.Selector].$network
+						&& beaconSlot[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+						slot: String(beaconSlot[EntityMetaKey.Selector].slot ?? ''),
+						network: String(caip2StringFromValue(beaconSlot[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							beaconSlot[EntityMetaKey.Selector].$network != null && 'slug' in beaconSlot[EntityMetaKey.Selector].$network
+							&& beaconSlot[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+							slot: String(beaconSlot[EntityMetaKey.Selector].slot ?? ''),
+							network: String(beaconSlot[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((beaconSlotFields.slot) ?? '') ? 'Slot #' + String((beaconSlotFields.slot) ?? '') : '') || 'beacon slot'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[(String((beaconSlotFields.$epoch.epoch) ?? '') ? 'Epoch #' + String((beaconSlotFields.$epoch.epoch) ?? '') : '') || 'beacon epoch'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

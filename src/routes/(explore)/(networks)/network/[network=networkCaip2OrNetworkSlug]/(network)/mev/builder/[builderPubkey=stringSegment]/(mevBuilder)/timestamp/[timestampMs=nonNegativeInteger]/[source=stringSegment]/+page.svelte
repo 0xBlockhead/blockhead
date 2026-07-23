@@ -36,7 +36,6 @@
 			sampleLimit: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [(String((pageSelection.entitySelector.deliveredPayloadCount) ?? '') ? String((pageSelection.entitySelector.deliveredPayloadCount) ?? '') + ' payloads' : ''), (String((pageSelection.entitySelector.deliveredValueWei) ?? '') ? String((pageSelection.entitySelector.deliveredValueWei) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp' : [(String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).deliveredPayloadCount) ?? '') ? String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).deliveredPayloadCount) ?? '') + ' payloads' : ''), (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).deliveredValueWei) ?? '') ? String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).deliveredValueWei) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp')))
 
 
 	// Components
@@ -46,7 +45,23 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • MEV builder timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'MEV builder timestamp' : [(String((({ ...{
+		$builder: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).deliveredPayloadCount) ?? '') ? String((({ ...{
+		$builder: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).deliveredPayloadCount) ?? '') + ' payloads' : ''), (String((({ ...{
+		$builder: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).deliveredValueWei) ?? '') ? String((({ ...{
+		$builder: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).deliveredValueWei) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp'))} • MEV builder timestamp • Blockhead</title>
 </svelte:head>
 
 

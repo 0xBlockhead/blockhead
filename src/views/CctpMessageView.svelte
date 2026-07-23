@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CctpMessage>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CctpMessage>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CctpMessage>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cctpMessage = $derived(selection({
+	const cctpMessage = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			messageHash: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			messageHash: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || 'CCTP message')
-	const viewDomId = $derived('cctp-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('cctp-message-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,7 +77,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'messageHash')}
 			{[String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cctpMessage}>
@@ -84,7 +90,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'messageHash')}
 			{[String((pendingEntity.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cctpMessage}>
@@ -97,7 +103,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'messageHash')}
 			{@const messageHash0 = pendingEntity.messageHash}
 			{#if messageHash0 !== undefined && messageHash0 !== null}
 				<span data-text="muted">
@@ -684,17 +690,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CctpAttestation_TimestampsView
-				selection={
-						selection.$$attestationTimestamps({
-							count: true,
-						})
-					}
-				title='Attestation timestamps'
-				emptyText='No CCTP attestation observations.'
-				id='CctpAttestation_TimestampsView-attestation-timestamps'
-			/>
-		{/if}
+		{@const cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource = selection.$$attestationTimestamps}
+		<ResourceBoundary
+			resource={cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<CctpAttestation_TimestampsView
+					selection={cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource}
+					countResource={cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource.count}
+					title='Attestation timestamps'
+					id='CctpAttestation_TimestampsView-attestation-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

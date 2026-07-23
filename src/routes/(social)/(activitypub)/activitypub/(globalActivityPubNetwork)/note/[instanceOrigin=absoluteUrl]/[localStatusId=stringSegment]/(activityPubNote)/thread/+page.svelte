@@ -42,12 +42,23 @@
 			select(EntityType.ActivityPubNote, {
 				instanceOrigin: decodeURIComponent(params.instanceOrigin),
 				localStatusId: params.localStatusId,
-			}).$$thread({
-				sources: [
-					Source.Mastodon_Rest,
-				],
-				count: true,
 			})
+				.$$thread({
+					sources: [
+						Source.Mastodon_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.ActivityPubNote, {
+				instanceOrigin: decodeURIComponent(params.instanceOrigin),
+				localStatusId: params.localStatusId,
+			})
+				.$$thread({
+					sources: [
+						Source.Mastodon_Rest,
+					],
+				}).count
 		}
 		id='thread'
 		data-column-item="flexible"

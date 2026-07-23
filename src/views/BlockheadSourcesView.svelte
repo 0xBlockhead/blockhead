@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Sources',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadSource>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadSource>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadSourceView from '$/views/BlockheadSourceView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadSources) => [...new Map(blockheadSources.values.map((blockheadSource) => [blockheadSource[EntityMetaKey.SelectorKey], blockheadSource])).values()]}
 	getKey={(blockheadSource) => blockheadSource[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,18 +88,31 @@
 
 	{#snippet Item({ item: blockheadSource })}
 		{@const blockheadSourceFields = { ...blockheadSource[EntityMetaKey.Selector], ...blockheadSource }}
-		{@const selection = select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const blockheadSourceHrefFields = { ...blockheadSource, ...blockheadSource[EntityMetaKey.Selector] }}
-		<BlockheadSourceView
-			selection={selection}
-			prefetched={blockheadSourceFields}
+		<EntityView
+			entityType={EntityType.BlockheadSource}
+			entitySelector={blockheadSource[EntityMetaKey.Selector]}
 			href={
-				(blockheadSourceHrefFields.id !== undefined ? resolve('/~/manage/source/[sourceId=stringSegment]', {
-					sourceId: String(blockheadSourceHrefFields.id ?? ''),
-				}) : undefined)
+				(
+					blockheadSource[EntityMetaKey.Selector] != null && 'id' in blockheadSource[EntityMetaKey.Selector]
+					&& blockheadSource[EntityMetaKey.Selector].id != null ?
+						resolve('/~/manage/source/[sourceId=stringSegment]', {
+					sourceId: String(blockheadSource[EntityMetaKey.Selector].id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadSourceFields.label) ?? '')].filter(Boolean).join(' ') || [String((blockheadSourceFields.id) ?? '')].filter(Boolean).join(' ') || 'source'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadSourceFields.source) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

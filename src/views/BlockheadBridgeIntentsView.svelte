@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead bridge intents',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadBridgeIntent>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadBridgeIntent>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadBridgeIntentView from '$/views/BlockheadBridgeIntentView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadBridgeIntents) => [...new Map(blockheadBridgeIntents.values.map((blockheadBridgeIntent) => [blockheadBridgeIntent[EntityMetaKey.SelectorKey], blockheadBridgeIntent])).values()]}
 	getKey={(blockheadBridgeIntent) => blockheadBridgeIntent[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: blockheadBridgeIntent })}
 		{@const blockheadBridgeIntentFields = { ...blockheadBridgeIntent[EntityMetaKey.Selector], ...blockheadBridgeIntent }}
-		{@const selection = select(EntityType.BlockheadBridgeIntent, blockheadBridgeIntent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadBridgeIntentView
-			selection={selection}
-			prefetched={blockheadBridgeIntentFields}
+		<EntityView
+			entityType={EntityType.BlockheadBridgeIntent}
+			entitySelector={blockheadBridgeIntent[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((blockheadBridgeIntentFields.$sessionAction.actionType) ?? '')].filter(Boolean).join(' ') || 'blockhead session action'].filter(Boolean).join(' ') || 'blockhead bridge intent'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadBridgeIntentFields.amount) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((blockheadBridgeIntentFields.$fromNetwork.name) ?? '')].filter(Boolean).join(' ') || [blockheadBridgeIntentFields.$fromNetwork.caip2 == null ? '' : String(`${(blockheadBridgeIntentFields.$fromNetwork.caip2).namespace}:${(blockheadBridgeIntentFields.$fromNetwork.caip2).reference}`)].filter(Boolean).join(' ') || 'Network', [String((blockheadBridgeIntentFields.$toNetwork.name) ?? '')].filter(Boolean).join(' ') || [blockheadBridgeIntentFields.$toNetwork.caip2 == null ? '' : String(`${(blockheadBridgeIntentFields.$toNetwork.caip2).namespace}:${(blockheadBridgeIntentFields.$toNetwork.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

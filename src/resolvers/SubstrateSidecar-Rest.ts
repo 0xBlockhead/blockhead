@@ -63,28 +63,45 @@ const polkadotAccountTimestampFields = (
 		accountId: string
 	},
 	account: {
-		nonce?: string | number
-		free?: string
+		at: {
+			hash: string
+			height: string
+		}
+		nonce: string
+		free: string
+		reserved: string
 	},
 	timestampMs: number
-) => ({
-	[EntityMetaKey.Selector]: {
-		$account: accountId,
+) => {
+	if (
+		account.at.hash.length === 0
+		|| !/^(?:0|[1-9]\d*)$/.test(account.at.height)
+	)
+		throw new Error('SubstrateSidecar_Rest: malformed account state identity')
+	if (
+		![account.nonce, account.free, account.reserved].every((value) => (
+			/^\d+$/.test(value)
+		))
+	)
+		throw new Error('SubstrateSidecar_Rest: malformed account balance')
+	if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+		throw new Error('SubstrateSidecar_Rest: malformed account observation time')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$account: accountId,
+			timestampMs,
+			source: Source.SubstrateSidecar_Rest,
+		},
+		$account: {
+			[EntityMetaKey.Selector]: accountId,
+		},
 		timestampMs,
 		source: Source.SubstrateSidecar_Rest,
-	},
-	$account: {
-		[EntityMetaKey.Selector]: accountId,
-	},
-	timestampMs,
-	source: Source.SubstrateSidecar_Rest,
-	...(account.nonce != null && {
 		nonce: BigInt(account.nonce),
-	}),
-	...(account.free != null && {
 		freeBalancePlancks: BigInt(account.free),
-	}),
-})
+	}
+}
 
 export default {
 	source: Source.SubstrateSidecar_Rest,

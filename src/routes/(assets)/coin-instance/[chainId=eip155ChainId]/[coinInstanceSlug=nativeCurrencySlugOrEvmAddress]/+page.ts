@@ -5,18 +5,33 @@ import { error } from '@sveltejs/kit'
 import { match as matchEip155ChainId } from '$/params/eip155ChainId.ts'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { match as matchNativeCurrencySlug } from '$/params/nativeCurrencySlug.ts'
-import { parseEntitySelector, type EntitySelector } from '$/schema/$schema.ts'
+import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmCoinInstance as EvmCoinInstanceSchema } from '$/schema/EvmCoinInstance.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: PageLoad = ({ params }) => {
-	const selectorMappings: {
-		entityType: EntityType
-		selectorName: string
-		selector: EntitySelector<typeof schema, EntityType>
-	}[] = []
+	const routeCandidates: (
+		| {
+			readonly entityType: EntityType.EvmCoinInstance
+			readonly selectorName: 'NetworkType'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.EvmCoinInstance,
+				'NetworkType'
+			>
+		}
+		| {
+			readonly entityType: EntityType.EvmCoinInstance
+			readonly selectorName: 'NetworkTypeContract'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.EvmCoinInstance,
+				'NetworkTypeContract'
+			>
+		}
+	)[] = []
 
 	if (matchEip155ChainId(params.chainId) && matchNativeCurrencySlug(params.coinInstanceSlug)) {
 		const evmCoinInstanceNetworkTypeSelector = parseEntitySelector(
@@ -26,14 +41,14 @@ export const load: PageLoad = ({ params }) => {
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: Number(params.chainId),
+						reference: params.chainId,
 					},
 				},
 				type: 'NativeCurrency',
 			}
 		)
-		if (!(evmCoinInstanceNetworkTypeSelector instanceof arktype.errors) && evmCoinInstanceNetworkTypeSelector.type === 'NativeCurrency')
-			selectorMappings.push({ entityType: EntityType.EvmCoinInstance, selectorName: 'NetworkType', selector: evmCoinInstanceNetworkTypeSelector })
+		if (!(evmCoinInstanceNetworkTypeSelector instanceof arktype.errors) && '$network' in evmCoinInstanceNetworkTypeSelector && 'type' in evmCoinInstanceNetworkTypeSelector && evmCoinInstanceNetworkTypeSelector.type === 'NativeCurrency')
+			routeCandidates.push({ entityType: EntityType.EvmCoinInstance, selectorName: 'NetworkType', selector: evmCoinInstanceNetworkTypeSelector })
 	}
 
 	if (matchEvmAddress(params.coinInstanceSlug) && matchEip155ChainId(params.chainId)) {
@@ -44,7 +59,7 @@ export const load: PageLoad = ({ params }) => {
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: Number(params.chainId),
+						reference: params.chainId,
 					},
 				},
 				type: 'Erc20Token',
@@ -52,20 +67,19 @@ export const load: PageLoad = ({ params }) => {
 					$network: {
 						caip2: {
 							namespace: 'eip155',
-							reference: Number(params.chainId),
+							reference: params.chainId,
 						},
 					},
 					address: params.coinInstanceSlug,
 				},
 			}
 		)
-		if (!(evmCoinInstanceNetworkTypeContractSelector instanceof arktype.errors) && evmCoinInstanceNetworkTypeContractSelector.type === 'Erc20Token')
-			selectorMappings.push({ entityType: EntityType.EvmCoinInstance, selectorName: 'NetworkTypeContract', selector: evmCoinInstanceNetworkTypeContractSelector })
+		if (!(evmCoinInstanceNetworkTypeContractSelector instanceof arktype.errors) && '$network' in evmCoinInstanceNetworkTypeContractSelector && 'type' in evmCoinInstanceNetworkTypeContractSelector && '$contract' in evmCoinInstanceNetworkTypeContractSelector && evmCoinInstanceNetworkTypeContractSelector.type === 'Erc20Token')
+			routeCandidates.push({ entityType: EntityType.EvmCoinInstance, selectorName: 'NetworkTypeContract', selector: evmCoinInstanceNetworkTypeContractSelector })
 	}
 
-	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')
-	if (selectorMappings.length > 1) error(500, 'Route selector is ambiguous')
-	const selectorMapping = selectorMappings[0]
+	if (routeCandidates.length === 0) error(404, 'Route selector not applicable')
+	if (routeCandidates.length > 1) error(500, 'Route selector is ambiguous')
 
-	return { selector: selectorMapping.selector, selectorMapping, selectorMappings }
+	return routeCandidates[0]
 }

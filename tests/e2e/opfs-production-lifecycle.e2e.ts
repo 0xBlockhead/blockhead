@@ -1,7 +1,6 @@
 import {
 	expect,
 	test,
-	type Page,
 } from '@playwright/test'
 
 import {
@@ -9,21 +8,6 @@ import {
 	expectMainVisible,
 	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
-
-
-const openLocalMutationFixture = async (page: Page) => {
-	const diagnostics = setupPageRuntimeDiagnostics(page, {
-		failFast: true,
-		forwardConsole: true,
-		failOnTanStackWarnings: true,
-	})
-	await diagnostics.step(page.goto('/test/local-mutation-authority', {
-		waitUntil: 'domcontentloaded',
-		timeout: 120_000,
-	}))
-	await expectMainVisible(page, 120_000, diagnostics)
-	return diagnostics
-}
 
 const persistenceFailureDetails = (failures: readonly string[]) => (
 	failures.length === 0 ? '' : `\n${failures.join('\n')}`
@@ -36,6 +20,9 @@ test.describe('production OPFS lifecycle', () => {
 
 		const context = await browser.newContext(e2eBrowserNewContextOptions())
 		const page = await context.newPage()
+		const remotePostId = `189${Date.now()}000`
+		const remotePostPath = `/x/post/${remotePostId}`
+		const remotePostText = `OPFS remote replay fixture ${remotePostId}`
 		const persistenceFailures: string[] = []
 		const remoteRequests = new Set<string>()
 		const reopenedRemoteRequests = new Set<string>()
@@ -43,6 +30,41 @@ test.describe('production OPFS lifecycle', () => {
 			if (/sqlite3_open_v2|OPFS|database is locked|requires an index|index/i.test(message))
 				persistenceFailures.push(`${location}: ${message}`)
 		}
+		await context.route('**/api-proxy/X_FxEmbed_Rest-*/0/**', async (route) => {
+			const providerUrl = new URL(
+				decodeURIComponent(new URL(route.request().url()).pathname.split('/').at(-1) ?? '')
+			)
+			await route.fulfill({
+				contentType: 'application/json',
+				json: (
+					providerUrl.pathname.includes('/profile/') ?
+						{
+							user: {
+								type: 'profile',
+								id: '44196397',
+								screen_name: 'opfs_fixture',
+								name: 'OPFS Fixture',
+								description: 'Production persistence fixture',
+							},
+						}
+					:
+						{
+							status: {
+								type: 'status',
+								id: remotePostId,
+								text: remotePostText,
+								created_timestamp: 1_768_435_200,
+								author: {
+									type: 'profile',
+									id: '44196397',
+									screen_name: 'opfs_fixture',
+									name: 'OPFS Fixture',
+								},
+							},
+						}
+				),
+			})
+		})
 
 		page.on('console', (message) => recordPersistenceFailure(message.text(), `console ${message.type()}`))
 		page.on('pageerror', (error) => recordPersistenceFailure(error.message, 'pageerror'))
@@ -56,24 +78,47 @@ test.describe('production OPFS lifecycle', () => {
 		})
 
 		try {
-			const diagnostics = await openLocalMutationFixture(page)
-			await page.getByRole('button', { name: 'Create sessions' }).click()
+			const diagnostics = setupPageRuntimeDiagnostics(page, {
+				failFast: true,
+				forwardConsole: true,
+				failOnTanStackWarnings: true,
+			})
+			await diagnostics.step(page.goto(remotePostPath, {
+				waitUntil: 'domcontentloaded',
+				timeout: 120_000,
+			}))
+			await expectMainVisible(page, 120_000, diagnostics)
+			await expect(page.locator('#main')).toContainText(remotePostText, {
+				timeout: 120_000,
+			})
+			await diagnostics.step(page.waitForLoadState('load'))
+			expect(
+				remoteRequests.size,
+				'expected the unique product selector to materialize through its remote source'
+			).toBeGreaterThan(0)
+
+			await diagnostics.step(page.goto('/test/local-mutation-authority', {
+				waitUntil: 'domcontentloaded',
+				timeout: 120_000,
+			}))
+			await expectMainVisible(page, 120_000, diagnostics)
+			await diagnostics.step(page.getByRole('button', { name: 'Create sessions' }).waitFor({
+				state: 'visible',
+				timeout: 120_000,
+			}))
+			await diagnostics.step(page.getByTestId('session-awaited').waitFor({
+				state: 'attached',
+				timeout: 120_000,
+			}))
+			await diagnostics.step(page.getByRole('button', { name: 'Clear sessions' }).click())
+			await expect(page.getByTestId('session-direct')).toHaveText('')
+			await diagnostics.step(page.getByRole('button', { name: 'Create sessions' }).click())
 			await expect(page.getByTestId('session-direct'), diagnostics.summary()).toContainText('Authority Session A')
 			await expect(page.getByTestId('session-awaited'), diagnostics.summary()).toContainText('Authority Session A')
 			await expect(page.locator('#local-authority-sessions'), diagnostics.summary()).toContainText('Authority Session A')
 			await expect(page.locator('#local-authority-sessions'), diagnostics.summary()).toContainText('Authority Session B')
+			await expect(page.getByTestId('sessions-persisted'), diagnostics.summary()).toHaveText('persisted')
 			await expect(diagnostics.issues, diagnostics.issues.join('\n')).toEqual([])
-
-			await page.goto('/network/eip155:1', {
-				waitUntil: 'domcontentloaded',
-				timeout: 120_000,
-			})
-			await expectMainVisible(page, 120_000, diagnostics)
-			await page.goto('/test/local-mutation-authority', {
-				waitUntil: 'domcontentloaded',
-				timeout: 120_000,
-			})
-			await expectMainVisible(page, 120_000, diagnostics)
 
 			await page.close()
 			const reopenedPage = await context.newPage()
@@ -98,11 +143,16 @@ test.describe('production OPFS lifecycle', () => {
 			await expect(reopenedPage.locator('#local-authority-sessions')).toContainText('Authority Session B')
 			await expect(reopenedDiagnostics.issues, reopenedDiagnostics.issues.join('\n')).toEqual([])
 
-			expect(
-				remoteRequests.size,
-				'expected the production route to record at least one remote-source request before reopen'
-			).toBeGreaterThan(0)
-			expect(reopenedRemoteRequests, 'reopened local state must not replay remote-source requests').toEqual(new Set())
+			await reopenedDiagnostics.step(reopenedPage.goto(remotePostPath, {
+				waitUntil: 'domcontentloaded',
+				timeout: 120_000,
+			}))
+			await expectMainVisible(reopenedPage, 120_000, reopenedDiagnostics)
+			await expect(reopenedPage.locator('#main')).toContainText(remotePostText, {
+				timeout: 120_000,
+			})
+			expect(reopenedRemoteRequests, 'reopened remote state must hydrate without source replay').toEqual(new Set())
+
 		} finally {
 			await context.close()
 		}

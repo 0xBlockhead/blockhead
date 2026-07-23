@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Currencies',
 		typeAnnotationParagraphs = ['A currency unit used for quoting values, balances, and market data.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.Currency>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Currency>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CurrencyView from '$/views/CurrencyView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(currencies) => [...new Map(currencies.values.map((currency) => [currency[EntityMetaKey.SelectorKey], currency])).values()]}
 	getKey={(currency) => currency[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,18 +87,31 @@
 
 	{#snippet Item({ item: currency })}
 		{@const currencyFields = { ...currency[EntityMetaKey.Selector], ...currency }}
-		{@const selection = select(EntityType.Currency, currency[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const currencyHrefFields = { ...currency, ...currency[EntityMetaKey.Selector] }}
-		<CurrencyView
-			selection={selection}
-			prefetched={currencyFields}
+		<EntityView
+			entityType={EntityType.Currency}
+			entitySelector={currency[EntityMetaKey.Selector]}
 			href={
-				(currencyHrefFields.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
-					iso4217: String(currencyHrefFields.iso4217 ?? ''),
-				}) : undefined)
+				(
+					currency[EntityMetaKey.Selector] != null && 'iso4217' in currency[EntityMetaKey.Selector]
+					&& currency[EntityMetaKey.Selector].iso4217 != null ?
+						resolve('/currency/[iso4217=iso4217]', {
+					iso4217: String(currency[EntityMetaKey.Selector].iso4217 ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((currencyFields.name) ?? '')].filter(Boolean).join(' ') || [String((currencyFields.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((currencyFields.iso4217) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

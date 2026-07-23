@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Quilibrium shards',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.QuilibriumShard>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.QuilibriumShard>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import QuilibriumShardView from '$/views/QuilibriumShardView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(quilibriumShards) => [...new Map(quilibriumShards.values.map((quilibriumShard) => [quilibriumShard[EntityMetaKey.SelectorKey], quilibriumShard])).values()]}
 	getKey={(quilibriumShard) => quilibriumShard[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: quilibriumShard })}
 		{@const quilibriumShardFields = { ...quilibriumShard[EntityMetaKey.Selector], ...quilibriumShard }}
-		{@const selection = select(EntityType.QuilibriumShard, quilibriumShard[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<QuilibriumShardView
-			selection={selection}
-			prefetched={quilibriumShardFields}
+		<EntityView
+			entityType={EntityType.QuilibriumShard}
+			entitySelector={quilibriumShard[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((quilibriumShardFields.shardKey) ?? '')].filter(Boolean).join(' ') || 'quilibrium shard'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((quilibriumShardFields.$network.name) ?? '')].filter(Boolean).join(' ') || [quilibriumShardFields.$network.caip2 == null ? '' : String(`${(quilibriumShardFields.$network.caip2).namespace}:${(quilibriumShardFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((quilibriumShardFields.shardKind) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

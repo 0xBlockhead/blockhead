@@ -44,14 +44,14 @@
 				}
 				title='Beacon committees'
 				selection={
-					projection.$$beaconCommittees({
-						sources: [
-							Source.Beacon_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$beaconCommittees({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
 				}
-				id='beacon-committees'
+				id='account-beacon-committee'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

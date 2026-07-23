@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BnbBeaconTokenTransfer>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BnbBeaconTokenTransfer>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BnbBeaconTokenTransfer>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bnbBeaconTokenTransfer = $derived(selection({
+	const bnbBeaconTokenTransfer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			symbol: true,
+			amount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			symbol: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token transfer')
-	const viewDomId = $derived('bnb-beacon-token-transfer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bnb-beacon-token-transfer-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,64 +77,41 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconTokenTransfer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconTokenTransfer}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const amount0 = pendingEntity.amount}
-					{#if amount0 !== undefined && amount0 !== null}
-						<NumberValue
-							value={amount0}
-						/>
-					{/if}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconTokenTransfer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount0 = resolvedEntity.amount}
-					{#if amount0 !== undefined && amount0 !== null}
-						<NumberValue
-							value={amount0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconTokenTransfer}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const amount0 = resolvedEntity.amount}
+				{#if amount0 !== undefined && amount0 !== null}
+					<NumberValue
+						value={amount0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<span data-text="muted">
-				<BnbBeaconTransactionView
-					selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={bnbBeaconTokenTransfer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<span data-text="muted">
-						<BnbBeaconTransactionView
-							selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconTokenTransfer}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<BnbBeaconTransactionView
+						selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -136,7 +120,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<BnbBeaconTransactionView
-						selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

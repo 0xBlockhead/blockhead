@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Eigen layer strategies',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EigenLayerStrategy>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EigenLayerStrategy>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EigenLayerStrategyView from '$/views/EigenLayerStrategyView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(eigenLayerStrategies) => [...new Map(eigenLayerStrategies.values.map((eigenLayerStrategy) => [eigenLayerStrategy[EntityMetaKey.SelectorKey], eigenLayerStrategy])).values()]}
 	getKey={(eigenLayerStrategy) => eigenLayerStrategy[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: eigenLayerStrategy })}
 		{@const eigenLayerStrategyFields = { ...eigenLayerStrategy[EntityMetaKey.Selector], ...eigenLayerStrategy }}
-		{@const selection = select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<EigenLayerStrategyView
-			selection={selection}
-			prefetched={eigenLayerStrategyFields}
+		<EntityView
+			entityType={EntityType.EigenLayerStrategy}
+			entitySelector={eigenLayerStrategy[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((eigenLayerStrategyFields.strategyAddress) ?? '')].filter(Boolean).join(' ') || 'eigen layer strategy'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((eigenLayerStrategyFields.underlyingToken) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((eigenLayerStrategyFields.$network.name) ?? '')].filter(Boolean).join(' ') || [eigenLayerStrategyFields.$network.caip2 == null ? '' : String(`${(eigenLayerStrategyFields.$network.caip2).namespace}:${(eigenLayerStrategyFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

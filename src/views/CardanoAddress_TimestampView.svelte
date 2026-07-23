@@ -3,11 +3,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -26,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CardanoAddress_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CardanoAddress_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoAddress_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,15 +43,28 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoAddressTimestamp = $derived(selection({
+	const cardanoAddressTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
 		sources: selection.sources,
+		fields: {
+			timestampMs: true,
+			lovelaceBalance: true,
+			transactionCount: true,
+		},
+	} : {
+		sources: selection.sources,
+		fields: {
+			timestampMs: true,
+			lovelaceBalance: true,
+			transactionCount: true,
+		},
 	}))
-	const titleFallback = $derived('Cardano address timestamp')
-	const viewDomId = $derived('cardano-address-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.blockSlot) ?? '')].filter(Boolean).join(' ') || 'Cardano address timestamp')
+	const viewDomId = $derived('cardano-address-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CardanoAddressView from '$/views/CardanoAddressView.svelte'
 </script>
@@ -65,13 +81,55 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'lovelaceBalance') && Object.hasOwn(prefetched, 'transactionCount')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={cardanoAddressTimestamp}>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{title || titleFallback}
+					{@const timestampMs0 = resolvedEntity.timestampMs}
+					{#if timestampMs0 !== undefined && timestampMs0 !== null}
+						<Timestamp timestamp={Number(timestampMs0)} />
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet Value()}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'lovelaceBalance') && Object.hasOwn(prefetched, 'transactionCount')}
+			{[String((pendingEntity.lovelaceBalance) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoAddressTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.lovelaceBalance) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'lovelaceBalance') && Object.hasOwn(prefetched, 'transactionCount')}
+			{@const transactionCount0 = pendingEntity.transactionCount}
+			{#if transactionCount0 !== undefined && transactionCount0 !== null}
+				<span data-text="muted">
+					{String((transactionCount0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={cardanoAddressTimestamp}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transactionCount0 = resolvedEntity.transactionCount}
+					{#if transactionCount0 !== undefined && transactionCount0 !== null}
+						<span data-text="muted">
+							{String((transactionCount0) ?? '')}
+						</span>
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
@@ -83,7 +141,31 @@
 				<dt>Address</dt>
 				<dd>
 					<CardanoAddressView
-						selection={select(EntityType.CardanoAddress, selection.entitySelector.$address, {})}
+						selection={select(EntityType.CardanoAddress, selection.entitySelector.$address)}
+						href={
+							(
+								selection.entitySelector.$address != null && 'address' in selection.entitySelector.$address
+								&& selection.entitySelector.$address.address != null
+								&& selection.entitySelector.$address != null && '$network' in selection.entitySelector.$address ?
+									selection.entitySelector.$address.$network != null && 'caip2' in selection.entitySelector.$address.$network
+									&& selection.entitySelector.$address.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+									accountId: String(selection.entitySelector.$address.address ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$address.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$address.$network != null && 'slug' in selection.entitySelector.$address.$network
+										&& selection.entitySelector.$address.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+										accountId: String(selection.entitySelector.$address.address ?? ''),
+										network: String(selection.entitySelector.$address.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -185,7 +267,9 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({

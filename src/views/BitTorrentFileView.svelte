@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BitTorrentFile>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BitTorrentFile>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BitTorrentFile>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bitTorrentFile = $derived(selection({
+	const bitTorrentFile = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			path: true,
+			length: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			path: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || 'bit torrent file')
-	const viewDomId = $derived('bit-torrent-file-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bit-torrent-file-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,7 +77,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'path') && Object.hasOwn(prefetched, 'length')}
 			{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={bitTorrentFile}>
@@ -83,13 +90,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const length0 = pendingEntity.length}
-					{#if length0 !== undefined && length0 !== null}
-						<NumberValue
-							value={length0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'path') && Object.hasOwn(prefetched, 'length')}
+			{@const length0 = pendingEntity.length}
+			{#if length0 !== undefined && length0 !== null}
+				<NumberValue
+					value={length0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={bitTorrentFile}>
 				{#snippet children(entity)}
@@ -111,7 +118,7 @@
 				<dt>torrent</dt>
 				<dd>
 					<BitTorrentMetainfoView
-						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent, {})}
+						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

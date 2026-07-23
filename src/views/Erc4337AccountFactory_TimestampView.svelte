@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Erc4337AccountFactory_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Erc4337AccountFactory_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Erc4337AccountFactory_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const erc4337AccountFactoryTimestamp = $derived(selection({
+	const erc4337AccountFactoryTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			userOperationsCount: true,
+			smartAccountsCount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			userOperationsCount: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 account factory timestamp')
-	const viewDomId = $derived('erc4337account-factory-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('erc4337account-factory-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,28 +74,48 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$factory !== undefined && pendingEntity.$factory.address !== undefined && pendingEntity.$factory.$network !== undefined && pendingEntity.$factory.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			address: String(pendingEntity.$factory.address ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$factory.$network.caip2) ?? ''),
-		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$factory !== undefined && pendingEntity.$factory.address !== undefined && pendingEntity.$factory.$network !== undefined && pendingEntity.$factory.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			address: String(pendingEntity.$factory.address ?? ''),
-			network: String(pendingEntity.$factory.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$factory' in selection.entitySelector
+			&& selection.entitySelector.$factory != null && 'address' in selection.entitySelector.$factory
+			&& selection.entitySelector.$factory.address != null
+			&& selection.entitySelector.$factory != null && '$network' in selection.entitySelector.$factory ?
+				selection.entitySelector.$factory.$network != null && 'caip2' in selection.entitySelector.$factory.$network
+				&& selection.entitySelector.$factory.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+				timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+				source: String(selection.entitySelector.source ?? ''),
+				address: String(selection.entitySelector.$factory.address ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$factory.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$factory.$network != null && 'slug' in selection.entitySelector.$factory.$network
+					&& selection.entitySelector.$factory.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+					source: String(selection.entitySelector.source ?? ''),
+					address: String(selection.entitySelector.$factory.address ?? ''),
+					network: String(selection.entitySelector.$factory.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'userOperationsCount') && Object.hasOwn(prefetched, 'smartAccountsCount')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={erc4337AccountFactoryTimestamp}>
 				{#snippet children(entity)}
@@ -103,13 +130,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const userOperationsCount0 = pendingEntity.userOperationsCount}
-					{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
-						<NumberValue
-							value={userOperationsCount0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'userOperationsCount') && Object.hasOwn(prefetched, 'smartAccountsCount')}
+			{@const userOperationsCount0 = pendingEntity.userOperationsCount}
+			{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
+				<NumberValue
+					value={userOperationsCount0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={erc4337AccountFactoryTimestamp}>
 				{#snippet children(entity)}
@@ -126,7 +153,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'userOperationsCount') && Object.hasOwn(prefetched, 'smartAccountsCount')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -276,15 +303,30 @@
 				<dt>Factory</dt>
 				<dd>
 					<Erc4337AccountFactoryView
-						selection={select(EntityType.Erc4337AccountFactory, selection.entitySelector.$factory, {})}
+						selection={select(EntityType.Erc4337AccountFactory, selection.entitySelector.$factory)}
 						href={
-							(selection.entitySelector.$factory.address !== undefined && selection.entitySelector.$factory.$network !== undefined && selection.entitySelector.$factory.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
-								address: String(selection.entitySelector.$factory.address ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$factory.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$factory.address !== undefined && selection.entitySelector.$factory.$network !== undefined && selection.entitySelector.$factory.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
-								address: String(selection.entitySelector.$factory.address ?? ''),
-								network: String(selection.entitySelector.$factory.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$factory != null && 'address' in selection.entitySelector.$factory
+								&& selection.entitySelector.$factory.address != null
+								&& selection.entitySelector.$factory != null && '$network' in selection.entitySelector.$factory ?
+									selection.entitySelector.$factory.$network != null && 'caip2' in selection.entitySelector.$factory.$network
+									&& selection.entitySelector.$factory.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
+									address: String(selection.entitySelector.$factory.address ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$factory.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$factory.$network != null && 'slug' in selection.entitySelector.$factory.$network
+										&& selection.entitySelector.$factory.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
+										address: String(selection.entitySelector.$factory.address ?? ''),
+										network: String(selection.entitySelector.$factory.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

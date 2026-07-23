@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Arweave resource observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ArweaveResource_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ArweaveResource_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ArweaveResource_TimestampView from '$/views/ArweaveResource_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(arweaveResourceTimestamps) => [...new Map(arweaveResourceTimestamps.values.map((arweaveResourceTimestamp) => [arweaveResourceTimestamp[EntityMetaKey.SelectorKey], arweaveResourceTimestamp])).values()]}
 	getKey={(arweaveResourceTimestamp) => arweaveResourceTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: arweaveResourceTimestamp })}
 		{@const arweaveResourceTimestampFields = { ...arweaveResourceTimestamp[EntityMetaKey.Selector], ...arweaveResourceTimestamp }}
-		{@const selection = select(EntityType.ArweaveResource_Timestamp, arweaveResourceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ArweaveResource_TimestampView
-			selection={selection}
-			prefetched={arweaveResourceTimestampFields}
+		<EntityView
+			entityType={EntityType.ArweaveResource_Timestamp}
+			entitySelector={arweaveResourceTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((arweaveResourceTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'arweave resource timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((arweaveResourceTimestampFields.contentType) ?? ''), String((arweaveResourceTimestampFields.displayType) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((arweaveResourceTimestampFields.reachable) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

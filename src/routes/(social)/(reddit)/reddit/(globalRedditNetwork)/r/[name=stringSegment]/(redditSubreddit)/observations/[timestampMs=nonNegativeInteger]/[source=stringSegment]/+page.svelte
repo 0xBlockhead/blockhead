@@ -35,7 +35,6 @@
 			activeUserCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit timestamp'))
 
 
 	// Components
@@ -45,7 +44,19 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Reddit subreddit timestamp • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$subreddit: {
+			name: decodeURIComponent(params.name),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit timestamp' : [String((({ ...{
+		$subreddit: {
+			name: decodeURIComponent(params.name),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit timestamp')} • Reddit subreddit timestamp • Blockhead</title>
 </svelte:head>
 
 

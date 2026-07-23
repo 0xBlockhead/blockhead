@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ZeroGNetwork_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ZeroGNetwork_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZeroGNetwork_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zeroGNetworkTimestamp = $derived(selection({
+	const zeroGNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			storageTransactionCount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			storageTransactionCount: true,
 		},
 	}))
-	const titleFallback = $derived('zero g network timestamp')
-	const viewDomId = $derived('zero-gnetwork-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'zero g network timestamp'
+	const viewDomId = $derived('zero-gnetwork-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,18 +76,23 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ZeroGNetworkView
-						selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$network') && prefetched.$network != null && Object.hasOwn(prefetched.$network, 'name') && Object.hasOwn(prefetched.$network, 'environment') && Object.hasOwn(prefetched, 'storageTransactionCount')}
+			{@const zeroGNetwork0 = pendingEntity.$network}
+			{#if zeroGNetwork0 != null && selection.entitySelector.$network != null}
+				<ZeroGNetworkView
+					selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network, { sources: selection.sources })}
+					prefetched={zeroGNetwork0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={zeroGNetworkTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<ZeroGNetworkView
 						selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -91,11 +102,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$network') && prefetched.$network != null && Object.hasOwn(prefetched.$network, 'name') && Object.hasOwn(prefetched.$network, 'environment') && Object.hasOwn(prefetched, 'storageTransactionCount')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={zeroGNetworkTimestamp}>
 				{#snippet children(entity)}
@@ -110,7 +121,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$network') && prefetched.$network != null && Object.hasOwn(prefetched.$network, 'name') && Object.hasOwn(prefetched.$network, 'environment') && Object.hasOwn(prefetched, 'storageTransactionCount')}
 			{@const storageTransactionCount0 = pendingEntity.storageTransactionCount}
 			{#if storageTransactionCount0 !== undefined && storageTransactionCount0 !== null}
 				<span data-text="muted">
@@ -142,7 +153,7 @@
 				<dt>network</dt>
 				<dd>
 					<ZeroGNetworkView
-						selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

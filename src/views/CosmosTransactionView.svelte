@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CosmosTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CosmosTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CosmosTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,7 +44,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cosmosTransaction = $derived(selection({
+	const cosmosTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			code: true,
+			gasUsed: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			code: true,
@@ -51,7 +58,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'Cosmos transaction')
-	const viewDomId = $derived('cosmos-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('cosmos-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,11 +81,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const txHash0 = pendingEntity.txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String((txHash0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'code') && Object.hasOwn(prefetched, 'gasUsed')}
+			{@const txHash0 = pendingEntity.txHash}
+			{#if txHash0 !== undefined && txHash0 !== null}
+				<TruncatedValue value={String((txHash0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={cosmosTransaction}>
 				{#snippet children(entity)}
@@ -93,11 +100,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const txHash0 = pendingEntity.txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String((txHash0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'code') && Object.hasOwn(prefetched, 'gasUsed')}
+			{@const txHash0 = pendingEntity.txHash}
+			{#if txHash0 !== undefined && txHash0 !== null}
+				<TruncatedValue value={String((txHash0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={cosmosTransaction}>
 				{#snippet children(entity)}
@@ -112,7 +119,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'code') && Object.hasOwn(prefetched, 'gasUsed')}
 			{@const code0 = pendingEntity.code}
 			{#if code0 !== undefined && code0 !== null}
 				<span data-text="muted">
@@ -285,7 +292,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const feeAmount = resolvedEntity.feeAmount}
 							{#if feeAmount !== undefined && feeAmount !== null}
-								{feeAmount.values.map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
+								{feeAmount.values.map((value) => String(`${value.amount} ${value.denom}`)).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -462,13 +469,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -500,20 +517,25 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CosmosMessagesView
-				selection={
-						selection.$$messages({
-							sources: [
-								Source.CosmosSdk_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Messages'
-				emptyText='No Cosmos messages.'
-				id='CosmosMessagesView-messages'
-			/>
-		{/if}
+				{@const cosmosTransactionCosmosMessagesViewMessagesResource = selection
+		.$$messages({
+			sources: [
+				Source.CosmosSdk_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={cosmosTransactionCosmosMessagesViewMessagesResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<CosmosMessagesView
+							selection={cosmosTransactionCosmosMessagesViewMessagesResource}
+							countResource={cosmosTransactionCosmosMessagesViewMessagesResource.count}
+							title='Messages'
+							id='CosmosMessagesView-messages'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

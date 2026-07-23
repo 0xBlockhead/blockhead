@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Move modules',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.MoveModule>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MoveModule>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MoveModuleView from '$/views/MoveModuleView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(moveModules) => [...new Map(moveModules.values.map((moveModule) => [moveModule[EntityMetaKey.SelectorKey], moveModule])).values()]}
 	getKey={(moveModule) => moveModule[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: moveModule })}
 		{@const moveModuleFields = { ...moveModule[EntityMetaKey.Selector], ...moveModule }}
-		{@const selection = select(EntityType.MoveModule, moveModule[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<MoveModuleView
-			selection={selection}
-			prefetched={moveModuleFields}
+		<EntityView
+			entityType={EntityType.MoveModule}
+			entitySelector={moveModule[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((moveModuleFields.moduleName) ?? '')].filter(Boolean).join(' ') || 'move module'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((moveModuleFields.address) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((moveModuleFields.$network.name) ?? '')].filter(Boolean).join(' ') || [moveModuleFields.$network.caip2 == null ? '' : String(`${(moveModuleFields.$network.caip2).namespace}:${(moveModuleFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AiModelVersion>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AiModelVersion>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiModelVersion>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiModelVersion = $derived(selection({
+	const aiModelVersion = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			quantization: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			mlflowRegisteredModelName: true,
@@ -49,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.versionId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.revision) ?? '')].filter(Boolean).join(' ') || 'AI model version')
-	const viewDomId = $derived('ai-model-version-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('ai-model-version-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,82 +78,48 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.versionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiModelVersion}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.versionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiModelVersion}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.versionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={selection.$model}
-					>
-						{#snippet children(aiModel)}
-							{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
-								<AiModelView
-									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
-									prefetched={aiModel}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={aiModelVersion}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$model}
-					>
-						{#snippet children(aiModel)}
-							{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
-								<AiModelView
-									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
-									prefetched={aiModel}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiModelVersion}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={selection.$model}
+				>
+					{#snippet children(aiModel)}
+						{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
+							<AiModelView
+								selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
+								prefetched={aiModel}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const quantization0 = pendingEntity.quantization}
-			{#if quantization0 !== undefined && quantization0 !== null}
-				<span data-text="muted">
-					{String((quantization0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aiModelVersion}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const quantization0 = resolvedEntity.quantization}
-					{#if quantization0 !== undefined && quantization0 !== null}
-						<span data-text="muted">
-							{String((quantization0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiModelVersion}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const quantization0 = resolvedEntity.quantization}
+				{#if quantization0 !== undefined && quantization0 !== null}
+					<span data-text="muted">
+						{String((quantization0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -439,17 +411,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AiDocumentsView
-				selection={
-						selection.$$documents({
-							count: true,
-						})
-					}
-				title='documents'
-				emptyText='No linked documents.'
-				id='AiDocumentsView-documents'
-			/>
-		{/if}
+		{@const aiModelVersionAiDocumentsViewDocumentsResource = selection.$$documents}
+		<ResourceBoundary
+			resource={aiModelVersionAiDocumentsViewDocumentsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AiDocumentsView
+					selection={aiModelVersionAiDocumentsViewDocumentsResource}
+					countResource={aiModelVersionAiDocumentsViewDocumentsResource.count}
+					title='documents'
+					id='AiDocumentsView-documents'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

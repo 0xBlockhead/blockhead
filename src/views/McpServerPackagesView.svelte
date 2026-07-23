@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'MCP server packages',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.McpServerPackage>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.McpServerPackage>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import McpServerPackageView from '$/views/McpServerPackageView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(mcpServerPackages) => [...new Map(mcpServerPackages.values.map((mcpServerPackage) => [mcpServerPackage[EntityMetaKey.SelectorKey], mcpServerPackage])).values()]}
 	getKey={(mcpServerPackage) => mcpServerPackage[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,16 @@
 
 	{#snippet Item({ item: mcpServerPackage })}
 		{@const mcpServerPackageFields = { ...mcpServerPackage[EntityMetaKey.Selector], ...mcpServerPackage }}
-		{@const selection = select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<McpServerPackageView
-			selection={selection}
-			prefetched={mcpServerPackageFields}
+		<EntityView
+			entityType={EntityType.McpServerPackage}
+			entitySelector={mcpServerPackage[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((mcpServerPackageFields.label) ?? '')].filter(Boolean).join(' ') || [String((mcpServerPackageFields.registryServerName) ?? ''), String((mcpServerPackageFields.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'MCP server package'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

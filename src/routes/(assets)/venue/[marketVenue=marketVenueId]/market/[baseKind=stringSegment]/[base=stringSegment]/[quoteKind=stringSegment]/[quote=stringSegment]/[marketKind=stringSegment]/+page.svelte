@@ -18,7 +18,6 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.Market, data.selector))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'Market' : 'Market')))
 
 
 	// Components
@@ -28,7 +27,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Market • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Market' : 'Market'))} • Market • Blockhead</title>
 </svelte:head>
 
 

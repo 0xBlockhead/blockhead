@@ -253,6 +253,8 @@
 		data-column-item="flexible"
 		data-column
 		{...articleProps}
+		data-card={articleProps['data-card'] ?? true}
+		data-scroll-container={articleProps['data-scroll-container'] ?? true}
 		id={articleProps.id ?? stringify(entitySelector)}
 		style:view-transition-name={`EntityView-${articleProps.id ?? stringify(entitySelector)}`}
 	>
@@ -267,8 +269,9 @@
 					onNestedCollapsibleClose?.(stringify(entitySelector))
 			}}
 			data-column-item="flexible"
-			data-card
 			{...CollapsibleProps}
+			data-card={undefined}
+			data-scroll-container={undefined}
 		>
 			{#snippet Summary({ open })}
 				{@render CardSummaryHeader({
@@ -278,12 +281,12 @@
 			{/snippet}
 
 			{#snippet children({ open })}
-				{#if (Content || Details) && open}
+				{#if !isInsideEntityList && (Content || Details)}
 					<EntityDetails
 						{entityType}
 						{entitySelector}
 					>
-						{#if Content && open}
+						{#if Content}
 							{@render Content({
 								title,
 								href,
@@ -311,7 +314,7 @@
 				> section {
 					break-after: column;
 
-					> details[data-scroll-container] {
+					> article[data-scroll-container] {
 						--scrollContainer-sizeBlock: calc(80cqb - 6rem);
 					}
 				}
@@ -319,7 +322,7 @@
 
 			[data-scroll-container~='layout-carousel'] {
 				> section {
-					> details[data-scroll-container] {
+					> article[data-scroll-container] {
 						--scrollContainer-sizeBlock: calc(80cqb - 6rem);
 					}
 				}

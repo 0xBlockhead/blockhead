@@ -868,7 +868,7 @@ export const sourceBindingCompatibility = [
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.AcpProtocol, ApiFamily.McpProtocol], endpointKinds: [SourceEndpointKind.LocalProcess], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.BitcoinJsonRpc, ApiFamily.CelestiaNodeJsonRpc, ApiFamily.FilecoinLotusJsonRpc, ApiFamily.MoneroDaemonJsonRpc, ApiFamily.StarknetJsonRpc, ApiFamily.SubstrateJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.JsonRpcApi, ApiFamily.SolanaJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.WebSocketUrl], operationGroups: true, artifactKinds: true },
-	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.NostrRelay], endpointKinds: [SourceEndpointKind.WebSocketUrl], operationGroups: true, artifactKinds: true },
+	{ wireProtocol: WireProtocol.WebSocketMessages, apiFamilies: [ApiFamily.NostrRelay], endpointKinds: [SourceEndpointKind.WebSocketUrl], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.EvmExecutionJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.WebSocketUrl], operationGroups: [SourceOperationGroup.EvmRpcCore, SourceOperationGroup.EvmRpcSubscribe, SourceOperationGroup.EvmRpcTrace, SourceOperationGroup.EvmRpcTxpool], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.OpenRpcSpec, SourceArtifactKind.OpenRpcTypes] },
 	{ wireProtocol: WireProtocol.LocalFile, apiFamilies: [ApiFamily.GitObject, ApiFamily.LocalParser, ApiFamily.LocalStateStore], endpointKinds: [SourceEndpointKind.LocalFilePath], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.OciDistribution, apiFamilies: [ApiFamily.OciDistributionApi], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
@@ -1084,7 +1084,6 @@ export enum EntityType {
 	_GlobalAiModelCatalog = "_GlobalAiModelCatalog",
 	_GlobalAiModelCatalog_Timestamp = "_GlobalAiModelCatalog_Timestamp",
 	_GlobalArweaveNetwork = "_GlobalArweaveNetwork",
-	_GlobalArweaveNetwork_Timestamp = "_GlobalArweaveNetwork_Timestamp",
 	_GlobalAtprotoNetwork = "_GlobalAtprotoNetwork",
 	_GlobalAtprotoNetwork_Timestamp = "_GlobalAtprotoNetwork_Timestamp",
 	_GlobalEnsNetwork = "_GlobalEnsNetwork",
@@ -1092,7 +1091,6 @@ export enum EntityType {
 	_GlobalEvmAbiCatalog = "_GlobalEvmAbiCatalog",
 	_GlobalEvmAbiCatalog_Timestamp = "_GlobalEvmAbiCatalog_Timestamp",
 	_GlobalIpfsAccess = "_GlobalIpfsAccess",
-	_GlobalIpfsAccess_Timestamp = "_GlobalIpfsAccess_Timestamp",
 	_GlobalNostrNetwork = "_GlobalNostrNetwork",
 	_GlobalNostrNetwork_Timestamp = "_GlobalNostrNetwork_Timestamp",
 	_GlobalRedditNetwork = "_GlobalRedditNetwork",
@@ -1369,7 +1367,7 @@ export enum EntityType {
 	BlockheadWakuNodeState = "BlockheadWakuNodeState",
 	BlockheadWakuNodeState_Timestamp = "BlockheadWakuNodeState_Timestamp",
 	BlockheadWallet = "BlockheadWallet",
-	BlockheadWalletAccount = "BlockheadWalletAccount",
+	BlockheadAccount = "BlockheadAccount",
 	BlockheadWalletAuthentication = "BlockheadWalletAuthentication",
 	BlockheadWalletCapabilityGrant = "BlockheadWalletCapabilityGrant",
 	BlockheadWalletConnection = "BlockheadWalletConnection",
@@ -1803,9 +1801,11 @@ export enum EntityType {
 	NftCollection = "NftCollection",
 	NftToken = "NftToken",
 	NostrArticle = "NostrArticle",
+	NostrArticleEvent = "NostrArticleEvent",
 	NostrNetwork = "NostrNetwork",
 	NostrNote = "NostrNote",
 	NostrProfile = "NostrProfile",
+	NostrProfileMetadataEvent = "NostrProfileMetadataEvent",
 	NostrReaction = "NostrReaction",
 	NostrRelay = "NostrRelay",
 	NostrRelay_Timestamp = "NostrRelay_Timestamp",
@@ -2241,8 +2241,12 @@ const routeEvmCoinInstanceSlugFromField = (field: string): _Expression => ({
 			equals: "NativeCurrency",
 			value: { kind: "literal", value: "native" },
 		},
+		{
+			equals: "Erc20Token",
+			value: routeProperty(routeProperty(routeField(field), "$contract"), "address"),
+		},
 	],
-	default: routeProperty(routeProperty(routeField(field), "$contract"), "address"),
+	default: { kind: "literal", value: "" },
 })
 const routeEvmCoinInstanceSelectorFromParams = (chainIdParam: string, slugParam: string): _Expression => {
 	const network: _Expression = {
@@ -2356,7 +2360,6 @@ export type _ViewQuery<
 	fields?: _FieldReference[]
 	openFields?: _FieldReference[]
 	limit?: number | { default: number }
-	count?: boolean
 	orderBy?: {
 		field: _FieldReference
 		direction: "asc" | "desc"
@@ -3505,6 +3508,7 @@ type _SchemaEntityFieldReference<_Schema> = {
 	[_EntityType in _SchemaEntityType<_Schema>]: readonly [
 		_EntityType,
 		_SchemaFieldReference<_Schema, _EntityType>,
+		...string[],
 	]
 }[_SchemaEntityType<_Schema>]
 
@@ -3680,7 +3684,7 @@ type _RouteNode = {
 	params?: Readonly<Record<string, readonly [string, ...string[]]>>
 	selectorVariant?: _SelectorRouteVariant
 	collections?: readonly {
-		field: readonly [EntityType, _FieldReference]
+		field: readonly [EntityType, _FieldReference, ...string[]]
 		query?: _ViewQuery
 		derivations?: Readonly<Record<string, _Expression>>
 		page?: _RoutePage
@@ -3800,6 +3804,45 @@ export type App = {
 	}
 }
 
+const specificationProposalSourceSelection = {
+	name: "specificationProposal",
+	default: [
+		Source.BitcoinBips_Github,
+		Source.BitcoinCashChips_Gitlab,
+		Source.Caips_Github,
+		Source.CosmosAdrs_Github,
+		Source.DogecoinDips_Github,
+		Source.Ensips_Github,
+		Source.EthereumEips_Github,
+		Source.FilecoinFips_Github,
+		Source.HyperliquidDocs_Rest,
+		Source.LitecoinLips_Github,
+		Source.NearNeps_Github,
+		Source.PolkadotRfcs_Github,
+		Source.QuilibriumDocs_Rest,
+		Source.SolanaSimds_Github,
+		Source.ZcashZips_Github,
+	],
+	cases: [
+		{ when: [{ field: "realm", equals: "Bitcoin" }, { field: "category", equals: "Bip" }], sources: [Source.BitcoinBips_Github] },
+		{ when: [{ field: "realm", equals: "BitcoinCash" }, { field: "category", equals: "Chip" }], sources: [Source.BitcoinCashChips_Gitlab] },
+		{ when: [{ field: "realm", equals: "ChainAgnostic" }, { field: "category", equals: "Caip" }], sources: [Source.Caips_Github] },
+		{ when: [{ field: "realm", equals: "Cosmos" }, { field: "category", equals: "Adr" }], sources: [Source.CosmosAdrs_Github] },
+		{ when: [{ field: "realm", equals: "Dogecoin" }, { field: "category", equals: "Dip" }], sources: [Source.DogecoinDips_Github] },
+		{ when: [{ field: "realm", equals: "Ens" }, { field: "category", equals: "Ensip" }], sources: [Source.Ensips_Github] },
+		{ when: [{ field: "realm", equals: "Ethereum" }, { field: "category", equals: "Eip" }], sources: [Source.EthereumEips_Github] },
+		{ when: [{ field: "realm", equals: "Ethereum" }, { field: "category", equals: "Erc" }], sources: [Source.EthereumEips_Github] },
+		{ when: [{ field: "realm", equals: "Filecoin" }, { field: "category", equals: "Fip" }], sources: [Source.FilecoinFips_Github] },
+		{ when: [{ field: "realm", equals: "Hyperliquid" }, { field: "category", equals: "Hip" }], sources: [Source.HyperliquidDocs_Rest] },
+		{ when: [{ field: "realm", equals: "Litecoin" }, { field: "category", equals: "Lip" }], sources: [Source.LitecoinLips_Github] },
+		{ when: [{ field: "realm", equals: "Near" }, { field: "category", equals: "Nep" }], sources: [Source.NearNeps_Github] },
+		{ when: [{ field: "realm", equals: "Polkadot" }, { field: "category", equals: "Rfc" }], sources: [Source.PolkadotRfcs_Github] },
+		{ when: [{ field: "realm", equals: "Quilibrium" }, { field: "category", equals: "ProtocolDocument" }], sources: [Source.QuilibriumDocs_Rest] },
+		{ when: [{ field: "realm", equals: "Solana" }, { field: "category", equals: "Simd" }], sources: [Source.SolanaSimds_Github] },
+		{ when: [{ field: "realm", equals: "Zcash" }, { field: "category", equals: "Zip" }], sources: [Source.ZcashZips_Github] },
+	],
+} as const satisfies _SourceSelection
+
 export const schema = {
 		enums: [
 			{
@@ -3812,6 +3855,11 @@ export const schema = {
 			},
 		],
 		valueTypes: [
+			{
+				id: "CardanoGovernanceProposalPayload",
+				displayExpression: "JSON.stringify(value, null, 2)",
+				type: { primitive: "unknown" },
+			},
 			{
 				id: "CardanoCommitteeMember",
 				displayExpression: "value.cc_cold_id",
@@ -4671,9 +4719,9 @@ export const schema = {
 				"$$networkStacks": { label: "network stacks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NetworkStack },
 				"$$evmNetworks": { label: "EVM networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
 				"$$networkUpgrades": { label: "network upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumNetworkUpgrade },
-				"$$proposals": { label: "proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationProposal },
-				"$$specificationRealms": { label: "specification realms", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationRealm },
-				"$$proposalKinds": { label: "proposal kinds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationProposalKind },
+				"$$proposals": { label: "proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationProposal, defaultSources: [Source.Constants_Internal] },
+				"$$specificationRealms": { label: "specification realms", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationRealm, defaultSources: [Source.Constants_Internal] },
+				"$$proposalKinds": { label: "proposal kinds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationProposalKind, defaultSources: [Source.Constants_Internal] },
 				"$$coins": { label: "coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Coin },
 				"$$markets": {
 					label: "markets",
@@ -4691,7 +4739,7 @@ export const schema = {
 				"$$blockheadSources": { label: "blockhead sources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSource },
 				"$$blockheadWallets": { label: "blockhead wallets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWallet },
 				"$$blockheadWalletConnections": { label: "blockhead wallet connections", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletConnection },
-				"$$blockheadWalletAccounts": { label: "blockhead wallet accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletAccount },
+				"$$blockheadAccounts": { label: "blockhead accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadAccount, defaultSources: [Source.Local_Internal] },
 				"$$blockheadWalletTransportSessions": { label: "blockhead wallet transport sessions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletTransportSession },
 				"$$blockheadWalletRequests": { label: "blockhead wallet requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletRequest },
 				"$$blockheadWalletCapabilityGrants": { label: "blockhead wallet capability grants", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletCapabilityGrant },
@@ -4792,7 +4840,7 @@ export const schema = {
 								sections: [
 									{ id: "global-wallets-list", field: "$$blockheadWallets", List: "BlockheadWalletsView", label: "Wallets", emptyText: "No wallets." },
 									{ id: "global-wallet-connections", field: "$$blockheadWalletConnections", List: "BlockheadWalletConnectionsView", label: "Connections", emptyText: "No wallet connections." },
-									{ id: "global-wallet-accounts", field: "$$blockheadWalletAccounts", List: "BlockheadWalletAccountsView", label: "Wallet accounts", emptyText: "No wallet accounts." },
+									{ id: "global-accounts", field: "$$blockheadAccounts", List: "BlockheadAccountsView", label: "Accounts" },
 									{ id: "global-wallet-transport", field: "$$blockheadWalletTransportSessions", List: "BlockheadWalletTransportSessionsView", label: "Transport sessions", emptyText: "No wallet transport sessions." },
 									{ id: "global-wallet-requests", field: "$$blockheadWalletRequests", List: "BlockheadWalletRequestsView", label: "Requests", emptyText: "No wallet requests." },
 									{ id: "global-wallet-grants", field: "$$blockheadWalletCapabilityGrants", List: "BlockheadWalletCapabilityGrantsView", label: "Capability grants", emptyText: "No capability grants." },
@@ -4866,8 +4914,8 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					primitiveType: { unit: "_GlobalActivityPubNetwork" },
 				},
-				"$$observedActors": { label: "Observed actors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ActivityPubActor },
-				"$$observedNotes": { label: "Observed notes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ActivityPubNote },
+				"$$observedActors": { label: "Observed actors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ActivityPubActor, defaultSources: [Source.Mastodon_Rest] },
+				"$$observedNotes": { label: "Observed notes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ActivityPubNote, defaultSources: [Source.Mastodon_Rest] },
 				"$$instances": {
 					label: "Instances",
 					type: EntityFieldType.EntitiesReference,
@@ -4889,7 +4937,7 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal, Source.Mastodon_Rest],
 							fields: ["scope"],
-							openFields: ["$$instances", "$$timestamps"],
+							openFields: ["$$observedActors", "$$observedNotes", "$$instances", "$$timestamps"],
 						},
 						summary: {
 							title: [{ text: "ActivityPub observeds" }],
@@ -4906,6 +4954,15 @@ export const schema = {
 								className: "network-view-collapsible-directory",
 								sections: [
 									{ id: "activitypub-instances", field: "$$instances", List: "ActivityPubInstancesView", label: "Instances", emptyText: "No ActivityPub instances declared." },
+								],
+							},
+							{
+								id: "activitypub-public-timeline",
+								label: "Public timeline",
+								className: "network-view-collapsible-content",
+								sections: [
+									{ id: "activitypub-actors", field: "$$observedActors", List: "ActivityPubActorsView", label: "Accounts", href: "/(social)/(activitypub)/activitypub/actors" },
+									{ id: "activitypub-notes", field: "$$observedNotes", List: "ActivityPubNotesView", label: "Notes", href: "/(social)/(activitypub)/activitypub/notes" },
 								],
 							},
 							{
@@ -5299,7 +5356,6 @@ export const schema = {
 				"$$observedBlocks": { label: "Observed blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveBlock },
 				"$$observedTransactions": { label: "Observed transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveTransaction },
 				"$$observedResources": { label: "Observed resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource },
-				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalArweaveNetwork_Timestamp },
 			})({
 				selectors: {
 					"Scope": ["scope"],
@@ -5309,7 +5365,7 @@ export const schema = {
 						query: {
 							sources: ["Arweave_Graphql", "Arweave_Rest", Source.Constants_Internal],
 							fields: ["scope"],
-							openFields: ["$$observedNetworks", "$$observedBlocks", "$$observedTransactions", "$$observedResources", "$$timestamps"],
+							openFields: ["$$observedNetworks", "$$observedBlocks", "$$observedTransactions", "$$observedResources"],
 						},
 						summary: {
 							title: [{ text: "Arweave observeds" }],
@@ -5336,66 +5392,10 @@ export const schema = {
 									{ id: "arweave-resource-list", field: "$$observedResources", List: "ArweaveResourcesView", label: "Resources", emptyText: "No Arweave resources in this observed." },
 								],
 							},
-							{
-								id: "arweave-observations",
-								label: "Observations",
-								className: "network-view-collapsible-observations",
-								sections: [
-									{ id: "arweave-hub-observations", field: "$$timestamps", List: "_GlobalArweaveNetwork_TimestampsView", label: "Observations", emptyText: "No Arweave hub observations yet." },
-								],
-							},
 						],
 					},
 					plural: { component: "_GlobalArweaveNetworksView",
 						title: "Arweave observeds",
-					},
-				},
-			}),
-
-			entity({
-				entityType: EntityType._GlobalArweaveNetwork_Timestamp,
-				labels: {
-					singular: "global Arweave network timestamp",
-					plural: "global Arweave network observations",
-				},
-			})({
-				"$hub": { label: "Hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalArweaveNetwork },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"declaredAccessEndpointCount": { label: "Declared access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"reachableAccessEndpointCount": { label: "Reachable access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"sourceReportedLatestHeight": { label: "Source-reported latest height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"observedBlockCount": { label: "Observed blocks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedTransactionCount": { label: "Observed transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededExampleCount": { label: "Seeded examples", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-			})({
-				selectors: {
-					"HubTimestampMsSource": ["$hub", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						query: {
-							sources: ["Arweave_Graphql", "Arweave_Rest", Source.Constants_Internal],
-							fields: ["$hub", "timestampMs", "source"],
-							openFields: ["declaredAccessEndpointCount", "reachableAccessEndpointCount", "sourceReportedLatestHeight", "observedBlockCount", "observedTransactionCount", "seededExampleCount", "reachable"],
-						},
-						summary: {
-							title: [{ field: "timestampMs", format: "timestamp" }],
-							value: [{ field: "sourceReportedLatestHeight", format: "number" }],
-							HeadingAfter: ["reachable"],
-						},
-						closed: ["$hub", { field: "timestampMs", format: "timestamp" }, "source"],
-						content: {
-							dl: [
-								["$hub", { field: "timestampMs", format: "timestamp" }, "source", "reachable"],
-								[{ field: "declaredAccessEndpointCount", format: "number" }, { field: "reachableAccessEndpointCount", format: "number" }, { field: "sourceReportedLatestHeight", format: "number" }],
-								[{ field: "observedBlockCount", format: "number" }, { field: "observedTransactionCount", format: "number" }, { field: "seededExampleCount", format: "number" }],
-							],
-						},
-					},
-					plural: { component: "_GlobalArweaveNetwork_TimestampsView",
-						title: "Arweave hub observations",
 					},
 				},
 			}),
@@ -5847,71 +5847,23 @@ export const schema = {
 			})({
 				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, primitiveType: { unit: "_GlobalIpfsAccess" } },
 				"$$observedResources": { label: "Observed resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.IpfsResource },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalIpfsAccess_Timestamp },
 			})({
 				selectors: {
 					"Scope": ["scope"],
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Constants_Internal], openFields: ["$$observedResources", "$$timestamps"] },
+						query: { sources: [Source.Constants_Internal], openFields: ["$$observedResources"] },
 						summary: {
 							title: [{ text: "IPFS access" }],
 							value: [{ text: "IPFS gateway access" }],
 						},
 						lists: [
 							{ field: "$$observedResources", component: "IpfsResourcesView", emptyText: "No IPFS resources yet." },
-							{ field: "$$timestamps", component: "_GlobalIpfsAccess_TimestampsView", emptyText: "No IPFS access observations yet." },
 						],
 					},
 					plural: {
 						component: "_GlobalIpfsAccessesView",
-					},
-				},
-			}),
-
-			entity({
-				entityType: EntityType._GlobalIpfsAccess_Timestamp,
-				labels: {
-					singular: "global IPFS access timestamp",
-					plural: "global IPFS access observations",
-				},
-			})({
-				"$hub": { label: "Hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalIpfsAccess },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"declaredAccessEndpointCount": { label: "Declared access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"reachableAccessEndpointCount": { label: "Reachable access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedResourceCount": { label: "Observed resources", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededExampleCount": { label: "Seeded examples", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-			})({
-				selectors: {
-					"HubTimestampMsSource": ["$hub", "timestampMs", "source"],
-				},
-				views: {
-					singular: {
-						query: { sources: [Source.Constants_Internal, Source.Ipfs_Rest] },
-						summary: {
-							title: [{ field: "$hub" }],
-							value: [{ field: "timestampMs", format: "timestamp" }],
-						},
-						content: {
-							dl: [
-								[{ field: "$hub" }],
-								[
-									{ field: "timestampMs", format: "timestamp" },
-									"source",
-									{ field: "declaredAccessEndpointCount", format: "number" },
-									{ field: "reachableAccessEndpointCount", format: "number" },
-									{ field: "observedResourceCount", format: "number" },
-									{ field: "seededExampleCount", format: "number" },
-									"reachable",
-								],
-							],
-						},
-					},
-					plural: { component: "_GlobalIpfsAccess_TimestampsView",
 					},
 				},
 			}),
@@ -6149,20 +6101,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditSubreddit,
-					defaultSources: [
-						Source.Constants_Internal,
-						Source.Reddit_PublicJson,
-					],
+					defaultSources: [Source.Reddit_PublicJson],
 				},
 				"$$observedLinks": {
 					label: "Popular submissions",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditLink,
-					defaultSources: [
-						Source.Constants_Internal,
-						Source.Reddit_PublicJson,
-					],
+					defaultSources: [Source.Reddit_PublicJson],
 				},
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalRedditNetwork_Timestamp },
 			})({
@@ -6172,10 +6118,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [
-								Source.Constants_Internal,
-								Source.Reddit_PublicJson,
-							],
+							sources: [Source.Reddit_PublicJson],
 							openFields: ["$$observedSubreddits", "$$observedLinks"],
 						},
 						carousels: [
@@ -6193,10 +6136,7 @@ export const schema = {
 					plural: { component: "_GlobalRedditNetworksView",
 						query: {
 							sources: {
-								default: [
-									Source.Constants_Internal,
-									Source.Reddit_PublicJson,
-								],
+								default: [Source.Reddit_PublicJson],
 							},
 						},
 					},
@@ -7084,18 +7024,100 @@ export const schema = {
 				description: "A cross-chain account identity expressed with CAIP namespace, reference, and address fields.",
 			})({
 				"caip10": { label: "CAIP-10", description: "The account identifier in CAIP-10 namespace, reference, and address form.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "caip10" },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
-				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"canonicalAddress": { label: "canonical address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$evmAccount": { label: "EVM account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
-				"$evmNetworkAccount": { label: "EVM network account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetworkAccount },
-				"nativeAccountSelector": { label: "native account selector", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
-				"$$walletAccounts": { label: "wallet accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletAccount },
+				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network, defaultSources: [Source.Constants_Internal] },
+				"namespace": { label: "Namespace", description: "The CAIP namespace that selects this account's protocol projection.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Constants_Internal] },
+				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Constants_Internal] },
 			})({
 				selectors: {
 					"Caip10": ["caip10"],
 				},
+				facets: {
+					Evm: facet({
+						path: ["namespace"],
+						is: "eip155",
+					})({
+						"$account": { label: "EVM account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount, defaultSources: [Source.Constants_Internal] },
+					}),
+					Aptos: facet({
+						path: ["namespace"],
+						is: "aptos",
+					})({
+						"$account": { label: "Aptos account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AptosAccount, defaultSources: [Source.Constants_Internal] },
+					}),
+					Cardano: facet({
+						path: ["namespace"],
+						is: "cip34",
+					})({
+						"$account": { label: "Cardano address", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CardanoAddress, defaultSources: [Source.Constants_Internal] },
+					}),
+					Cosmos: facet({
+						path: ["namespace"],
+						is: "cosmos",
+					})({
+						"$account": { label: "Cosmos account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CosmosAccount, defaultSources: [Source.Constants_Internal] },
+					}),
+					Hedera: facet({
+						path: ["namespace"],
+						is: "hedera",
+					})({
+						"$account": { label: "Hedera account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.HederaAccount, defaultSources: [Source.Constants_Internal] },
+					}),
+					Polkadot: facet({
+						path: ["namespace"],
+						is: "polkadot",
+					})({
+						"$account": { label: "Polkadot account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.PolkadotAccount, defaultSources: [Source.Constants_Internal] },
+					}),
+					Solana: facet({
+						path: ["namespace"],
+						is: "solana",
+					})({
+						"$account": { label: "Solana account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.SolanaAccount, defaultSources: [Source.Constants_Internal] },
+					}),
+					Starknet: facet({
+						path: ["namespace"],
+						is: "starknet",
+					})({
+						"$account": { label: "Starknet account contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.StarknetContract, defaultSources: [Source.Constants_Internal] },
+					}),
+					Tron: facet({
+						path: ["namespace"],
+						is: "tron",
+					})({
+						"$account": { label: "Tron account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.TronAccount, defaultSources: [Source.Constants_Internal] },
+					}),
+					Ton: facet({
+						path: ["namespace"],
+						is: "ton",
+					})({
+						"$account": { label: "TON account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.TonAccount, defaultSources: [Source.Constants_Internal] },
+					}),
+					Xrpl: facet({
+						path: ["namespace"],
+						is: "xrpl",
+					})({
+						"$account": { label: "XRPL account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.XrplAccount, defaultSources: [Source.Constants_Internal] },
+					}),
+					Utxo: facet({
+						path: ["namespace"],
+						is: "bip122",
+					})({
+						"$account": { label: "UTXO address", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoAddress, defaultSources: [Source.Constants_Internal] },
+					}),
+				},
 				views: {
+					singular: {
+						query: {
+							sources: [Source.Constants_Internal],
+							fields: ["caip10", "$network", "namespace", "address"],
+						},
+						summary: {
+							title: ["caip10"],
+						},
+						content: {
+							dl: [["caip10", "$network", "namespace", "address"]],
+						},
+					},
 					plural: { component: "AccountsView" },
 				},
 			}),
@@ -9502,10 +9524,10 @@ export const schema = {
 			})({
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AptosNetwork },
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosAccount_Timestamp },
-				"$$balances": { label: "balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosCoinBalance_Timestamp },
-				"$$resources": { label: "resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosAccountResource },
-				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosTransaction },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosAccount_Timestamp, defaultSources: [Source.AptosFullnode_Rest] },
+				"$$balances": { label: "balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosCoinBalance_Timestamp, defaultSources: [Source.AptosIndexer_Graphql] },
+				"$$resources": { label: "resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosAccountResource, defaultSources: [Source.AptosFullnode_Rest] },
+				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosTransaction, defaultSources: [Source.AptosIndexer_Graphql, Source.AptosFullnode_Rest] },
 			})({
 				selectors: {
 					"NetworkAddress": ["$network", "address"],
@@ -11292,7 +11314,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal, Source.Atproto_Xrpc],
+							sources: [Source.Atproto_Xrpc],
 							openFields: [
 								"$author",
 								"$parent",
@@ -12246,7 +12268,7 @@ export const schema = {
 								[
 									{ field: "indexInSlot", format: "number" },
 									{ field: "slot", format: "number" },
-									{ field: "validatorIndices", format: "number" },
+									{ field: "validatorIndices", format: "stringList" },
 									"$network",
 								],
 							],
@@ -12364,21 +12386,8 @@ export const schema = {
 						content: {
 							dl: [
 								[
-									{
-										kind: _ViewItemKind.Block,
-										id: "slot-range",
-										fields: ["startSlot", "endSlot"],
-										Content: dedent `
-																													<div>
-																														<dt>Slot range</dt>
-																														<dd>
-																															<NumberValue value={entity.startSlot} />
-																															to
-																															<NumberValue value={entity.endSlot} />
-																														</dd>
-																													</div>
-																												`,
-									},
+									{ field: "startSlot", format: "number" },
+									{ field: "endSlot", format: "number" },
 									{ field: "slotCount", format: "number", when: "open" },
 									{ field: "finalized", when: "open" },
 								],
@@ -12392,27 +12401,8 @@ export const schema = {
 									{ field: "validatorsCount", format: "number", when: "open" },
 									{ field: "attestationsCount", format: "number", when: "open" },
 									{ field: "withdrawalsCount", format: "number", when: "open" },
-									{
-										kind: _ViewItemKind.Block,
-										id: "slashings",
-										fields: ["attesterSlashingsCount", "proposerSlashingsCount"],
-										when: "open",
-										Content: dedent `
-																													{#if entity.attesterSlashingsCount !== undefined || entity.proposerSlashingsCount !== undefined}
-																														<div>
-																															<dt>Slashings</dt>
-																															<dd>
-																																{#if entity.attesterSlashingsCount !== undefined}
-																																	<NumberValue value={entity.attesterSlashingsCount} /> attester
-																																{/if}
-																																{#if entity.proposerSlashingsCount !== undefined}
-																																	<NumberValue value={entity.proposerSlashingsCount} /> proposer
-																																{/if}
-																															</dd>
-																														</div>
-																													{/if}
-																												`,
-									},
+									{ field: "attesterSlashingsCount", format: "number", when: "open" },
+									{ field: "proposerSlashingsCount", format: "number", when: "open" },
 								],
 							],
 						},
@@ -12676,7 +12666,7 @@ export const schema = {
 							dl: [
 								[
 									{ field: "period", format: "number" },
-									{ field: "validatorIndices", format: "number" },
+									{ field: "validatorIndices", format: "stringList" },
 									"$network",
 								],
 							],
@@ -17842,7 +17832,7 @@ export const schema = {
 				views: {
 					singular: {
 						imports: [
-							{ from: "$/components/BlockheadSessionActionsComposer.svelte", default: "BlockheadSessionActionsComposer" },
+							{ from: "$/views/BlockheadSessionActionsComposer.svelte", default: "BlockheadSessionActionsComposer" },
 						],
 						query: {
 							sources: [Source.Local_Internal],
@@ -17892,14 +17882,8 @@ export const schema = {
 						],
 					},
 					plural: {
-						imports: [
-							{ from: "$/components/BlockheadSessionCreateControl.svelte", default: "BlockheadSessionCreateControl" },
-						],
 						component: "BlockheadSessionsView",
 						title: "Sessions",
-						content: dedent `
-							<BlockheadSessionCreateControl />
-						`,
 					},
 				},
 			}),
@@ -19015,49 +18999,35 @@ export const schema = {
 			}),
 
 			entity({
-				entityType: EntityType.BlockheadWalletAccount,
+				entityType: EntityType.BlockheadAccount,
 				labels: {
-					singular: "blockhead wallet account",
-					plural: "blockhead wallet accounts",
+					singular: "blockhead account",
+					plural: "blockhead accounts",
 				},
+				description: "A locally enrolled public account included in Blockhead account-wide views.",
 			})({
-				"caip10": { label: "CAIP-10", description: "The account identifier in CAIP-10 namespace, reference, and address form.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "caip10" },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
-				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"capabilities": { label: "capabilities", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "stringArray" },
-				"namespace": { label: "Namespace", description: "The namespace that qualifies the identifier.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"reference": { label: "Reference", description: "The namespace-specific reference value.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"accountAddress": { label: "account address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"addressKind": { label: "address kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"canonicalAddress": { label: "canonical address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"derivationPath": { label: "derivation path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"publicKey": { label: "public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Account, defaultSources: [Source.Local_Internal] },
 			})({
 				selectors: {
-					"Caip10": ["caip10"],
+					"Account": ["$account"],
 				},
 				views: {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["caip10", "address", "label"],
-							openFields: ["$network", "capabilities", "namespace", "reference", "accountAddress", "addressKind", "canonicalAddress", "derivationPath", "publicKey"],
+							fields: ["$account"],
 						},
 						summary: {
-							title: ["label"],
-							titleFallback: ["address"],
-							value: ["caip10"],
+							title: ["$account"],
 						},
 						content: {
-							dl: [
-								["caip10", "$network", "address", "label", "capabilities"],
-								["namespace", "reference", "accountAddress", "addressKind", "canonicalAddress", "derivationPath", "publicKey"],
-							],
+							dl: [["$account"]],
 						},
 					},
-					plural: { component: "BlockheadWalletAccountsView",
-						title: "Blockhead wallet accounts",
+					plural: {
+						component: "BlockheadAccountsView",
+						title: "Accounts",
+						emptyText: "No accounts enrolled.",
 					},
 				},
 			}),
@@ -19071,7 +19041,7 @@ export const schema = {
 			})({
 				"authenticationId": { label: "authentication ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$connection": { label: "connection", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWalletConnection },
-				"$account": { label: "account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWalletAccount },
+				"$account": { label: "account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Account },
 				"protocol": { label: "protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"statement": { label: "statement", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"domain": { label: "domain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -19123,7 +19093,7 @@ export const schema = {
 			})({
 				"grantId": { label: "grant ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$connection": { label: "connection", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWalletConnection },
-				"$account": { label: "account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWalletAccount },
+				"$account": { label: "account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Account },
 				"authorizationKind": { label: "authorization kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"issuer": { label: "issuer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"audience": { label: "audience", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -19196,8 +19166,8 @@ export const schema = {
 				"sessionId": { label: "Session ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"sessionTopic": { label: "Session topic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"error": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$connectedAccounts": { label: "Connected accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletAccount },
-				"$activeAccount": { label: "Active account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWalletAccount },
+				"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Account },
+				"$activeAccount": { label: "Active account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Account },
 			})({
 				selectors: {
 					"ConnectionKey": ["connectionKey"],
@@ -19207,11 +19177,12 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["connectionKey", "status", "protocol", "transportKind", "selected"],
-							openFields: ["connectedAt", "disconnectedAt", "sessionId", "sessionTopic", "error", "$activeAccount", "$$connectedAccounts"],
+							openFields: ["connectedAt", "disconnectedAt", "sessionId", "sessionTopic", "error", "$activeAccount", "$$accounts"],
 						},
 						summary: {
 							title: [{ field: "$wallet" }],
 							value: ["status"],
+							HeadingAfter: ["status"],
 						},
 						content: {
 							dl: [
@@ -19219,10 +19190,11 @@ export const schema = {
 								[{ field: "connectedAt", format: "timestamp" }, { field: "disconnectedAt", format: "timestamp" }, "sessionId", "sessionTopic", "error", "$activeAccount"],
 							],
 						},
-						lists: [{ field: "$$connectedAccounts", component: "BlockheadWalletAccountsView", emptyText: "No connected accounts yet." }],
+						lists: [{ field: "$$accounts", component: "AccountsView" }],
 					},
 					plural: { component: "BlockheadWalletConnectionsView",
 						title: "Wallet connections",
+						emptyText: "No saved wallet connections.",
 					},
 				},
 			}),
@@ -20748,6 +20720,7 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"paymentCredential": {
 					label: 'payment credential',
@@ -20766,18 +20739,36 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					entityType: EntityType.CardanoStakeCredential,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"$$utxos": {
 					label: 'utxos',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoTxOutput,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
+				},
+				"$$assets": {
+					label: 'native assets',
+					description: 'Native assets present across the current unspent outputs at this address.',
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.CardanoNativeAsset,
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
+				},
+				"$$transactions": {
+					label: 'transactions',
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.CardanoTransaction,
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"$$timestamps": {
 					label: 'timestamps',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoAddress_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 			})({
 				selectors: {
@@ -20787,6 +20778,28 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						query: {
+							sources: [Source.Blockfrost_Rest],
+							fields: ['$network', 'address'],
+							openFields: ['addressKind', '$stakeCredential', '$$utxos', '$$assets', '$$transactions', '$$timestamps'],
+						},
+						summary: { title: ['address'], value: ['addressKind'] },
+						closed: ['$network', 'address', 'addressKind'],
+						content: { dl: [['$network', 'address', 'addressKind', '$stakeCredential']] },
+						carousels: [
+							{
+								id: 'cardano-address-activity',
+								label: 'Activity',
+								sections: [
+									{ id: 'cardano-address-observations', field: '$$timestamps', List: 'CardanoAddress_TimestampsView', label: 'Balance observations', emptyText: 'No address observations.' },
+									{ id: 'cardano-address-transactions', field: '$$transactions', List: 'CardanoTransactionsView', label: 'Transactions', emptyText: 'No address transactions.' },
+									{ id: 'cardano-address-utxos', field: '$$utxos', List: 'CardanoTxOutputsView', label: 'UTXOs', emptyText: 'No unspent outputs.' },
+									{ id: 'cardano-address-assets', field: '$$assets', List: 'CardanoNativeAssetsView', label: 'Native assets', emptyText: 'No native assets in current unspent outputs.' },
+								],
+							},
+						],
+					},
 					plural: { component: "CardanoAddressesView", },
 				},
 			}),
@@ -20865,6 +20878,15 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						query: {
+							fields: ['$address', 'blockSlot', 'source'],
+							openFields: ['timestampMs', 'blockHash', 'lovelaceBalance', 'nativeAssetCount', 'utxoCount', 'transactionCount'],
+						},
+						summary: { title: [{ field: 'timestampMs', format: 'timestamp' }], titleFallback: ['blockSlot'], value: ['lovelaceBalance'], HeadingAfter: ['transactionCount'] },
+						closed: ['$address', 'blockSlot', 'lovelaceBalance'],
+						content: { dl: [['$address', 'blockSlot', 'source', { field: 'timestampMs', format: 'timestamp' }, 'blockHash'], ['lovelaceBalance', 'nativeAssetCount', 'utxoCount', 'transactionCount']] },
+					},
 					plural: { component: "CardanoAddress_TimestampsView", },
 				},
 			}),
@@ -20886,7 +20908,7 @@ export const schema = {
 					label: 'Hash',
 					description: 'The hash that identifies this object in its protocol.',
 					type: EntityFieldType.Primitive,
-					valueType: "string",
+					valueType: "UtxoTxId",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"slot": {
@@ -21038,6 +21060,18 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: ["certificateKind", { field: "certificateIndex", prefix: "Certificate #" }],
+						},
+						content: {
+							dl: [
+								["$transaction", "certificateIndex", "certificateKind"],
+								["$stakeCredential", "$stakePool", "$drep", "poolId", "rewardAddress", "depositLovelace", "epoch"],
+								["metadataUrl", "metadataHash"],
+							],
+						},
+					},
 					plural: { component: "CardanoCertificatesView", },
 				},
 			}),
@@ -21263,6 +21297,13 @@ export const schema = {
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					defaultSources: [Source.Blockfrost_Rest],
 				},
+				"displayName": {
+					label: 'display name',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
+				},
 				"anchorUrl": { label: 'anchor URL', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
 				"anchorHash": { label: 'anchor hash', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
 				"$$timestamps": {
@@ -21293,9 +21334,9 @@ export const schema = {
 							fields: ["$network", "drepCredential"],
 							openFields: ["credentialKind", "anchorUrl", "anchorHash", "$$votes"],
 						},
-						summary: { title: ["drepCredential"], value: ["credentialKind"] },
-						closed: ["drepCredential", "credentialKind"],
-						content: { dl: [["$network", "drepCredential", "credentialKind"], ["anchorUrl", "anchorHash"]] },
+						summary: { title: ["displayName", "drepCredential"], value: ["credentialKind"] },
+						closed: ["displayName", "drepCredential", "credentialKind"],
+						content: { dl: [["$network", "displayName", "drepCredential", "credentialKind"], ["anchorUrl", "anchorHash"]] },
 						lists: [
 							{ field: "$$votes", component: "CardanoGovernanceVotesView", emptyText: "No votes." },
 						],
@@ -21416,53 +21457,61 @@ export const schema = {
 					valueType: "NonNegativeInteger",
 					cardinality: EntityFieldCardinality.One,
 				},
+				"governanceActionId": {
+					label: 'governance action ID',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest],
+				},
 				"proposalKind": {
 					label: 'proposal kind',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.One,
-					defaultSources: [Source.Blockfrost_Rest],
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"$transaction": {
 					label: 'transaction',
 					type: EntityFieldType.EntityReference,
 					entityType: EntityType.CardanoTransaction,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Blockfrost_Rest],
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"depositLovelace": {
 					label: 'deposit lovelace',
 					type: EntityFieldType.Primitive,
 					valueType: "bigint",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Blockfrost_Rest],
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"returnAddress": {
 					label: 'return address',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Blockfrost_Rest],
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"anchorUrl": {
 					label: 'anchor URL',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Blockfrost_Rest],
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"anchorHash": {
 					label: 'anchor hash',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Blockfrost_Rest],
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"proposalPayload": {
 					label: 'proposal payload',
 					type: EntityFieldType.Primitive,
-					valueType: "unknown",
+					valueType: "CardanoGovernanceProposalPayload",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"$$timestamps": {
 					label: 'timestamps',
@@ -21489,13 +21538,15 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Blockfrost_Rest],
 							fields: ["$network", "proposalTxHash", "proposalIndex"],
-							openFields: ["proposalKind", "$transaction", "depositLovelace", "returnAddress", "anchorUrl", "anchorHash", "$$timestamps", "$$votes"],
+							openFields: ["governanceActionId", "proposalKind", "$transaction", "depositLovelace", "returnAddress", "anchorUrl", "anchorHash", "proposalPayload", "$$timestamps", "$$votes"],
 						},
-						summary: { title: ["proposalKind", { field: "proposalTxHash", prefix: "Proposal " }], value: [{ field: "proposalIndex", prefix: "#" }] },
-						closed: ["proposalKind", "proposalTxHash", "proposalIndex"],
-						content: { dl: [["$network", "$transaction", "proposalKind", { field: "depositLovelace", format: "number" }], ["returnAddress", "anchorUrl", "anchorHash"]] },
+						summary: { title: ["proposalKind", "governanceActionId"], value: [{ field: "proposalTxHash", prefix: "Proposal " }, { field: "proposalIndex", prefix: "#" }] },
+						closed: ["proposalKind", "governanceActionId", "proposalTxHash", "proposalIndex"],
+						content: {
+							dl: [["$network", "$transaction", "proposalKind", "governanceActionId", { field: "depositLovelace", format: "number" }], ["returnAddress", "anchorUrl", "anchorHash"]],
+							body: { field: "proposalPayload", format: "code", emptyText: "No proposal payload available." },
+						},
 						lists: [
 							{ field: "$$timestamps", component: "CardanoGovernanceProposal_TimestampsView", emptyText: "No proposal lifecycle observations." },
 							{ field: "$$votes", component: "CardanoGovernanceVotesView", emptyText: "No votes." },
@@ -21636,6 +21687,16 @@ export const schema = {
 					],
 				},
 				views: {
+						singular: {
+							query: {
+								sources: [Source.Blockfrost_Rest],
+								fields: ["$proposal", "epoch", "source"],
+								openFields: ["status", "ratifiedEpoch", "enactedEpoch", "droppedEpoch", "expiredEpoch", "expirationEpoch"],
+							},
+							summary: { title: [{ field: "epoch", prefix: "Epoch " }], value: ["status"], HeadingAfter: ["source"] },
+							closed: ["epoch", "source", "status"],
+							content: { dl: [["$proposal", "status", "ratifiedEpoch", "enactedEpoch", "droppedEpoch", "expiredEpoch", "expirationEpoch"]] },
+					},
 					plural: { component: "CardanoGovernanceProposal_TimestampsView", },
 				},
 			}),
@@ -21749,6 +21810,19 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: ["vote"],
+							value: ["voterKind", "voterCredential"],
+						},
+						content: {
+							dl: [
+								["$proposal", "vote", "voterKind", "voterCredential", "source"],
+								["$drep", "$stakePool", "$transaction", "voteTxHash", "voteIndex"],
+								["anchorUrl", "anchorHash", "epoch", "slot", "timestampMs"],
+							],
+						},
+					},
 					plural: { component: "CardanoGovernanceVotesView", },
 				},
 			}),
@@ -21799,6 +21873,16 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: ["assetName"],
+							titleFallback: ["policyId"],
+							value: ["fingerprint"],
+						},
+						content: {
+							dl: [["$network", "policyId", "assetName", "fingerprint"]],
+						},
+					},
 					plural: { component: "CardanoNativeAssetsView", },
 				},
 			}),
@@ -22251,6 +22335,15 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: ["scriptKind", { field: "witnessIndex", prefix: "Script #" }],
+							value: ["scriptHash"],
+						},
+						content: {
+							dl: [["$transaction", "witnessIndex", "scriptKind", "language", "scriptHash"]],
+						},
+					},
 					plural: { component: "CardanoScriptWitnessesView", },
 				},
 			}),
@@ -22418,7 +22511,7 @@ export const schema = {
 					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"name": { label: 'name', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
-				"ticker": { label: 'ticker', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
+				"ticker": { label: 'ticker', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.CardanoKoios_Rest, Source.Blockfrost_Rest] },
 				"description": { label: 'description', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
 				"homepage": { label: 'homepage', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
 				"$$timestamps": {
@@ -22441,7 +22534,7 @@ export const schema = {
 							fields: ["$network", "poolId"],
 							openFields: ["vrfKeyHash", "name", "ticker", "description", "homepage"],
 						},
-						summary: { title: ["poolId"], value: ["vrfKeyHash"] },
+						summary: { title: ["ticker", "poolId"], value: ["vrfKeyHash"] },
 						closed: ["poolId", "vrfKeyHash"],
 						content: { dl: [["$network", "poolId", "vrfKeyHash"], ["name", "ticker", "description", "homepage"]] },
 					},
@@ -22596,7 +22689,7 @@ export const schema = {
 					label: 'Hash',
 					description: 'The hash that identifies this object in its protocol.',
 					type: EntityFieldType.Primitive,
-					valueType: "string",
+					valueType: "UtxoTxId",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"blockSlot": {
@@ -22646,42 +22739,50 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoTxInput,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"$$outputs": {
 					label: 'outputs',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoTxOutput,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"$$certificates": {
 					label: 'certificates',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoCertificate,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"$$scripts": {
 					label: 'scripts',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoScriptWitness,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"$$governanceProposals": {
 					label: 'governance proposals',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoGovernanceProposal,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"$$governanceVotes": {
 					label: 'governance votes',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoGovernanceVote,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.CardanoKoios_Rest],
 				},
 				"$$assets": {
 					label: 'assets',
+					description: 'Native assets touched by transaction inputs or outputs.',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoNativeAsset,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 			})({
 				selectors: {
@@ -22692,6 +22793,14 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						query: {
+							sources: [Source.Blockfrost_Rest],
+							fields: ['$network', 'hash'],
+							openFields: ['blockSlot', 'fee', 'deposit', 'sizeBytes', 'validityStartSlot', 'ttlSlot', 'metadata'],
+						},
+						summary: { title: ['hash'], value: ['blockSlot'], HeadingAfter: ['fee'] },
+						closed: ['$network', 'hash', 'blockSlot'],
+						content: { dl: [['$network', 'hash', 'blockSlot'], ['fee', 'deposit', 'sizeBytes', 'validityStartSlot', 'ttlSlot']] },
 						carousels: [
 							{
 								id: "cardano-transaction-activity",
@@ -22736,7 +22845,7 @@ export const schema = {
 				"inputIndex": {
 					label: 'input index',
 					type: EntityFieldType.Primitive,
-					valueType: "number",
+					valueType: "NonNegativeInteger",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"inputKind": {
@@ -22748,7 +22857,7 @@ export const schema = {
 				"spentTxHash": {
 					label: 'spent transaction hash',
 					type: EntityFieldType.Primitive,
-					valueType: "string",
+					valueType: "UtxoTxId",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
 				"spentOutputIndex": {
@@ -22777,6 +22886,25 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						query: {
+							sources: [Source.Blockfrost_Rest],
+							fields: ['$transaction', 'inputIndex'],
+							openFields: ['inputKind', 'spentTxHash', 'spentOutputIndex', '$spentOutput', 'redeemerIndex'],
+						},
+						summary: {
+							title: [{ field: 'inputIndex', format: 'number', prefix: 'Input ' }],
+							value: ['inputKind'],
+							HeadingAfter: [{ field: 'spentTxHash', format: 'truncated' }],
+						},
+						closed: ['$transaction', 'inputIndex', 'inputKind'],
+						content: {
+							dl: [
+								['$transaction', { field: 'inputIndex', format: 'number' }, 'inputKind'],
+								[{ field: 'spentTxHash', format: 'truncated' }, { field: 'spentOutputIndex', format: 'number' }, '$spentOutput', { field: 'redeemerIndex', format: 'number' }],
+							],
+						},
+					},
 					plural: { component: "CardanoTxInputsView", },
 				},
 			}),
@@ -22797,7 +22925,7 @@ export const schema = {
 				"outputIndex": {
 					label: 'output index',
 					type: EntityFieldType.Primitive,
-					valueType: "number",
+					valueType: "NonNegativeInteger",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"address": {
@@ -22855,6 +22983,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoTxOutputAsset,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest],
 				},
 			})({
 				selectors: {
@@ -22864,6 +22993,25 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						query: {
+							sources: [Source.Blockfrost_Rest],
+							fields: ['$transaction', 'outputIndex'],
+							openFields: ['address', '$address', 'lovelace', 'datumHash', 'inlineDatum', 'referenceScriptHash'],
+						},
+						summary: { title: ['outputIndex'], value: ['lovelace'], HeadingAfter: ['address'] },
+						closed: ['$transaction', 'outputIndex', 'address', 'lovelace'],
+						content: { dl: [['$transaction', 'outputIndex', 'address', '$address', 'lovelace'], ['datumHash', 'referenceScriptHash']] },
+						carousels: [
+							{
+								id: 'cardano-transaction-output-assets',
+								label: 'Assets',
+								sections: [
+									{ id: 'cardano-transaction-output-assets-list', field: '$$assets', List: 'CardanoTxOutputAssetsView', label: 'Assets' },
+								],
+							},
+						],
+					},
 					plural: { component: "CardanoTxOutputsView", },
 				},
 			}),
@@ -22901,6 +23049,18 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						query: {
+							fields: ['$output', '$asset', 'quantity'],
+						},
+						summary: {
+							title: ['$asset'],
+							value: [{ field: 'quantity', format: 'numberValue' }],
+						},
+						content: {
+							dl: [['$output', '$asset', { field: 'quantity', format: 'numberValue' }]],
+						},
+					},
 					plural: { component: "CardanoTxOutputAssetsView", },
 				},
 			}),
@@ -23800,19 +23960,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						imports: [
-							{
-								from: "$/constants/Market.ts",
-								names: [
-									"MarketKind",
-									"marketKindByMarketKind",
-								],
-							},
-							{
-								from: "$/constants/MarketCatalog.ts",
-								names: ["seededCoinSpotUsdMarkets"],
-							},
-						],
 						query: {
 							sources: [
 								Source.Constants_Internal,
@@ -23914,40 +24061,12 @@ export const schema = {
 									{
 										id: "catalog-usd-market",
 										label: "USD market",
-										Content: dedent `
-																														{@const catalogUsdMarket = seededCoinSpotUsdMarkets.find((market) => market.baseCoinId === selection.entitySelector.coinId)}
-																														{#if catalogUsdMarket}
-																															<div data-row="wrap align-center gap-2">
-																																<a href={resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
-																																	marketVenue: catalogUsdMarket.marketVenueId,
-																																	baseKind: 'coin',
-																																	base: catalogUsdMarket.baseCoinId,
-																																	quoteKind: 'currency',
-																																	quote: catalogUsdMarket.quoteIso4217,
-																																	marketKind: catalogUsdMarket.marketKind,
-																																})}>
-																																	{catalogUsdMarket.marketKind === MarketKind.Spot ?
-																																		\`\${catalogUsdMarket.marketVenueId}:\${catalogUsdMarket.baseCoinId}-\${catalogUsdMarket.quoteIso4217}\`
-																																	:
-																																		\`\${catalogUsdMarket.marketVenueId}:\${catalogUsdMarket.baseCoinId}-\${catalogUsdMarket.quoteIso4217} (\${marketKindByMarketKind[catalogUsdMarket.marketKind].label})\`}
-																																</a>
-																																<span data-text="muted">
-																																	— spot quote and OHLC on the market page.
-																																</span>
-																																<Tooltip contentProps={{ side: 'top' }}>
-																																	{#snippet Content()}
-																																		<p>
-																																			Each market row is a base / quote / venue triple. Open a market for spot quotes and OHLC candles.
-																																		</p>
-																																	{/snippet}
-																																	<abbr
-																																		class="entity-heading-tip"
-																																		aria-label="Markets and pricing"
-																																	>ⓘ</abbr>
-																																</Tooltip>
-																															</div>
-																														{/if}
-																													`,
+										field: "$$marketsWithCoinAsBase",
+										List: "MarketsView",
+										selection: {
+											sources: [Source.Constants_Internal],
+											limit: 1,
+										},
 									},
 									{
 										id: "markets-with-coin-as-base",
@@ -24160,11 +24279,11 @@ export const schema = {
 																										{#snippet SectionDeploymentsEth({ id, label })}
 																											<p data-text="muted">
 																												Per-chain deployments are listed on each coin detail page. Preview for catalog
-																												<a href={resolve('/coin/[coinId]', { coinId: CoinId.ETH })}>ETH</a>:
+																												<a href={resolve(\`/coin/\${CoinId.ETH}\`)}>ETH</a>:
 																											</p>
 																											<EvmCoinInstancesView
 																												CollapsibleProps={{ canToggle: false }}
-																												href={resolve('/coin/[coinId]', { coinId: CoinId.ETH })}
+																												href={resolve(\`/coin/\${CoinId.ETH}\`)}
 																												selection={select(
 																													EntityType.Coin,
 																													{ coinId: CoinId.ETH }
@@ -24415,6 +24534,7 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount_Timestamp, defaultSources: [Source.CosmosSdk_Rest] },
+				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosTransaction, defaultSources: [Source.CosmosSdk_Rest] },
 			})({
 				selectors: {
 					"NetworkAddress": ["$network", "address"],
@@ -24430,6 +24550,7 @@ export const schema = {
 						},
 						lists: [
 							{ field: "$$timestamps", component: "CosmosAccount_TimestampsView", label: "Account snapshots", emptyText: "No Cosmos account observations." },
+							{ field: "$$transactions", component: "CosmosTransactionsView", label: "Transactions", emptyText: "No Cosmos transactions." },
 						],
 					},
 					plural: { component: "CosmosAccountsView", title: "Accounts", },
@@ -30401,10 +30522,10 @@ export const schema = {
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"$actor": { label: "actor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkAccount_Timestamp },
-				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction },
+				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest] },
 				"$$tokenTransfers": { label: "token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer },
 				"$$internalTransfers": { label: "internal transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmInternalTransfer },
-				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance },
+				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance, defaultSources: [Source.Allium_Rest] },
 				"$$erc20TokenAllowances": { label: "erc20 token allowances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmActorCoinAllowance },
 			})({
 				selectors: {
@@ -30529,6 +30650,7 @@ export const schema = {
 							title: ["symbol"],
 							titleFallback: ["$coinInstance"],
 							value: ["$actor"],
+							HeadingAfter: ["$actor"],
 						},
 						content: {
 							dl: [
@@ -32229,6 +32351,17 @@ export const schema = {
 							cardinality: EntityFieldCardinality.Many,
 							entityType: EntityType.EvmBlob,
 						},
+					})({
+						singularView: {
+							carousels: [{
+								id: "evm-tx-blobs",
+								label: "Blobs",
+								className: "network-view-collapsible-execution",
+								sections: [
+									{ id: "evm-tx-blobs", field: "$$blobs", List: "EvmBlobsView", label: "Blobs", emptyText: "No blobs." },
+								],
+							}],
+						},
 					}),
 					SetCode: facet({
 						path: ["envelopeType"],
@@ -32239,6 +32372,17 @@ export const schema = {
 							type: EntityFieldType.EntitiesReference,
 							cardinality: EntityFieldCardinality.Many,
 							entityType: EntityType.Eip7702Authorization,
+						},
+					})({
+						singularView: {
+							carousels: [{
+								id: "evm-tx-authorizations",
+								label: "Authorizations",
+								className: "network-view-collapsible-account-abstraction",
+								sections: [
+									{ id: "evm-tx-authorizations", field: "$$authorizations", List: "Eip7702AuthorizationsView", label: "Authorizations", emptyText: "No authorizations." },
+								],
+							}],
 						},
 					}),
 				},
@@ -32437,7 +32581,6 @@ export const schema = {
 								sections: [
 									{ id: "evm-tx-logs", field: "$$logs", List: "EvmLogsView", label: "Logs", emptyText: "No logs." },
 									{ id: "evm-tx-traces", field: "$$traces", List: "EvmTracesView", label: "Traces", emptyText: "No traces." },
-									{ id: "evm-tx-blobs", field: ["Blob", "$$blobs"], List: "EvmBlobsView", label: "Blobs", emptyText: "No blobs." },
 								],
 							},
 							{
@@ -32446,7 +32589,6 @@ export const schema = {
 								className: "network-view-collapsible-account-abstraction",
 								sections: [
 									{ id: "evm-tx-user-operations", field: "$$userOperations", List: "EvmUserOperationsView", label: "User operations", emptyText: "No user operations." },
-									{ id: "evm-tx-authorizations", field: ["SetCode", "$$authorizations"], List: "Eip7702AuthorizationsView", label: "Authorizations", emptyText: "No authorizations." },
 								],
 							},
 						],
@@ -32882,6 +33024,7 @@ export const schema = {
 				"rootParentUrl": { label: "Root parent URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"timestamp": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"mentions": { label: "Mentions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "numberArray" },
+				"$$directReplies": { label: "Direct replies", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast, defaultSources: [Source.Neynar_Rest, Source.Farcaster_Rest] },
 				"$$embeds": { label: "Embeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCastEmbed },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast_Timestamp },
 				"threadHash": { label: "Thread hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
@@ -32899,9 +33042,9 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Snapchain_Rest],
+							sources: [Source.Snapchain_Rest, Source.Neynar_Rest, Source.Farcaster_Rest],
 							fields: ["text", "timestamp", "fid", "hash"],
-							openFields: ["$author", "$parentCast", "parentUrl", "rootParentUrl", "$channel", "$$embeds", "$$timestamps"],
+							openFields: ["$author", "$parentCast", "parentUrl", "rootParentUrl", "$channel", "$$directReplies", "$$embeds", "$$timestamps"],
 						},
 						summary: {
 							title: [{ field: "text", format: "truncated" }, { field: "hash", format: "truncated" }],
@@ -32921,6 +33064,7 @@ export const schema = {
 								[{ field: "clientUrl", format: "url" }],
 							],
 							lists: [
+								{ field: "$$directReplies", component: "FarcasterCastsView", emptyText: "No direct replies." },
 								{ field: "$$embeds", component: "FarcasterCastEmbedsView", emptyText: "No Farcaster cast embeds." },
 								{ field: "$$timestamps", component: "FarcasterCast_TimestampsView", emptyText: "No Farcaster cast observations yet." },
 							],
@@ -33036,7 +33180,7 @@ export const schema = {
 				"externalLinkTitle": { label: "External link title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"externalLinkUrl": { label: "External link URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"followedAt": { label: "Followed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"$$casts": { label: "Casts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast, defaultSources: [Source.Farcaster_Rest, Source.Neynar_Rest, Source.Snapchain_Rest] },
+				"$$casts": { label: "Casts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast, defaultSources: [Source.Neynar_Rest, Source.Snapchain_Rest] },
 			})({
 				selectors: {
 					"Id": ["id"],
@@ -33136,7 +33280,7 @@ export const schema = {
 				"channelId": { label: "Channel ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"viewerFid": { label: "Viewer FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "FarcasterFid" },
 				"label": { label: "Label", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$entries": { label: "Entries", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast, defaultSources: [Source.Neynar_Rest, Source.Farcaster_Rest, Source.Snapchain_Rest] },
+				"$$entries": { label: "Entries", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast, defaultSources: [Source.Neynar_Rest, Source.Snapchain_Rest] },
 			})({
 				selectors: {
 					"Variant": ["variant"],
@@ -33192,8 +33336,8 @@ export const schema = {
 				"registryName": { label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"relationshipModel": { label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$$feeds": { label: "Feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterFeed, defaultSources: [Source.Constants_Internal, Source.Farcaster_Rest] },
-				"$$users": { label: "Users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterUser, defaultSources: [Source.Snapchain_Rest, Source.Neynar_Rest] },
-				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterChannel, defaultSources: [Source.Farcaster_Rest, Source.Neynar_Rest] },
+				"$$users": { label: "Users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterUser, defaultSources: [Source.Snapchain_Rest] },
+				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterChannel, defaultSources: [Source.Farcaster_Rest] },
 			})({
 				selectors: {
 					"Scope": ["scope"],
@@ -33252,7 +33396,7 @@ export const schema = {
 				"$primaryEvmAccount": { label: "Primary EVM account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
 				"$$verifiedAddresses": { label: "Verified addresses", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterVerifiedAddress },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterUser_Timestamp },
-				"$$casts": { label: "Casts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast, defaultSources: [Source.Snapchain_Rest] },
+				"$$casts": { label: "Casts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast, defaultSources: [Source.Neynar_Rest, Source.Snapchain_Rest] },
 			})({
 				selectors: {
 					"Fid": ["fid"],
@@ -33260,7 +33404,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Snapchain_Rest, Source.Neynar_Rest],
+							sources: [Source.Snapchain_Rest],
 							fields: ["displayName", "username", "$icon"],
 							openFields: ["bio", "url", "$primaryEvmAccount", "$$verifiedAddresses", "$$casts", "$$timestamps"],
 						},
@@ -35114,30 +35258,35 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HederaAllowance,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 				"$$tokens": {
 					label: 'tokens',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HederaTokenAssociation,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 				"$$nfts": {
 					label: 'nfts',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HederaNft,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 				"$$transactions": {
 					label: 'transactions',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HederaTransaction,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 				"$$timestamps": {
 					label: 'timestamps',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HederaAccount_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.HederaMirrorNode_Rest],
 				},
 			})({
 				selectors: {
@@ -35148,6 +35297,18 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						query: {
+							sources: [Source.HederaMirrorNode_Rest],
+							fields: ["$network", "accountId"],
+							openFields: ["$$allowances", "$$tokens", "$$nfts", "$$transactions", "$$timestamps"],
+						},
+						summary: {
+							title: ["accountId"],
+							value: ["$network"],
+						},
+						content: {
+							dl: [["$network", "accountId"]],
+						},
 						carousels: [
 							{
 								id: "hedera-account-activity",
@@ -35163,7 +35324,7 @@ export const schema = {
 								label: "Related",
 								className: "network-view-collapsible-related",
 								sections: [
-									{ id: "hedera-account-nfts", field: "$$nfts", List: "HederaNftsView", label: "Nfts", emptyText: "No nfts." },
+									{ id: "hedera-account-nfts", field: "$$nfts", List: "HederaNftsView", label: "NFTs", emptyText: "No NFTs." },
 									{ id: "hedera-account-transactions", field: "$$transactions", List: "HederaTransactionsView", label: "Transactions", emptyText: "No transactions." },
 								],
 							},
@@ -35295,6 +35456,20 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: [{ field: "balanceTinybar", format: "number" }],
+							value: ["source"],
+							HeadingAfter: [{ field: "timestampMs", format: "timestamp" }],
+						},
+						content: {
+							dl: [
+								["$account", { field: "timestampMs", format: "timestamp" }, "source"],
+								["balanceTinybar", "pendingRewardTinybar", "stakedAccountId", "stakedNodeId"],
+								["alias", "evmAddress", "receiverSigRequired", "memo", "deleted"],
+							],
+						},
+					},
 					plural: { component: "HederaAccount_TimestampsView", },
 				},
 			}),
@@ -35357,6 +35532,17 @@ export const schema = {
 				},
 			})({
 				selectors: {
+					"OwnerSpenderAllowanceKind": [
+						'$owner',
+						'$spender',
+						'allowanceKind',
+					],
+					"OwnerSpenderAllowanceKindTokenId": [
+						'$owner',
+						'$spender',
+						'allowanceKind',
+						'tokenId',
+					],
 					"OwnerSpenderAllowanceKindTokenIdSerialNumber": [
 						'$owner',
 						'$spender',
@@ -35366,6 +35552,22 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: ["allowanceKind"],
+							value: ["$spender"],
+							HeadingAfter: ["$token", { field: "serialNumber", format: "numberValue" }],
+						},
+						content: {
+							dl: [
+								["$owner", "$spender", "allowanceKind"],
+								["$token", { field: "serialNumber", format: "numberValue" }, "$nft"],
+							],
+						},
+						lists: [
+							{ field: "$$timestamps", component: "HederaAllowance_TimestampsView", label: "Observations", emptyText: "No allowance observations." },
+						],
+					},
 					plural: { component: "HederaAllowancesView", },
 				},
 			}),
@@ -36535,6 +36737,23 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: [{ field: "serialNumber", format: "numberValue" }],
+							value: ["$token"],
+							HeadingAfter: ["createdTimestamp"],
+						},
+						content: {
+							dl: [
+								["$token", { field: "serialNumber", format: "numberValue" }],
+								["metadata", "createdTimestamp"],
+							],
+						},
+						lists: [
+							{ field: "$$transfers", component: "HederaTokenTransfersView", label: "Transfers", emptyText: "No NFT transfers." },
+							{ field: "$$timestamps", component: "HederaNft_TimestampsView", label: "Observations", emptyText: "No NFT observations." },
+						],
+					},
 					plural: { component: "HederaNftsView", },
 				},
 			}),
@@ -37023,6 +37242,17 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						summary: {
+							title: ["tokenId"],
+							value: ["tokenType"],
+							HeadingAfter: [{ field: "decimals", format: "number" }],
+						},
+						content: {
+							dl: [
+								["$network", "tokenId", "tokenType"],
+								["supplyType", { field: "decimals", format: "number" }],
+							],
+						},
 						carousels: [
 							{
 								id: "hedera-token-activity",
@@ -37030,7 +37260,7 @@ export const schema = {
 								className: "network-view-collapsible-activity",
 								sections: [
 									{ id: "hedera-token-associations", field: "$$associations", List: "HederaTokenAssociationsView", label: "Associations", emptyText: "No associations." },
-									{ id: "hedera-token-nfts", field: "$$nfts", List: "HederaNftsView", label: "Nfts", emptyText: "No nfts." },
+									{ id: "hedera-token-nfts", field: "$$nfts", List: "HederaNftsView", label: "NFTs", emptyText: "No NFTs." },
 								],
 							},
 							{
@@ -37224,6 +37454,18 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: ["$token"],
+							value: ["$account"],
+						},
+						content: {
+							dl: [["$account", "$token"]],
+						},
+						lists: [
+							{ field: "$$timestamps", component: "HederaTokenAssociation_TimestampsView", label: "Observations", emptyText: "No token association observations." },
+						],
+					},
 					plural: { component: "HederaTokenAssociationsView", },
 				},
 			}),
@@ -37804,6 +38046,20 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						summary: {
+							title: ["transactionType"],
+							titleFallback: [{ field: "transactionId", format: "truncated" }],
+							value: ["result"],
+							HeadingAfter: ["consensusTimestamp"],
+						},
+						content: {
+							dl: [
+								["$network", "transactionType", "result"],
+								[{ field: "transactionId", format: "truncated" }, "consensusTimestamp", { field: "nonce", format: "number" }],
+								["payerAccount", "nodeAccountId", { field: "chargedTxFeeTinybar", format: "numberValue" }, "scheduled"],
+								["$block", "$schedule"],
+							],
+						},
 						carousels: [
 							{
 								id: "hedera-transaction-activity-a",
@@ -43592,9 +43848,7 @@ export const schema = {
 			<dt>Venue</dt>
 			<dd>
 				<MarketVenueView
-					href={resolve('/market-venue/[marketVenueId=marketVenueId]', {
-						marketVenueId: String(selection.entitySelector.$marketVenue.marketVenueId),
-					})}
+					href={resolve(\`/market-venue/\${selection.entitySelector.$marketVenue.marketVenueId}\`)}
 					selection={select(EntityType.MarketVenue, selection.entitySelector.$marketVenue)}
 					layout={EntityLayout.Value}
 					showTypeAnnotation={false}
@@ -47745,13 +47999,13 @@ export const schema = {
 						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.CardanoKoios_Rest] },
 						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNetwork_Timestamp, defaultSources: [Source.CardanoKoios_Rest] },
 						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoBlock, defaultSources: [Source.CardanoKoios_Rest] },
-						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoTransaction, defaultSources: [Source.Blockfrost_Rest] },
-						"$$stakePools": { label: "Stake pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoStakePool, defaultSources: [Source.Blockfrost_Rest] },
-						"$$dReps": { label: "DReps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoDRep, defaultSources: [Source.Blockfrost_Rest] },
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoTransaction, defaultSources: [Source.CardanoKoios_Rest] },
+						"$$stakePools": { label: "Stake pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoStakePool, defaultSources: [Source.CardanoKoios_Rest] },
+						"$$dReps": { label: "DReps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoDRep, defaultSources: [Source.CardanoKoios_Rest] },
 						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoGovernanceProposal, defaultSources: [Source.CardanoKoios_Rest] },
-						"$$assets": { label: "Native assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNativeAsset, defaultSources: [Source.Blockfrost_Rest] },
-						"$$protocolParameterEpochs": { label: "Protocol parameter epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoProtocolParameters_Epoch, defaultSources: [Source.Blockfrost_Rest] },
-						"$$committeeEpochs": { label: "Committee epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoCommittee_Epoch, defaultSources: [Source.Blockfrost_Rest] }
+						"$$assets": { label: "Native assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNativeAsset, defaultSources: [Source.CardanoKoios_Rest] },
+						"$$protocolParameterEpochs": { label: "Protocol parameter epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoProtocolParameters_Epoch, defaultSources: [Source.CardanoKoios_Rest] },
+						"$$committeeEpochs": { label: "Committee epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoCommittee_Epoch, defaultSources: [Source.CardanoKoios_Rest] }
 					})({
 						singularView: {
 							carousels: [
@@ -47762,7 +48016,7 @@ export const schema = {
 									sections: [
 										{ id: "cardano-chain-observations", field: ["Cardano", "$$timestamps"], List: "CardanoNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
 										{ id: "cardano-chain-blocks", field: ["Cardano", "$$blocks"], List: "CardanoBlocksView", label: "Blocks", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
-										{ id: "cardano-chain-transactions", field: ["Cardano", "$$transactions"], List: "CardanoTransactionsView", label: "Transactions", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
+										{ id: "cardano-chain-transactions", field: ["Cardano", "$$transactions"], List: "CardanoTransactionsView", label: "Transactions", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47770,7 +48024,7 @@ export const schema = {
 									label: "Stake and delegation",
 									className: "network-view-collapsible-stake-delegation",
 									sections: [
-						{ id: "cardano-stake-pools", field: ["Cardano", "$$stakePools"], List: "CardanoStakePoolsView", label: "Stake pools", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
+										{ id: "cardano-stake-pools", field: ["Cardano", "$$stakePools"], List: "CardanoStakePoolsView", label: "Stake pools", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47778,9 +48032,9 @@ export const schema = {
 									label: "Governance",
 									className: "network-view-collapsible-governance",
 									sections: [
-										{ id: "cardano-governance-dreps", field: ["Cardano", "$$dReps"], List: "CardanoDRepsView", label: "DReps", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
+										{ id: "cardano-governance-dreps", field: ["Cardano", "$$dReps"], List: "CardanoDRepsView", label: "DReps", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
 						{ id: "cardano-governance-proposals", field: ["Cardano", "$$governanceProposals"], List: "CardanoGovernanceProposalsView", label: "Proposals", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
-						{ id: "cardano-governance-committee", field: ["Cardano", "$$committeeEpochs"], List: "CardanoCommittee_EpochsView", label: "Committee epochs", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
+						{ id: "cardano-governance-committee", field: ["Cardano", "$$committeeEpochs"], List: "CardanoCommittee_EpochsView", label: "Committee epochs", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47788,8 +48042,8 @@ export const schema = {
 									label: "Assets and protocol",
 									className: "network-view-collapsible-assets",
 									sections: [
-										{ id: "cardano-assets-native", field: ["Cardano", "$$assets"], List: "CardanoNativeAssetsView", label: "Native assets", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
-										{ id: "cardano-protocol-parameters", field: ["Cardano", "$$protocolParameterEpochs"], List: "CardanoProtocolParameters_EpochsView", label: "Protocol parameters", selection: { sources: [Source.Blockfrost_Rest], limit: 16 } },
+										{ id: "cardano-assets-native", field: ["Cardano", "$$assets"], List: "CardanoNativeAssetsView", label: "Native assets", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-protocol-parameters", field: ["Cardano", "$$protocolParameterEpochs"], List: "CardanoProtocolParameters_EpochsView", label: "Protocol parameters", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47867,9 +48121,19 @@ export const schema = {
 						"$$jettons": { label: "Jettons", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonJetton },
 						"$$nftCollections": { label: "NFT collections", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNftCollection },
 						"$$nftItems": { label: "NFT items", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNftItem },
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNetwork_Timestamp },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TonNetwork_Timestamp, defaultSources: [Source.TonApi_Rest] },
 					})({
 						singularView: {
+							carousels: [
+								{
+									id: "ton-chain-activity",
+									label: "Chain activity",
+									className: "network-view-collapsible-chain-activity",
+									sections: [
+										{ id: "ton-chain-observations", field: ["Ton", "$$timestamps"], List: "TonNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.TonApi_Rest], limit: 16 } },
+									],
+								},
+							],
 						},
 					}),
 					"Xrpl": facet({
@@ -48548,53 +48812,19 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "number",
 				},
-				"title": {
-					label: "Title",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-				},
-				"summary": {
-					label: "Summary",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-				},
-				"imageUrl": {
-					label: "Image URL",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "urlString",
-					defaultSources: [Source.NostrBand_Rest],
-				},
-				"content": {
-					label: "Content",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-					defaultSources: [Source.NostrBand_Rest],
-				},
-				"sensitive": { label: "Sensitive", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest] },
-				"contentWarning": { label: "Content warning", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest] },
-				"publishedAt": {
-					label: "Published",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
-					defaultSources: [Source.NostrBand_Rest],
-				},
-				"tags": {
-					label: "Tags",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "unknown",
-				},
-				"$author": {
-					label: "Author",
+				"$latestEvent": {
+					label: "Latest signed version",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					entityType: EntityType.NostrProfile,
-					defaultSources: [Source.NostrBand_Rest],
+					entityType: EntityType.NostrArticleEvent,
+					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
+				},
+				"$$events": {
+					label: "Signed versions",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.NostrArticleEvent,
+					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
 				},
 			})({
 				selectors: {
@@ -48602,58 +48832,28 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						contentWarning: {
-							sensitiveField: "sensitive",
-							textField: "contentWarning",
-							fallbackText: "Sensitive content",
-						},
 						query: {
 							sources: [Source.NostrBand_Rest, Source.Primal_Rest],
-							fields: [
-								"kind",
-								"pubkey",
-								"identifier",
-								"title",
-								"summary",
-								"imageUrl",
-								"publishedAt",
-							],
-							openFields: [
-								"content",
-								"$author",
-							],
+							fields: ["kind", "pubkey", "identifier", "$latestEvent"],
+							openFields: ["$$events"],
 						},
 						summary: {
-							title: ["title", "identifier"],
-							value: [{ field: "identifier", format: "truncated" }],
-							HeadingAfter: [
-								{ field: "publishedAt", format: "timestamp" },
-								{ field: "kind", prefix: "kind " },
-							],
+							title: ["$latestEvent", "identifier"],
+							value: [{ field: "pubkey", format: "truncated" }],
+							HeadingAfter: [{ field: "kind", prefix: "kind " }],
 						},
 						closed: ["identifier", "pubkey"],
 						content: {
-							dl: [
-								[
-									"identifier",
-									{ field: "pubkey", label: "Author pubkey", format: "truncated" },
-									{ field: "kind", prefix: "kind " },
-									{ field: "publishedAt", format: "timestamp" },
-								],
-								[
-									"summary",
-									{ field: "imageUrl", format: "truncated" },
-									"$author",
-								],
-							],
-							body: {
-								id: "article-body",
-								label: "Article body",
-								field: "content",
-								format: "markdown",
-								emptyText: "No article body yet.",
-							},
+							dl: [["identifier", { field: "pubkey", label: "Author pubkey", format: "truncated" }, { field: "kind", prefix: "kind " }], ["$latestEvent"]],
 						},
+						lists: [
+							{
+								field: "$$events",
+								component: "NostrArticleEventsView",
+								label: "Signed version history",
+								emptyText: "No signed article versions observed.",
+							},
+						],
 					},
 					plural: { component: "NostrArticlesView",
 						row: {
@@ -48664,6 +48864,61 @@ export const schema = {
 							HeadingAfter: [{ field: "kind", prefix: "kind " }],
 						},
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.NostrArticleEvent,
+				labels: {
+					singular: "Nostr article event",
+					plural: "Nostr article events",
+				},
+				description: "One cryptographically signed kind-30023 version of a stable Nostr article coordinate.",
+			})({
+				"eventId": { label: "Event ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$article": { label: "Article", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.NostrArticle },
+				"pubkey": { label: "Pubkey", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"identifier": { label: "Identifier", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"kind": { label: "Kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"createdAt": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"tags": { label: "Tags", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
+				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"summary": { label: "Summary", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"imageUrl": { label: "Image URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"content": { label: "Content", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"sensitive": { label: "Sensitive", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"contentWarning": { label: "Content warning", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"publishedAt": { label: "Published", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"$author": { label: "Author", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.NostrProfile },
+			})({
+				selectors: {
+					"CanonicalEventId": ["eventId"],
+				},
+				views: {
+					singular: {
+						contentWarning: {
+							sensitiveField: "sensitive",
+							textField: "contentWarning",
+							fallbackText: "Sensitive content",
+						},
+						query: {
+							fields: ["eventId", "$article", "pubkey", "identifier", "kind", "createdAt", "signature", "title", "summary", "imageUrl", "publishedAt", "$author"],
+							openFields: ["content", "tags"],
+						},
+						summary: {
+							title: ["title", "identifier"],
+							titleFallback: [{ field: "eventId", format: "truncated" }],
+							value: [{ field: "eventId", format: "truncated" }],
+							HeadingAfter: [{ field: "createdAt", format: "timestamp" }],
+						},
+						closed: ["$article", { field: "createdAt", format: "timestamp" }],
+						content: {
+							body: { field: "content", format: "markdown" },
+							dl: [["$article", "$author", { field: "createdAt", format: "timestamp" }, { field: "publishedAt", format: "timestamp" }, { field: "eventId", format: "truncated" }, { field: "signature", format: "truncated" }]],
+						},
+					},
+					plural: { component: "NostrArticleEventsView" },
 				},
 			}),
 
@@ -48893,11 +49148,6 @@ export const schema = {
 							],
 							HeadingAfter: [{ field: "createdAt", format: "timestamp" }],
 						},
-						query: {
-							sources: {
-								default: [Source.Constants_Internal],
-							},
-						},
 					},
 				},
 			}),
@@ -48916,80 +49166,19 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "string",
 				},
-				"displayName": {
-					label: "Display name",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
-				},
-				"about": {
-					label: "About",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
-				},
-				"nip05": {
-					label: "NIP-05",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
-				},
-				"lud16": {
-					label: "Lightning address",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-					defaultSources: [Source.NostrBand_Rest],
-				},
-				"lud06": {
-					label: "Lightning invoice",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-					defaultSources: [Source.NostrBand_Rest],
-				},
-				"website": {
-					label: "Website",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "urlString",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
-				},
-				"metadataUpdatedAt": {
-					label: "Metadata updated",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
-				},
-				"iconUrl": {
-					label: "Icon URL",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "urlString",
-				},
-				"$icon": {
-					label: "Icon",
+				"$latestMetadataEvent": {
+					label: "Latest signed metadata",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					entityType: EntityType.Media,
-					defaultSources: [Source.NostrBand_Rest],
+					entityType: EntityType.NostrProfileMetadataEvent,
+					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
 				},
-				"bannerUrl": {
-					label: "Banner URL",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "urlString",
-				},
-				"$banner": {
-					label: "Banner",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					entityType: EntityType.Media,
-					defaultSources: [Source.NostrBand_Rest],
+				"$$metadataEvents": {
+					label: "Signed metadata versions",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.NostrProfileMetadataEvent,
+					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
 				},
 				"$$notes": {
 					label: "Notes",
@@ -49019,44 +49208,17 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal],
-							fields: [
-								"pubkey",
-								"displayName",
-								"about",
-								"nip05",
-								"website",
-								"metadataUpdatedAt",
-								"$icon",
-							],
-							openFields: ["$$notes", "$$articles", "$$reposts"],
+							sources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest],
+							fields: ["pubkey", "$latestMetadataEvent"],
+							openFields: ["$$metadataEvents", "$$notes", "$$articles", "$$reposts"],
 						},
 						summary: {
-							icon: "$icon",
-							title: [{ field: "displayName" }],
+							title: ["$latestMetadataEvent"],
 							titleFallback: [{ field: "pubkey", format: "truncated" }],
 						},
-						closed: ["displayName", "pubkey", "nip05"],
+						closed: ["pubkey"],
 						content: {
-							dl: [
-								[
-									{ field: "displayName" },
-									{ field: "about", format: "longText" },
-									{ field: "nip05", label: "NIP-05" },
-									{
-										field: "pubkey",
-										label: "Pubkey",
-										format: "truncated",
-										when: "open",
-									},
-									{ field: "website", format: "url", when: "open" },
-									{
-										field: "metadataUpdatedAt",
-										format: "timestamp",
-										when: "open",
-									},
-								],
-							],
+							dl: [[{ field: "pubkey", label: "Pubkey", format: "truncated" }], ["$latestMetadataEvent"]],
 						},
 						carousels: [
 							{
@@ -49077,15 +49239,73 @@ export const schema = {
 								],
 							},
 						],
+						lists: [
+							{
+								field: "$$metadataEvents",
+								component: "NostrProfileMetadataEventsView",
+								label: "Signed metadata history",
+								emptyText: "No signed profile metadata observed.",
+							},
+						],
 					},
 					plural: { component: "NostrProfilesView",
 						row: {
-							title: [
-								{ field: "displayName" },
-								{ field: "pubkey", format: "truncated" },
-							],
+							title: [{ field: "pubkey", format: "truncated" }],
 						},
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.NostrProfileMetadataEvent,
+				labels: {
+					singular: "Nostr profile metadata event",
+					plural: "Nostr profile metadata events",
+				},
+				description: "One cryptographically signed kind-0 metadata version for a stable Nostr profile.",
+			})({
+				"eventId": { label: "Event ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$profile": { label: "Profile", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.NostrProfile },
+				"pubkey": { label: "Pubkey", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"kind": { label: "Kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"createdAt": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"signature": { label: "Signature", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"content": { label: "Signed content", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"tags": { label: "Tags", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
+				"displayName": { label: "Display name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"about": { label: "About", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"nip05": { label: "NIP-05", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"lud16": { label: "Lightning address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"lud06": { label: "Lightning invoice", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"website": { label: "Website", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"iconUrl": { label: "Icon URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"$icon": { label: "Icon", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media },
+				"bannerUrl": { label: "Banner URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"$banner": { label: "Banner", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media },
+			})({
+				selectors: {
+					"CanonicalEventId": ["eventId"],
+				},
+				views: {
+					singular: {
+						query: {
+							fields: ["eventId", "$profile", "pubkey", "kind", "createdAt", "signature", "displayName", "about", "nip05", "lud16", "website", "$icon", "$banner"],
+							openFields: ["content", "tags", "lud06", "iconUrl", "bannerUrl"],
+						},
+						summary: {
+							icon: "$icon",
+							title: ["displayName", "nip05"],
+							titleFallback: [{ field: "pubkey", format: "truncated" }],
+							value: [{ field: "eventId", format: "truncated" }],
+							HeadingAfter: [{ field: "createdAt", format: "timestamp" }],
+						},
+						closed: ["$profile", { field: "createdAt", format: "timestamp" }],
+						content: {
+							body: { field: "about", format: "longText" },
+							dl: [["$profile", "displayName", "nip05", { field: "website", format: "url" }, "lud16", { field: "createdAt", format: "timestamp" }, { field: "eventId", format: "truncated" }, { field: "signature", format: "truncated" }]],
+						},
+					},
+					plural: { component: "NostrProfileMetadataEventsView" },
 				},
 			}),
 
@@ -51521,10 +51741,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditComment,
-					defaultSources: [
-						Source.Constants_Internal,
-						Source.Reddit_PublicJson,
-					],
+					defaultSources: [Source.Reddit_PublicJson],
 				},
 			})({
 				selectors: {
@@ -51533,10 +51750,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [
-								Source.Constants_Internal,
-								Source.Reddit_PublicJson,
-							],
+							sources: [Source.Reddit_PublicJson],
 							openFields: ["$$replies", "$$timestamps", "$link", "$parentComment"],
 						},
 						summary: {
@@ -51615,10 +51829,7 @@ export const schema = {
 						},
 						query: {
 							sources: {
-								default: [
-									Source.Constants_Internal,
-									Source.Reddit_PublicJson,
-								],
+								default: [Source.Reddit_PublicJson],
 							},
 						},
 					},
@@ -51760,10 +51971,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditComment,
-					defaultSources: [
-						Source.Constants_Internal,
-						Source.Reddit_PublicJson,
-					],
+					defaultSources: [Source.Reddit_PublicJson],
 				},
 			})({
 				selectors: {
@@ -51772,10 +51980,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [
-								Source.Constants_Internal,
-								Source.Reddit_PublicJson,
-							],
+							sources: [Source.Reddit_PublicJson],
 							openFields: ["$$comments", "$$timestamps", "$subreddit"],
 						},
 						summary: {
@@ -51860,10 +52065,7 @@ export const schema = {
 						},
 						query: {
 							sources: {
-								default: [
-									Source.Constants_Internal,
-									Source.Reddit_PublicJson,
-								],
+								default: [Source.Reddit_PublicJson],
 							},
 						},
 					},
@@ -52051,10 +52253,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditLink,
-					defaultSources: [
-						Source.Constants_Internal,
-						Source.Reddit_PublicJson,
-					],
+					defaultSources: [Source.Reddit_PublicJson],
 				},
 			})({
 				selectors: {
@@ -52063,10 +52262,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [
-								Source.Constants_Internal,
-								Source.Reddit_PublicJson,
-							],
+							sources: [Source.Reddit_PublicJson],
 							openFields: ["$$links", "$$timestamps"],
 						},
 						summary: {
@@ -52131,10 +52327,7 @@ export const schema = {
 						},
 						query: {
 							sources: {
-								default: [
-									Source.Constants_Internal,
-									Source.Reddit_PublicJson,
-								],
+								default: [Source.Reddit_PublicJson],
 							},
 						},
 					},
@@ -53888,44 +54081,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: {
-								name: "specificationProposal",
-								default: [
-									Source.BitcoinBips_Github,
-									Source.BitcoinCashChips_Gitlab,
-									Source.Caips_Github,
-									Source.CosmosAdrs_Github,
-									Source.DogecoinDips_Github,
-									Source.Ensips_Github,
-									Source.EthereumEips_Github,
-									Source.FilecoinFips_Github,
-									Source.HyperliquidDocs_Rest,
-									Source.LitecoinLips_Github,
-									Source.NearNeps_Github,
-									Source.PolkadotRfcs_Github,
-									Source.QuilibriumDocs_Rest,
-									Source.SolanaSimds_Github,
-									Source.ZcashZips_Github,
-								],
-								cases: [
-									{ when: [{ field: "realm", equals: "Bitcoin" }, { field: "category", equals: "Bip" }], sources: [Source.BitcoinBips_Github] },
-									{ when: [{ field: "realm", equals: "BitcoinCash" }, { field: "category", equals: "Chip" }], sources: [Source.BitcoinCashChips_Gitlab] },
-									{ when: [{ field: "realm", equals: "ChainAgnostic" }, { field: "category", equals: "Caip" }], sources: [Source.Caips_Github] },
-									{ when: [{ field: "realm", equals: "Cosmos" }, { field: "category", equals: "Adr" }], sources: [Source.CosmosAdrs_Github] },
-									{ when: [{ field: "realm", equals: "Dogecoin" }, { field: "category", equals: "Dip" }], sources: [Source.DogecoinDips_Github] },
-									{ when: [{ field: "realm", equals: "Ens" }, { field: "category", equals: "Ensip" }], sources: [Source.Ensips_Github] },
-									{ when: [{ field: "realm", equals: "Ethereum" }, { field: "category", equals: "Eip" }], sources: [Source.EthereumEips_Github] },
-									{ when: [{ field: "realm", equals: "Ethereum" }, { field: "category", equals: "Erc" }], sources: [Source.EthereumEips_Github] },
-									{ when: [{ field: "realm", equals: "Filecoin" }, { field: "category", equals: "Fip" }], sources: [Source.FilecoinFips_Github] },
-									{ when: [{ field: "realm", equals: "Hyperliquid" }, { field: "category", equals: "Hip" }], sources: [Source.HyperliquidDocs_Rest] },
-									{ when: [{ field: "realm", equals: "Litecoin" }, { field: "category", equals: "Lip" }], sources: [Source.LitecoinLips_Github] },
-									{ when: [{ field: "realm", equals: "Near" }, { field: "category", equals: "Nep" }], sources: [Source.NearNeps_Github] },
-									{ when: [{ field: "realm", equals: "Polkadot" }, { field: "category", equals: "Rfc" }], sources: [Source.PolkadotRfcs_Github] },
-									{ when: [{ field: "realm", equals: "Quilibrium" }, { field: "category", equals: "ProtocolDocument" }], sources: [Source.QuilibriumDocs_Rest] },
-									{ when: [{ field: "realm", equals: "Solana" }, { field: "category", equals: "Simd" }], sources: [Source.SolanaSimds_Github] },
-									{ when: [{ field: "realm", equals: "Zcash" }, { field: "category", equals: "Zip" }], sources: [Source.ZcashZips_Github] },
-								],
-							},
+							sources: specificationProposalSourceSelection,
 							fields: [
 								"realm",
 								"category",
@@ -54113,44 +54269,7 @@ export const schema = {
 					plural: { component: "SpecificationProposalsView",
 						title: "Proposals",
 						query: {
-							sources: {
-								name: "specificationProposal",
-								default: [
-									Source.BitcoinBips_Github,
-									Source.BitcoinCashChips_Gitlab,
-									Source.Caips_Github,
-									Source.CosmosAdrs_Github,
-									Source.DogecoinDips_Github,
-									Source.Ensips_Github,
-									Source.EthereumEips_Github,
-									Source.FilecoinFips_Github,
-									Source.HyperliquidDocs_Rest,
-									Source.LitecoinLips_Github,
-									Source.NearNeps_Github,
-									Source.PolkadotRfcs_Github,
-									Source.QuilibriumDocs_Rest,
-									Source.SolanaSimds_Github,
-									Source.ZcashZips_Github,
-								],
-								cases: [
-									{ when: [{ field: "realm", equals: "Bitcoin" }, { field: "category", equals: "Bip" }], sources: [Source.BitcoinBips_Github] },
-									{ when: [{ field: "realm", equals: "BitcoinCash" }, { field: "category", equals: "Chip" }], sources: [Source.BitcoinCashChips_Gitlab] },
-									{ when: [{ field: "realm", equals: "ChainAgnostic" }, { field: "category", equals: "Caip" }], sources: [Source.Caips_Github] },
-									{ when: [{ field: "realm", equals: "Cosmos" }, { field: "category", equals: "Adr" }], sources: [Source.CosmosAdrs_Github] },
-									{ when: [{ field: "realm", equals: "Dogecoin" }, { field: "category", equals: "Dip" }], sources: [Source.DogecoinDips_Github] },
-									{ when: [{ field: "realm", equals: "Ens" }, { field: "category", equals: "Ensip" }], sources: [Source.Ensips_Github] },
-									{ when: [{ field: "realm", equals: "Ethereum" }, { field: "category", equals: "Eip" }], sources: [Source.EthereumEips_Github] },
-									{ when: [{ field: "realm", equals: "Ethereum" }, { field: "category", equals: "Erc" }], sources: [Source.EthereumEips_Github] },
-									{ when: [{ field: "realm", equals: "Filecoin" }, { field: "category", equals: "Fip" }], sources: [Source.FilecoinFips_Github] },
-									{ when: [{ field: "realm", equals: "Hyperliquid" }, { field: "category", equals: "Hip" }], sources: [Source.HyperliquidDocs_Rest] },
-									{ when: [{ field: "realm", equals: "Litecoin" }, { field: "category", equals: "Lip" }], sources: [Source.LitecoinLips_Github] },
-									{ when: [{ field: "realm", equals: "Near" }, { field: "category", equals: "Nep" }], sources: [Source.NearNeps_Github] },
-									{ when: [{ field: "realm", equals: "Polkadot" }, { field: "category", equals: "Rfc" }], sources: [Source.PolkadotRfcs_Github] },
-									{ when: [{ field: "realm", equals: "Quilibrium" }, { field: "category", equals: "ProtocolDocument" }], sources: [Source.QuilibriumDocs_Rest] },
-									{ when: [{ field: "realm", equals: "Solana" }, { field: "category", equals: "Simd" }], sources: [Source.SolanaSimds_Github] },
-									{ when: [{ field: "realm", equals: "Zcash" }, { field: "category", equals: "Zip" }], sources: [Source.ZcashZips_Github] },
-								],
-							},
+							sources: specificationProposalSourceSelection,
 							limit: {
 								default: 64,
 							},
@@ -54261,23 +54380,7 @@ export const schema = {
 								component: "SpecificationProposalsView",
 								titleField: "labelPlural",
 								query: {
-									sources: [
-										Source.BitcoinBips_Github,
-										Source.BitcoinCashChips_Gitlab,
-										Source.Caips_Github,
-										Source.CosmosAdrs_Github,
-										Source.DogecoinDips_Github,
-										Source.Ensips_Github,
-										Source.EthereumEips_Github,
-										Source.FilecoinFips_Github,
-										Source.HyperliquidDocs_Rest,
-										Source.LitecoinLips_Github,
-										Source.NearNeps_Github,
-										Source.PolkadotRfcs_Github,
-										Source.QuilibriumDocs_Rest,
-										Source.SolanaSimds_Github,
-										Source.ZcashZips_Github,
-									],
+									sources: specificationProposalSourceSelection,
 								},
 								label: "Proposals",
 								props: [
@@ -62831,6 +62934,10 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						summary: {
+							title: [{ field: "address", format: "truncated" }],
+							HeadingAfter: ["$network"],
+						},
 						carousels: [
 							{
 								id: "tron-account-activity",
@@ -62884,6 +62991,13 @@ export const schema = {
 					"AccountTimestampMsSource": ["$account", "timestampMs", "source"],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: ["$account"],
+							value: [{ field: "balanceSun", format: "numberValue" }],
+							HeadingAfter: [{ field: "timestampMs", format: "timestamp" }, "source"],
+						},
+					},
 					plural: { component: "TronAccount_TimestampsView", },
 				},
 			}),
@@ -62913,6 +63027,14 @@ export const schema = {
 					"AccountTokenTimestampMsSource": ["$account", "$token", "timestampMs", "source"],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: ["tokenSymbol"],
+							titleFallback: ["tokenName", "tokenId"],
+							value: [{ field: "balance", format: "numberValue" }],
+							HeadingAfter: ["$account"],
+						},
+					},
 					plural: { component: "TronAccountTokenBalance_TimestampsView", },
 				},
 			}),
@@ -63137,7 +63259,7 @@ export const schema = {
 				"$to": { label: "To", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronAccount, defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest] },
 				"$contract": { label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronContract, defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest] },
 				"amountSun": { label: "Amount sun", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest] },
-				"assetName": { label: "Asset name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest] },
+				"assetName": { label: "Asset name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest] },
 				"rawDataHex": { label: "Raw data hex", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest] },
 				"signatures": { label: "Signatures", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest] },
 				"$receipt": { label: "Receipt", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronTransactionReceipt, defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest] },
@@ -63147,6 +63269,13 @@ export const schema = {
 					"NetworkTransactionId": ["$network", "transactionId"],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: [{ field: "transactionId", format: "truncated" }],
+							value: ["result"],
+							HeadingAfter: ["$owner", "$to"],
+						},
+					},
 					plural: { component: "TronTransactionsView", },
 				},
 			}),
@@ -63442,7 +63571,7 @@ export const schema = {
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoAddress_Timestamp },
 				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput },
-				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction },
+				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.MempoolSpace_Rest] },
 			})({
 				selectors: {
 					"NetworkAddress": ["$network", "address"],
@@ -64032,25 +64161,30 @@ export const schema = {
 			})({
 				"$post": { label: "Post", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.XPost },
 				"timestampMs": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", description: "The source that produced this immutable post observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"likeCount": { label: "Likes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"retweetCount": { label: "Retweets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"replyCount": { label: "Replies", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"quoteCount": { label: "Quotes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 			})({
 				selectors: {
-					"XPostTimestampMs": ["$post", "timestampMs"],
+					"XPostTimestampMsSource": ["$post", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.X_Rest, Source.X_FxEmbed_Rest] },
+						query: {
+							fields: ["$post", "timestampMs", "source"],
+						},
 						summary: {
 							title: [{ field: "$post" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],
+							HeadingAfter: [{ field: "source" }],
 						},
 						content: {
 							dl: [
 								[{ field: "$post" }],
 								[{ field: "timestampMs", format: "timestamp" }],
+								[{ field: "source" }],
 								[{ field: "likeCount", format: "number" }],
 								[{ field: "retweetCount", format: "number" }],
 								[{ field: "replyCount", format: "number" }],
@@ -64087,24 +64221,28 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplLedgerEntry,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"$$transactions": {
 					label: 'transactions',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplTransaction,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"$$trustlines": {
 					label: 'trustlines',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplTrustline,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"$$timestamps": {
 					label: 'timestamps',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplAccount_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 			})({
 				selectors: {
@@ -64115,6 +64253,18 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						query: {
+							sources: [Source.Xrpl_Rippled],
+							fields: ["$network", "account"],
+							openFields: ["$$ledgerEntries", "$$transactions", "$$trustlines", "$$timestamps"],
+						},
+						summary: {
+							title: ["account"],
+							value: ["$network"],
+						},
+						content: {
+							dl: [["$network", "account"]],
+						},
 						carousels: [
 							{
 								id: "xrpl-account-activity",
@@ -64194,7 +64344,7 @@ export const schema = {
 				"flags": {
 					label: 'flags',
 					type: EntityFieldType.Primitive,
-					valueType: "unknown",
+					valueType: "NonNegativeInteger",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
 			})({
@@ -64206,6 +64356,24 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						query: {
+							sources: [Source.Xrpl_Rippled],
+							fields: ["$account", "ledgerIndex", "source"],
+							openFields: ["timestampMs", "balanceDrops", "ownerCount", "sequence", "flags"],
+						},
+						summary: {
+							title: [{ field: "balanceDrops", format: "number" }],
+							value: ["source"],
+							HeadingAfter: [{ field: "ledgerIndex", format: "number" }],
+						},
+						content: {
+							dl: [
+								["$account", { field: "ledgerIndex", format: "number" }, "source"],
+								[{ field: "timestampMs", format: "timestamp" }, "balanceDrops", "ownerCount", "sequence", "flags"],
+							],
+						},
+					},
 					plural: { component: "XrplAccount_TimestampsView", },
 				},
 			}),
@@ -65012,25 +65180,30 @@ export const schema = {
 			})({
 				"$user": { label: "User", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.XUser },
 				"timestampMs": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", description: "The source that produced this immutable user observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"followerCount": { label: "Followers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"followingCount": { label: "Following", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"tweetCount": { label: "Tweets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"listedCount": { label: "Listed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 			})({
 				selectors: {
-					"XUserTimestampMs": ["$user", "timestampMs"],
+					"XUserTimestampMsSource": ["$user", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.X_Rest, Source.X_FxEmbed_Rest] },
+						query: {
+							fields: ["$user", "timestampMs", "source"],
+						},
 						summary: {
 							title: [{ field: "$user" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],
+							HeadingAfter: [{ field: "source" }],
 						},
 						content: {
 							dl: [
 								[{ field: "$user" }],
 								[{ field: "timestampMs", format: "timestamp" }],
+								[{ field: "source" }],
 								[{ field: "followerCount", format: "number" }],
 								[{ field: "followingCount", format: "number" }],
 								[{ field: "tweetCount", format: "number" }],
@@ -66883,13 +67056,6 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain _GlobalArweaveNetwork.Scope as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#_globalarweavenetwork",
-			},
-		},
-		[EntityType._GlobalArweaveNetwork_Timestamp]: {
-			"HubTimestampMsSource": {
-				kind: "Research",
-				decision: "Retain _GlobalArweaveNetwork_Timestamp.HubTimestampMsSource as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#_globalarweavenetwork_timestamp",
 			},
 		},
 		[EntityType._GlobalAtprotoNetwork_Timestamp]: {
@@ -68767,11 +68933,11 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#blockheadwallet",
 			},
 		},
-		[EntityType.BlockheadWalletAccount]: {
-			"Caip10": {
+		[EntityType.BlockheadAccount]: {
+			"Account": {
 				kind: "Research",
-				decision: "Retain BlockheadWalletAccount.Caip10 as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#blockheadwalletaccount",
+				decision: "Retain BlockheadAccount.Account as local user-specific account enrollment surfaced through /~/accounts.",
+				evidence: "maps/blockhead-local-control-plane.md",
 			},
 		},
 		[EntityType.BlockheadWalletAuthentication]: {
@@ -69001,13 +69167,6 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#bridgetransfer_timestamp",
 			},
 		},
-		[EntityType.CardanoAddress]: {
-			"NetworkAddress": {
-				kind: "Research",
-				decision: "Retain CardanoAddress.NetworkAddress as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#cardanoaddress",
-			},
-		},
 		[EntityType.CardanoAddress_Timestamp]: {
 			"AddressBlockSlotSource": {
 				kind: "Research",
@@ -69121,27 +69280,6 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain CardanoStakePool_Timestamp.PoolEpochSource as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#cardanostakepool_timestamp",
-			},
-		},
-		[EntityType.CardanoTransaction]: {
-			"NetworkHash": {
-				kind: "Research",
-				decision: "Retain CardanoTransaction.NetworkHash as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#cardanotransaction",
-			},
-		},
-		[EntityType.CardanoTxInput]: {
-			"TransactionInputIndex": {
-				kind: "Research",
-				decision: "Retain CardanoTxInput.TransactionInputIndex as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#cardanotxinput",
-			},
-		},
-		[EntityType.CardanoTxOutput]: {
-			"TransactionOutputIndex": {
-				kind: "Research",
-				decision: "Retain CardanoTxOutput.TransactionOutputIndex as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#cardanotxoutput",
 			},
 		},
 		[EntityType.CardanoTxOutputAsset]: {
@@ -70079,13 +70217,6 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#gittreepathresolution",
 			},
 		},
-		[EntityType.HederaAccount]: {
-			"NetworkAccountId": {
-				kind: "Research",
-				decision: "Retain HederaAccount.NetworkAccountId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#hederaaccount",
-			},
-		},
 		[EntityType.HederaAccount_Timestamp]: {
 			"AccountTimestampMsSource": {
 				kind: "Research",
@@ -70094,6 +70225,16 @@ export const routes = defineRoutes(schema)({
 			},
 		},
 		[EntityType.HederaAllowance]: {
+			"OwnerSpenderAllowanceKind": {
+				kind: "Research",
+				decision: "Retain HederaAllowance.OwnerSpenderAllowanceKind as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederaallowance",
+			},
+			"OwnerSpenderAllowanceKindTokenId": {
+				kind: "Research",
+				decision: "Retain HederaAllowance.OwnerSpenderAllowanceKindTokenId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hederaallowance",
+			},
 			"OwnerSpenderAllowanceKindTokenIdSerialNumber": {
 				kind: "Research",
 				decision: "Retain HederaAllowance.OwnerSpenderAllowanceKindTokenIdSerialNumber as non-public until a product-valid selector placement is declared.",
@@ -71605,7 +71746,7 @@ export const routes = defineRoutes(schema)({
 		[EntityType.StarknetContract]: {
 			"NetworkAddress": {
 				kind: "Research",
-				decision: "Retain StarknetContract.NetworkAddress as non-public until a product-valid selector placement is declared.",
+				decision: "Retain StarknetContract.NetworkAddress as non-public until a product-valid nested StarknetNetwork selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#starknetcontract",
 			},
 		},
@@ -72669,88 +72810,24 @@ export const routes = defineRoutes(schema)({
 		"~": {
 			children: {
 				"accounts": {
-					page: {
-						view: {
-							imports: [
-								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
-								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
-								{ from: "$/components/WalletConnectionsControl.svelte", default: "WalletConnectionsControl" },
-								{ from: "$/views/BlockheadBridgeTransactionsView.svelte", default: "BlockheadBridgeTransactionsView" },
-								{ from: "$/components/WalletAccountPortfolio.svelte", default: "WalletAccountPortfolio" },
-								{ from: "$/views/EvmAccountsView.svelte", default: "EvmAccountsView" },
-								{ from: "$/sources/Source.ts", names: ["Source"] },
+					collections: [
+						{
+							field: [
+								EntityType._Global,
+								"$$blockheadAccounts"
 							],
-							Content: dedent `
-													<CollapsibleTabs
-														id='accounts:hub'
-														sectionIdPrefix='accounts'
-														sections={[
-															{ id: 'connections', label: 'Connections' },
-															{ id: 'watched-accounts', label: 'Watched accounts' },
-															{ id: 'balances', label: 'Balances' },
-															{ id: 'allowances', label: 'Allowances' },
-															{ id: 'transactions', label: 'Transactions' },
-														]}
-														data-card
-													>
-														{#snippet Summary({ open: _open })}
-															<header
-																data-row-item='flexible'
-																data-row='wrap gap-4'
-															>
-																<HeadingComponent>Accounts</HeadingComponent>
-															</header>
-														{/snippet}
-
-														{#snippet SectionConnections()}
-															<WalletConnectionsControl
-																id='wallet-connections'
-															/>
-														{/snippet}
-
-														{#snippet SectionWatchedAccounts()}
-															<EvmAccountsView
-																href={resolve('/~/accounts/watched-accounts')}
-																selection={select(EntityType._Global, { scope: '$$actors' }).$$actors({
-																	sources: [Source.Local_Internal],
-																})}
-																		id='accounts'
-																		open={true}
-																		data-column-item='flexible'
-																		data-card
-																		data-scroll-container
-															/>
-														{/snippet}
-
-														{#snippet SectionBalances()}
-															<WalletAccountPortfolio id='accounts-balances' />
-														{/snippet}
-
-														{#snippet SectionAllowances()}
-															<h2><a href={resolve('/~/accounts/allowances')}>Allowances</a></h2>
-															<p data-text='muted'>
-																Check ERC-20 allowances from known owner, token, and spender addresses.
-															</p>
-														{/snippet}
-
-														{#snippet SectionTransactions()}
-															<BlockheadBridgeTransactionsView
-																href={resolve('/~/accounts/transactions')}
-																selection={select(EntityType._Global, { scope: '$$bridgeTransactions' }).$$bridgeTransactions({
-																	sources: [Source.Local_Internal],
-																})}
-																		id='transactions'
-																		open={true}
-																		data-column-item='flexible'
-																		data-card
-																		data-scroll-container
-															/>
-														{/snippet}
-													</CollapsibleTabs>
-										`,
+							query: {
+								sources: [Source.Local_Internal],
+							},
+							derivations: {
+								"scope": { kind: "literal", value: "$$blockheadAccounts" }
+							},
+							page: {
+								view: { component: "BlockheadAccountsView" },
+								text: { title: "Accounts" }
+							}
 						},
-						text: { title: "Accounts" }
-					},
+					],
 					children: {
 						"allowances": {
 							page: {
@@ -72852,20 +72929,88 @@ export const routes = defineRoutes(schema)({
 							}
 						},
 						"balances": {
-							page: {
-								view: {
-									imports: [
-										{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
-										{ from: "$/components/WalletAccountPortfolio.svelte", default: "WalletAccountPortfolio" },
+							collections: [
+								{
+									field: [
+										EntityType._Global,
+										"$$blockheadAccounts",
+										"$account",
+										"Evm",
+										"$account",
+										"$$ownedCoins",
 									],
-									Content: dedent `
-													<HeadingComponent>Balances</HeadingComponent>
-
-													<WalletAccountPortfolio id='account-balances' />
-												`,
+									query: {
+										sources: [Source.Allium_Rest],
+									},
+									derivations: {
+										"scope": { kind: "literal", value: "$$blockheadAccounts" }
+									},
+									page: {
+										text: { title: "EVM balances" },
+									},
 								},
-								text: { title: "Balances" },
-							},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Aptos", "$account", "$$balances"],
+									query: { sources: [Source.AptosIndexer_Graphql] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Aptos balances" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Cardano", "$account", "$$timestamps"],
+									query: { sources: [Source.Blockfrost_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Cardano balances" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Hedera", "$account", "$$timestamps"],
+									query: { sources: [Source.HederaMirrorNode_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Hedera balances" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Polkadot", "$account", "$$timestamps"],
+									query: { sources: [Source.SubstrateSidecar_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Polkadot balances" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Solana", "$account", "$$timestamps"],
+									query: { sources: [Source.Solana_JsonRpc] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Solana balances" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Tron", "$account", "$$timestamps"],
+									query: { sources: [Source.TronGrid_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Tron balances" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Tron", "$account", "$$tokenBalanceTimestamps"],
+									query: { sources: [Source.TronScan_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Tron token balances" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Ton", "$account", "$$timestamps"],
+									query: { sources: [Source.TonApi_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "TON balances" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Utxo", "$account", "$$timestamps"],
+									query: { sources: [Source.Blockchair_Rest, Source.MempoolSpace_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "UTXO balances" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Xrpl", "$account", "$$timestamps"],
+									query: { sources: [Source.Xrpl_Rippled] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "XRPL balances" } },
+								},
+							],
+							page: { text: { title: "Balances" } },
 						},
 						"balance": {
 							children: {
@@ -72973,23 +73118,70 @@ export const routes = defineRoutes(schema)({
 							}
 						},
 						"transactions": {
-							page: {
-								view: {
-									imports: [
-										{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
-										{ from: "$/components/WalletAccountPortfolio.svelte", default: "WalletAccountPortfolio" },
+							collections: [
+								{
+									field: [
+										EntityType._Global,
+										"$$blockheadAccounts",
+										"$account",
+										"Evm",
+										"$account",
+										"$$transactions",
 									],
-									Content: dedent `
-													<HeadingComponent>Transactions</HeadingComponent>
-
-													<WalletAccountPortfolio
-														facet='transactions'
-														id='account-transactions'
-													/>
-												`,
+									query: {
+										sources: [Source.Blockscout_Rest],
+									},
+									derivations: {
+										"scope": { kind: "literal", value: "$$blockheadAccounts" }
+									},
+									page: {
+										text: { title: "EVM transactions" },
+									},
 								},
-								text: { title: "Transactions" },
-							},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Aptos", "$account", "$$transactions"],
+									query: { sources: [Source.AptosIndexer_Graphql, Source.AptosFullnode_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Aptos transactions" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Cardano", "$account", "$$transactions"],
+									query: { sources: [Source.Blockfrost_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Cardano transactions" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Cosmos", "$account", "$$transactions"],
+									query: { sources: [Source.CosmosSdk_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Cosmos transactions" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Hedera", "$account", "$$transactions"],
+									query: { sources: [Source.HederaMirrorNode_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Hedera transactions" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Tron", "$account", "$$transactions"],
+									query: { sources: [Source.TronGrid_Rest, Source.TronScan_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Tron transactions" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Utxo", "$account", "$$transactions"],
+									query: { sources: [Source.MempoolSpace_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "UTXO transactions" } },
+								},
+								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Xrpl", "$account", "$$transactions"],
+									query: { sources: [Source.Xrpl_Rippled] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "XRPL transactions" } },
+								},
+							],
+							page: { text: { title: "Transactions" } },
 						},
 						"transaction": {
 							children: {
@@ -73056,28 +73248,8 @@ export const routes = defineRoutes(schema)({
 									}
 								}
 							}
-						},
-						"watched-accounts": {
-							collections: [
-								{
-									field: [
-										EntityType._Global,
-										"$$actors"
-									],
-									query: {
-										sources: [Source.Local_Internal],
-									},
-									derivations: {
-										"scope": { kind: "literal", value: "$$actors" }
-									},
-									page: {
-										view: { component: "EvmAccountsView" },
-										text: { title: "Watched accounts" }
-									}
-								},
-							],
+							}
 						}
-					}
 				},
 				"agents": {
 					collections: [
@@ -74971,9 +75143,7 @@ export const routes = defineRoutes(schema)({
 																						<EntityView
 																							entityType={EntityType.EvmSelector}
 																							entitySelector={{ hex: normalizedSelector }}
-																											href={resolve('/evm/selector/[hex]', {
-																								hex: normalizedSelector,
-																							})}
+																											href={resolve(\`/evm/selector/\${normalizedSelector}\`)}
 																						>
 																							{#snippet Icon()}
 																								<Icon
@@ -74990,9 +75160,7 @@ export const routes = defineRoutes(schema)({
 																								>
 																									{#snippet children()}
 																										<Heading>
-																													<a href={resolve('/evm/selector/[hex]', {
-																												hex: normalizedSelector,
-																											})}>
+																													<a href={resolve(\`/evm/selector/\${normalizedSelector}\`)}>
 																												{functionSignatures[selectedSignatureIndex] ?? normalizedSelector}
 																											</a>
 																										</Heading>
@@ -75072,9 +75240,7 @@ export const routes = defineRoutes(schema)({
 																						<EntityView
 																							entityType={EntityType.EvmTopic}
 																							entitySelector={{ hex: normalizedTopic }}
-																											href={resolve('/evm/topic/[hex]', {
-																								hex: normalizedTopic,
-																							})}
+																											href={resolve(\`/evm/topic/\${normalizedTopic}\`)}
 																						>
 																							{#snippet Icon()}
 																								<Icon
@@ -75091,9 +75257,7 @@ export const routes = defineRoutes(schema)({
 																								>
 																									{#snippet children()}
 																										<Heading>
-																													<a href={resolve('/evm/topic/[hex]', {
-																												hex: normalizedTopic,
-																											})}>
+																													<a href={resolve(\`/evm/topic/\${normalizedTopic}\`)}>
 																												{eventSignatures[selectedEventSignatureIndex] ?? normalizedTopic}
 																											</a>
 																										</Heading>
@@ -75690,52 +75854,6 @@ export const routes = defineRoutes(schema)({
 											}
 										}
 									},
-									children: {
-										"observations": {
-											children: {
-												"[timestampMs]": {
-													children: {
-														"[source]": {
-															selectors: {
-																[EntityType._GlobalIpfsAccess_Timestamp]: {
-																	"HubTimestampMsSource": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					timestampMs: "/ipfs/access/observations/[timestampMs]/[source]:_GlobalIpfsAccess_Timestamp.HubTimestampMsSource.1.timestampMs",
-																					source: "/ipfs/access/observations/[timestampMs]/[source]:_GlobalIpfsAccess_Timestamp.HubTimestampMsSource.1.source",
-																				},
-																			},
-																		],
-
-																		params: {
-																			"timestampMs": [
-																				"timestampMs"
-																			],
-																			"source": [
-																				"source"
-																			]
-																		},
-																		derivations: {
-																			"$hub": {
-																				kind: "object",
-																				fields: [
-																					{ name: "scope", value: { kind: "literal", value: "_GlobalIpfsAccess" } },
-																				],
-																			}
-																		},
-
-																		page: {}
-																	}
-																}
-															},
-														}
-													}
-												}
-											}
-										}
-									}
 								}
 							}
 						},
@@ -75817,6 +75935,9 @@ export const routes = defineRoutes(schema)({
 								EntityType._Global,
 								"$$networks"
 							],
+							query: {
+								sources: [Source.Constants_Internal],
+							},
 							derivations: {
 								"scope": { kind: "literal", value: "$$networks" }
 							},
@@ -76105,6 +76226,52 @@ export const routes = defineRoutes(schema)({
 																		},
 																		page: {}
 																	}
+																},
+																[EntityType.HederaAccount]: {
+																	"NetworkAccountId": {
+																		probeCases: [
+																			{
+																				id: "default",
+																				params: {
+																					network: "/network/[network]/account/[accountId]:HederaAccount.NetworkAccountId.1.network",
+																					accountId: "/network/[network]/account/[accountId]:HederaAccount.NetworkAccountId.1.accountId",
+																				},
+																			},
+																		],
+																		when: {
+																			path: ["namespace"],
+																			is: "Hedera",
+																		},
+																		projection: {
+																			entityType: EntityType.Network,
+																			facetPath: ["Hedera"],
+																		},
+																		params: {
+																			"accountId": ["accountId"],
+																		},
+																		page: {},
+																	},
+																},
+																[EntityType.CardanoAddress]: {
+																	"NetworkAddress": {
+																		probeCases: [
+																			{
+																				id: "default",
+																				params: {
+																					network: "/network/[network]/account/[accountId]:CardanoAddress.NetworkAddress.1.network",
+																					accountId: "/network/[network]/account/[accountId]:CardanoAddress.NetworkAddress.1.accountId",
+																				},
+																			},
+																		],
+																		projection: {
+																			entityType: EntityType.Network,
+																			facetPath: ["Cardano"],
+																		},
+																		params: {
+																			"accountId": ["address"],
+																		},
+																		page: {},
+																	},
 																},
 																[EntityType.EvmNetworkAccount]: {
 																	"EvmNetworkEvmAccount": {
@@ -77482,6 +77649,10 @@ export const routes = defineRoutes(schema)({
 																			},
 																		],
 
+																		when: {
+																			path: ["namespace"],
+																			is: "Evm",
+																		},
 																		projection: {
 																			entityType: EntityType.Network,
 																			facetPath: ["Evm"]
@@ -77524,6 +77695,27 @@ export const routes = defineRoutes(schema)({
 																		page: {}
 																	}
 																},
+																[EntityType.CardanoTransaction]: {
+																	"NetworkHash": {
+																		probeCases: [
+																			{
+																				id: "default",
+																				params: {
+																					network: "/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.network",
+																					transactionId: "/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.transactionId",
+																				},
+																			},
+																		],
+																		projection: {
+																			entityType: EntityType.Network,
+																			facetPath: ["Cardano"],
+																		},
+																		params: {
+																			"transactionId": ["hash"],
+																		},
+																		page: {},
+																	},
+																},
 																[EntityType.UtxoTransaction]: {
 																	"NetworkTxId": {
 																		probeCases: [
@@ -77541,7 +77733,6 @@ export const routes = defineRoutes(schema)({
 																			isOneOf: [
 																				"Bitcoin",
 																				"BitcoinCash",
-																				"Cardano",
 																				"Dogecoin",
 																				"Elements",
 																				"Litecoin",
@@ -77766,6 +77957,16 @@ export const routes = defineRoutes(schema)({
 																	collections: [
 																		{
 																			field: [
+																				EntityType.CardanoTransaction,
+																				"$$inputs"
+																			],
+																			page: {
+																				view: { component: "CardanoTxInputsView" },
+																				text: { title: "Cardano inputs" }
+																			}
+																		},
+																		{
+																			field: [
 																				EntityType.UtxoTransaction,
 																				"$$inputs"
 																			],
@@ -77778,6 +77979,16 @@ export const routes = defineRoutes(schema)({
 																},
 																"outputs": {
 																	collections: [
+																		{
+																			field: [
+																				EntityType.CardanoTransaction,
+																				"$$outputs"
+																			],
+																			page: {
+																				view: { component: "CardanoTxOutputsView" },
+																				text: { title: "Cardano outputs" }
+																			}
+																		},
 																		{
 																			field: [
 																				EntityType.UtxoTransaction,
@@ -77794,6 +78005,28 @@ export const routes = defineRoutes(schema)({
 																	children: {
 																		"[inputIndex]": {
 																			selectors: {
+																				[EntityType.CardanoTxInput]: {
+																					"TransactionInputIndex": {
+																						probeCases: [
+																							{
+																								id: "default",
+																								params: {
+																									network: "/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.network",
+																									transactionId: "/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.transactionId",
+																									inputIndex: "/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.inputIndex",
+																								},
+																							},
+																						],
+																						projection: {
+																							entityType: EntityType.Network,
+																							facetPath: ["Cardano"],
+																						},
+																						params: {
+																							"inputIndex": ["inputIndex"],
+																						},
+																						page: {},
+																					},
+																				},
 																				[EntityType.UtxoInput]: {
 																					"TransactionIndexInTransaction": {
 																						probeCases: [
@@ -77807,6 +78040,17 @@ export const routes = defineRoutes(schema)({
 																							},
 																						],
 
+																						when: {
+																							path: ["namespace"],
+																							isOneOf: [
+																								"Bitcoin",
+																								"BitcoinCash",
+																								"Dogecoin",
+																								"Elements",
+																								"Litecoin",
+																								"Zcash",
+																							],
+																						},
 																						projection: {
 																							entityType: EntityType.Network,
 																							facetPath: ["Utxo"]
@@ -77828,6 +78072,28 @@ export const routes = defineRoutes(schema)({
 																	children: {
 																		"[outputIndex]": {
 																			selectors: {
+																				[EntityType.CardanoTxOutput]: {
+																					"TransactionOutputIndex": {
+																						probeCases: [
+																							{
+																								id: "default",
+																								params: {
+																									network: "/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.network",
+																									transactionId: "/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.transactionId",
+																									outputIndex: "/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.outputIndex",
+																								},
+																							},
+																						],
+																						projection: {
+																							entityType: EntityType.Network,
+																							facetPath: ["Cardano"],
+																						},
+																						params: {
+																							"outputIndex": ["outputIndex"],
+																						},
+																						page: {},
+																					},
+																				},
 																				[EntityType.UtxoOutput]: {
 																					"TransactionIndexInTransaction": {
 																						probeCases: [
@@ -77841,6 +78107,17 @@ export const routes = defineRoutes(schema)({
 																							},
 																						],
 
+																						when: {
+																							path: ["namespace"],
+																							isOneOf: [
+																								"Bitcoin",
+																								"BitcoinCash",
+																								"Dogecoin",
+																								"Elements",
+																								"Litecoin",
+																								"Zcash",
+																							],
+																						},
 																						projection: {
 																							entityType: EntityType.Network,
 																							facetPath: ["Utxo"]
@@ -82551,15 +82828,18 @@ export const routes = defineRoutes(schema)({
 												"observations": {
 													children: {
 														"[timestampMs]": {
+															children: {
+																"[source]": {
 															selectors: {
 																[EntityType.XUser_Timestamp]: {
-																	"XUserTimestampMs": {
+																	"XUserTimestampMsSource": {
 																		probeCases: [
 																			{
 																				id: "default",
 																				params: {
-																					userId: "/x/user/[userId]/observations/[timestampMs]:XUser_Timestamp.XUserTimestampMs.1.userId",
-																					timestampMs: "/x/user/[userId]/observations/[timestampMs]:XUser_Timestamp.XUserTimestampMs.1.timestampMs",
+																					userId: "/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.userId",
+																					timestampMs: "/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.timestampMs",
+																					source: "/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.source",
 																				},
 																			},
 																		],
@@ -82567,6 +82847,9 @@ export const routes = defineRoutes(schema)({
 																		params: {
 																			"timestampMs": [
 																				"timestampMs"
+																			],
+																			"source": [
+																				"source"
 																			]
 																		}, derivations: {
 																			"$user": {
@@ -82579,6 +82862,8 @@ export const routes = defineRoutes(schema)({
 																		},
 																		page: {}
 																	}
+																}
+															},
 																}
 															},
 														}
@@ -82616,15 +82901,18 @@ export const routes = defineRoutes(schema)({
 												"observations": {
 													children: {
 														"[timestampMs]": {
+															children: {
+																"[source]": {
 															selectors: {
 																[EntityType.XPost_Timestamp]: {
-																	"XPostTimestampMs": {
+																	"XPostTimestampMsSource": {
 																		probeCases: [
 																			{
 																				id: "default",
 																				params: {
-																					postId: "/x/post/[postId]/observations/[timestampMs]:XPost_Timestamp.XPostTimestampMs.1.postId",
-																					timestampMs: "/x/post/[postId]/observations/[timestampMs]:XPost_Timestamp.XPostTimestampMs.1.timestampMs",
+																					postId: "/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.postId",
+																					timestampMs: "/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.timestampMs",
+																					source: "/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.source",
 																				},
 																			},
 																		],
@@ -82632,6 +82920,9 @@ export const routes = defineRoutes(schema)({
 																		params: {
 																			"timestampMs": [
 																				"timestampMs"
+																			],
+																			"source": [
+																				"source"
 																			]
 																		}, derivations: {
 																			"$post": {
@@ -82644,6 +82935,8 @@ export const routes = defineRoutes(schema)({
 																		},
 																		page: {}
 																	}
+																}
+															},
 																}
 															},
 														}
@@ -83469,9 +83762,7 @@ export const routes = defineRoutes(schema)({
 															event.preventDefault()
 															const normalizedQuery = query.trim().replace(/\\s+/g, ' ')
 															if (normalizedQuery !== '')
-											void goto(resolve('/nostr/search/[query=stringSegment]', {
-												query: normalizedQuery,
-											}))
+											void goto(resolve(\`/nostr/search/\${encodeURIComponent(normalizedQuery)}\`))
 														}}
 													>
 														<label data-column="gap-2">
@@ -83765,6 +84056,50 @@ export const routes = defineRoutes(schema)({
 											}
 										}
 									}
+								},
+								"article-version": {
+									children: {
+										"[eventId]": {
+											selectors: {
+												[EntityType.NostrArticleEvent]: {
+													"CanonicalEventId": {
+														probeCases: [
+															{
+																id: "default",
+																params: { eventId: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+															},
+														],
+														params: {
+															"eventId": ["eventId"],
+														},
+														page: {},
+													},
+												},
+											},
+										},
+									},
+								},
+								"profile-metadata-version": {
+									children: {
+										"[eventId]": {
+											selectors: {
+												[EntityType.NostrProfileMetadataEvent]: {
+													"CanonicalEventId": {
+														probeCases: [
+															{
+																id: "default",
+																params: { eventId: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+															},
+														],
+														params: {
+															"eventId": ["eventId"],
+														},
+														page: {},
+													},
+												},
+											},
+										},
+									},
 								},
 								"repost": {
 									children: {
@@ -84858,14 +85193,8 @@ export const app = {
 						href: "/~/accounts/connections",
 						icon: "🔌",
 					},
-					{
-						id: "local-watched-accounts",
-						title: "Watched accounts",
-						href: "/~/accounts/watched-accounts",
-						icon: "👛",
-					},
-					{
-						id: "local-balances",
+						{
+							id: "local-balances",
 						title: "Balances",
 						href: "/~/accounts/balances",
 						icon: "🪙",
@@ -87086,8 +87415,8 @@ export const app = {
 				label: "Aptos fullnode REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "aptos",
+						kind: SourceTargetKind.Caip2Network,
+						key: "aptos:1",
 					},
 					endpoints: [
 						{
@@ -87102,7 +87431,7 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
+					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
 							scope: SourceCredentialScope.None,
@@ -87133,8 +87462,8 @@ export const app = {
 				label: "Aptos Indexer GraphQL",
 				binding: {
 					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "aptos",
+						kind: SourceTargetKind.Caip2Network,
+						key: "aptos:1",
 					},
 					endpoints: [
 						{
@@ -87149,7 +87478,7 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
+					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
 							scope: SourceCredentialScope.None,
@@ -94613,7 +94942,7 @@ export const app = {
 							locator: "wss://{relay-host}",
 						},
 					],
-					wireProtocol: WireProtocol.JsonRpc2,
+					wireProtocol: WireProtocol.WebSocketMessages,
 					apiFamily: ApiFamily.NostrRelay,
 					operationGroups: [
 						SourceOperationGroup.NostrRelayRead,
@@ -96426,6 +96755,13 @@ export const app = {
 							scope: SourceCredentialScope.None,
 						},
 					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Starknet/JsonRpc/types.ts",
+							generated: false,
+						},
+					],
 				},
 			},
 			{
@@ -97370,8 +97706,8 @@ export const app = {
 				label: "TronGrid REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "tron",
+						kind: SourceTargetKind.Caip2Network,
+						key: "tron:0x2b6653dc",
 					},
 					endpoints: [
 						{
@@ -97436,8 +97772,8 @@ export const app = {
 				label: "TRONSCAN REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "tron",
+						kind: SourceTargetKind.Caip2Network,
+						key: "tron:0x2b6653dc",
 					},
 					endpoints: [
 						{
@@ -102032,6 +102368,10 @@ export const app = {
 			{
 				source: Source.SqdPortal_RawHttp,
 				path: "src/resolvers/Sqd-Portal.ts",
+			},
+			{
+				source: Source.Starknet_JsonRpc,
+				path: "src/resolvers/Starknet-JsonRpc.ts",
 			},
 			{
 				source: Source.Reddit_Rest,

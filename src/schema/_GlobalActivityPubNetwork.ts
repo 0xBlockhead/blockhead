@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum _GlobalActivityPubNetworkSelector {
@@ -27,12 +28,18 @@ export const _GlobalActivityPubNetwork = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ActivityPubActor,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Mastodon_Rest,
+		],
 	},
 	$$observedNotes: {
 		label: 'Observed notes',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ActivityPubNote,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Mastodon_Rest,
+		],
 	},
 	$$instances: {
 		label: 'Instances',

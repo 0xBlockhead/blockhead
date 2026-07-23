@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Cashu keysets',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CashuKeyset>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CashuKeyset>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CashuKeysetView from '$/views/CashuKeysetView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cashuKeysets) => [...new Map(cashuKeysets.values.map((cashuKeyset) => [cashuKeyset[EntityMetaKey.SelectorKey], cashuKeyset])).values()]}
 	getKey={(cashuKeyset) => cashuKeyset[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: cashuKeyset })}
 		{@const cashuKeysetFields = { ...cashuKeyset[EntityMetaKey.Selector], ...cashuKeyset }}
-		{@const selection = select(EntityType.CashuKeyset, cashuKeyset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CashuKeysetView
-			selection={selection}
-			prefetched={cashuKeysetFields}
+		<EntityView
+			entityType={EntityType.CashuKeyset}
+			entitySelector={cashuKeyset[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cashuKeysetFields.keysetId) ?? '')].filter(Boolean).join(' ') || 'Cashu keyset'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((cashuKeysetFields.unit) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((cashuKeysetFields.$mint.mintUrl) ?? '')].filter(Boolean).join(' ') || 'Cashu mint'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

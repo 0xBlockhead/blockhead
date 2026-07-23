@@ -26,12 +26,15 @@ export const getAccountBalanceInfo = ({
 }: {
 	binding: SourceBinding
 	accountId: string
-}) => (
-	getJson<SidecarAccountBalanceInfo>(
+}) => {
+	if (accountId.length === 0)
+		throw new Error('SubstrateSidecar_Rest: account ID must not be empty')
+
+	return getJson<SidecarAccountBalanceInfo>(
 		binding,
-		`/accounts/${accountId}/balance-info`
+		`/accounts/${encodeURIComponent(accountId)}/balance-info`
 	)
-)
+}
 
 export const getRuntimeMetadata = ({ binding }: { binding: SourceBinding }) => (
 	getJson<SidecarRuntimeMetadata>(

@@ -56,7 +56,6 @@ export const FarcasterFeed = entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Neynar_Rest,
-			Source.Farcaster_Rest,
 			Source.Snapchain_Rest,
 		],
 	},

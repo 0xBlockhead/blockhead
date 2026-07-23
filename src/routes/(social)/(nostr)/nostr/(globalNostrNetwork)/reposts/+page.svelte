@@ -29,13 +29,24 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			}).$$observedReposts({
-				sources: [
-					Source.Constants_Internal,
-					Source.NostrBand_Rest,
-				],
-				count: true,
 			})
+				.$$observedReposts({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._GlobalNostrNetwork, {
+				scope: '_GlobalNostrNetwork',
+			})
+				.$$observedReposts({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				}).count
 		}
 		id='observed-reposts'
 		data-column-item="flexible"

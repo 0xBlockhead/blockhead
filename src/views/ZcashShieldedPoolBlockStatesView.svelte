@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Zcash shielded pool block states',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ZcashShieldedPoolBlockState>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ZcashShieldedPoolBlockState>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ZcashShieldedPoolBlockStateView from '$/views/ZcashShieldedPoolBlockStateView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,12 +66,18 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				$pool: true,
+				$pool: {
+					fields: {
+						noteProtocol: true,
+						activationNetworkUpgrade: true,
+					},
+				},
 				saplingTree: true,
 				orchardTree: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(zcashShieldedPoolBlockStates) => [...new Map(zcashShieldedPoolBlockStates.values.map((zcashShieldedPoolBlockState) => [zcashShieldedPoolBlockState[EntityMetaKey.SelectorKey], zcashShieldedPoolBlockState])).values()]}
 	getKey={(zcashShieldedPoolBlockState) => zcashShieldedPoolBlockState[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +92,20 @@
 
 	{#snippet Item({ item: zcashShieldedPoolBlockState })}
 		{@const zcashShieldedPoolBlockStateFields = { ...zcashShieldedPoolBlockState[EntityMetaKey.Selector], ...zcashShieldedPoolBlockState }}
-		{@const selection = select(EntityType.ZcashShieldedPoolBlockState, zcashShieldedPoolBlockState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ZcashShieldedPoolBlockStateView
-			selection={selection}
-			prefetched={zcashShieldedPoolBlockStateFields}
+		<EntityView
+			entityType={EntityType.ZcashShieldedPoolBlockState}
+			entitySelector={zcashShieldedPoolBlockState[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((zcashShieldedPoolBlockStateFields.$pool.pool) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded pool'].filter(Boolean).join(' ') || 'zcash shielded pool block state'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[zcashShieldedPoolBlockStateFields.saplingTree == null ? '' : String(`${(zcashShieldedPoolBlockStateFields.saplingTree).finalRoot} / ${(zcashShieldedPoolBlockStateFields.saplingTree).finalState}`), zcashShieldedPoolBlockStateFields.orchardTree == null ? '' : String(`${(zcashShieldedPoolBlockStateFields.orchardTree).finalRoot} / ${(zcashShieldedPoolBlockStateFields.orchardTree).finalState}`)].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

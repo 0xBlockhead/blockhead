@@ -1350,8 +1350,8 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 	touch-action: pan-x pan-y;
 
 	&:not([data-scroll-container~='block']):not([data-scroll-container~='inline']) {
-		container-type: size;
-		container-type: scroll-state size;
+		container-type: inline-size;
+		container-type: scroll-state inline-size;
 		overflow: auto auto;
 
 		max-block-size: var(--scrollContainer-sizeBlock);

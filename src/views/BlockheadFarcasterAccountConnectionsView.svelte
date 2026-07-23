@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Farcaster account connections',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadFarcasterAccountConnection>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadFarcasterAccountConnection>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadFarcasterAccountConnectionView from '$/views/BlockheadFarcasterAccountConnectionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadFarcasterAccountConnections) => [...new Map(blockheadFarcasterAccountConnections.values.map((blockheadFarcasterAccountConnection) => [blockheadFarcasterAccountConnection[EntityMetaKey.SelectorKey], blockheadFarcasterAccountConnection])).values()]}
 	getKey={(blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,18 +88,35 @@
 
 	{#snippet Item({ item: blockheadFarcasterAccountConnection })}
 		{@const blockheadFarcasterAccountConnectionFields = { ...blockheadFarcasterAccountConnection[EntityMetaKey.Selector], ...blockheadFarcasterAccountConnection }}
-		{@const selection = select(EntityType.BlockheadFarcasterAccountConnection, blockheadFarcasterAccountConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const blockheadFarcasterAccountConnectionHrefFields = { ...blockheadFarcasterAccountConnection, ...blockheadFarcasterAccountConnection[EntityMetaKey.Selector] }}
-		<BlockheadFarcasterAccountConnectionView
-			selection={selection}
-			prefetched={blockheadFarcasterAccountConnectionFields}
+		<EntityView
+			entityType={EntityType.BlockheadFarcasterAccountConnection}
+			entitySelector={blockheadFarcasterAccountConnection[EntityMetaKey.Selector]}
 			href={
-				(blockheadFarcasterAccountConnectionHrefFields.connectionId !== undefined ? resolve('/farcaster/account/[connectionId=stringSegment]', {
-					connectionId: String(blockheadFarcasterAccountConnectionHrefFields.connectionId ?? ''),
-				}) : undefined)
+				(
+					blockheadFarcasterAccountConnection[EntityMetaKey.Selector] != null && 'connectionId' in blockheadFarcasterAccountConnection[EntityMetaKey.Selector]
+					&& blockheadFarcasterAccountConnection[EntityMetaKey.Selector].connectionId != null ?
+						resolve('/farcaster/account/[connectionId=stringSegment]', {
+					connectionId: String(blockheadFarcasterAccountConnection[EntityMetaKey.Selector].connectionId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'Blockhead Farcaster account connection'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((blockheadFarcasterAccountConnectionFields.$user.displayName) ?? ''), String((blockheadFarcasterAccountConnectionFields.$user.username) ?? ''), String((blockheadFarcasterAccountConnectionFields.$user.fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadFarcasterAccountConnectionFields.authMethod) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

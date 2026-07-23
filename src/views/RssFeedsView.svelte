@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'RSS feeds',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.RssFeed>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.RssFeed>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import RssFeedView from '$/views/RssFeedView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(rssFeeds) => [...new Map(rssFeeds.values.map((rssFeed) => [rssFeed[EntityMetaKey.SelectorKey], rssFeed])).values()]}
 	getKey={(rssFeed) => rssFeed[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,18 +88,35 @@
 
 	{#snippet Item({ item: rssFeed })}
 		{@const rssFeedFields = { ...rssFeed[EntityMetaKey.Selector], ...rssFeed }}
-		{@const selection = select(EntityType.RssFeed, rssFeed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const rssFeedHrefFields = { ...rssFeed, ...rssFeed[EntityMetaKey.Selector] }}
-		<RssFeedView
-			selection={selection}
-			prefetched={rssFeedFields}
+		<EntityView
+			entityType={EntityType.RssFeed}
+			entitySelector={rssFeed[EntityMetaKey.Selector]}
 			href={
-				(rssFeedHrefFields.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-					feedUrl: encodeURIComponent(String(rssFeedHrefFields.feedUrl ?? '')),
-				}) : undefined)
+				(
+					rssFeed[EntityMetaKey.Selector] != null && 'feedUrl' in rssFeed[EntityMetaKey.Selector]
+					&& rssFeed[EntityMetaKey.Selector].feedUrl != null ?
+						resolve('/rss/feed/[feedUrl=absoluteUrl]', {
+					feedUrl: encodeURIComponent(String(rssFeed[EntityMetaKey.Selector].feedUrl ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((rssFeedFields.title) ?? ''), String((rssFeedFields.feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((rssFeedFields.feedUrl) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((rssFeedFields.lastBuildDate) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

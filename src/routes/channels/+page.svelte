@@ -28,9 +28,12 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$blockheadStateChannels',
-			}).$$blockheadStateChannels({
-				count: true,
-			})
+			}).$$blockheadStateChannels
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$blockheadStateChannels',
+			}).$$blockheadStateChannels.count
 		}
 		id='blockhead-state-channels'
 		data-column-item="flexible"

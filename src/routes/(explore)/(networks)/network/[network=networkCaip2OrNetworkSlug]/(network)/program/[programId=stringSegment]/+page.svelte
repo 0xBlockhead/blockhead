@@ -24,7 +24,6 @@
 			$upgradeAuthority: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.programId) ?? '')].filter(Boolean).join(' ') || 'solana program' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).programId) ?? '')].filter(Boolean).join(' ') || 'solana program')))
 
 
 	// Components
@@ -34,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • solana program • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.programId) ?? '')].filter(Boolean).join(' ') || 'solana program' : [String((({ ...data.selector, ...pageSelection.entity }).programId) ?? '')].filter(Boolean).join(' ') || 'solana program'))} • solana program • Blockhead</title>
 </svelte:head>
 
 

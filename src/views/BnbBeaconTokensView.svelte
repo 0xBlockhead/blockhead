@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Bnb beacon tokens',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BnbBeaconToken>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BnbBeaconToken>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BnbBeaconTokenView from '$/views/BnbBeaconTokenView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(bnbBeaconTokens) => [...new Map(bnbBeaconTokens.values.map((bnbBeaconToken) => [bnbBeaconToken[EntityMetaKey.SelectorKey], bnbBeaconToken])).values()]}
 	getKey={(bnbBeaconToken) => bnbBeaconToken[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: bnbBeaconToken })}
 		{@const bnbBeaconTokenFields = { ...bnbBeaconToken[EntityMetaKey.Selector], ...bnbBeaconToken }}
-		{@const selection = select(EntityType.BnbBeaconToken, bnbBeaconToken[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BnbBeaconTokenView
-			selection={selection}
-			prefetched={bnbBeaconTokenFields}
+		<EntityView
+			entityType={EntityType.BnbBeaconToken}
+			entitySelector={bnbBeaconToken[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((bnbBeaconTokenFields.symbol) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((bnbBeaconTokenFields.tokenName) ?? ''), String((bnbBeaconTokenFields.tokenType) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -28,7 +28,6 @@
 			$factory: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account')))
 
 
 	// Components
@@ -38,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ERC-4337 smart account • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account' : [String((({ ...data.selector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account'))} • ERC-4337 smart account • Blockhead</title>
 </svelte:head>
 
 

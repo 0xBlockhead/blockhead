@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Wallet authentications',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadWalletAuthentication>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadWalletAuthentication>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadWalletAuthenticationView from '$/views/BlockheadWalletAuthenticationView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadWalletAuthentications) => [...new Map(blockheadWalletAuthentications.values.map((blockheadWalletAuthentication) => [blockheadWalletAuthentication[EntityMetaKey.SelectorKey], blockheadWalletAuthentication])).values()]}
 	getKey={(blockheadWalletAuthentication) => blockheadWalletAuthentication[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: blockheadWalletAuthentication })}
 		{@const blockheadWalletAuthenticationFields = { ...blockheadWalletAuthentication[EntityMetaKey.Selector], ...blockheadWalletAuthentication }}
-		{@const selection = select(EntityType.BlockheadWalletAuthentication, blockheadWalletAuthentication[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadWalletAuthenticationView
-			selection={selection}
-			prefetched={blockheadWalletAuthenticationFields}
+		<EntityView
+			entityType={EntityType.BlockheadWalletAuthentication}
+			entitySelector={blockheadWalletAuthentication[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadWalletAuthenticationFields.authenticationId) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet authentication'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadWalletAuthenticationFields.protocol) ?? ''), String((blockheadWalletAuthenticationFields.verified) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

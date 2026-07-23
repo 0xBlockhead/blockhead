@@ -3,12 +3,21 @@
  * @see https://docs.farcaster.xyz/reference/farcaster/api
  */
 
-import { getJson } from '$/lib/http.ts'
+import { fetchFailedMessage } from '$/lib/http.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { Source } from '$/sources/Source.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
-	farcasterApiOrigins,
 	clientBaseUrl,
 	webBaseUrl,
 } from '$/sources/Farcaster/Rest/constants.ts'
+
+const farcasterRestBinding = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.find((binding) => binding.source === Source.Farcaster_Rest)
+
+if (farcasterRestBinding == null)
+	throw new Error('Farcaster_Rest: missing source binding')
 
 const toQueryString = (params?: Record<string, string | number | boolean | undefined>) => {
 	const searchParams = new URLSearchParams()
@@ -27,5 +36,10 @@ export async function farcasterGet<T>(
 	params?: Record<string, string | number | boolean | undefined>
 ): Promise<T> {
 	const baseUrl = path.startsWith('/~api/') ? webBaseUrl : clientBaseUrl
-	return getJson<T>(`${baseUrl}${path}${toQueryString(params)}`, { origins: farcasterApiOrigins })
+	const url = `${baseUrl}${path}${toQueryString(params)}`
+	const response = await sourceFetch(farcasterRestBinding, url)
+	if (!response.ok)
+		throw new Error(await fetchFailedMessage(url, response))
+
+	return response.json<T>()
 }

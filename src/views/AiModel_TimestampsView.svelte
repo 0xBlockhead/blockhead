@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'AI model observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AiModel_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AiModel_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AiModel_TimestampView from '$/views/AiModel_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -75,11 +68,25 @@
 			fields: {
 				providerDisplayName: true,
 				availabilityStatus: true,
-				$model: true,
+				$model: {
+					fields: {
+						label: true,
+						$provider: {
+							fields: {
+								label: true,
+								organizationKind: true,
+								providerId: true,
+								domain: true,
+							},
+						},
+						modelFamily: true,
+					},
+				},
 				providerLifecycleStatus: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(aiModelTimestamps) => [...new Map(aiModelTimestamps.values.map((aiModelTimestamp) => [aiModelTimestamp[EntityMetaKey.SelectorKey], aiModelTimestamp])).values()]}
 	getKey={(aiModelTimestamp) => aiModelTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +101,24 @@
 
 	{#snippet Item({ item: aiModelTimestamp })}
 		{@const aiModelTimestampFields = { ...aiModelTimestamp[EntityMetaKey.Selector], ...aiModelTimestamp }}
-		{@const selection = select(EntityType.AiModel_Timestamp, aiModelTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AiModel_TimestampView
-			selection={selection}
-			prefetched={aiModelTimestampFields}
+		<EntityView
+			entityType={EntityType.AiModel_Timestamp}
+			entitySelector={aiModelTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((aiModelTimestampFields.providerDisplayName) ?? '')].filter(Boolean).join(' ') || [[String((aiModelTimestampFields.$model.label) ?? '')].filter(Boolean).join(' ') || [String((aiModelTimestampFields.$model.providerModelId) ?? '')].filter(Boolean).join(' ') || 'AI model'].filter(Boolean).join(' ') || 'AI model timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((aiModelTimestampFields.availabilityStatus) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((aiModelTimestampFields.providerLifecycleStatus) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

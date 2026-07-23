@@ -15,13 +15,20 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getAddress,
+	getAddressTotal,
 	getDRepMetadata,
+	getGovernanceProposal,
 	getGovernanceProposalMetadata,
 	getStakePoolMetadata,
 	getCommittee,
 	getBlock,
+	getTransaction,
+	getTransactionUtxos,
 	getLatestProtocolParameters,
 	listAssets,
+	listAddressTransactions,
+	listAddressUtxos,
 	listBlocks,
 	listCommitteeVotes,
 	listDReps,
@@ -45,12 +52,38 @@ describe('Blockfrost REST transport', () => {
 	})
 
 	it('encodes selector paths and sends the Blockfrost project header', async () => {
-		sourceFetch.mockResolvedValueOnce(Response.json(block))
+		sourceFetch
+			.mockResolvedValueOnce(Response.json(block))
+			.mockResolvedValueOnce(Response.json({ hash: 'hash/with delimiter' }))
+			.mockResolvedValueOnce(Response.json({
+				hash: 'hash/with delimiter',
+				inputs: [],
+				outputs: [],
+			}))
 
 		await expect(getBlock(binding, 'hash/with delimiter')).resolves.toEqual(block)
-		expect(sourceFetch).toHaveBeenCalledWith(
+		await expect(getTransaction(binding, 'hash/with delimiter')).resolves.toMatchObject({
+			hash: 'hash/with delimiter',
+		})
+		await expect(getTransactionUtxos(binding, 'hash/with delimiter')).resolves.toMatchObject({
+			hash: 'hash/with delimiter',
+			inputs: [],
+			outputs: [],
+		})
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			1,
 			binding,
 			'https://cardano-mainnet.blockfrost.io/api/v0/blocks/hash%2Fwith%20delimiter'
+		)
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			'https://cardano-mainnet.blockfrost.io/api/v0/txs/hash%2Fwith%20delimiter'
+		)
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			3,
+			binding,
+			'https://cardano-mainnet.blockfrost.io/api/v0/txs/hash%2Fwith%20delimiter/utxos'
 		)
 	})
 
@@ -77,6 +110,47 @@ describe('Blockfrost REST transport', () => {
 		)
 	})
 
+	it('loads encoded address detail, totals, newest transactions, and UTXOs', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json({
+				address: 'addr/example',
+				amount: [],
+				stake_address: null,
+				type: 'shelley',
+				script: false,
+			}))
+			.mockResolvedValueOnce(Response.json({
+				address: 'addr/example',
+				received_sum: [],
+				sent_sum: [],
+				tx_count: 2,
+			}))
+			.mockResolvedValueOnce(Response.json([
+				{
+					tx_hash: 'transaction-hash',
+					tx_index: 0,
+					block_height: 1,
+					block_time: 1_700_000_000,
+				},
+			]))
+			.mockResolvedValueOnce(Response.json([]))
+
+		await expect(getAddress(binding, 'addr/example')).resolves.toMatchObject({
+			address: 'addr/example',
+		})
+		await expect(getAddressTotal(binding, 'addr/example')).resolves.toMatchObject({
+			tx_count: 2,
+		})
+		await expect(listAddressTransactions(binding, 'addr/example', 16)).resolves.toHaveLength(1)
+		await expect(listAddressUtxos(binding, 'addr/example', 16)).resolves.toEqual([])
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'https://cardano-mainnet.blockfrost.io/api/v0/addresses/addr%2Fexample',
+			'https://cardano-mainnet.blockfrost.io/api/v0/addresses/addr%2Fexample/total',
+			'https://cardano-mainnet.blockfrost.io/api/v0/addresses/addr%2Fexample/transactions?count=16&order=desc&page=1',
+			'https://cardano-mainnet.blockfrost.io/api/v0/addresses/addr%2Fexample/utxos?count=16&order=desc&page=1',
+		])
+	})
+
 	it('rejects invalid limits before transport', async () => {
 		await expect(listBlocks(binding, -1)).rejects.toThrow(
 			'Blockfrost_Rest: block list count must be an integer from 0 through 100'
@@ -100,7 +174,16 @@ describe('Blockfrost REST transport', () => {
 					retired: false,
 					expired: false,
 					last_active_epoch: 500,
-					metadata: null,
+					metadata: {
+						url: 'https://example.com/drep.json',
+						hash: 'metadata-hash',
+						json_metadata: {
+							body: {
+								givenName: 'Example DRep',
+							},
+						},
+						bytes: null,
+					},
 				},
 			]))
 			.mockResolvedValueOnce(Response.json([
@@ -120,14 +203,25 @@ describe('Blockfrost REST transport', () => {
 
 		await expect(listLatestBlockTransactions(binding, 16)).resolves.toEqual(['transaction-hash'])
 		await expect(listStakePools(binding, 16)).resolves.toEqual(['pool1example'])
-		await expect(listDReps(binding, 16)).resolves.toHaveLength(1)
-		await expect(listGovernanceProposals(binding, 16)).resolves.toHaveLength(1)
+		await expect(listDReps(binding, 16)).resolves.toEqual([
+			{
+				drep_id: 'drep1example',
+				hex: 'ab',
+				amount: '1',
+				has_script: false,
+				retired: false,
+				expired: false,
+				last_active_epoch: 500,
+				displayName: 'Example DRep',
+			},
+		])
+		await expect(listGovernanceProposals(binding, 16, 3)).resolves.toHaveLength(1)
 		await expect(listAssets(binding, 16)).resolves.toHaveLength(1)
 		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
 			'https://cardano-mainnet.blockfrost.io/api/v0/blocks/latest/txs?count=16',
 			'https://cardano-mainnet.blockfrost.io/api/v0/pools?count=16',
 			'https://cardano-mainnet.blockfrost.io/api/v0/governance/dreps?count=16',
-			'https://cardano-mainnet.blockfrost.io/api/v0/governance/proposals?count=16',
+			'https://cardano-mainnet.blockfrost.io/api/v0/governance/proposals?count=16&page=3',
 			'https://cardano-mainnet.blockfrost.io/api/v0/assets?count=16',
 		])
 	})
@@ -153,6 +247,83 @@ describe('Blockfrost REST transport', () => {
 			'https://cardano-mainnet.blockfrost.io/api/v0/epochs/latest/parameters',
 			'https://cardano-mainnet.blockfrost.io/api/v0/governance/committee',
 		])
+	})
+
+	it('omits DRep display identity when CIP-119 metadata is absent or malformed', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json([
+			{
+				drep_id: 'drep1missing',
+				hex: 'ab',
+				amount: '1',
+				has_script: false,
+				retired: false,
+				expired: false,
+				last_active_epoch: 500,
+				metadata: null,
+			},
+			{
+				drep_id: 'drep1malformed',
+				hex: 'cd',
+				amount: '2',
+				has_script: false,
+				retired: false,
+				expired: false,
+				last_active_epoch: 500,
+				metadata: {
+					url: 'https://example.com/drep.json',
+					hash: 'metadata-hash',
+					json_metadata: {
+						body: {
+							givenName: 42,
+						},
+					},
+					bytes: null,
+				},
+			},
+		]))
+
+		await expect(listDReps(binding, 2)).resolves.toEqual([
+			expect.not.objectContaining({ displayName: expect.anything() }),
+			expect.not.objectContaining({ displayName: expect.anything() }),
+		])
+	})
+
+	it('normalizes validated CIP-119 identity on DRep detail metadata', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json({
+				drep_id: 'drep1example',
+				hex: 'ab',
+				url: 'https://example.com/drep.json',
+				hash: 'metadata-hash',
+				json_metadata: {
+					body: {
+						givenName: 'Example DRep',
+					},
+				},
+				bytes: null,
+			}))
+			.mockResolvedValueOnce(Response.json({
+				drep_id: 'drep1malformed',
+				hex: 'cd',
+				url: 'https://example.com/malformed.json',
+				hash: 'malformed-metadata-hash',
+				json_metadata: {
+					body: {
+						givenName: 42,
+					},
+				},
+				bytes: null,
+			}))
+
+		await expect(getDRepMetadata(binding, 'drep1example')).resolves.toEqual({
+			url: 'https://example.com/drep.json',
+			hash: 'metadata-hash',
+			displayName: 'Example DRep',
+		})
+		await expect(getDRepMetadata(binding, 'drep1malformed')).resolves.toEqual({
+			url: 'https://example.com/malformed.json',
+			hash: 'malformed-metadata-hash',
+		})
 	})
 
 	it('loads official committee votes and treats metadata transport failures as optional', async () => {
@@ -186,6 +357,36 @@ describe('Blockfrost REST transport', () => {
 			'https://cardano-mainnet.blockfrost.io/api/v0/governance/dreps/drep1example/metadata',
 			'https://cardano-mainnet.blockfrost.io/api/v0/pools/pool1example/metadata',
 		])
+	})
+
+	it('preserves exact on-chain governance proposal payloads', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			id: 'gov_action1example',
+			tx_hash: 'proposal/hash',
+			cert_index: 1,
+			governance_type: 'info_action',
+			governance_description: {
+				tag: 'InfoAction',
+			},
+			deposit: '1000000',
+			return_address: 'stake1return',
+			ratified_epoch: null,
+			enacted_epoch: null,
+			dropped_epoch: null,
+			expired_epoch: null,
+			expiration: 600,
+		}))
+
+		await expect(getGovernanceProposal(binding, 'proposal/hash', 1)).resolves.toMatchObject({
+			id: 'gov_action1example',
+			governance_description: {
+				tag: 'InfoAction',
+			},
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			'https://cardano-mainnet.blockfrost.io/api/v0/governance/proposals/proposal%2Fhash/1'
+		)
 	})
 
 	it('skips zero-count list transport and rejects malformed list limits', async () => {

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Avail blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AvailBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AvailBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AvailBlockView from '$/views/AvailBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(availBlocks) => [...new Map(availBlocks.values.map((availBlock) => [availBlock[EntityMetaKey.SelectorKey], availBlock])).values()]}
 	getKey={(availBlock) => availBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: availBlock })}
 		{@const availBlockFields = { ...availBlock[EntityMetaKey.Selector], ...availBlock }}
-		{@const selection = select(EntityType.AvailBlock, availBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AvailBlockView
-			selection={selection}
-			prefetched={availBlockFields}
+		<EntityView
+			entityType={EntityType.AvailBlock}
+			entitySelector={availBlock[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((availBlockFields.blockNumber) ?? '')].filter(Boolean).join(' ') || [String((availBlockFields.blockHash) ?? '')].filter(Boolean).join(' ') || 'avail block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((availBlockFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

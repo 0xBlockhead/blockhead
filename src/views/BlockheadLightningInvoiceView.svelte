@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadLightningInvoice>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadLightningInvoice>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLightningInvoice>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLightningInvoice = $derived(selection({
+	const blockheadLightningInvoice = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			memo: true,
+			valueMsat: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			memo: true,
@@ -51,7 +58,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.memo) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning invoice')
-	const viewDomId = $derived('blockhead-lightning-invoice-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-lightning-invoice-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,20 +78,35 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.paymentHash !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
-			paymentHash: String(pendingEntity.paymentHash ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
-		}) : pendingEntity.paymentHash !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
-			paymentHash: String(pendingEntity.paymentHash ?? ''),
-			network: String(pendingEntity.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'paymentHash' in selection.entitySelector
+			&& selection.entitySelector.paymentHash != null
+			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
+				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+				&& selection.entitySelector.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
+				paymentHash: String(selection.entitySelector.paymentHash ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+					&& selection.entitySelector.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
+					paymentHash: String(selection.entitySelector.paymentHash ?? ''),
+					network: String(selection.entitySelector.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'memo') && Object.hasOwn(prefetched, 'valueMsat')}
 			{[String((pendingEntity.memo) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadLightningInvoice}>
@@ -97,13 +119,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const valueMsat0 = pendingEntity.valueMsat}
-					{#if valueMsat0 !== undefined && valueMsat0 !== null}
-						<NumberValue
-							value={valueMsat0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'memo') && Object.hasOwn(prefetched, 'valueMsat')}
+			{@const valueMsat0 = pendingEntity.valueMsat}
+			{#if valueMsat0 !== undefined && valueMsat0 !== null}
+				<NumberValue
+					value={valueMsat0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadLightningInvoice}>
 				{#snippet children(entity)}
@@ -149,13 +171,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -340,17 +372,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadLightningInvoice_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Observations'
-				emptyText='No observations yet.'
-				id='BlockheadLightningInvoice_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadLightningInvoiceBlockheadLightningInvoiceTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadLightningInvoiceBlockheadLightningInvoiceTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadLightningInvoice_TimestampsView
+					selection={blockheadLightningInvoiceBlockheadLightningInvoiceTimestampsViewTimestampsResource}
+					countResource={blockheadLightningInvoiceBlockheadLightningInvoiceTimestampsViewTimestampsResource.count}
+					title='Observations'
+					id='BlockheadLightningInvoice_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

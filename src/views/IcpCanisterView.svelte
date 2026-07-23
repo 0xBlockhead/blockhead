@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.IcpCanister>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.IcpCanister>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.IcpCanister>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpCanister = $derived(selection({
+	const icpCanister = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('ICP canister')
-	const viewDomId = $derived('icp-canister-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'ICP canister'
+	const viewDomId = $derived('icp-canister-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,12 +76,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={icpCanister}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -90,7 +93,7 @@
 				<dt>network</dt>
 				<dd>
 					<IcpNetworkView
-						selection={select(EntityType.IcpNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.IcpNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -124,174 +127,484 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-icp-canister-activity'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'icp-canister-methods',
-							label: 'Methods',
-						},
-						{
-							id: 'icp-canister-metadata',
-							label: 'Metadata',
-						},
-						{
-							id: 'icp-canister-logs',
-							label: 'Logs',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-activity'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Activity</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-icp-canister-activity'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'icp-canister-methods',
+						label: 'Methods',
+						ownsSection: true,
+					},
+					{
+						id: 'icp-canister-metadata',
+						label: 'Metadata',
+						ownsSection: true,
+					},
+					{
+						id: 'icp-canister-logs',
+						label: 'Logs',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-activity'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Activity</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionIcpCanisterMethods({ id, label, open })}
-					<IcpCanisterMethodsView
-						selection={selection.$$methods}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No methods.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerIcpCanisterMethods(_context, Content)}
+				{@const icpCanisterActivityIcpCanisterMethodsResource = selection.$$methods}
+				<ResourceBoundary
+					resource={icpCanisterActivityIcpCanisterMethodsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionIcpCanisterMetadata({ id, label, open })}
-					<IcpCanisterMetadataEntriesView
-						selection={selection.$$metadata}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No metadata.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionIcpCanisterLogs({ id, label, open })}
-					<IcpCanisterLog_TimestampsView
-						selection={selection.$$logs}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No logs.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			</CollapsibleTabs>
+			{#snippet SectionIcpCanisterMethods({ id, label, open, active })}
+				{@const icpCanisterActivityIcpCanisterMethodsResource = selection.$$methods}
+				<ResourceBoundary
+					resource={icpCanisterActivityIcpCanisterMethodsResource}
+				>
+					{#snippet children(icpCanisterMethod)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<IcpCanisterMethodsView
+								selection={icpCanisterActivityIcpCanisterMethodsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No methods.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-icp-canister-related'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'icp-canister-certified-states',
-							label: 'Certified States',
-						},
-						{
-							id: 'icp-canister-request-statuses',
-							label: 'Request Statuses',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-related'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Related</HeadingComponent>
-					</header>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-				{#snippet SectionIcpCanisterCertifiedStates({ id, label, open })}
-					<IcpCertifiedStatesView
-						selection={selection.$$certifiedStates}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No certified states.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionIcpCanisterRequestStatuses({ id, label, open })}
-					<IcpRequestStatusesView
-						selection={selection.$$requestStatuses}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No request statuses.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerIcpCanisterMetadata(_context, Content)}
+				{@const icpCanisterActivityIcpCanisterMetadataResource = selection.$$metadata}
+				<ResourceBoundary
+					resource={icpCanisterActivityIcpCanisterMetadataResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-icp-canister-observations'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'icp-canister-timestamps',
-							label: 'Timestamps',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-observations'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Observations</HeadingComponent>
-					</header>
-				{/snippet}
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionIcpCanisterTimestamps({ id, label, open })}
-					<IcpCanister_TimestampsView
-						selection={selection.$$timestamps}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No timestamps.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet SectionIcpCanisterMetadata({ id, label, open, active })}
+				{@const icpCanisterActivityIcpCanisterMetadataResource = selection.$$metadata}
+				<ResourceBoundary
+					resource={icpCanisterActivityIcpCanisterMetadataResource}
+				>
+					{#snippet children(icpCanisterMetadata)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<IcpCanisterMetadataEntriesView
+								selection={icpCanisterActivityIcpCanisterMetadataResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No metadata.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerIcpCanisterLogs(_context, Content)}
+				{@const icpCanisterActivityIcpCanisterLogsResource = selection.$$logs}
+				<ResourceBoundary
+					resource={icpCanisterActivityIcpCanisterLogsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionIcpCanisterLogs({ id, label, open, active })}
+				{@const icpCanisterActivityIcpCanisterLogsResource = selection.$$logs}
+				<ResourceBoundary
+					resource={icpCanisterActivityIcpCanisterLogsResource}
+				>
+					{#snippet children(icpCanisterLogTimestamp)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<IcpCanisterLog_TimestampsView
+								selection={icpCanisterActivityIcpCanisterLogsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No logs.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-icp-canister-related'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'icp-canister-certified-states',
+						label: 'Certified States',
+						ownsSection: true,
+					},
+					{
+						id: 'icp-canister-request-statuses',
+						label: 'Request Statuses',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-related'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Related</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerIcpCanisterCertifiedStates(_context, Content)}
+				{@const icpCanisterRelatedIcpCanisterCertifiedStatesResource = selection.$$certifiedStates}
+				<ResourceBoundary
+					resource={icpCanisterRelatedIcpCanisterCertifiedStatesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionIcpCanisterCertifiedStates({ id, label, open, active })}
+				{@const icpCanisterRelatedIcpCanisterCertifiedStatesResource = selection.$$certifiedStates}
+				<ResourceBoundary
+					resource={icpCanisterRelatedIcpCanisterCertifiedStatesResource}
+				>
+					{#snippet children(icpCertifiedState)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<IcpCertifiedStatesView
+								selection={icpCanisterRelatedIcpCanisterCertifiedStatesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No certified states.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerIcpCanisterRequestStatuses(_context, Content)}
+				{@const icpCanisterRelatedIcpCanisterRequestStatusesResource = selection.$$requestStatuses}
+				<ResourceBoundary
+					resource={icpCanisterRelatedIcpCanisterRequestStatusesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionIcpCanisterRequestStatuses({ id, label, open, active })}
+				{@const icpCanisterRelatedIcpCanisterRequestStatusesResource = selection.$$requestStatuses}
+				<ResourceBoundary
+					resource={icpCanisterRelatedIcpCanisterRequestStatusesResource}
+				>
+					{#snippet children(icpRequestStatus)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<IcpRequestStatusesView
+								selection={icpCanisterRelatedIcpCanisterRequestStatusesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No request statuses.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-icp-canister-observations'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'icp-canister-timestamps',
+						label: 'Timestamps',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-observations'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Observations</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerIcpCanisterTimestamps(_context, Content)}
+				{@const icpCanisterObservationsIcpCanisterTimestampsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={icpCanisterObservationsIcpCanisterTimestampsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionIcpCanisterTimestamps({ id, label, open, active })}
+				{@const icpCanisterObservationsIcpCanisterTimestampsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={icpCanisterObservationsIcpCanisterTimestampsResource}
+				>
+					{#snippet children(icpCanisterTimestamp)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<IcpCanister_TimestampsView
+								selection={icpCanisterObservationsIcpCanisterTimestampsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No timestamps.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

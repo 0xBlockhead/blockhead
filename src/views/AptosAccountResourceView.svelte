@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AptosAccountResource>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AptosAccountResource>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AptosAccountResource>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosAccountResource = $derived(selection({
+	const aptosAccountResource = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.resourceType) ?? '')].filter(Boolean).join(' ') || 'aptos account resource')
-	const viewDomId = $derived('aptos-account-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('aptos-account-resource-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,37 +70,25 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.resourceType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aptosAccountResource}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.resourceType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosAccountResource}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.resourceType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<AptosAccountView
-						selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={aptosAccountResource}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<AptosAccountView
-						selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosAccountResource}>
+			{#snippet children(entity)}
+				<AptosAccountView
+					selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,7 +97,7 @@
 				<dt>account</dt>
 				<dd>
 					<AptosAccountView
-						selection={select(EntityType.AptosAccount, selection.entitySelector.$account, {})}
+						selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -139,17 +131,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AptosAccountResource_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='AptosAccountResource_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const aptosAccountResourceAptosAccountResourceTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={aptosAccountResourceAptosAccountResourceTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AptosAccountResource_TimestampsView
+					selection={aptosAccountResourceAptosAccountResourceTimestampsViewTimestampsResource}
+					countResource={aptosAccountResourceAptosAccountResourceTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='AptosAccountResource_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

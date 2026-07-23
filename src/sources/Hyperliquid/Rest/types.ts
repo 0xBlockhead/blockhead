@@ -26,10 +26,98 @@ export type HyperliquidSpotMeta = {
 }
 
 export type HyperliquidClearinghouseState = {
-	marginSummary: JsonValue
-	crossMarginSummary: JsonValue
-	assetPositions: JsonValue[]
+	marginSummary: {
+		accountValue: string
+		totalNtlPos: string
+		totalRawUsd: string
+		totalMarginUsed: string
+	}
+	crossMarginSummary: {
+		accountValue: string
+		totalNtlPos: string
+		totalRawUsd: string
+		totalMarginUsed: string
+	}
+	assetPositions: {
+		type: string
+		position: {
+			coin: string
+			szi: string
+			entryPx?: string | null
+			positionValue: string
+			unrealizedPnl: string
+			returnOnEquity: string
+			liquidationPx?: string | null
+			marginUsed: string
+			maxLeverage: number
+			cumFunding: {
+				allTime: string
+				sinceChange: string
+				sinceOpen: string
+			}
+			leverage: JsonValue
+		}
+	}[]
 	withdrawable: string
+	crossMaintenanceMarginUsed: string
+	time: number
+}
+
+export type HyperliquidSpotClearinghouseState = {
+	balances: {
+		coin: string
+		token: number
+		total: string
+		hold: string
+		entryNtl: string
+	}[]
+}
+
+export type HyperliquidFrontendOrder = {
+	coin: string
+	side: string
+	limitPx: string
+	sz: string
+	oid: number
+	timestamp: number
+	triggerCondition: string
+	isTrigger: boolean
+	triggerPx: string
+	children: JsonValue[]
+	isPositionTpsl: boolean
+	reduceOnly: boolean
+	orderType: string
+	origSz: string
+	tif?: string
+	cloid?: string | null
+}
+
+export type HyperliquidHistoricalOrder = {
+	order: HyperliquidFrontendOrder
+	status: string
+	statusTimestamp: number
+}
+
+export type HyperliquidFill = {
+	closedPnl: string
+	coin: string
+	crossed: boolean
+	dir: string
+	hash: string
+	oid: number
+	px: string
+	side: string
+	startPosition: string
+	sz: string
+	time: number
+	fee: string
+	feeToken: string
+	tid: number
+}
+
+export type HyperliquidUserVaultEquity = {
+	vaultAddress: string
+	equity: string
 }
 
 export type HyperliquidUserRole = (

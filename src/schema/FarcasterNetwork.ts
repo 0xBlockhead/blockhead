@@ -71,7 +71,6 @@ export const FarcasterNetwork = entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Snapchain_Rest,
-			Source.Neynar_Rest,
 		],
 	},
 	$$channels: {
@@ -81,7 +80,6 @@ export const FarcasterNetwork = entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Farcaster_Rest,
-			Source.Neynar_Rest,
 		],
 	},
 })({

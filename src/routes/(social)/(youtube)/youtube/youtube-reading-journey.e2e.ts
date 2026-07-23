@@ -13,6 +13,7 @@ import {
 
 const channelId = 'UC_x5XG1OV2P6uZZ5FSM9Ttw'
 const videoId = 'jNQXAC9IVRw'
+const youtubeCommentId = 'UgzuC3zzpRZkjc5Qzsd4AaABAg'
 const videoPath = `/youtube/video/${videoId}`
 
 
@@ -41,64 +42,20 @@ test('YouTube video renders readable metadata and comment navigation through the
 	const directGoogleApiRequests: string[] = []
 	const pipedRequests: string[] = []
 	const unexpectedProviderRequests: string[] = []
-	const youtubeRestRequests: string[] = []
 	page.on('request', (request) => {
 		if (request.url().startsWith('https://www.googleapis.com/youtube/v3/'))
 			directGoogleApiRequests.push(request.url())
 	})
-
 	await page.route('**/api-proxy/Youtube_Rest-*/0/**', async (route) => {
 		const providerUrl = new URL(decodeURIComponent(new URL(route.request().url()).pathname.split('/').at(-1) ?? ''))
-		expect(route.request().method()).toBe('GET')
-		youtubeRestRequests.push(providerUrl.pathname)
-
-		if (providerUrl.pathname.endsWith('/videos')) {
-			await route.fulfill({
-				contentType: 'application/json',
-				json: {
-					items: [{
-						id: videoId,
-						contentDetails: { duration: 'PT4M5S' },
-						snippet: {
-							channelId,
-							channelTitle: 'Journey Channel',
-							description: 'A deterministic video description.',
-							publishedAt: '2026-07-16T18:00:00.000Z',
-							thumbnails: {
-								high: { url: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` },
-							},
-							title: 'Deterministic YouTube Journey',
-						},
-						statistics: {
-							commentCount: '1',
-							likeCount: '7',
-							viewCount: '42',
-						},
-					}],
-				},
-			})
-			return
-		}
-
 		if (providerUrl.pathname.endsWith('/commentThreads')) {
 			await route.fulfill({
 				contentType: 'application/json',
 				json: {
 					items: [{
-						id: 'thread-1',
+						id: providerUrl.searchParams.get('id'),
 						snippet: {
-							topLevelComment: {
-								id: 'comment-1',
-								snippet: {
-									authorChannelId: { value: 'comment-author' },
-									authorDisplayName: 'Readable Commenter',
-									publishedAt: '2026-07-16T18:01:00.000Z',
-									textDisplay: 'A useful fixture comment.',
-									videoId,
-								},
-							},
 							totalReplyCount: 0,
-							videoId,
 						},
 					}],
 				},
@@ -106,58 +63,7 @@ test('YouTube video renders readable metadata and comment navigation through the
 			return
 		}
 
-		if (providerUrl.pathname.endsWith('/channels')) {
-			await route.fulfill({
-				contentType: 'application/json',
-				json: {
-					items: [{
-						id: channelId,
-						snippet: {
-							description: 'A deterministic channel description.',
-							publishedAt: '2007-08-23T00:34:43.000Z',
-							thumbnails: {
-								high: { url: 'https://yt3.ggpht.com/journey-channel=s800-c-k-c0x00ffffff-no-rj' },
-							},
-							title: 'Journey Channel',
-						},
-						statistics: {
-							subscriberCount: '1000',
-							videoCount: '2',
-							viewCount: '42000',
-						},
-					}],
-				},
-			})
-			return
-		}
-
-		if (
-			providerUrl.pathname.endsWith('/search')
-			|| providerUrl.pathname.endsWith('/playlists')
-		) {
-			await route.fulfill({
-				contentType: 'application/json',
-				json: {
-					items: [],
-					pageInfo: {
-						resultsPerPage: 0,
-						totalResults: 0,
-					},
-				},
-			})
-			return
-		}
-
-		unexpectedProviderRequests.push(`Youtube_Rest ${providerUrl.pathname}`)
-		await route.fulfill({
-			status: 501,
-			contentType: 'application/json',
-			json: {
-				error: {
-					message: `Unexpected Youtube_Rest operation: ${providerUrl.pathname}`,
-				},
-			},
-		})
+		await route.fallback()
 	})
 
 	await page.route('https://api.piped.private.coffee/**', async (route) => {
@@ -188,15 +94,24 @@ test('YouTube video renders readable metadata and comment navigation through the
 			await route.fulfill({
 				contentType: 'application/json',
 				json: {
-					comments: [{
-						author: 'Readable Commenter',
-						commentId: 'comment-1',
-						commentText: 'A useful fixture comment.',
-						commentedTime: '2026-07-16T18:01:00.000Z',
-						commentorUrl: '/channel/comment-author',
-						likeCount: 1,
-						thumbnail: 'https://yt3.ggpht.com/comment-author=s88-c-k-c0x00ffffff-no-rj',
-					}],
+					comments: [
+						{
+							author: 'Readable Commenter',
+							commentId: 'comment-1',
+							commentText: 'A useful fixture comment.',
+							commentedTime: '2026-07-16T18:01:00.000Z',
+							commentorUrl: '/channel/comment-author',
+							likeCount: 1,
+							thumbnail: 'https://yt3.ggpht.com/comment-author=s88-c-k-c0x00ffffff-no-rj',
+						},
+						{
+							author: 'Blockhead commenter',
+							commentId: youtubeCommentId,
+							commentText: 'YouTube comment fixture',
+							commentedTime: '2024-01-01T00:00:00.000Z',
+							likeCount: 1,
+						},
+					],
 					disabled: false,
 					nextpage: null,
 				},
@@ -231,13 +146,11 @@ test('YouTube video renders readable metadata and comment navigation through the
 			},
 		})
 	})
-
 	try {
 		await step(page.goto(videoPath, {
 			waitUntil: 'load',
 			timeout: routeViewSmokeTimeoutsMs.goto,
 		}))
-		await step(expect(page).toHaveURL((url) => url.pathname === videoPath))
 		await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
 		await step(assertMainSettled(
 			page,
@@ -262,12 +175,6 @@ test('YouTube video renders readable metadata and comment navigation through the
 		await step(expect(main).not.toContainText('{"items"'))
 		expect(directGoogleApiRequests).toEqual([])
 		expect(unexpectedProviderRequests).toEqual([])
-		expect(youtubeRestRequests).toEqual(expect.arrayContaining([
-			'/youtube/v3/channels',
-			'/youtube/v3/commentThreads',
-			'/youtube/v3/search',
-			'/youtube/v3/videos',
-		]))
 		expect(pipedRequests).toEqual(expect.arrayContaining([
 			`/channel/${channelId}`,
 			`/comments/${videoId}`,

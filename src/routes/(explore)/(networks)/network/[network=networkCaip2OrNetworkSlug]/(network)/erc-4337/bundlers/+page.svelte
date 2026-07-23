@@ -44,14 +44,14 @@
 				}
 				title='ERC-4337 bundlers'
 				selection={
-					projection.$$erc4337Bundlers({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$erc4337Bundlers({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
-				id='erc4337-bundlers'
+				id='account-erc4337-bundler'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

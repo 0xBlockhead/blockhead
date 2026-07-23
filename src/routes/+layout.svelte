@@ -11,8 +11,8 @@
 
 	import {
 		client,
+		trackPersistedCollectionPersistence,
 	} from '$/client/$client.svelte.ts'
-	import { initializeLocalMutationAuthorities } from '$/collections/localMutations.ts'
 	import {
 		BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
 		BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
@@ -35,7 +35,6 @@
 		})
 	})()
 	const closeDatabase = databaseCloseWhenReady(databasePromise)
-	window.addEventListener('pagehide', () => void closeDatabase().catch(() => {}), { once: true })
 	import.meta.hot?.dispose((data) => {
 		data.databaseClose = closeDatabase()
 	})
@@ -46,10 +45,15 @@
 		loadResolvers(indexSourceProviders(sourceProviders, env).enabledSources),
 		databasePromise,
 	]).then(([resolvers, database]) => {
-		const persistence = createBrowserWASQLitePersistence({
-			database,
-			schemaMismatchPolicy: 'reset',
-		})
+		const {
+			persistence,
+			waitForPersistence,
+		} = trackPersistedCollectionPersistence(
+			createBrowserWASQLitePersistence({
+				database,
+				schemaMismatchPolicy: 'reset',
+			})
+		)
 
 		appClient = client(
 			{
@@ -73,10 +77,9 @@
 				}),
 				persistence,
 				schemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
+				waitForPersistence,
 			}
 		)
-		initializeLocalMutationAuthorities(appClient)
-
 		return appClient
 	})
 	export const getAppClient = () => {
@@ -118,13 +121,12 @@
 		bootstrap,
 		(appClient) => untrack(() => mountWalletConnectionRuntime(appClient))
 	)
-
 	$effect(() => {
 		return applicationRuntime.destroy
 	})
 
 	// Components
-	import ApplicationBootstrap from '$/components/ApplicationBootstrap.svelte'
+	import ApplicationBootstrap from './ApplicationBootstrap.svelte'
 	import Navigation from './Navigation.svelte'
 
 

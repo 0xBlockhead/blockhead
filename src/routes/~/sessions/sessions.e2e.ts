@@ -23,27 +23,64 @@ test('keeps session actions as drafts until explicit confirmation', async ({ pag
 		name: 'Intent draft test',
 	}).click()
 	await expect(page).toHaveURL(/\/~\/session\//)
+	await expect(page.getByLabel('Rename session')).toBeVisible({
+		timeout: 120_000,
+	})
+	await page.getByLabel('Rename session').fill('Renamed intent draft')
+	await page.getByRole('button', { name: 'Rename' }).click()
 
+	await page.getByLabel('Source account').fill('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')
+	await page.getByLabel('Source chain ID').fill('1')
 	await page.getByRole('button', { name: 'Start transfer draft with keyboard' }).click()
 	await expect(page.getByText('Transfer draft', { exact: true })).toBeVisible()
 	await expect(page.getByText('Transfer draft added.')).not.toBeAttached()
+	await page.getByRole('button', { name: 'Confirm draft' }).evaluate((button) => {
+		button.closest('form')?.dispatchEvent(new SubmitEvent('submit', {
+			bubbles: true,
+			cancelable: true,
+		}))
+	})
+	await expect(page.getByText('Draft values are invalid. Correct them before saving.')).toBeVisible()
+	await expect(page.getByText('Transfer draft', { exact: true })).toBeVisible()
 
-	await page.getByLabel('From account').fill('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')
+	await expect(page.getByLabel('From account')).toHaveValue('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')
 	await page.getByLabel('To account').fill('0x000000000000000000000000000000000000dEaD')
-	await page.getByLabel('Chain ID').fill('1')
+	await page.getByLabel('Chain ID', { exact: true }).fill('1')
 	await page.getByLabel('Token address').fill('0x0000000000000000000000000000000000000000')
 	await page.getByLabel('Amount (base units)').fill('1')
-	await page.getByRole('button', { name: 'Confirm draft' }).click()
+	await page.getByRole('button', { name: 'Confirm draft' }).evaluate((button) => {
+		button.closest('form')?.dispatchEvent(new SubmitEvent('submit', {
+			bubbles: true,
+			cancelable: true,
+		}))
+	})
 
 	await expect(page.getByText('Transfer draft added.')).toBeVisible()
 	await expect(page.getByText('Transfer draft', { exact: true })).not.toBeAttached()
+	await page.reload({
+		waitUntil: 'load',
+	})
+	await expect(page.getByRole('button', { name: 'Edit Transfer action' })).toBeVisible({
+		timeout: 120_000,
+	})
 
-	await page.getByLabel('Edit Transfer action').selectOption('Bridge')
-	await page.getByRole('button', { name: 'Save action type' }).click()
-	await expect(page.getByLabel('Edit Bridge action')).toBeVisible()
+	await page.getByRole('button', { name: 'Edit Transfer action' }).click()
+	await expect(page.getByLabel('From account')).toHaveValue('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')
+	await expect(page.getByLabel('Amount (base units)')).toHaveValue('1')
+	await page.getByLabel('Draft action type').selectOption('Bridge')
+	await page.getByLabel('From chain ID').fill('1')
+	await page.getByLabel('To chain ID').fill('10')
+	await page.getByRole('button', { name: 'Confirm draft' }).evaluate((button) => {
+		button.closest('form')?.dispatchEvent(new SubmitEvent('submit', {
+			bubbles: true,
+			cancelable: true,
+		}))
+	})
+	await expect(page.getByText('Bridge draft updated.')).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Edit Bridge action' })).toBeVisible()
 
 	await page.getByRole('button', { name: 'Lock session' }).click()
-	await expect(page.getByRole('button', { name: 'Save action type' })).not.toBeAttached()
+	await expect(page.getByRole('button', { name: 'Edit Bridge action' })).not.toBeAttached()
 	await expect(page.getByRole('button', { name: 'Delete Bridge action' })).not.toBeAttached()
 
 	await page.getByRole('button', { name: 'Unlock session' }).click()
@@ -53,13 +90,13 @@ test('keeps session actions as drafts until explicit confirmation', async ({ pag
 	await page.getByRole('button', { name: 'Delete session' }).click()
 	await expect(page).toHaveURL('/~/sessions')
 	await expect(page.getByRole('link', {
-		name: 'Intent draft test',
+		name: 'Renamed intent draft',
 	})).not.toBeAttached()
 	await page.reload({
 		waitUntil: 'load',
 	})
 	await expect(page.getByRole('link', {
-		name: 'Intent draft test',
+		name: 'Renamed intent draft',
 	})).not.toBeAttached({
 		timeout: 120_000,
 	})
@@ -80,6 +117,11 @@ test('cancels a keyboard-created draft without adding an action', async ({ page 
 	}).click()
 	await expect(page).toHaveURL(/\/~\/session\//)
 
+	await expect(page.getByRole('button', { name: 'Start transfer draft with keyboard' })).toBeVisible({
+		timeout: 120_000,
+	})
+	await page.getByLabel('Source account').fill('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')
+	await page.getByLabel('Source chain ID').fill('1')
 	await page.getByRole('button', { name: 'Start transfer draft with keyboard' }).click()
 	await page.getByRole('button', { name: 'Cancel' }).click()
 

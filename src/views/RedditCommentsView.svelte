@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Reddit comments',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.RedditComment>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.RedditComment>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import RedditCommentView from '$/views/RedditCommentView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,8 +66,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
-				Source.Constants_Internal,
+			sources: selection.sources ?? [
 				Source.Reddit_PublicJson,
 			],
 			fields: {
@@ -84,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(redditComments) => [...new Map(redditComments.values.map((redditComment) => [redditComment[EntityMetaKey.SelectorKey], redditComment])).values()]}
 	getKey={(redditComment) => redditComment[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -98,18 +91,31 @@
 
 	{#snippet Item({ item: redditComment })}
 		{@const redditCommentFields = { ...redditComment[EntityMetaKey.Selector], ...redditComment }}
-		{@const selection = select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const redditCommentHrefFields = { ...redditComment, ...redditComment[EntityMetaKey.Selector] }}
-		<RedditCommentView
-			selection={selection}
-			prefetched={redditCommentFields}
+		<EntityView
+			entityType={EntityType.RedditComment}
+			entitySelector={redditComment[EntityMetaKey.Selector]}
 			href={
-				(redditCommentHrefFields.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]', {
-					fullname: encodeURIComponent(String(redditCommentHrefFields.fullname ?? '')),
-				}) : undefined)
+				(
+					redditComment[EntityMetaKey.Selector] != null && 'fullname' in redditComment[EntityMetaKey.Selector]
+					&& redditComment[EntityMetaKey.Selector].fullname != null ?
+						resolve('/reddit/comment/[fullname=stringSegment]', {
+					fullname: encodeURIComponent(String(redditComment[EntityMetaKey.Selector].fullname ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((redditCommentFields.body) ?? '')].filter(Boolean).join(' ') || [String((redditCommentFields.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((redditCommentFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

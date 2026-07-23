@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType._GlobalSwarmAccess_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType._GlobalSwarmAccess_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType._GlobalSwarmAccess_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalSwarmAccessTimestamp = $derived(selection({
+	const globalSwarmAccessTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('global Swarm access timestamp')
-	const viewDomId = $derived('-global-swarm-access-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'global Swarm access timestamp'
+	const viewDomId = $derived('-global-swarm-access-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,30 +66,41 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/swarm/access/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null ?
+				resolve('/swarm/access/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<GlobalSwarmAccessView
-						selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub)}
-						href={(selection.entitySelector.$hub.scope === '_GlobalSwarmAccess' ? resolve('/swarm/access') : undefined)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$hub') && prefetched.$hub != null}
+			{@const globalSwarmAccess0 = pendingEntity.$hub}
+			{#if globalSwarmAccess0 != null && selection.entitySelector.$hub != null}
+				<GlobalSwarmAccessView
+					selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub, { sources: selection.sources })}
+					prefetched={globalSwarmAccess0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={globalSwarmAccessTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<GlobalSwarmAccessView
 						selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub)}
-						href={(selection.entitySelector.$hub.scope === '_GlobalSwarmAccess' ? resolve('/swarm/access') : undefined)}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -95,11 +110,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$hub') && prefetched.$hub != null}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={globalSwarmAccessTimestamp}>
 				{#snippet children(entity)}
@@ -119,8 +134,15 @@
 				<dt>Hub</dt>
 				<dd>
 					<GlobalSwarmAccessView
-						selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub, {})}
-						href={(selection.entitySelector.$hub.scope === '_GlobalSwarmAccess' ? resolve('/swarm/access') : undefined)}
+						selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub)}
+						href={
+							(
+								selection.entitySelector.$hub.scope === '_GlobalSwarmAccess' ?
+									resolve('/swarm/access')
+							:
+									undefined
+							)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

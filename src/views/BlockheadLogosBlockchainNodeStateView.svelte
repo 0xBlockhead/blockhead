@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadLogosBlockchainNodeState>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadLogosBlockchainNodeState>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLogosBlockchainNodeState>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,14 +38,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLogosBlockchainNodeState = $derived(selection({
+	const blockheadLogosBlockchainNodeState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			endpoint: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			endpoint: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain node state')
-	const viewDomId = $derived('blockhead-logos-blockchain-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-logos-blockchain-node-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,7 +71,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'endpoint')}
 			{[String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadLogosBlockchainNodeState}>
@@ -78,7 +84,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'endpoint')}
 			{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadLogosBlockchainNodeState}>
@@ -91,7 +97,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'endpoint')}
 			{@const endpoint0 = pendingEntity.endpoint}
 			{#if endpoint0 !== undefined && endpoint0 !== null}
 				<span data-text="muted">
@@ -211,17 +217,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadLogosBlockchainNodeState_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No Logos blockchain node observations.'
-				id='BlockheadLogosBlockchainNodeState_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadLogosBlockchainNodeStateBlockheadLogosBlockchainNodeStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadLogosBlockchainNodeStateBlockheadLogosBlockchainNodeStateTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadLogosBlockchainNodeState_TimestampsView
+					selection={blockheadLogosBlockchainNodeStateBlockheadLogosBlockchainNodeStateTimestampsViewTimestampsResource}
+					countResource={blockheadLogosBlockchainNodeStateBlockheadLogosBlockchainNodeStateTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadLogosBlockchainNodeState_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

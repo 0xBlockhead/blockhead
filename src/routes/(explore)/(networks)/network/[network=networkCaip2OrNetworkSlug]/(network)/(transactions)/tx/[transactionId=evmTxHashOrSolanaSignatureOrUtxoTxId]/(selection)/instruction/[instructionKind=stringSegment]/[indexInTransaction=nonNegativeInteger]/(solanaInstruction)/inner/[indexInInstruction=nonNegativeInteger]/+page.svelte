@@ -30,7 +30,6 @@
 			data: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'solana instruction' : 'solana instruction')))
 
 
 	// Components
@@ -40,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • solana instruction • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'solana instruction' : 'solana instruction'))} • solana instruction • Blockhead</title>
 </svelte:head>
 
 

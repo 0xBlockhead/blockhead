@@ -44,14 +44,14 @@
 				}
 				title='MEV payloads'
 				selection={
-					projection.$$mevProposerPayloadDelivered({
-						sources: [
-							Source.MevRelay_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$mevProposerPayloadDelivered({
+							sources: [
+								Source.MevRelay_Rest,
+							],
+						})
 				}
-				id='mev-proposer-payload-delivered'
+				id='account-mev-relay-proposer-payload-delivered'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

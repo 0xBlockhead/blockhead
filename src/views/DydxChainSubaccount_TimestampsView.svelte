@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'dYdX chain subaccount observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.DydxChainSubaccount_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.DydxChainSubaccount_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import DydxChainSubaccount_TimestampView from '$/views/DydxChainSubaccount_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(dydxChainSubaccountTimestamps) => [...new Map(dydxChainSubaccountTimestamps.values.map((dydxChainSubaccountTimestamp) => [dydxChainSubaccountTimestamp[EntityMetaKey.SelectorKey], dydxChainSubaccountTimestamp])).values()]}
 	getKey={(dydxChainSubaccountTimestamp) => dydxChainSubaccountTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: dydxChainSubaccountTimestamp })}
 		{@const dydxChainSubaccountTimestampFields = { ...dydxChainSubaccountTimestamp[EntityMetaKey.Selector], ...dydxChainSubaccountTimestamp }}
-		{@const selection = select(EntityType.DydxChainSubaccount_Timestamp, dydxChainSubaccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<DydxChainSubaccount_TimestampView
-			selection={selection}
-			prefetched={dydxChainSubaccountTimestampFields}
+		<EntityView
+			entityType={EntityType.DydxChainSubaccount_Timestamp}
+			entitySelector={dydxChainSubaccountTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((dydxChainSubaccountTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain subaccount timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[[String((dydxChainSubaccountTimestampFields.$subaccount.$account.address) ?? '')].filter(Boolean).join(' ') || 'Cosmos account'].filter(Boolean).join(' ') || 'dydx chain subaccount'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

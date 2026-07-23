@@ -212,7 +212,7 @@ export const sourceBindingCompatibility = [
 		artifactKinds: true,
 	},
 	{
-		wireProtocol: WireProtocol.JsonRpc2,
+		wireProtocol: WireProtocol.WebSocketMessages,
 		apiFamilies: [
 			ApiFamily.NostrRelay,
 		],

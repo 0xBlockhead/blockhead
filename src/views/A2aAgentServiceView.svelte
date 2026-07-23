@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.A2aAgentService>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.A2aAgentService>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aAgentService>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aAgentService = $derived(selection({
+	const a2aAgentService = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			transportKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			transportKind: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent service')
-	const viewDomId = $derived('a2a-agent-service-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('a2a-agent-service-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,7 +77,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
 			{[String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aAgentService}>
@@ -84,7 +90,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
 			{[String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aAgentService}>
@@ -97,7 +103,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
 			{@const transportKind0 = pendingEntity.transportKind}
 			{#if transportKind0 !== undefined && transportKind0 !== null}
 				<span data-text="muted">
@@ -125,7 +131,7 @@
 				<dt>card</dt>
 				<dd>
 					<A2aAgentCardView
-						selection={select(EntityType.A2aAgentCard, selection.entitySelector.$card, {})}
+						selection={select(EntityType.A2aAgentCard, selection.entitySelector.$card)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -238,28 +244,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<A2aTasksView
-				selection={
-						selection.$$tasks({
-							count: true,
-						})
-					}
-				title='tasks'
-				emptyText='No A2A tasks.'
-				id='A2aTasksView-tasks'
-			/>
-
-			<A2aAgentService_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No A2A service observations.'
-				id='A2aAgentService_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const a2aAgentServiceA2aTasksViewTasksResource = selection.$$tasks}
+		<ResourceBoundary
+			resource={a2aAgentServiceA2aTasksViewTasksResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<A2aTasksView
+					selection={a2aAgentServiceA2aTasksViewTasksResource}
+					countResource={a2aAgentServiceA2aTasksViewTasksResource.count}
+					title='tasks'
+					id='A2aTasksView-tasks'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<A2aAgentService_TimestampsView
+					selection={a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource}
+					countResource={a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='A2aAgentService_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

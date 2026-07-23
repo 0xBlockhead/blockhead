@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Tezos token transfers',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TezosTokenTransfer>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TezosTokenTransfer>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TezosTokenTransferView from '$/views/TezosTokenTransferView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(tezosTokenTransfers) => [...new Map(tezosTokenTransfers.values.map((tezosTokenTransfer) => [tezosTokenTransfer[EntityMetaKey.SelectorKey], tezosTokenTransfer])).values()]}
 	getKey={(tezosTokenTransfer) => tezosTokenTransfer[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: tezosTokenTransfer })}
 		{@const tezosTokenTransferFields = { ...tezosTokenTransfer[EntityMetaKey.Selector], ...tezosTokenTransfer }}
-		{@const selection = select(EntityType.TezosTokenTransfer, tezosTokenTransfer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TezosTokenTransferView
-			selection={selection}
-			prefetched={tezosTokenTransferFields}
+		<EntityView
+			entityType={EntityType.TezosTokenTransfer}
+			entitySelector={tezosTokenTransfer[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'tezos token transfer'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

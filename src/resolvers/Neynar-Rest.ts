@@ -10,7 +10,7 @@ import {
 	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
@@ -38,8 +38,13 @@ const zeroXLowerHexCastHash = (hash: string): CastHash => {
 
 const neynarCastSummaryReference = (cast: NeynarCast) => {
 	if (
+		(cast.object != null && cast.object !== 'cast')
+		||
 		cast.author?.fid == null
-		|| cast.hash === ''
+		|| !Number.isSafeInteger(cast.author.fid)
+		|| cast.author.fid < 0
+		|| !ZeroExHex.allows(cast.hash)
+		|| cast.hash === '0x'
 	)
 		return []
 
@@ -47,6 +52,10 @@ const neynarCastSummaryReference = (cast: NeynarCast) => {
 	const text = optionalNonemptyString(cast.text)
 	const timestamp = optionalTimestampMs(cast.timestamp)
 	const username = optionalNonemptyString(cast.author.username)
+	const displayName = optionalNonemptyString(cast.author.display_name)
+	const authorIconUrl = neynarPfpHttpUrl(cast.author.pfp_url)
+	const channelId = optionalNonemptyString(cast.channel?.id)
+	const channelIconUrl = neynarPfpHttpUrl(cast.channel?.image_url)
 	return [{
 		[EntityMetaKey.Selector]: {
 			fid: cast.author.fid,
@@ -57,6 +66,22 @@ const neynarCastSummaryReference = (cast: NeynarCast) => {
 			[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: hash,
 			[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
 				[EntityMetaKey.Selector]: { fid: cast.author.fid },
+				...(username != null || displayName != null || authorIconUrl != null ? {
+					[EntityMetaKey.Fields]: {
+						...(username != null && {
+							[entityFieldAddressKey(EntityType.FarcasterUser, [], 'username')]: username,
+						}),
+						...(displayName != null && {
+							[entityFieldAddressKey(EntityType.FarcasterUser, [], 'displayName')]: displayName,
+						}),
+						...(authorIconUrl != null && {
+							[entityFieldAddressKey(EntityType.FarcasterUser, [], 'iconUrl')]: authorIconUrl,
+							...((icon) => icon == null ? {} : {
+								[entityFieldAddressKey(EntityType.FarcasterUser, [], '$icon')]: icon,
+							})(mediaFromUrl(authorIconUrl, MediaType.Image)),
+						}),
+					},
+				} : {}),
 			},
 			...(text != null && {
 				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: text,
@@ -66,6 +91,26 @@ const neynarCastSummaryReference = (cast: NeynarCast) => {
 			}),
 			...(username != null && {
 				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'username')]: username,
+			}),
+			...(channelId != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], '$channel')]: {
+					[EntityMetaKey.Selector]: { id: channelId },
+					...(optionalNonemptyString(cast.channel?.name) != null || channelIconUrl != null ? {
+						[EntityMetaKey.Fields]: {
+							...(optionalNonemptyString(cast.channel?.name) != null && {
+								[entityFieldAddressKey(EntityType.FarcasterChannel, [], 'name')]:
+									optionalNonemptyString(cast.channel?.name),
+							}),
+							...(channelIconUrl != null && {
+								[entityFieldAddressKey(EntityType.FarcasterChannel, [], 'iconUrl')]:
+									channelIconUrl,
+								...((icon) => icon == null ? {} : {
+									[entityFieldAddressKey(EntityType.FarcasterChannel, [], '$icon')]: icon,
+								})(mediaFromUrl(channelIconUrl, MediaType.Image)),
+							}),
+						},
+					} : {}),
+				},
 			}),
 		},
 	}]
@@ -311,6 +356,19 @@ export default {
 							return {
 								fid,
 								hash: zeroXLowerHexCastHash(hash),
+								$author: undefined,
+								$postedViaApp: undefined,
+								text: undefined,
+								$parentCast: undefined,
+								parentUrl: undefined,
+								rootParentUrl: undefined,
+								timestamp: undefined,
+								mentions: undefined,
+								mentionedProfileFids: undefined,
+								mentionedChannelIds: undefined,
+								$$embeds: [],
+								threadHash: undefined,
+								$channel: undefined,
 							}
 						const castHash = zeroXLowerHexCastHash(cast.hash)
 						const timestamp = Date.parse(cast.timestamp ?? '')
@@ -543,8 +601,6 @@ export default {
 										),
 										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'title')]: optionalNonemptyString(embed.metadata?.html?.ogTitle),
 										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'description')]: optionalNonemptyString(embed.metadata?.html?.ogDescription),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'title')]: optionalNonemptyString(embed.metadata?.html?.ogTitle),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'description')]: optionalNonemptyString(embed.metadata?.html?.ogDescription),
 									...((iconUrl) => (
 										iconUrl == null ?
 											{}
@@ -588,9 +644,99 @@ export default {
 				mentions: (cast) => cast.mentions,
 				mentionedProfileFids: (cast) => cast.mentionedProfileFids,
 				mentionedChannelIds: (cast) => cast.mentionedChannelIds,
-				$$embeds: (cast) => cast.$$embeds ?? [],
+				$$embeds: (cast) => cast.$$embeds,
 				threadHash: (cast) => cast.threadHash,
 				$channel: (cast) => cast.$channel,
+			}),
+
+		defineResolver(Source.Neynar_Rest, {
+			entityType: EntityType.FarcasterCast,
+			resolve: {
+				[FarcasterCastSelector.FidHash]: {
+					resolve: async ({ fid, hash }, context) => {
+						const { getCastConversation } = await import('$/sources/Neynar/Rest/queries.ts')
+						const parentHash = zeroXLowerHexCastHash(hash)
+						const conversationCast = (
+							await getCastConversation(
+								context.publicEnv,
+								{
+									identifier: parentHash,
+									type: 'hash',
+								}
+							)
+						)?.conversation?.cast
+						if (conversationCast == null)
+							throw new Error('Neynar_Rest: conversation subject not found')
+						if (
+							conversationCast.author?.fid !== fid
+							|| zeroXLowerHexCastHash(conversationCast.hash) !== parentHash
+						)
+							throw new Error('Neynar_Rest: conversation subject mismatch')
+						return {
+							$$directReplies: (
+								conversationCast.direct_replies ?? []
+							).filter((reply) => (
+								reply.parent_author?.fid === fid
+								&& reply.parent_hash != null
+								&& zeroXLowerHexCastHash(reply.parent_hash) === parentHash
+							)).flatMap(neynarCastSummaryReference)
+								.map((reply) => ({
+									...reply,
+									[EntityMetaKey.Fields]: {
+										...reply[EntityMetaKey.Fields],
+										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
+											[EntityMetaKey.Selector]: {
+												fid,
+												hash: parentHash,
+											},
+										},
+									},
+								})),
+						}
+					},
+				},
+				[FarcasterCastSelector.ClientUrl]: {
+					resolve: async ({ clientUrl }, context) => {
+						const { getCastConversation } = await import('$/sources/Neynar/Rest/queries.ts')
+						const conversationCast = (
+							await getCastConversation(
+								context.publicEnv,
+								{
+									identifier: clientUrl,
+									type: 'url',
+								}
+							)
+						)?.conversation?.cast
+						if (
+							conversationCast?.author?.fid == null
+							|| !ZeroExHex.allows(conversationCast.hash)
+							|| conversationCast.hash === '0x'
+						)
+							throw new Error('Neynar_Rest: conversation subject not found')
+						const parentHash = zeroXLowerHexCastHash(conversationCast.hash)
+						return {
+							$$directReplies: (
+								conversationCast.direct_replies ?? []
+							).filter((reply) => (
+								reply.parent_author?.fid === conversationCast.author?.fid
+								&& reply.parent_hash != null
+								&& zeroXLowerHexCastHash(reply.parent_hash) === parentHash
+							)).flatMap(neynarCastSummaryReference)
+								.map((reply) => ({
+									...reply,
+									[EntityMetaKey.Fields]: {
+										...reply[EntityMetaKey.Fields],
+										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
+											[EntityMetaKey.Selector]: { clientUrl },
+										},
+									},
+								})),
+						}
+					},
+				},
+			},
+		})({
+				$$directReplies: (cast) => cast.$$directReplies,
 			}),
 
 		defineResolver(Source.Neynar_Rest, {
@@ -672,8 +818,14 @@ export default {
 			},
 		})({
 				$$entries: {
-					select: (page) => (
+					select: (page, entitySelector) => (
 						(page.casts ?? [])
+							.filter((cast) => {
+								const fid = Object.getOwnPropertyDescriptor(entitySelector, 'fid')?.value
+								if (fid != null && cast.author?.fid !== fid) return false
+								const channelId = Object.getOwnPropertyDescriptor(entitySelector, 'channelId')?.value
+								return channelId == null || cast.channel?.id === channelId
+							})
 							.flatMap(neynarCastSummaryReference)
 					),
 					continuation: (page, entitySelector) => (
@@ -724,8 +876,9 @@ export default {
 			},
 		})({
 				$$casts: {
-					select: (page) => (
+					select: (page, { fid }) => (
 						(page.casts ?? [])
+							.filter((cast) => cast.author?.fid === fid)
 							.flatMap(neynarCastSummaryReference)
 					),
 					continuation: (page) => (
@@ -771,8 +924,9 @@ export default {
 			},
 		})({
 				$$casts: {
-					select: (page) => (
+					select: (page, { id }) => (
 						(page.casts ?? [])
+							.filter((cast) => cast.channel?.id === id)
 							.flatMap(neynarCastSummaryReference)
 					),
 					continuation: (page) => (

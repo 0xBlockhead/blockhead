@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'RSS feed observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.RssFeed_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.RssFeed_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import RssFeed_TimestampView from '$/views/RssFeed_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,12 +67,18 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				$feed: true,
+				$feed: {
+					fields: {
+						title: true,
+						lastBuildDate: true,
+					},
+				},
 				timestampMs: true,
 				source: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(rssFeedTimestamps) => [...new Map(rssFeedTimestamps.values.map((rssFeedTimestamp) => [rssFeedTimestamp[EntityMetaKey.SelectorKey], rssFeedTimestamp])).values()]}
 	getKey={(rssFeedTimestamp) => rssFeedTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,20 +93,38 @@
 
 	{#snippet Item({ item: rssFeedTimestamp })}
 		{@const rssFeedTimestampFields = { ...rssFeedTimestamp[EntityMetaKey.Selector], ...rssFeedTimestamp }}
-		{@const selection = select(EntityType.RssFeed_Timestamp, rssFeedTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const rssFeedTimestampHrefFields = { ...rssFeedTimestamp, ...rssFeedTimestamp[EntityMetaKey.Selector] }}
-		<RssFeed_TimestampView
-			selection={selection}
-			prefetched={rssFeedTimestampFields}
+		<EntityView
+			entityType={EntityType.RssFeed_Timestamp}
+			entitySelector={rssFeedTimestamp[EntityMetaKey.Selector]}
 			href={
-				(rssFeedTimestampHrefFields.timestampMs !== undefined && rssFeedTimestampHrefFields.source !== undefined && rssFeedTimestampHrefFields.$feed !== undefined && rssFeedTimestampHrefFields.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(rssFeedTimestampHrefFields.timestampMs ?? ''),
-					source: String(rssFeedTimestampHrefFields.source ?? ''),
-					feedUrl: encodeURIComponent(String(rssFeedTimestampHrefFields.$feed.feedUrl ?? '')),
-				}) : undefined)
+				(
+					rssFeedTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in rssFeedTimestamp[EntityMetaKey.Selector]
+					&& rssFeedTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& rssFeedTimestamp[EntityMetaKey.Selector] != null && 'source' in rssFeedTimestamp[EntityMetaKey.Selector]
+					&& rssFeedTimestamp[EntityMetaKey.Selector].source != null
+					&& rssFeedTimestamp[EntityMetaKey.Selector] != null && '$feed' in rssFeedTimestamp[EntityMetaKey.Selector]
+					&& rssFeedTimestamp[EntityMetaKey.Selector].$feed != null && 'feedUrl' in rssFeedTimestamp[EntityMetaKey.Selector].$feed
+					&& rssFeedTimestamp[EntityMetaKey.Selector].$feed.feedUrl != null ?
+						resolve('/rss/feed/[feedUrl=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(rssFeedTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(rssFeedTimestamp[EntityMetaKey.Selector].source ?? ''),
+					feedUrl: encodeURIComponent(String(rssFeedTimestamp[EntityMetaKey.Selector].$feed.feedUrl ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((rssFeedTimestampFields.$feed.title) ?? ''), String((rssFeedTimestampFields.$feed.feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed'].filter(Boolean).join(' ') || 'RSS feed observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((rssFeedTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Zero g da nodes',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ZeroGDaNode>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ZeroGDaNode>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ZeroGDaNodeView from '$/views/ZeroGDaNodeView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(zeroGDaNodes) => [...new Map(zeroGDaNodes.values.map((zeroGDaNode) => [zeroGDaNode[EntityMetaKey.SelectorKey], zeroGDaNode])).values()]}
 	getKey={(zeroGDaNode) => zeroGDaNode[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: zeroGDaNode })}
 		{@const zeroGDaNodeFields = { ...zeroGDaNode[EntityMetaKey.Selector], ...zeroGDaNode }}
-		{@const selection = select(EntityType.ZeroGDaNode, zeroGDaNode[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ZeroGDaNodeView
-			selection={selection}
-			prefetched={zeroGDaNodeFields}
+		<EntityView
+			entityType={EntityType.ZeroGDaNode}
+			entitySelector={zeroGDaNode[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((zeroGDaNodeFields.nodeId) ?? '')].filter(Boolean).join(' ') || 'zero g da node'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((zeroGDaNodeFields.$network.name) ?? '')].filter(Boolean).join(' ') || [zeroGDaNodeFields.$network.caip2 == null ? '' : String(`${(zeroGDaNodeFields.$network.caip2).namespace}:${(zeroGDaNodeFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((zeroGDaNodeFields.$quorum.quorumId) ?? '')].filter(Boolean).join(' ') || 'zero g da quorum'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

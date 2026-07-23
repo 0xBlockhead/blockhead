@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BridgeRouteStep>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BridgeRouteStep>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BridgeRouteStep>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bridgeRouteStep = $derived(selection({
+	const bridgeRouteStep = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			tool: true,
+			stepType: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			tool: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived((String((pendingEntity.indexInRoute) ?? '') ? 'Step #' + String((pendingEntity.indexInRoute) ?? '') : '') || 'bridge route step')
-	const viewDomId = $derived('bridge-route-step-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bridge-route-step-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,17 +76,40 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.indexInRoute ?? '')}
 	href={
-		href ?? (pendingEntity.indexInRoute !== undefined && pendingEntity.$route !== undefined && pendingEntity.$route.fromChainId !== undefined && pendingEntity.$route.toChainId !== undefined && pendingEntity.$route.fromToken !== undefined && pendingEntity.$route.toToken !== undefined && pendingEntity.$route.fromAmount !== undefined && pendingEntity.$route.fromAddress !== undefined && pendingEntity.$route.slippage !== undefined && pendingEntity.$route.toAddress !== undefined ? resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/step/[stepIndex=bridgeRouteStepIndex]', {
-			stepIndex: String(pendingEntity.indexInRoute ?? ''),
-			fromChainId: String(pendingEntity.$route.fromChainId ?? ''),
-			toChainId: String(pendingEntity.$route.toChainId ?? ''),
-			fromToken: String(pendingEntity.$route.fromToken ?? ''),
-			toToken: String(pendingEntity.$route.toToken ?? ''),
-			fromAmount: String(pendingEntity.$route.fromAmount ?? ''),
-			fromAddress: String(pendingEntity.$route.fromAddress ?? ''),
-			slippage: String(pendingEntity.$route.slippage ?? ''),
-			toAddress: String(pendingEntity.$route.toAddress ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'indexInRoute' in selection.entitySelector
+			&& selection.entitySelector.indexInRoute != null
+			&& selection.entitySelector != null && '$route' in selection.entitySelector
+			&& selection.entitySelector.$route != null && 'fromChainId' in selection.entitySelector.$route
+			&& selection.entitySelector.$route.fromChainId != null
+			&& selection.entitySelector.$route != null && 'toChainId' in selection.entitySelector.$route
+			&& selection.entitySelector.$route.toChainId != null
+			&& selection.entitySelector.$route != null && 'fromToken' in selection.entitySelector.$route
+			&& selection.entitySelector.$route.fromToken != null
+			&& selection.entitySelector.$route != null && 'toToken' in selection.entitySelector.$route
+			&& selection.entitySelector.$route.toToken != null
+			&& selection.entitySelector.$route != null && 'fromAmount' in selection.entitySelector.$route
+			&& selection.entitySelector.$route.fromAmount != null
+			&& selection.entitySelector.$route != null && 'fromAddress' in selection.entitySelector.$route
+			&& selection.entitySelector.$route.fromAddress != null
+			&& selection.entitySelector.$route != null && 'slippage' in selection.entitySelector.$route
+			&& selection.entitySelector.$route.slippage != null
+			&& selection.entitySelector.$route != null && 'toAddress' in selection.entitySelector.$route
+			&& selection.entitySelector.$route.toAddress != null ?
+				resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/step/[stepIndex=bridgeRouteStepIndex]', {
+			stepIndex: String(selection.entitySelector.indexInRoute ?? ''),
+			fromChainId: String(selection.entitySelector.$route.fromChainId ?? ''),
+			toChainId: String(selection.entitySelector.$route.toChainId ?? ''),
+			fromToken: String(selection.entitySelector.$route.fromToken ?? ''),
+			toToken: String(selection.entitySelector.$route.toToken ?? ''),
+			fromAmount: String(selection.entitySelector.$route.fromAmount ?? ''),
+			fromAddress: String(selection.entitySelector.$route.fromAddress ?? ''),
+			slippage: String(selection.entitySelector.$route.slippage ?? ''),
+			toAddress: String(selection.entitySelector.$route.toAddress ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -107,7 +137,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'tool') && Object.hasOwn(prefetched, 'stepType')}
 			{@const tool0 = pendingEntity.tool}
 			{#if tool0 !== undefined && tool0 !== null}
 				<span data-text="muted">
@@ -227,11 +257,21 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+										(
+											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
+											&& network[EntityMetaKey.Selector].caip2 != null ?
+												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : undefined)
+										})
+										:
+												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
+												&& network[EntityMetaKey.Selector].slug != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+												network: String(network[EntityMetaKey.Selector].slug ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -254,11 +294,21 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+										(
+											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
+											&& network[EntityMetaKey.Selector].caip2 != null ?
+												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : undefined)
+										})
+										:
+												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
+												&& network[EntityMetaKey.Selector].slug != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+												network: String(network[EntityMetaKey.Selector].slug ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -281,13 +331,32 @@
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									prefetched={evmCoinInstance}
 									href={
-										(evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+										(
+											evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency'
+											&& evmCoinInstance[EntityMetaKey.Selector] != null && '$network' in evmCoinInstance[EntityMetaKey.Selector]
+											&& evmCoinInstance[EntityMetaKey.Selector].$network != null && 'caip2' in evmCoinInstance[EntityMetaKey.Selector].$network
+											&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2 != null && 'reference' in evmCoinInstance[EntityMetaKey.Selector].$network.caip2
+											&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference != null ?
+												resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-											coinInstanceSlug: String('native' ?? ''),
-										}) : evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-											coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
-											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-										}) : undefined)
+											coinInstanceSlug: String('native'),
+										})
+										:
+												evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token'
+												&& evmCoinInstance[EntityMetaKey.Selector] != null && '$contract' in evmCoinInstance[EntityMetaKey.Selector]
+												&& evmCoinInstance[EntityMetaKey.Selector].$contract != null && 'address' in evmCoinInstance[EntityMetaKey.Selector].$contract
+												&& evmCoinInstance[EntityMetaKey.Selector].$contract.address != null
+												&& evmCoinInstance[EntityMetaKey.Selector] != null && '$network' in evmCoinInstance[EntityMetaKey.Selector]
+												&& evmCoinInstance[EntityMetaKey.Selector].$network != null && 'caip2' in evmCoinInstance[EntityMetaKey.Selector].$network
+												&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2 != null && 'reference' in evmCoinInstance[EntityMetaKey.Selector].$network.caip2
+												&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference != null ?
+													resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+												coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
+												chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -310,13 +379,32 @@
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									prefetched={evmCoinInstance}
 									href={
-										(evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+										(
+											evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency'
+											&& evmCoinInstance[EntityMetaKey.Selector] != null && '$network' in evmCoinInstance[EntityMetaKey.Selector]
+											&& evmCoinInstance[EntityMetaKey.Selector].$network != null && 'caip2' in evmCoinInstance[EntityMetaKey.Selector].$network
+											&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2 != null && 'reference' in evmCoinInstance[EntityMetaKey.Selector].$network.caip2
+											&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference != null ?
+												resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-											coinInstanceSlug: String('native' ?? ''),
-										}) : evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-											coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
-											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-										}) : undefined)
+											coinInstanceSlug: String('native'),
+										})
+										:
+												evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token'
+												&& evmCoinInstance[EntityMetaKey.Selector] != null && '$contract' in evmCoinInstance[EntityMetaKey.Selector]
+												&& evmCoinInstance[EntityMetaKey.Selector].$contract != null && 'address' in evmCoinInstance[EntityMetaKey.Selector].$contract
+												&& evmCoinInstance[EntityMetaKey.Selector].$contract.address != null
+												&& evmCoinInstance[EntityMetaKey.Selector] != null && '$network' in evmCoinInstance[EntityMetaKey.Selector]
+												&& evmCoinInstance[EntityMetaKey.Selector].$network != null && 'caip2' in evmCoinInstance[EntityMetaKey.Selector].$network
+												&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2 != null && 'reference' in evmCoinInstance[EntityMetaKey.Selector].$network.caip2
+												&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference != null ?
+													resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+												coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
+												chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -429,9 +517,26 @@
 				<dt>Route</dt>
 				<dd>
 					<BridgeRouteView
-						selection={select(EntityType.BridgeRoute, selection.entitySelector.$route, {})}
+						selection={select(EntityType.BridgeRoute, selection.entitySelector.$route)}
 						href={
-							(selection.entitySelector.$route.fromChainId !== undefined && selection.entitySelector.$route.toChainId !== undefined && selection.entitySelector.$route.fromToken !== undefined && selection.entitySelector.$route.toToken !== undefined && selection.entitySelector.$route.fromAmount !== undefined && selection.entitySelector.$route.fromAddress !== undefined && selection.entitySelector.$route.slippage !== undefined && selection.entitySelector.$route.toAddress !== undefined ? resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]', {
+							(
+								selection.entitySelector.$route != null && 'fromChainId' in selection.entitySelector.$route
+								&& selection.entitySelector.$route.fromChainId != null
+								&& selection.entitySelector.$route != null && 'toChainId' in selection.entitySelector.$route
+								&& selection.entitySelector.$route.toChainId != null
+								&& selection.entitySelector.$route != null && 'fromToken' in selection.entitySelector.$route
+								&& selection.entitySelector.$route.fromToken != null
+								&& selection.entitySelector.$route != null && 'toToken' in selection.entitySelector.$route
+								&& selection.entitySelector.$route.toToken != null
+								&& selection.entitySelector.$route != null && 'fromAmount' in selection.entitySelector.$route
+								&& selection.entitySelector.$route.fromAmount != null
+								&& selection.entitySelector.$route != null && 'fromAddress' in selection.entitySelector.$route
+								&& selection.entitySelector.$route.fromAddress != null
+								&& selection.entitySelector.$route != null && 'slippage' in selection.entitySelector.$route
+								&& selection.entitySelector.$route.slippage != null
+								&& selection.entitySelector.$route != null && 'toAddress' in selection.entitySelector.$route
+								&& selection.entitySelector.$route.toAddress != null ?
+									resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]', {
 								fromChainId: String(selection.entitySelector.$route.fromChainId ?? ''),
 								toChainId: String(selection.entitySelector.$route.toChainId ?? ''),
 								fromToken: String(selection.entitySelector.$route.fromToken ?? ''),
@@ -440,7 +545,10 @@
 								fromAddress: String(selection.entitySelector.$route.fromAddress ?? ''),
 								slippage: String(selection.entitySelector.$route.slippage ?? ''),
 								toAddress: String(selection.entitySelector.$route.toAddress ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

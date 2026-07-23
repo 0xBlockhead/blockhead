@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Cardano committee epochs',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CardanoCommittee_Epoch>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CardanoCommittee_Epoch>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CardanoCommittee_EpochView from '$/views/CardanoCommittee_EpochView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cardanoCommitteeEpochs) => [...new Map(cardanoCommitteeEpochs.values.map((cardanoCommitteeEpoch) => [cardanoCommitteeEpoch[EntityMetaKey.SelectorKey], cardanoCommitteeEpoch])).values()]}
 	getKey={(cardanoCommitteeEpoch) => cardanoCommitteeEpoch[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,24 +90,48 @@
 
 	{#snippet Item({ item: cardanoCommitteeEpoch })}
 		{@const cardanoCommitteeEpochFields = { ...cardanoCommitteeEpoch[EntityMetaKey.Selector], ...cardanoCommitteeEpoch }}
-		{@const selection = select(EntityType.CardanoCommittee_Epoch, cardanoCommitteeEpoch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const cardanoCommitteeEpochHrefFields = { ...cardanoCommitteeEpoch, ...cardanoCommitteeEpoch[EntityMetaKey.Selector] }}
-		<CardanoCommittee_EpochView
-			selection={selection}
-			prefetched={cardanoCommitteeEpochFields}
+		<EntityView
+			entityType={EntityType.CardanoCommittee_Epoch}
+			entitySelector={cardanoCommitteeEpoch[EntityMetaKey.Selector]}
 			href={
-				(cardanoCommitteeEpochHrefFields.epoch !== undefined && cardanoCommitteeEpochHrefFields.source !== undefined && cardanoCommitteeEpochHrefFields.$network !== undefined && cardanoCommitteeEpochHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/committee/epoch/[epoch=nonNegativeInteger]/[source=stringSegment]', {
-					epoch: String(cardanoCommitteeEpochHrefFields.epoch ?? ''),
-					source: String(cardanoCommitteeEpochHrefFields.source ?? ''),
-					network: String(caip2StringFromValue(cardanoCommitteeEpochHrefFields.$network.caip2) ?? ''),
-				}) : cardanoCommitteeEpochHrefFields.epoch !== undefined && cardanoCommitteeEpochHrefFields.source !== undefined && cardanoCommitteeEpochHrefFields.$network !== undefined && cardanoCommitteeEpochHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/committee/epoch/[epoch=nonNegativeInteger]/[source=stringSegment]', {
-					epoch: String(cardanoCommitteeEpochHrefFields.epoch ?? ''),
-					source: String(cardanoCommitteeEpochHrefFields.source ?? ''),
-					network: String(cardanoCommitteeEpochHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					cardanoCommitteeEpoch[EntityMetaKey.Selector] != null && 'epoch' in cardanoCommitteeEpoch[EntityMetaKey.Selector]
+					&& cardanoCommitteeEpoch[EntityMetaKey.Selector].epoch != null
+					&& cardanoCommitteeEpoch[EntityMetaKey.Selector] != null && 'source' in cardanoCommitteeEpoch[EntityMetaKey.Selector]
+					&& cardanoCommitteeEpoch[EntityMetaKey.Selector].source != null
+					&& cardanoCommitteeEpoch[EntityMetaKey.Selector] != null && '$network' in cardanoCommitteeEpoch[EntityMetaKey.Selector] ?
+						cardanoCommitteeEpoch[EntityMetaKey.Selector].$network != null && 'caip2' in cardanoCommitteeEpoch[EntityMetaKey.Selector].$network
+						&& cardanoCommitteeEpoch[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/committee/epoch/[epoch=nonNegativeInteger]/[source=stringSegment]', {
+						epoch: String(cardanoCommitteeEpoch[EntityMetaKey.Selector].epoch ?? ''),
+						source: String(cardanoCommitteeEpoch[EntityMetaKey.Selector].source ?? ''),
+						network: String(caip2StringFromValue(cardanoCommitteeEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							cardanoCommitteeEpoch[EntityMetaKey.Selector].$network != null && 'slug' in cardanoCommitteeEpoch[EntityMetaKey.Selector].$network
+							&& cardanoCommitteeEpoch[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/committee/epoch/[epoch=nonNegativeInteger]/[source=stringSegment]', {
+							epoch: String(cardanoCommitteeEpoch[EntityMetaKey.Selector].epoch ?? ''),
+							source: String(cardanoCommitteeEpoch[EntityMetaKey.Selector].source ?? ''),
+							network: String(cardanoCommitteeEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[(String((cardanoCommitteeEpochFields.epoch) ?? '') ? 'Epoch ' + String((cardanoCommitteeEpochFields.epoch) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano committee epoch'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((cardanoCommitteeEpochFields.memberCount) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

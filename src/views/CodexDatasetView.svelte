@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -22,7 +23,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CodexDataset>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CodexDataset>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CodexDataset>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -36,7 +37,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const codexDataset = $derived(selection({
+	const codexDataset = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			filename: true,
+			mimetype: true,
+			datasetSizeBytes: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			filename: true,
@@ -45,7 +53,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset')
-	const viewDomId = $derived('codex-dataset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('codex-dataset-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,7 +74,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'filename') && Object.hasOwn(prefetched, 'mimetype') && Object.hasOwn(prefetched, 'datasetSizeBytes')}
 			{[String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={codexDataset}>
@@ -79,7 +87,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'filename') && Object.hasOwn(prefetched, 'mimetype') && Object.hasOwn(prefetched, 'datasetSizeBytes')}
 			{[String((pendingEntity.mimetype) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={codexDataset}>
@@ -92,7 +100,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'filename') && Object.hasOwn(prefetched, 'mimetype') && Object.hasOwn(prefetched, 'datasetSizeBytes')}
 			{@const datasetSizeBytes0 = pendingEntity.datasetSizeBytes}
 			{#if datasetSizeBytes0 !== undefined && datasetSizeBytes0 !== null}
 				<span data-text="muted">
@@ -273,17 +281,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadCodexStoredDataEntriesView
-				selection={
-						selection.$$localCopies({
-							count: true,
-						})
-					}
-				title='local copies'
-				emptyText='No local copies.'
-				id='BlockheadCodexStoredDataEntriesView-local-copies'
-			/>
-		{/if}
+		{@const codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource = selection.$$localCopies}
+		<ResourceBoundary
+			resource={codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadCodexStoredDataEntriesView
+					selection={codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource}
+					countResource={codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource.count}
+					title='local copies'
+					id='BlockheadCodexStoredDataEntriesView-local-copies'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

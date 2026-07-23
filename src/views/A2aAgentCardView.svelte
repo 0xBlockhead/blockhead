@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.A2aAgentCard>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.A2aAgentCard>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aAgentCard>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,11 +38,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aAgentCard = $derived(selection({
+	const a2aAgentCard = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.agentCardUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent card')
-	const viewDomId = $derived('a2a-agent-card-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('a2a-agent-card-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -63,7 +67,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{[String((pendingEntity.agentCardUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aAgentCard}>
@@ -111,28 +115,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<A2aAgentCard_SnapshotsView
-				selection={
-						selection.$$snapshots({
-							count: true,
-						})
-					}
-				title='snapshots'
-				emptyText='No A2A agent card snapshots.'
-				id='A2aAgentCard_SnapshotsView-snapshots'
-			/>
-
-			<AiDocumentsView
-				selection={
-						selection.$$documents({
-							count: true,
-						})
-					}
-				title='documents'
-				emptyText='No linked documents.'
-				id='AiDocumentsView-documents'
-			/>
-		{/if}
+		{@const a2aAgentCardA2aAgentCardSnapshotsViewSnapshotsResource = selection.$$snapshots}
+		<ResourceBoundary
+			resource={a2aAgentCardA2aAgentCardSnapshotsViewSnapshotsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<A2aAgentCard_SnapshotsView
+					selection={a2aAgentCardA2aAgentCardSnapshotsViewSnapshotsResource}
+					countResource={a2aAgentCardA2aAgentCardSnapshotsViewSnapshotsResource.count}
+					title='snapshots'
+					id='A2aAgentCard_SnapshotsView-snapshots'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const a2aAgentCardAiDocumentsViewDocumentsResource = selection.$$documents}
+		<ResourceBoundary
+			resource={a2aAgentCardAiDocumentsViewDocumentsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AiDocumentsView
+					selection={a2aAgentCardAiDocumentsViewDocumentsResource}
+					countResource={a2aAgentCardAiDocumentsViewDocumentsResource.count}
+					title='documents'
+					id='AiDocumentsView-documents'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

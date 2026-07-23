@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FarcasterChannel_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterChannel_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FarcasterChannel_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const farcasterChannelTimestamp = $derived(selection({
+	const farcasterChannelTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('Farcaster channel observation')
-	const viewDomId = $derived('farcaster-channel-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'Farcaster channel observation'
+	const viewDomId = $derived('farcaster-channel-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,63 +66,47 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$channel !== undefined && pendingEntity.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			channelId: String(pendingEntity.$channel.id ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && '$channel' in selection.entitySelector
+			&& selection.entitySelector.$channel != null && 'id' in selection.entitySelector.$channel
+			&& selection.entitySelector.$channel.id != null ?
+				resolve('/farcaster/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			channelId: String(selection.entitySelector.$channel.id ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<FarcasterChannelView
-						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
-						href={
-						(selection.entitySelector.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
-							channelId: String(selection.entitySelector.$channel.id ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={farcasterChannelTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<FarcasterChannelView
-						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
-						href={
-						(selection.entitySelector.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
-							channelId: String(selection.entitySelector.$channel.id ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={farcasterChannelTimestamp}>
+			{#snippet children(entity)}
+				<FarcasterChannelView
+					selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={farcasterChannelTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={farcasterChannelTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -127,11 +115,17 @@
 				<dt>Channel</dt>
 				<dd>
 					<FarcasterChannelView
-						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel, {})}
+						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
 						href={
-							(selection.entitySelector.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
+							(
+								selection.entitySelector.$channel != null && 'id' in selection.entitySelector.$channel
+								&& selection.entitySelector.$channel.id != null ?
+									resolve('/farcaster/channel/[channelId=stringSegment]', {
 								channelId: String(selection.entitySelector.$channel.id ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

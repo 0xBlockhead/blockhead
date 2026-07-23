@@ -23,7 +23,6 @@
 			Source.Mastodon_Rest,
 		],
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'global ActivityPub network' : 'global ActivityPub network')))
 
 
 	// Components
@@ -33,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • global ActivityPub network • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'global ActivityPub network' : 'global ActivityPub network'))} • global ActivityPub network • Blockhead</title>
 </svelte:head>
 
 

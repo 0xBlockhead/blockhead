@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Farcaster cast embeds',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FarcasterCastEmbed>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FarcasterCastEmbed>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FarcasterCastEmbedView from '$/views/FarcasterCastEmbedView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(farcasterCastEmbeds) => [...new Map(farcasterCastEmbeds.values.map((farcasterCastEmbed) => [farcasterCastEmbed[EntityMetaKey.SelectorKey], farcasterCastEmbed])).values()]}
 	getKey={(farcasterCastEmbed) => farcasterCastEmbed[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,20 +91,38 @@
 
 	{#snippet Item({ item: farcasterCastEmbed })}
 		{@const farcasterCastEmbedFields = { ...farcasterCastEmbed[EntityMetaKey.Selector], ...farcasterCastEmbed }}
-		{@const selection = select(EntityType.FarcasterCastEmbed, farcasterCastEmbed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const farcasterCastEmbedHrefFields = { ...farcasterCastEmbed, ...farcasterCastEmbed[EntityMetaKey.Selector] }}
-		<FarcasterCastEmbedView
-			selection={selection}
-			prefetched={farcasterCastEmbedFields}
+		<EntityView
+			entityType={EntityType.FarcasterCastEmbed}
+			entitySelector={farcasterCastEmbed[EntityMetaKey.Selector]}
 			href={
-				(farcasterCastEmbedHrefFields.indexInCast !== undefined && farcasterCastEmbedHrefFields.$cast !== undefined && farcasterCastEmbedHrefFields.$cast.fid !== undefined && farcasterCastEmbedHrefFields.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {
-					indexInCast: String(farcasterCastEmbedHrefFields.indexInCast ?? ''),
-					fid: String(farcasterCastEmbedHrefFields.$cast.fid ?? ''),
-					hash: String(farcasterCastEmbedHrefFields.$cast.hash ?? ''),
-				}) : undefined)
+				(
+					farcasterCastEmbed[EntityMetaKey.Selector] != null && 'indexInCast' in farcasterCastEmbed[EntityMetaKey.Selector]
+					&& farcasterCastEmbed[EntityMetaKey.Selector].indexInCast != null
+					&& farcasterCastEmbed[EntityMetaKey.Selector] != null && '$cast' in farcasterCastEmbed[EntityMetaKey.Selector]
+					&& farcasterCastEmbed[EntityMetaKey.Selector].$cast != null && 'fid' in farcasterCastEmbed[EntityMetaKey.Selector].$cast
+					&& farcasterCastEmbed[EntityMetaKey.Selector].$cast.fid != null
+					&& farcasterCastEmbed[EntityMetaKey.Selector].$cast != null && 'hash' in farcasterCastEmbed[EntityMetaKey.Selector].$cast
+					&& farcasterCastEmbed[EntityMetaKey.Selector].$cast.hash != null ?
+						resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {
+					indexInCast: String(farcasterCastEmbed[EntityMetaKey.Selector].indexInCast ?? ''),
+					fid: String(farcasterCastEmbed[EntityMetaKey.Selector].$cast.fid ?? ''),
+					hash: String(farcasterCastEmbed[EntityMetaKey.Selector].$cast.hash ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((farcasterCastEmbedFields.title) ?? ''), String((farcasterCastEmbedFields.url) ?? ''), [String((farcasterCastEmbedFields.$embeddedCast.text) ?? ''), String((farcasterCastEmbedFields.$embeddedCast.hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast'].filter(Boolean).join(' ') || 'Farcaster cast embed'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((farcasterCastEmbedFields.indexInCast) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

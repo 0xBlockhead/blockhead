@@ -39,10 +39,17 @@ test('runtime session authority survives re-entry and deletes atomically', async
 	testInfo.setTimeout(240_000)
 	const diagnostics = await openFixture(page, testInfo)
 	await expect(page.getByTestId('session-awaited')).toBeAttached()
+	await diagnostics.step(page.getByRole('button', {
+		name: 'Clear sessions',
+	}).click())
+	await expect(page.getByTestId('sessions-persisted')).toContainText('persisted')
 
 	await diagnostics.step(page.getByRole('button', {
 		name: 'Create sessions',
 	}).click())
+	await expect(page.getByTestId('sessions-persisted')).toHaveText('persisted', {
+		timeout: 120_000,
+	})
 	await expect(page.getByTestId('session-direct')).toContainText('Authority Session A')
 	await expect(page.getByTestId('session-direct')).toContainText('Authority Session B')
 	await expect(page.getByTestId('session-awaited')).toContainText('Authority Session A')
@@ -65,6 +72,7 @@ test('runtime session authority survives re-entry and deletes atomically', async
 	await expect(page.getByTestId('session-awaited')).not.toContainText('Authority Session A')
 	await expect(page.locator('#local-authority-sessions')).not.toContainText('Authority Session A')
 	await expect(page.locator('#local-authority-sessions')).toContainText('Authority Session B')
+	await expect(page.getByTestId('sessions-persisted')).toHaveText('persisted')
 
 	await diagnostics.step(page.reload({
 		waitUntil: 'domcontentloaded',
@@ -80,18 +88,22 @@ test('runtime wallet authority survives re-entry and deletes atomically', async 
 	testInfo.setTimeout(240_000)
 	const diagnostics = await openFixture(page, testInfo)
 	await expect(page.getByTestId('wallet-awaited')).toBeAttached()
+	await diagnostics.step(page.getByRole('button', {
+		name: 'Clear wallet connections',
+	}).click())
+	await diagnostics.step(expect(page.getByTestId('wallets-persisted')).toHaveText('persisted', {
+		timeout: 120_000,
+	}))
 
 	await diagnostics.step(page.getByRole('button', {
 		name: 'Create wallet connections',
 	}).click())
+	await diagnostics.step(expect(page.getByTestId('wallets-persisted')).toHaveText('persisted', {
+		timeout: 120_000,
+	}))
+	await expect(page.getByTestId('wallet-awaited')).toContainText('authority-connection-a')
 	await expect(page.getByTestId('wallet-direct')).toContainText('authority-connection-a')
 	await expect(page.getByTestId('wallet-direct')).toContainText('authority-connection-b')
-	await expect(page.getByTestId('wallet-awaited')).toContainText('authority-connection-a')
-	await expect(page.getByTestId('wallet-hydration-wallet')).toHaveText('authority-wallet-a')
-	await expect(page.getByTestId('wallet-hydration-active-account')).toHaveText(
-		'0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-	)
-	await expect(page.getByTestId('wallet-hydration-account-count')).toHaveText('1')
 
 	await diagnostics.step(page.reload({
 		waitUntil: 'domcontentloaded',
@@ -99,11 +111,26 @@ test('runtime wallet authority survives re-entry and deletes atomically', async 
 	await expectMainVisible(page, 120_000, diagnostics)
 	await expect(page.getByTestId('wallet-direct')).toContainText('authority-connection-a')
 	await expect(page.getByTestId('wallet-awaited')).toContainText('authority-connection-b')
-	await expect(page.getByTestId('wallet-hydration-wallet')).toHaveText('authority-wallet-a')
-	await expect(page.getByTestId('wallet-hydration-active-account')).toHaveText(
-		'0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+	await expect(page.getByTestId('wallet-hydration-summary')).toHaveText(
+		'authority-wallet-a|1|0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 	)
-	await expect(page.getByTestId('wallet-hydration-account-count')).toHaveText('1')
+
+	await diagnostics.step(page.getByRole('button', {
+		name: 'Disconnect first wallet connection',
+	}).click())
+	await diagnostics.step(expect(page.getByTestId('wallets-persisted')).toHaveText('persisted', {
+		timeout: 120_000,
+	}))
+	await expect(page.getByTestId('wallet-direct')).toContainText('authority-connection-a')
+
+	await diagnostics.step(page.reload({
+		waitUntil: 'domcontentloaded',
+	}))
+	await expectMainVisible(page, 120_000, diagnostics)
+	await expect(page.getByTestId('wallet-direct')).toContainText('authority-connection-a')
+	await expect(page.getByTestId('wallet-awaited')).toContainText('authority-connection-a')
+	await expect(page.getByTestId('wallet-hydration-settled')).toHaveText('settled')
+	await expect(page.getByTestId('wallet-hydration-summary')).toHaveText('authority-wallet-a|0|none')
 
 	await diagnostics.step(page.getByRole('button', {
 		name: 'Delete first wallet connection',
@@ -111,6 +138,9 @@ test('runtime wallet authority survives re-entry and deletes atomically', async 
 	await expect(page.getByTestId('wallet-direct')).not.toContainText('authority-connection-a')
 	await expect(page.getByTestId('wallet-direct')).toContainText('authority-connection-b')
 	await expect(page.getByTestId('wallet-awaited')).not.toContainText('authority-connection-a')
+	await diagnostics.step(expect(page.getByTestId('wallets-persisted')).toHaveText('persisted', {
+		timeout: 120_000,
+	}))
 
 	await diagnostics.step(page.reload({
 		waitUntil: 'domcontentloaded',

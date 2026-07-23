@@ -27,7 +27,6 @@
 			signatures: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'EVM topic' : 'EVM topic')))
 
 
 	// Components
@@ -37,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM topic • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM topic' : 'EVM topic'))} • EVM topic • Blockhead</title>
 </svelte:head>
 
 

@@ -29,13 +29,24 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			}).$$observedReactions({
-				sources: [
-					Source.NostrBand_Rest,
-					Source.Primal_Rest,
-				],
-				count: true,
 			})
+				.$$observedReactions({
+					sources: [
+						Source.NostrBand_Rest,
+						Source.Primal_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._GlobalNostrNetwork, {
+				scope: '_GlobalNostrNetwork',
+			})
+				.$$observedReactions({
+					sources: [
+						Source.NostrBand_Rest,
+						Source.Primal_Rest,
+					],
+				}).count
 		}
 		id='observed-reactions'
 		data-column-item="flexible"

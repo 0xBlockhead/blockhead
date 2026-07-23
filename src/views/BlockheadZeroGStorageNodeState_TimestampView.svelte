@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadZeroGStorageNodeState_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadZeroGStorageNodeState_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadZeroGStorageNodeState_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadZeroGStorageNodeStateTimestamp = $derived(selection({
+	const blockheadZeroGStorageNodeStateTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			localChunkCount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			localChunkCount: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g storage node state timestamp')
-	const viewDomId = $derived('blockhead-zero-gstorage-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-zero-gstorage-node-state-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,11 +75,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$nodeState') && prefetched.$nodeState != null && Object.hasOwn(prefetched.$nodeState, '$network') && prefetched.$nodeState.$network != null && Object.hasOwn(prefetched.$nodeState.$network, 'name') && Object.hasOwn(prefetched.$nodeState.$network, 'environment') && Object.hasOwn(prefetched, 'localChunkCount')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
 				{#snippet children(entity)}
@@ -88,18 +94,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<BlockheadZeroGStorageNodeStateView
-						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$nodeState') && prefetched.$nodeState != null && Object.hasOwn(prefetched.$nodeState, '$network') && prefetched.$nodeState.$network != null && Object.hasOwn(prefetched.$nodeState.$network, 'name') && Object.hasOwn(prefetched.$nodeState.$network, 'environment') && Object.hasOwn(prefetched, 'localChunkCount')}
+			{@const blockheadZeroGStorageNodeState0 = pendingEntity.$nodeState}
+			{#if blockheadZeroGStorageNodeState0 != null && selection.entitySelector.$nodeState != null}
+				<BlockheadZeroGStorageNodeStateView
+					selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState, { sources: selection.sources })}
+					prefetched={blockheadZeroGStorageNodeState0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<BlockheadZeroGStorageNodeStateView
 						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -109,7 +120,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$nodeState') && prefetched.$nodeState != null && Object.hasOwn(prefetched.$nodeState, '$network') && prefetched.$nodeState.$network != null && Object.hasOwn(prefetched.$nodeState.$network, 'name') && Object.hasOwn(prefetched.$nodeState.$network, 'environment') && Object.hasOwn(prefetched, 'localChunkCount')}
 			{@const localChunkCount0 = pendingEntity.localChunkCount}
 			{#if localChunkCount0 !== undefined && localChunkCount0 !== null}
 				<span data-text="muted">
@@ -141,7 +152,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadZeroGStorageNodeStateView
-						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState, {})}
+						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

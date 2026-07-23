@@ -28,9 +28,12 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$actors',
-			}).$$actors({
-				count: true,
-			})
+			}).$$actors
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$actors',
+			}).$$actors.count
 		}
 		id='actors'
 		data-column-item="flexible"

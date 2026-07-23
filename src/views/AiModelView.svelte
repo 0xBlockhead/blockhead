@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AiModel>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AiModel>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiModel>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiModel = $derived(selection({
+	const aiModel = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+			modelFamily: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerModelId) ?? '')].filter(Boolean).join(' ') || 'AI model')
-	const viewDomId = $derived('ai-model-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('ai-model-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,7 +81,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, '$provider') && prefetched.$provider != null && Object.hasOwn(prefetched.$provider, 'label') && Object.hasOwn(prefetched.$provider, 'organizationKind') && Object.hasOwn(prefetched.$provider, 'providerId') && Object.hasOwn(prefetched.$provider, 'domain') && Object.hasOwn(prefetched, 'modelFamily')}
 			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={aiModel}>
@@ -87,18 +94,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<AiModelProviderView
-						selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, '$provider') && prefetched.$provider != null && Object.hasOwn(prefetched.$provider, 'label') && Object.hasOwn(prefetched.$provider, 'organizationKind') && Object.hasOwn(prefetched.$provider, 'providerId') && Object.hasOwn(prefetched.$provider, 'domain') && Object.hasOwn(prefetched, 'modelFamily')}
+			{@const aiModelProvider0 = pendingEntity.$provider}
+			{#if aiModelProvider0 != null && selection.entitySelector.$provider != null}
+				<AiModelProviderView
+					selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider, { sources: selection.sources })}
+					prefetched={aiModelProvider0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={aiModel}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<AiModelProviderView
 						selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider)}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -108,7 +120,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, '$provider') && prefetched.$provider != null && Object.hasOwn(prefetched.$provider, 'label') && Object.hasOwn(prefetched.$provider, 'organizationKind') && Object.hasOwn(prefetched.$provider, 'providerId') && Object.hasOwn(prefetched.$provider, 'domain') && Object.hasOwn(prefetched, 'modelFamily')}
 			{@const modelFamily0 = pendingEntity.modelFamily}
 			{#if modelFamily0 !== undefined && modelFamily0 !== null}
 				<span data-text="muted">
@@ -136,7 +148,7 @@
 				<dt>provider</dt>
 				<dd>
 					<AiModelProviderView
-						selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider, {})}
+						selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -316,99 +328,253 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-ai-model-versions-docs'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'ai-model-versions',
-							label: 'Versions',
-						},
-						{
-							id: 'ai-model-documents',
-							label: 'Documents',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-versions'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Versions and documents</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-ai-model-versions-docs'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'ai-model-versions',
+						label: 'Versions',
+						ownsSection: true,
+					},
+					{
+						id: 'ai-model-documents',
+						label: 'Documents',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-versions'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Versions and documents</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionAiModelVersions({ id, label, open })}
-					<AiModelVersionsView
-						selection={selection.$$versions}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No AI model versions.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerAiModelVersions(_context, Content)}
+				{@const aiModelVersionsDocsAiModelVersionsResource = selection.$$versions}
+				<ResourceBoundary
+					resource={aiModelVersionsDocsAiModelVersionsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionAiModelDocuments({ id, label, open })}
-					<AiDocumentsView
-						selection={selection.$$documents}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No linked documents.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-ai-model-observations'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'ai-model-timestamps',
-							label: 'Observations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-observations'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Observations</HeadingComponent>
-					</header>
-				{/snippet}
+			{#snippet SectionAiModelVersions({ id, label, open, active })}
+				{@const aiModelVersionsDocsAiModelVersionsResource = selection.$$versions}
+				<ResourceBoundary
+					resource={aiModelVersionsDocsAiModelVersionsResource}
+				>
+					{#snippet children(aiModelVersion)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<AiModelVersionsView
+								selection={aiModelVersionsDocsAiModelVersionsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No AI model versions.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-				{#snippet SectionAiModelTimestamps({ id, label, open })}
-					<AiModel_TimestampsView
-						selection={selection.$$timestamps}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No AI model observations.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerAiModelDocuments(_context, Content)}
+				{@const aiModelVersionsDocsAiModelDocumentsResource = selection.$$documents}
+				<ResourceBoundary
+					resource={aiModelVersionsDocsAiModelDocumentsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionAiModelDocuments({ id, label, open, active })}
+				{@const aiModelVersionsDocsAiModelDocumentsResource = selection.$$documents}
+				<ResourceBoundary
+					resource={aiModelVersionsDocsAiModelDocumentsResource}
+				>
+					{#snippet children(aiDocument)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<AiDocumentsView
+								selection={aiModelVersionsDocsAiModelDocumentsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No linked documents.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-ai-model-observations'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'ai-model-timestamps',
+						label: 'Observations',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-observations'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Observations</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerAiModelTimestamps(_context, Content)}
+				{@const aiModelObservationsAiModelTimestampsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={aiModelObservationsAiModelTimestampsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionAiModelTimestamps({ id, label, open, active })}
+				{@const aiModelObservationsAiModelTimestampsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={aiModelObservationsAiModelTimestampsResource}
+				>
+					{#snippet children(aiModelTimestamp)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<AiModel_TimestampsView
+								selection={aiModelObservationsAiModelTimestampsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No AI model observations.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum HederaAccountSelector {
@@ -32,30 +33,45 @@ export const HederaAccount = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaAllowance,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	$$tokens: {
 		label: 'tokens',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaTokenAssociation,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	$$nfts: {
 		label: 'nfts',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaNft,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	$$transactions: {
 		label: 'transactions',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaTransaction,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	$$timestamps: {
 		label: 'timestamps',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 })({
 	selectors: {

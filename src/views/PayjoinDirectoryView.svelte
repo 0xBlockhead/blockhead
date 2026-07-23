@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -22,7 +23,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.PayjoinDirectory>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.PayjoinDirectory>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.PayjoinDirectory>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -36,7 +37,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const payjoinDirectory = $derived(selection({
+	const payjoinDirectory = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			ohttpGatewayUrl: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			ohttpGatewayUrl: true,
@@ -44,7 +50,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || 'payjoin directory')
-	const viewDomId = $derived('payjoin-directory-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('payjoin-directory-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,7 +72,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'ohttpGatewayUrl')}
 			{[String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={payjoinDirectory}>
@@ -79,7 +85,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'ohttpGatewayUrl')}
 			{[String((pendingEntity.ohttpGatewayUrl) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={payjoinDirectory}>
@@ -210,17 +216,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadPayjoinSessionsView
-				selection={
-						selection.$$blockheadSessions({
-							count: true,
-						})
-					}
-				title='blockhead sessions'
-				emptyText='No local payjoin sessions.'
-				id='BlockheadPayjoinSessionsView-blockhead-sessions'
-			/>
-		{/if}
+		{@const payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource = selection.$$blockheadSessions}
+		<ResourceBoundary
+			resource={payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadPayjoinSessionsView
+					selection={payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource}
+					countResource={payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource.count}
+					title='blockhead sessions'
+					id='BlockheadPayjoinSessionsView-blockhead-sessions'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NearBlock>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NearBlock>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NearBlock>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,14 +44,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nearBlock = $derived(selection({
+	const nearBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			timestampMs: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			timestampMs: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || 'near block')
-	const viewDomId = $derived('near-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('near-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -75,13 +81,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const height0 = pendingEntity.height}
-					{#if height0 !== undefined && height0 !== null}
-						<NumberValue
-							value={height0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'hash') && Object.hasOwn(prefetched, 'timestampMs')}
+			{@const height0 = pendingEntity.height}
+			{#if height0 !== undefined && height0 !== null}
+				<NumberValue
+					value={height0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={nearBlock}>
 				{#snippet children(entity)}
@@ -98,11 +104,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const hash0 = pendingEntity.hash}
-					{#if hash0 !== undefined && hash0 !== null}
-						<TruncatedValue value={String((hash0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'hash') && Object.hasOwn(prefetched, 'timestampMs')}
+			{@const hash0 = pendingEntity.hash}
+			{#if hash0 !== undefined && hash0 !== null}
+				<TruncatedValue value={String((hash0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={nearBlock}>
 				{#snippet children(entity)}
@@ -117,7 +123,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'hash') && Object.hasOwn(prefetched, 'timestampMs')}
 			{@const timestampMs0 = pendingEntity.timestampMs}
 			{#if timestampMs0 !== undefined && timestampMs0 !== null}
 				<span data-text="muted">
@@ -145,13 +151,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -211,13 +227,14 @@
 
 			<ResourceBoundary
 				resource={
-					selection.$parent({
-						sources: [
-							Source.NearRpc_JsonRpc,
-							Source.NearBlocks_Rest,
-							Source.ThreeXpl_Rest,
-						],
-					})
+					selection
+						.$parent({
+							sources: [
+								Source.NearRpc_JsonRpc,
+								Source.NearBlocks_Rest,
+								Source.ThreeXpl_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(nearBlock)}
@@ -288,19 +305,25 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<NearChunksView
-				selection={
-						selection.$$chunks({
-							sources: [
-								Source.NearRpc_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Chunks'
-				id='NearChunksView-chunks'
-			/>
-		{/if}
+				{@const nearBlockNearChunksViewChunksResource = selection
+		.$$chunks({
+			sources: [
+				Source.NearRpc_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={nearBlockNearChunksViewChunksResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<NearChunksView
+							selection={nearBlockNearChunksViewChunksResource}
+							countResource={nearBlockNearChunksViewChunksResource.count}
+							title='Chunks'
+							id='NearChunksView-chunks'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

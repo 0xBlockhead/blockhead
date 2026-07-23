@@ -2,22 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Nostr notes',
 		typeAnnotationParagraphs = ['A Nostr text note is a kind-1 event addressed by event id; author, reply, root, reaction, and relay facets remain separate fields.'],
 		placeholderText = undefined,
@@ -29,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrNote>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NostrNote>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrNoteView from '$/views/NostrNoteView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,9 +65,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
-				Source.Constants_Internal,
-			],
+			sources: selection.sources,
 			fields: {
 				content: true,
 				eventId: true,
@@ -85,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nostrNotes) => [...new Map(nostrNotes.values.map((nostrNote) => [nostrNote[EntityMetaKey.SelectorKey], nostrNote])).values()]}
 	getKey={(nostrNote) => nostrNote[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -99,18 +90,31 @@
 
 	{#snippet Item({ item: nostrNote })}
 		{@const nostrNoteFields = { ...nostrNote[EntityMetaKey.Selector], ...nostrNote }}
-		{@const selection = select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const nostrNoteHrefFields = { ...nostrNote, ...nostrNote[EntityMetaKey.Selector] }}
-		<NostrNoteView
-			selection={selection}
-			prefetched={nostrNoteFields}
+		<EntityView
+			entityType={EntityType.NostrNote}
+			entitySelector={nostrNote[EntityMetaKey.Selector]}
 			href={
-				(nostrNoteHrefFields.eventId !== undefined ? resolve('/nostr/note/[eventId=stringSegment]', {
-					eventId: String(nostrNoteHrefFields.eventId ?? ''),
-				}) : undefined)
+				(
+					nostrNote[EntityMetaKey.Selector] != null && 'eventId' in nostrNote[EntityMetaKey.Selector]
+					&& nostrNote[EntityMetaKey.Selector].eventId != null ?
+						resolve('/nostr/note/[eventId=stringSegment]', {
+					eventId: String(nostrNote[EntityMetaKey.Selector].eventId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nostrNoteFields.content) ?? '')].filter(Boolean).join(' ') || [String((nostrNoteFields.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((nostrNoteFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

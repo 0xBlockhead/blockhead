@@ -44,14 +44,14 @@
 				}
 				title='MEV relays'
 				selection={
-					projection.$$mevRelays({
-						sources: [
-							Source.Constants_Internal,
-						],
-						count: true,
-					})
+					projection
+						.$$mevRelays({
+							sources: [
+								Source.Constants_Internal,
+							],
+						})
 				}
-				id='mev-relays'
+				id='account-mev-relay'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

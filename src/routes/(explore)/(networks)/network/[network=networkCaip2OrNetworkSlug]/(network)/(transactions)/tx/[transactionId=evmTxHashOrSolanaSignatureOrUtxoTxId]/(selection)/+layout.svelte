@@ -24,6 +24,7 @@
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 	import SolanaTransactionView from '$/views/SolanaTransactionView.svelte'
+	import CardanoTransactionView from '$/views/CardanoTransactionView.svelte'
 	import UtxoTransactionView from '$/views/UtxoTransactionView.svelte'
 </script>
 
@@ -38,10 +39,10 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.EvmTransaction && data.selectorMapping.selectorName === 'EvmNetworkTxHash' ? EvmTransactionView : data.selectorMapping.entityType === EntityType.SolanaTransaction && data.selectorMapping.selectorName === 'NetworkSignature' ? SolanaTransactionView : UtxoTransactionView}
+			{@const DetailView = data.entityType === EntityType.EvmTransaction && data.selectorName === 'EvmNetworkTxHash' ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction && data.selectorName === 'NetworkSignature' ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction && data.selectorName === 'NetworkHash' ? CardanoTransactionView : UtxoTransactionView}
 
 			<DetailView
-				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}
+				selection={select(data.entityType, data.selector)}
 				href={
 					resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
 						network: params.network,

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadQuilibriumAccountState_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadQuilibriumAccountState_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadQuilibriumAccountState_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadQuilibriumAccountStateTimestamp = $derived(selection({
+	const blockheadQuilibriumAccountStateTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			balance: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			balance: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead quilibrium account state timestamp')
-	const viewDomId = $derived('blockhead-quilibrium-account-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-quilibrium-account-state-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,11 +76,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balance')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadQuilibriumAccountStateTimestamp}>
 				{#snippet children(entity)}
@@ -89,13 +95,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const balance0 = pendingEntity.balance}
-					{#if balance0 !== undefined && balance0 !== null}
-						<NumberValue
-							value={balance0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balance')}
+			{@const balance0 = pendingEntity.balance}
+			{#if balance0 !== undefined && balance0 !== null}
+				<NumberValue
+					value={balance0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadQuilibriumAccountStateTimestamp}>
 				{#snippet children(entity)}
@@ -112,7 +118,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balance')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -140,7 +146,7 @@
 				<dt>account state</dt>
 				<dd>
 					<BlockheadQuilibriumAccountStateView
-						selection={select(EntityType.BlockheadQuilibriumAccountState, selection.entitySelector.$accountState, {})}
+						selection={select(EntityType.BlockheadQuilibriumAccountState, selection.entitySelector.$accountState)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

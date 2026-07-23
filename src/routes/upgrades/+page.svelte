@@ -29,13 +29,24 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$networkUpgrades',
-			}).$$networkUpgrades({
-				sources: [
-					Source.Constants_Internal,
-				],
-				limit: 512,
-				count: true,
 			})
+				.$$networkUpgrades({
+					sources: [
+						Source.Constants_Internal,
+					],
+					limit: 512,
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$networkUpgrades',
+			})
+				.$$networkUpgrades({
+					sources: [
+						Source.Constants_Internal,
+					],
+					limit: 512,
+				}).count
 		}
 		id='network-upgrades'
 		data-column-item="flexible"

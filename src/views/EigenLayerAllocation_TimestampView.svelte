@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EigenLayerAllocation_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EigenLayerAllocation_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EigenLayerAllocation_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eigenLayerAllocationTimestamp = $derived(selection({
+	const eigenLayerAllocationTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('eigen layer allocation timestamp')
-	const viewDomId = $derived('eigen-layer-allocation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'eigen layer allocation timestamp'
+	const viewDomId = $derived('eigen-layer-allocation-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,70 +72,44 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-	{/snippet}
-
-	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<span data-text="muted">
-				<EigenLayerStrategyView
-					selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+		<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
+			{#snippet children(entity)}
+				<EigenLayerOperatorView
+					selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
+					href=""
 					layout={EntityLayout.Title}
 					open={false}
 				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<span data-text="muted">
-						<EigenLayerStrategyView
-							selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
+			{#snippet children(entity)}
+				<EigenLayerAvsView
+					selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<EigenLayerStrategyView
+						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -140,7 +118,7 @@
 				<dt>operator</dt>
 				<dd>
 					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator, {})}
+						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -151,7 +129,7 @@
 				<dt>AVS</dt>
 				<dd>
 					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs, {})}
+						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -162,7 +140,7 @@
 				<dt>strategy</dt>
 				<dd>
 					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy, {})}
+						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

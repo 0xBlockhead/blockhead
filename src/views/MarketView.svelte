@@ -4,12 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import Projection from '$/components/Projection.svelte'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { marketAssetRouteLabelByKind, MarketKind, marketKindByMarketKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 	import Market_Derivative_TimestampView from '$/views/Market_Derivative_TimestampView.svelte'
@@ -33,7 +34,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Market>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Market>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Market>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -50,8 +51,8 @@
 	const market = $derived(selection({
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('Market')
-	const viewDomId = $derived('market-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'Market'
+	const viewDomId = $derived('market-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,14 +72,33 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.marketKind !== undefined && pendingEntity.$base !== undefined && pendingEntity.$base.assetKey !== undefined && pendingEntity.$quote !== undefined && pendingEntity.$quote.assetKey !== undefined && pendingEntity.$marketVenue !== undefined && pendingEntity.$marketVenue.marketVenueId !== undefined && pendingEntity.$base.kind !== undefined && pendingEntity.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
-			marketKind: String(pendingEntity.marketKind ?? ''),
-			base: String(pendingEntity.$base.assetKey ?? ''),
-			quote: String(pendingEntity.$quote.assetKey ?? ''),
-			marketVenue: String(pendingEntity.$marketVenue.marketVenueId ?? ''),
-			baseKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$base.kind)] ?? ''),
-			quoteKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$quote.kind)] ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'marketKind' in selection.entitySelector
+			&& selection.entitySelector.marketKind != null
+			&& selection.entitySelector != null && '$base' in selection.entitySelector
+			&& selection.entitySelector.$base != null && 'assetKey' in selection.entitySelector.$base
+			&& selection.entitySelector.$base.assetKey != null
+			&& selection.entitySelector != null && '$quote' in selection.entitySelector
+			&& selection.entitySelector.$quote != null && 'assetKey' in selection.entitySelector.$quote
+			&& selection.entitySelector.$quote.assetKey != null
+			&& selection.entitySelector != null && '$marketVenue' in selection.entitySelector
+			&& selection.entitySelector.$marketVenue != null && 'marketVenueId' in selection.entitySelector.$marketVenue
+			&& selection.entitySelector.$marketVenue.marketVenueId != null
+			&& selection.entitySelector.$base != null && 'kind' in selection.entitySelector.$base
+			&& selection.entitySelector.$base.kind != null
+			&& selection.entitySelector.$quote != null && 'kind' in selection.entitySelector.$quote
+			&& selection.entitySelector.$quote.kind != null ?
+				resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
+			marketKind: String(selection.entitySelector.marketKind ?? ''),
+			base: String(selection.entitySelector.$base.assetKey ?? ''),
+			quote: String(selection.entitySelector.$quote.assetKey ?? ''),
+			marketVenue: String(selection.entitySelector.$marketVenue.marketVenueId ?? ''),
+			baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$base.kind)] ?? ''),
+			quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$quote.kind)] ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -114,9 +134,7 @@
 					<dt>Venue</dt>
 					<dd>
 						<MarketVenueView
-							href={resolve('/market-venue/[marketVenueId=marketVenueId]', {
-								marketVenueId: String(selection.entitySelector.$marketVenue.marketVenueId),
-							})}
+							href={resolve(`/market-venue/${selection.entitySelector.$marketVenue.marketVenueId}`)}
 							selection={select(EntityType.MarketVenue, selection.entitySelector.$marketVenue)}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
@@ -183,149 +201,315 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<ResourceBoundary
-				resource={selection.Spot}
-			>
-				{#snippet children(projectionValue)}
-					<Projection projection={projectionValue}>
-						{#snippet Applicable(projection)}
-							<CollapsibleTabs
-								id={viewDomId + '-carousel-market-spot'}
-								sectionIdPrefix={viewDomId}
-								sections={
-									[
-										{
-											id: 'market-prices',
-											label: 'Spot',
-										},
-										{
-											id: 'market-ohlc',
-											label: 'Candles',
-										},
-									]
-								}
-								data-card
-								class='network-view-collapsible-spot'
-							>
-								{#snippet Summary()}
-									<header data-row-item="flexible" data-row="wrap gap-4">
-										<HeadingComponent>Spot</HeadingComponent>
-									</header>
-								{/snippet}
+		<ProjectionBoundary
+			resource={selection.Spot}
+		>
+			{#snippet Applicable(projection)}
+						<CollapsibleTabs
+							id={viewDomId + '-carousel-market-spot'}
+							sectionIdPrefix={viewDomId}
+							sections={
+								[
+									{
+										id: 'market-prices',
+										label: 'Spot',
+										ownsSection: true,
+									},
+									{
+										id: 'market-ohlc',
+										label: 'Candles',
+										ownsSection: true,
+									},
+								]
+							}
+							data-card
+							class='network-view-collapsible-spot'
+						>
+							{#snippet Summary()}
+								<header data-row-item="flexible" data-row="wrap gap-4">
+									<HeadingComponent>Spot</HeadingComponent>
+								</header>
+							{/snippet}
 
-								{#snippet SectionMarketPrices({ id, label, open })}
-									<MarketPricesView
-										selection={
-											selection.$$marketPrices({
-												sources: [
-													Source.Constants_Internal,
-													Source.Coingecko_Rest,
-													Source.Coingecko_OpenApi,
-													Source.CoinMarketCap_Rest,
-													Source.Coinpaprika_OpenApi,
-													Source.Defillama_OpenApi,
-													Source.Blockscout_Rest,
-													Source.Defillama_Rest,
-												],
-											})
-										}
-										href={resolve('/coins/prices')}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										emptyText='No spot market prices.'
-										open={open}
-										title={label}
-										id={`${id}-list`}
-									/>
-								{/snippet}
+							{#snippet MarkerMarketPrices(_context, Content)}
+								{@const marketSpotMarketPricesResource = selection
+				.$$marketPrices({
+					sources: [
+						Source.Constants_Internal,
+						Source.Coingecko_Rest,
+						Source.Coingecko_OpenApi,
+						Source.CoinMarketCap_Rest,
+						Source.Coinpaprika_OpenApi,
+						Source.Defillama_OpenApi,
+						Source.Blockscout_Rest,
+						Source.Defillama_Rest,
+					],
+				})}
+								<ResourceBoundary
+									resource={marketSpotMarketPricesResource}
+								>
+									{#snippet children(_resolved)}
+										{@render Content()}
+									{/snippet}
 
-								{#snippet SectionMarketOhlc({ id, label, open })}
-									<Market_TimeInterval_TimestampsView
-										selection={
-											selection.$$marketTimeIntervalTimestamps({
-												sources: [
-													Source.Coingecko_Rest,
-													Source.Coingecko_OpenApi,
-													Source.Coinpaprika_OpenApi,
-													Source.CoinMarketCap_Rest,
-												],
-											})
-										}
-										href={resolve('/coins/candles')}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										emptyText='No OHLC candles.'
-										open={open}
-										title={label}
-										id={`${id}-list`}
-									/>
-								{/snippet}
+									{#snippet PendingContent()}
+										{@render Content()}
+									{/snippet}
 
-							</CollapsibleTabs>
-						{/snippet}
-					</Projection>
-				{/snippet}
-			</ResourceBoundary>
+									{#snippet FailedContent(_error, _retry)}
+										{@render Content()}
+									{/snippet}
+								</ResourceBoundary>
+							{/snippet}
 
-			<ResourceBoundary
-				resource={selection.Derivative}
-			>
-				{#snippet children(projectionValue)}
-					<Projection projection={projectionValue}>
-						{#snippet Applicable(projection)}
-							<CollapsibleTabs
-								id={viewDomId + '-carousel-market-derivatives'}
-								sectionIdPrefix={viewDomId}
-								sections={
-									[
-										{
-											id: 'market-derivative-timestamps',
-											label: 'Derivative observations',
-										},
-									]
-								}
-								data-card
-								class='network-view-collapsible-derivatives'
-							>
-								{#snippet Summary()}
-									<header data-row-item="flexible" data-row="wrap gap-4">
-										<HeadingComponent>Derivative observations</HeadingComponent>
-									</header>
-								{/snippet}
+							{#snippet SectionMarketPrices({ id, label, open, active })}
+								{@const marketSpotMarketPricesResource = selection
+				.$$marketPrices({
+					sources: [
+						Source.Constants_Internal,
+						Source.Coingecko_Rest,
+						Source.Coingecko_OpenApi,
+						Source.CoinMarketCap_Rest,
+						Source.Coinpaprika_OpenApi,
+						Source.Defillama_OpenApi,
+						Source.Blockscout_Rest,
+						Source.Defillama_Rest,
+					],
+				})}
+								<ResourceBoundary
+									resource={marketSpotMarketPricesResource}
+								>
+									{#snippet children(marketPrice)}
+										<section
+											id={id}
+											aria-labelledby={`${id}:marker`}
+											data-scroll-marker-label={label}
+											data-column-item="flexible"
+											data-column
+											data-active={active}
+										>
+											<MarketPricesView
+												selection={marketSpotMarketPricesResource}
+												CollapsibleProps={{ canToggle: false }}
+												collapsible={false}
+												data-column-item="flexible"
+												data-card
+												data-scroll-container
+												open={open}
+												title={label}
+												emptyText='No spot market prices.'
+												id={`${id}-list`}
+											/>
+										</section>
+									{/snippet}
 
-								{#snippet SectionMarketDerivativeTimestamps({ id, label, open })}
-									<Market_Derivative_TimestampsView
-										selection={
-											selection.$$derivativeTimestamps({
-												sources: [
-													Source.Coingecko_OpenApi,
-												],
-											})
-										}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										emptyText='No derivative observations.'
-										open={open}
-										title={label}
-										id={`${id}-list`}
-									/>
-								{/snippet}
+									{#snippet Pending()}
+										<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+											<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+												<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+											</article>
+										</section>
+									{/snippet}
 
-							</CollapsibleTabs>
-						{/snippet}
-					</Projection>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+									{#snippet Failed(_error, _retry)}
+										<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+											<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+												<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+											</article>
+										</section>
+									{/snippet}
+								</ResourceBoundary>
+							{/snippet}
+
+							{#snippet MarkerMarketOhlc(_context, Content)}
+								{@const marketSpotMarketOhlcResource = selection
+				.$$marketTimeIntervalTimestamps({
+					sources: [
+						Source.Coingecko_Rest,
+						Source.Coingecko_OpenApi,
+						Source.Coinpaprika_OpenApi,
+						Source.CoinMarketCap_Rest,
+					],
+				})}
+								<ResourceBoundary
+									resource={marketSpotMarketOhlcResource}
+								>
+									{#snippet children(_resolved)}
+										{@render Content()}
+									{/snippet}
+
+									{#snippet PendingContent()}
+										{@render Content()}
+									{/snippet}
+
+									{#snippet FailedContent(_error, _retry)}
+										{@render Content()}
+									{/snippet}
+								</ResourceBoundary>
+							{/snippet}
+
+							{#snippet SectionMarketOhlc({ id, label, open, active })}
+								{@const marketSpotMarketOhlcResource = selection
+				.$$marketTimeIntervalTimestamps({
+					sources: [
+						Source.Coingecko_Rest,
+						Source.Coingecko_OpenApi,
+						Source.Coinpaprika_OpenApi,
+						Source.CoinMarketCap_Rest,
+					],
+				})}
+								<ResourceBoundary
+									resource={marketSpotMarketOhlcResource}
+								>
+									{#snippet children(marketTimeIntervalTimestamp)}
+										<section
+											id={id}
+											aria-labelledby={`${id}:marker`}
+											data-scroll-marker-label={label}
+											data-column-item="flexible"
+											data-column
+											data-active={active}
+										>
+											<Market_TimeInterval_TimestampsView
+												selection={marketSpotMarketOhlcResource}
+												CollapsibleProps={{ canToggle: false }}
+												collapsible={false}
+												data-column-item="flexible"
+												data-card
+												data-scroll-container
+												open={open}
+												title={label}
+												emptyText='No OHLC candles.'
+												id={`${id}-list`}
+											/>
+										</section>
+									{/snippet}
+
+									{#snippet Pending()}
+										<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+											<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+												<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+											</article>
+										</section>
+									{/snippet}
+
+									{#snippet Failed(_error, _retry)}
+										<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+											<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+												<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+											</article>
+										</section>
+									{/snippet}
+								</ResourceBoundary>
+							{/snippet}
+
+						</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
+
+		<ProjectionBoundary
+			resource={selection.Derivative}
+		>
+			{#snippet Applicable(projection)}
+						<CollapsibleTabs
+							id={viewDomId + '-carousel-market-derivatives'}
+							sectionIdPrefix={viewDomId}
+							sections={
+								[
+									{
+										id: 'market-derivative-timestamps',
+										label: 'Derivative observations',
+										ownsSection: true,
+									},
+								]
+							}
+							data-card
+							class='network-view-collapsible-derivatives'
+						>
+							{#snippet Summary()}
+								<header data-row-item="flexible" data-row="wrap gap-4">
+									<HeadingComponent>Derivative observations</HeadingComponent>
+								</header>
+							{/snippet}
+
+							{#snippet MarkerMarketDerivativeTimestamps(_context, Content)}
+								{@const marketDerivativesMarketDerivativeTimestampsResource = selection
+				.$$derivativeTimestamps({
+					sources: [
+						Source.Coingecko_OpenApi,
+					],
+				})}
+								<ResourceBoundary
+									resource={marketDerivativesMarketDerivativeTimestampsResource}
+								>
+									{#snippet children(_resolved)}
+										{@render Content()}
+									{/snippet}
+
+									{#snippet PendingContent()}
+										{@render Content()}
+									{/snippet}
+
+									{#snippet FailedContent(_error, _retry)}
+										{@render Content()}
+									{/snippet}
+								</ResourceBoundary>
+							{/snippet}
+
+							{#snippet SectionMarketDerivativeTimestamps({ id, label, open, active })}
+								{@const marketDerivativesMarketDerivativeTimestampsResource = selection
+				.$$derivativeTimestamps({
+					sources: [
+						Source.Coingecko_OpenApi,
+					],
+				})}
+								<ResourceBoundary
+									resource={marketDerivativesMarketDerivativeTimestampsResource}
+								>
+									{#snippet children(marketDerivativeTimestamp)}
+										<section
+											id={id}
+											aria-labelledby={`${id}:marker`}
+											data-scroll-marker-label={label}
+											data-column-item="flexible"
+											data-column
+											data-active={active}
+										>
+											<Market_Derivative_TimestampsView
+												selection={marketDerivativesMarketDerivativeTimestampsResource}
+												CollapsibleProps={{ canToggle: false }}
+												collapsible={false}
+												data-column-item="flexible"
+												data-card
+												data-scroll-container
+												open={open}
+												title={label}
+												emptyText='No derivative observations.'
+												id={`${id}-list`}
+											/>
+										</section>
+									{/snippet}
+
+									{#snippet Pending()}
+										<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+											<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+												<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+											</article>
+										</section>
+									{/snippet}
+
+									{#snippet Failed(_error, _retry)}
+										<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+											<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+												<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+											</article>
+										</section>
+									{/snippet}
+								</ResourceBoundary>
+							{/snippet}
+
+						</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
 	{/snippet}
 </EntityView>

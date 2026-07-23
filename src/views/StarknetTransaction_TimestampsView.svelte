@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Starknet transaction observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.StarknetTransaction_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.StarknetTransaction_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import StarknetTransaction_TimestampView from '$/views/StarknetTransaction_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(starknetTransactionTimestamps) => [...new Map(starknetTransactionTimestamps.values.map((starknetTransactionTimestamp) => [starknetTransactionTimestamp[EntityMetaKey.SelectorKey], starknetTransactionTimestamp])).values()]}
 	getKey={(starknetTransactionTimestamp) => starknetTransactionTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: starknetTransactionTimestamp })}
 		{@const starknetTransactionTimestampFields = { ...starknetTransactionTimestamp[EntityMetaKey.Selector], ...starknetTransactionTimestamp }}
-		{@const selection = select(EntityType.StarknetTransaction_Timestamp, starknetTransactionTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<StarknetTransaction_TimestampView
-			selection={selection}
-			prefetched={starknetTransactionTimestampFields}
+		<EntityView
+			entityType={EntityType.StarknetTransaction_Timestamp}
+			entitySelector={starknetTransactionTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((starknetTransactionTimestampFields.$transaction.transactionHash) ?? '')].filter(Boolean).join(' ') || 'starknet transaction'].filter(Boolean).join(' ') || 'starknet transaction timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((starknetTransactionTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((starknetTransactionTimestampFields.executionStatus) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

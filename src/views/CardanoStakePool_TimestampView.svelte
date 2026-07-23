@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CardanoStakePool_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CardanoStakePool_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoStakePool_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,15 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoStakePoolTimestamp = $derived(selection({
+	const cardanoStakePoolTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('Cardano stake pool timestamp')
-	const viewDomId = $derived('cardano-stake-pool-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'Cardano stake pool timestamp'
+	const viewDomId = $derived('cardano-stake-pool-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CardanoStakePoolView from '$/views/CardanoStakePoolView.svelte'
 </script>
@@ -67,12 +72,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cardanoStakePoolTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -85,15 +89,30 @@
 				<dt>pool</dt>
 				<dd>
 					<CardanoStakePoolView
-						selection={select(EntityType.CardanoStakePool, selection.entitySelector.$pool, {})}
+						selection={select(EntityType.CardanoStakePool, selection.entitySelector.$pool)}
 						href={
-							(selection.entitySelector.$pool.poolId !== undefined && selection.entitySelector.$pool.$network !== undefined && selection.entitySelector.$pool.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
-								poolId: String(selection.entitySelector.$pool.poolId ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$pool.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$pool.poolId !== undefined && selection.entitySelector.$pool.$network !== undefined && selection.entitySelector.$pool.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
-								poolId: String(selection.entitySelector.$pool.poolId ?? ''),
-								network: String(selection.entitySelector.$pool.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$pool != null && 'poolId' in selection.entitySelector.$pool
+								&& selection.entitySelector.$pool.poolId != null
+								&& selection.entitySelector.$pool != null && '$network' in selection.entitySelector.$pool ?
+									selection.entitySelector.$pool.$network != null && 'caip2' in selection.entitySelector.$pool.$network
+									&& selection.entitySelector.$pool.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+									poolId: String(selection.entitySelector.$pool.poolId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$pool.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$pool.$network != null && 'slug' in selection.entitySelector.$pool.$network
+										&& selection.entitySelector.$pool.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+										poolId: String(selection.entitySelector.$pool.poolId ?? ''),
+										network: String(selection.entitySelector.$pool.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LightningChannel_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LightningChannel_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LightningChannel_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lightningChannelTimestamp = $derived(selection({
+	const lightningChannelTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			status: true,
+			capacitySats: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			status: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning channel timestamp')
-	const viewDomId = $derived('lightning-channel-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('lightning-channel-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,11 +79,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'capacitySats')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={lightningChannelTimestamp}>
 				{#snippet children(entity)}
@@ -91,7 +98,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'capacitySats')}
 			{[String((pendingEntity.status) ?? ''), String((pendingEntity.capacitySats) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={lightningChannelTimestamp}>
@@ -109,15 +116,30 @@
 				<dt>Channel</dt>
 				<dd>
 					<LightningChannelView
-						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel, {})}
+						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
 						href={
-							(selection.entitySelector.$channel.channelId !== undefined && selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-								channelId: String(selection.entitySelector.$channel.channelId ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$channel.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$channel.channelId !== undefined && selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-								channelId: String(selection.entitySelector.$channel.channelId ?? ''),
-								network: String(selection.entitySelector.$channel.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$channel != null && 'channelId' in selection.entitySelector.$channel
+								&& selection.entitySelector.$channel.channelId != null
+								&& selection.entitySelector.$channel != null && '$network' in selection.entitySelector.$channel ?
+									selection.entitySelector.$channel.$network != null && 'caip2' in selection.entitySelector.$channel.$network
+									&& selection.entitySelector.$channel.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+									channelId: String(selection.entitySelector.$channel.channelId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$channel.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$channel.$network != null && 'slug' in selection.entitySelector.$channel.$network
+										&& selection.entitySelector.$channel.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+										channelId: String(selection.entitySelector.$channel.channelId ?? ''),
+										network: String(selection.entitySelector.$channel.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

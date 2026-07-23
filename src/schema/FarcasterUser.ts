@@ -82,6 +82,7 @@ export const FarcasterUser = entity({
 		entityType: EntityType.FarcasterCast,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
+			Source.Neynar_Rest,
 			Source.Snapchain_Rest,
 		],
 	},

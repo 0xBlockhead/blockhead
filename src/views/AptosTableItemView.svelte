@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AptosTableItem>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AptosTableItem>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AptosTableItem>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosTableItem = $derived(selection({
+	const aptosTableItem = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			keyType: true,
+			valueType: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			keyType: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.keyHash) ?? '')].filter(Boolean).join(' ') || 'aptos table item')
-	const viewDomId = $derived('aptos-table-item-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('aptos-table-item-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,11 +77,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const keyHash0 = pendingEntity.keyHash}
-					{#if keyHash0 !== undefined && keyHash0 !== null}
-						<TruncatedValue value={String((keyHash0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'keyType') && Object.hasOwn(prefetched, 'valueType')}
+			{@const keyHash0 = pendingEntity.keyHash}
+			{#if keyHash0 !== undefined && keyHash0 !== null}
+				<TruncatedValue value={String((keyHash0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={aptosTableItem}>
 				{#snippet children(entity)}
@@ -89,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'keyType') && Object.hasOwn(prefetched, 'valueType')}
 			{[String((pendingEntity.keyType) ?? ''), String((pendingEntity.valueType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.keyHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={aptosTableItem}>
@@ -107,7 +114,7 @@
 				<dt>network</dt>
 				<dd>
 					<AptosNetworkView
-						selection={select(EntityType.AptosNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.AptosNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -215,17 +222,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AptosTableItem_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='AptosTableItem_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const aptosTableItemAptosTableItemTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={aptosTableItemAptosTableItemTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AptosTableItem_TimestampsView
+					selection={aptosTableItemAptosTableItemTimestampsViewTimestampsResource}
+					countResource={aptosTableItemAptosTableItemTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='AptosTableItem_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

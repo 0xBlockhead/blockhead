@@ -30,7 +30,6 @@
 			docsUrl: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.protocolName) ?? '')].filter(Boolean).join(' ') || 'Swarm protocol' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'Swarm protocol')))
 
 
 	// Components
@@ -40,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Swarm protocol • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Swarm protocol' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'Swarm protocol'))} • Swarm protocol • Blockhead</title>
 </svelte:head>
 
 

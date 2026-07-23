@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'XMTP conversations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.XmtpConversation>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.XmtpConversation>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import XmtpConversationView from '$/views/XmtpConversationView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(xmtpConversations) => [...new Map(xmtpConversations.values.map((xmtpConversation) => [xmtpConversation[EntityMetaKey.SelectorKey], xmtpConversation])).values()]}
 	getKey={(xmtpConversation) => xmtpConversation[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,18 +89,35 @@
 
 	{#snippet Item({ item: xmtpConversation })}
 		{@const xmtpConversationFields = { ...xmtpConversation[EntityMetaKey.Selector], ...xmtpConversation }}
-		{@const selection = select(EntityType.XmtpConversation, xmtpConversation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const xmtpConversationHrefFields = { ...xmtpConversation, ...xmtpConversation[EntityMetaKey.Selector] }}
-		<XmtpConversationView
-			selection={selection}
-			prefetched={xmtpConversationFields}
+		<EntityView
+			entityType={EntityType.XmtpConversation}
+			entitySelector={xmtpConversation[EntityMetaKey.Selector]}
 			href={
-				(xmtpConversationHrefFields.id !== undefined ? resolve('/xmtp/conversation/[conversationId=stringSegment]', {
-					conversationId: String(xmtpConversationHrefFields.id ?? ''),
-				}) : undefined)
+				(
+					xmtpConversation[EntityMetaKey.Selector] != null && 'id' in xmtpConversation[EntityMetaKey.Selector]
+					&& xmtpConversation[EntityMetaKey.Selector].id != null ?
+						resolve('/xmtp/conversation/[conversationId=stringSegment]', {
+					conversationId: String(xmtpConversation[EntityMetaKey.Selector].id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((xmtpConversationFields.topic) ?? ''), String((xmtpConversationFields.peerInboxId) ?? ''), String((xmtpConversationFields.id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((xmtpConversationFields.id) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((xmtpConversationFields.createdAtMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

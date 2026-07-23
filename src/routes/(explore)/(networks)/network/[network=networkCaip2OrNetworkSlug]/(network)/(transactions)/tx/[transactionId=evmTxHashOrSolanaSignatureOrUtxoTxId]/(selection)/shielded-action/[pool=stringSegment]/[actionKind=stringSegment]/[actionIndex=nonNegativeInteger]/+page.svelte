@@ -27,7 +27,6 @@
 			valueCommitment: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.actionKind) ?? ''), String((pageSelection.entitySelector.indexInTransaction) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).actionKind) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInTransaction) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action')))
 
 
 	// Components
@@ -37,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Zcash shielded action • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.actionKind) ?? ''), String((data.selector.indexInTransaction) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action' : [String((({ ...data.selector, ...pageSelection.entity }).actionKind) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action'))} • Zcash shielded action • Blockhead</title>
 </svelte:head>
 
 

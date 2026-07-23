@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.A2aAgentCard_Snapshot>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.A2aAgentCard_Snapshot>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aAgentCard_Snapshot>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aAgentCardSnapshot = $derived(selection({
+	const a2aAgentCardSnapshot = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			name: true,
+			version: true,
+			protocolVersion: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			name: true,
@@ -51,7 +59,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.contentHash) ?? '')].filter(Boolean).join(' ') || 'A2A agent card snapshot')
-	const viewDomId = $derived('a2a-agent-card-snapshot-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('a2a-agent-card-snapshot-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -76,7 +84,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'version') && Object.hasOwn(prefetched, 'protocolVersion')}
 			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aAgentCardSnapshot}>
@@ -89,7 +97,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'version') && Object.hasOwn(prefetched, 'protocolVersion')}
 			{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aAgentCardSnapshot}>
@@ -102,7 +110,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'version') && Object.hasOwn(prefetched, 'protocolVersion')}
 			{@const protocolVersion0 = pendingEntity.protocolVersion}
 			{#if protocolVersion0 !== undefined && protocolVersion0 !== null}
 				<span data-text="muted">
@@ -130,7 +138,7 @@
 				<dt>card</dt>
 				<dd>
 					<A2aAgentCardView
-						selection={select(EntityType.A2aAgentCard, selection.entitySelector.$card, {})}
+						selection={select(EntityType.A2aAgentCard, selection.entitySelector.$card)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -413,39 +421,50 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<A2aAgentInterfacesView
-				selection={
-						selection.$$interfaces({
-							count: true,
-						})
-					}
-				title='interfaces'
-				emptyText='No A2A agent interfaces.'
-				id='A2aAgentInterfacesView-interfaces'
-			/>
-
-			<A2aAgentServicesView
-				selection={
-						selection.$$services({
-							count: true,
-						})
-					}
-				title='services'
-				emptyText='No A2A agent services.'
-				id='A2aAgentServicesView-services'
-			/>
-
-			<A2aAgentSkillsView
-				selection={
-						selection.$$skills({
-							count: true,
-						})
-					}
-				title='skills'
-				emptyText='No A2A agent skills.'
-				id='A2aAgentSkillsView-skills'
-			/>
-		{/if}
+		{@const a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource = selection.$$interfaces}
+		<ResourceBoundary
+			resource={a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<A2aAgentInterfacesView
+					selection={a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource}
+					countResource={a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource.count}
+					title='interfaces'
+					id='A2aAgentInterfacesView-interfaces'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const a2aAgentCardSnapshotA2aAgentServicesViewServicesResource = selection.$$services}
+		<ResourceBoundary
+			resource={a2aAgentCardSnapshotA2aAgentServicesViewServicesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<A2aAgentServicesView
+					selection={a2aAgentCardSnapshotA2aAgentServicesViewServicesResource}
+					countResource={a2aAgentCardSnapshotA2aAgentServicesViewServicesResource.count}
+					title='services'
+					id='A2aAgentServicesView-services'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource = selection.$$skills}
+		<ResourceBoundary
+			resource={a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<A2aAgentSkillsView
+					selection={a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource}
+					countResource={a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource.count}
+					title='skills'
+					id='A2aAgentSkillsView-skills'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

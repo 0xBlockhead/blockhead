@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Monero transactions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.MoneroTransaction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MoneroTransaction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MoneroTransactionView from '$/views/MoneroTransactionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(moneroTransactions) => [...new Map(moneroTransactions.values.map((moneroTransaction) => [moneroTransaction[EntityMetaKey.SelectorKey], moneroTransaction])).values()]}
 	getKey={(moneroTransaction) => moneroTransaction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: moneroTransaction })}
 		{@const moneroTransactionFields = { ...moneroTransaction[EntityMetaKey.Selector], ...moneroTransaction }}
-		{@const selection = select(EntityType.MoneroTransaction, moneroTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<MoneroTransactionView
-			selection={selection}
-			prefetched={moneroTransactionFields}
+		<EntityView
+			entityType={EntityType.MoneroTransaction}
+			entitySelector={moneroTransaction[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((moneroTransactionFields.txHash) ?? '')].filter(Boolean).join(' ') || 'monero transaction'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((moneroTransactionFields.$block.height) ?? '')].filter(Boolean).join(' ') || 'monero block'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((moneroTransactionFields.feeAtomicUnits) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -11,18 +10,13 @@
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
-
-	// State
-	let {
-		data,
-	}: PageProps = $props()
-
-	const pageSelection = $derived(select(EntityType._GlobalIpfsAccess, data.selector, {
+	const pageSelection = $derived(select(EntityType._GlobalIpfsAccess, {
+		scope: '_GlobalIpfsAccess',
+	}, {
 		sources: [
 			Source.Constants_Internal,
 		],
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'global IPFS access' : 'global IPFS access')))
 
 
 	// Components
@@ -32,7 +26,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • global IPFS access • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'global IPFS access' : 'global IPFS access')} • global IPFS access • Blockhead</title>
 </svelte:head>
 
 

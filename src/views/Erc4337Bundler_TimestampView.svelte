@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Erc4337Bundler_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Erc4337Bundler_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Erc4337Bundler_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const erc4337BundlerTimestamp = $derived(selection({
+	const erc4337BundlerTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			userOperationsCount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			userOperationsCount: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 bundler timestamp')
-	const viewDomId = $derived('erc4337bundler-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('erc4337bundler-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,28 +72,48 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$bundler !== undefined && pendingEntity.$bundler.address !== undefined && pendingEntity.$bundler.$network !== undefined && pendingEntity.$bundler.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			address: String(pendingEntity.$bundler.address ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$bundler.$network.caip2) ?? ''),
-		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$bundler !== undefined && pendingEntity.$bundler.address !== undefined && pendingEntity.$bundler.$network !== undefined && pendingEntity.$bundler.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			address: String(pendingEntity.$bundler.address ?? ''),
-			network: String(pendingEntity.$bundler.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$bundler' in selection.entitySelector
+			&& selection.entitySelector.$bundler != null && 'address' in selection.entitySelector.$bundler
+			&& selection.entitySelector.$bundler.address != null
+			&& selection.entitySelector.$bundler != null && '$network' in selection.entitySelector.$bundler ?
+				selection.entitySelector.$bundler.$network != null && 'caip2' in selection.entitySelector.$bundler.$network
+				&& selection.entitySelector.$bundler.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+				timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+				source: String(selection.entitySelector.source ?? ''),
+				address: String(selection.entitySelector.$bundler.address ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$bundler.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$bundler.$network != null && 'slug' in selection.entitySelector.$bundler.$network
+					&& selection.entitySelector.$bundler.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+					source: String(selection.entitySelector.source ?? ''),
+					address: String(selection.entitySelector.$bundler.address ?? ''),
+					network: String(selection.entitySelector.$bundler.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'userOperationsCount')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={erc4337BundlerTimestamp}>
 				{#snippet children(entity)}
@@ -102,13 +128,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const userOperationsCount0 = pendingEntity.userOperationsCount}
-					{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
-						<NumberValue
-							value={userOperationsCount0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'userOperationsCount')}
+			{@const userOperationsCount0 = pendingEntity.userOperationsCount}
+			{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
+				<NumberValue
+					value={userOperationsCount0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={erc4337BundlerTimestamp}>
 				{#snippet children(entity)}
@@ -125,7 +151,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'userOperationsCount')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -229,15 +255,30 @@
 				<dt>Bundler</dt>
 				<dd>
 					<Erc4337BundlerView
-						selection={select(EntityType.Erc4337Bundler, selection.entitySelector.$bundler, {})}
+						selection={select(EntityType.Erc4337Bundler, selection.entitySelector.$bundler)}
 						href={
-							(selection.entitySelector.$bundler.address !== undefined && selection.entitySelector.$bundler.$network !== undefined && selection.entitySelector.$bundler.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-								address: String(selection.entitySelector.$bundler.address ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$bundler.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$bundler.address !== undefined && selection.entitySelector.$bundler.$network !== undefined && selection.entitySelector.$bundler.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-								address: String(selection.entitySelector.$bundler.address ?? ''),
-								network: String(selection.entitySelector.$bundler.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$bundler != null && 'address' in selection.entitySelector.$bundler
+								&& selection.entitySelector.$bundler.address != null
+								&& selection.entitySelector.$bundler != null && '$network' in selection.entitySelector.$bundler ?
+									selection.entitySelector.$bundler.$network != null && 'caip2' in selection.entitySelector.$bundler.$network
+									&& selection.entitySelector.$bundler.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
+									address: String(selection.entitySelector.$bundler.address ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$bundler.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$bundler.$network != null && 'slug' in selection.entitySelector.$bundler.$network
+										&& selection.entitySelector.$bundler.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
+										address: String(selection.entitySelector.$bundler.address ?? ''),
+										network: String(selection.entitySelector.$bundler.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

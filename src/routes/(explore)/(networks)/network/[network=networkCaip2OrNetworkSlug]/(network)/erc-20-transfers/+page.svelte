@@ -44,14 +44,14 @@
 				}
 				title='ERC-20 transfers'
 				selection={
-					projection.$$erc20TokenTransfers({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$erc20TokenTransfers({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
-				id='erc20-token-transfers'
+				id='account-evm-token-transfer'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

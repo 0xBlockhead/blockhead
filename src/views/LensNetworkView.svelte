@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LensNetwork>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensNetwork>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LensNetwork>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -38,7 +39,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lensNetwork = $derived(selection({
+	const lensNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			protocolName: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			protocolName: true,
@@ -49,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'Lens')
-	const viewDomId = $derived('lens-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('lens-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,13 +73,20 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? (pendingEntity.scope === 'LensNetwork' ? resolve('/lens') : undefined)}
+	href={
+		href ?? (
+			selection.entitySelector.scope === 'LensNetwork' ?
+				resolve('/lens')
+		:
+				undefined
+		)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={lensNetwork}>
@@ -86,7 +99,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={lensNetwork}>
@@ -251,95 +264,206 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-lens-network-directory'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'lens-network-accounts',
-							label: 'Accounts',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-directory'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Directory</HeadingComponent>
-					</header>
-				{/snippet}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-lens-network-directory'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'lens-network-accounts',
+								label: 'Accounts',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-directory'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Directory</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet SectionLensNetworkAccounts({ id, label, open })}
-					<LensAccountsView
-						selection={
-							selection.$$lensAccounts({
-								sources: [
-									Source.Constants_Internal,
-									Source.Lens_Graphql,
-								],
-							})
-						}
-						href={resolve('/lens/observations/accounts')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No Lens accounts in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet MarkerLensNetworkAccounts(_context, Content)}
+						{@const lensNetworkDirectoryLensNetworkAccountsResource = selection
+		.$$lensAccounts({
+			sources: [
+				Source.Constants_Internal,
+				Source.Lens_Graphql,
+			],
+		})}
+						<ResourceBoundary
+							resource={lensNetworkDirectoryLensNetworkAccountsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
 
-			</CollapsibleTabs>
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-lens-network-posts'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'lens-network-post-list',
-							label: 'Posts',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-posts'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Posts</HeadingComponent>
-					</header>
-				{/snippet}
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
 
-				{#snippet SectionLensNetworkPostList({ id, label, open })}
-					<LensPostsView
-						selection={
-							selection.$$lensPosts({
-								sources: [
-									Source.Lens_Graphql,
-								],
-							})
-						}
-						href={resolve('/lens/observations/posts')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No Lens posts in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet SectionLensNetworkAccounts({ id, label, open, active })}
+						{@const lensNetworkDirectoryLensNetworkAccountsResource = selection
+		.$$lensAccounts({
+			sources: [
+				Source.Constants_Internal,
+				Source.Lens_Graphql,
+			],
+		})}
+						<ResourceBoundary
+							resource={lensNetworkDirectoryLensNetworkAccountsResource}
+						>
+							{#snippet children(lensAccount)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<LensAccountsView
+										selection={lensNetworkDirectoryLensNetworkAccountsResource}
+										href={resolve('/lens/observations/accounts')}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No Lens accounts in this observed.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
+
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-lens-network-posts'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'lens-network-post-list',
+								label: 'Posts',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-posts'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Posts</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet MarkerLensNetworkPostList(_context, Content)}
+						{@const lensNetworkPostsLensNetworkPostListResource = selection
+		.$$lensPosts({
+			sources: [
+				Source.Lens_Graphql,
+			],
+		})}
+						<ResourceBoundary
+							resource={lensNetworkPostsLensNetworkPostListResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionLensNetworkPostList({ id, label, open, active })}
+						{@const lensNetworkPostsLensNetworkPostListResource = selection
+		.$$lensPosts({
+			sources: [
+				Source.Lens_Graphql,
+			],
+		})}
+						<ResourceBoundary
+							resource={lensNetworkPostsLensNetworkPostListResource}
+						>
+							{#snippet children(lensPost)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<LensPostsView
+										selection={lensNetworkPostsLensNetworkPostListResource}
+										href={resolve('/lens/observations/posts')}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No Lens posts in this observed.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
 	{/snippet}
 </EntityView>

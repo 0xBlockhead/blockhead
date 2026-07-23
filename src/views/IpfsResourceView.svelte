@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.IpfsResource>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.IpfsResource>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.IpfsResource>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ipfsResource = $derived(selection({
+	const ipfsResource = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			canonicalUri: true,
+			contentType: true,
+			displayType: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			canonicalUri: true,
@@ -57,7 +65,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || 'IPFS resource')
-	const viewDomId = $derived('ipfs-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('ipfs-resource-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,25 +82,41 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.contentPath === '' && pendingEntity.namespace !== undefined && pendingEntity.target !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
-			namespace: String(pendingEntity.namespace ?? ''),
-			target: String(pendingEntity.target ?? ''),
-		}) : pendingEntity.contentPath !== '' && pendingEntity.namespace !== undefined && pendingEntity.target !== undefined && pendingEntity.contentPath !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]', {
-			namespace: String(pendingEntity.namespace ?? ''),
-			target: String(pendingEntity.target ?? ''),
-			contentPath: String(pendingEntity.contentPath ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'namespace' in selection.entitySelector
+			&& selection.entitySelector.namespace != null
+			&& selection.entitySelector != null && 'target' in selection.entitySelector
+			&& selection.entitySelector.target != null ?
+				selection.entitySelector.target != null ?
+					resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
+				namespace: String(selection.entitySelector.namespace ?? ''),
+				target: String(selection.entitySelector.target ?? ''),
+			})
+			:
+					selection.entitySelector.target != null
+					&& selection.entitySelector != null && 'contentPath' in selection.entitySelector
+					&& selection.entitySelector.contentPath != null ?
+						resolve('/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]', {
+					namespace: String(selection.entitySelector.namespace ?? ''),
+					target: String(selection.entitySelector.target ?? ''),
+					contentPath: String(selection.entitySelector.contentPath ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const canonicalUri0 = pendingEntity.canonicalUri}
-					{#if canonicalUri0 !== undefined && canonicalUri0 !== null}
-						<TruncatedValue value={String((canonicalUri0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'canonicalUri') && Object.hasOwn(prefetched, 'contentType') && Object.hasOwn(prefetched, 'displayType')}
+			{@const canonicalUri0 = pendingEntity.canonicalUri}
+			{#if canonicalUri0 !== undefined && canonicalUri0 !== null}
+				<TruncatedValue value={String((canonicalUri0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={ipfsResource}>
 				{#snippet children(entity)}
@@ -107,7 +131,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'canonicalUri') && Object.hasOwn(prefetched, 'contentType') && Object.hasOwn(prefetched, 'displayType')}
 			{[String((pendingEntity.contentType) ?? ''), String((pendingEntity.displayType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={ipfsResource}>
@@ -439,9 +463,15 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
+										(
+											media[EntityMetaKey.Selector] != null && 'url' in media[EntityMetaKey.Selector]
+											&& media[EntityMetaKey.Selector].url != null ?
+												resolve('/media/[url=absoluteUrl]', {
 											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}

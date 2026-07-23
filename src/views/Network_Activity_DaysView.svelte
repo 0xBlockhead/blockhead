@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Network activity days',
 		typeAnnotationParagraphs = ['A completed UTC day of provider-reported network activity aggregates.'],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.Network_Activity_Day>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Network_Activity_Day>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Network_Activity_DayView from '$/views/Network_Activity_DayView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(networkActivityDays) => [...new Map(networkActivityDays.values.map((networkActivityDay) => [networkActivityDay[EntityMetaKey.SelectorKey], networkActivityDay])).values()]}
 	getKey={(networkActivityDay) => networkActivityDay[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,22 +91,49 @@
 
 	{#snippet Item({ item: networkActivityDay })}
 		{@const networkActivityDayFields = { ...networkActivityDay[EntityMetaKey.Selector], ...networkActivityDay }}
-		{@const selection = select(EntityType.Network_Activity_Day, networkActivityDay[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const networkActivityDayHrefFields = { ...networkActivityDay, ...networkActivityDay[EntityMetaKey.Selector] }}
-		<Network_Activity_DayView
-			selection={selection}
-			prefetched={networkActivityDayFields}
+		<EntityView
+			entityType={EntityType.Network_Activity_Day}
+			entitySelector={networkActivityDay[EntityMetaKey.Selector]}
 			href={
-				(networkActivityDay[EntityMetaKey.Selector].source === 'SpaceAndTime_MakeInfinite' && networkActivityDayHrefFields.dayStartTimestampMs !== undefined && networkActivityDayHrefFields.$network !== undefined && networkActivityDayHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/activity/day/[dayStartTimestampMs=nonNegativeInteger]', {
-					dayStartTimestampMs: String(networkActivityDayHrefFields.dayStartTimestampMs ?? ''),
-					network: String(caip2StringFromValue(networkActivityDayHrefFields.$network.caip2) ?? ''),
-				}) : networkActivityDay[EntityMetaKey.Selector].source === 'SpaceAndTime_MakeInfinite' && networkActivityDayHrefFields.dayStartTimestampMs !== undefined && networkActivityDayHrefFields.$network !== undefined && networkActivityDayHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/activity/day/[dayStartTimestampMs=nonNegativeInteger]', {
-					dayStartTimestampMs: String(networkActivityDayHrefFields.dayStartTimestampMs ?? ''),
-					network: String(networkActivityDayHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					networkActivityDay[EntityMetaKey.Selector].source === 'SpaceAndTime_MakeInfinite'
+					&& networkActivityDay[EntityMetaKey.Selector] != null && 'dayStartTimestampMs' in networkActivityDay[EntityMetaKey.Selector]
+					&& networkActivityDay[EntityMetaKey.Selector].dayStartTimestampMs != null
+					&& networkActivityDay[EntityMetaKey.Selector] != null && '$network' in networkActivityDay[EntityMetaKey.Selector] ?
+						networkActivityDay[EntityMetaKey.Selector].$network != null && 'caip2' in networkActivityDay[EntityMetaKey.Selector].$network
+						&& networkActivityDay[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/activity/day/[dayStartTimestampMs=nonNegativeInteger]', {
+						dayStartTimestampMs: String(networkActivityDay[EntityMetaKey.Selector].dayStartTimestampMs ?? ''),
+						network: String(caip2StringFromValue(networkActivityDay[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							networkActivityDay[EntityMetaKey.Selector].$network != null && 'slug' in networkActivityDay[EntityMetaKey.Selector].$network
+							&& networkActivityDay[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/activity/day/[dayStartTimestampMs=nonNegativeInteger]', {
+							dayStartTimestampMs: String(networkActivityDay[EntityMetaKey.Selector].dayStartTimestampMs ?? ''),
+							network: String(networkActivityDay[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((networkActivityDayFields.dayStartTimestampMs) ?? '')].filter(Boolean).join(' ') || 'network activity day'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((networkActivityDayFields.transactionCount) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((networkActivityDayFields.trustModel) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

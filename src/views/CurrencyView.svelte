@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Currency>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Currency>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Currency>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const currency = $derived(selection({
+	const currency = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			name: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			name: true,
@@ -50,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency')
-	const viewDomId = $derived('currency-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('currency-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,16 +75,22 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
-			iso4217: String(pendingEntity.iso4217 ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'iso4217' in selection.entitySelector
+			&& selection.entitySelector.iso4217 != null ?
+				resolve('/currency/[iso4217=iso4217]', {
+			iso4217: String(selection.entitySelector.iso4217 ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
 			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={currency}>
@@ -91,7 +103,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
 			{[String((pendingEntity.iso4217) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={currency}>
@@ -116,19 +128,20 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection.$$timestamps({
-								sources: [
-									Source.Constants_Internal,
-								],
-								fields: {
-									marketCap: true,
-									timestampMs: true,
-								},
-								limit: 1,
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							})
+							selection
+								.$$timestamps({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										marketCap: true,
+										timestampMs: true,
+									},
+									limit: 1,
+									orderBy: [
+										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+									],
+								})
 						}
 					>
 						{#snippet children(currencyTimestamps)}
@@ -144,10 +157,19 @@
 										})
 									}
 									href={
-										(currencyTimestamp[EntityMetaKey.Selector].timestampMs !== undefined && currencyTimestamp[EntityMetaKey.Selector].$currency !== undefined && currencyTimestamp[EntityMetaKey.Selector].$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
+										(
+											currencyTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in currencyTimestamp[EntityMetaKey.Selector]
+											&& currencyTimestamp[EntityMetaKey.Selector].timestampMs != null
+											&& currencyTimestamp[EntityMetaKey.Selector] != null && '$currency' in currencyTimestamp[EntityMetaKey.Selector]
+											&& currencyTimestamp[EntityMetaKey.Selector].$currency != null && 'iso4217' in currencyTimestamp[EntityMetaKey.Selector].$currency
+											&& currencyTimestamp[EntityMetaKey.Selector].$currency.iso4217 != null ?
+												resolve('/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
 											timestampMs: String(currencyTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
 											iso4217: String(currencyTimestamp[EntityMetaKey.Selector].$currency.iso4217 ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									prefetched={{ ...currencyTimestampSelector, ...currencyTimestamp }}
 									layout={EntityLayout.Value}
@@ -242,87 +264,193 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-markets'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'markets-with-currency-as-base',
-							label: 'Base',
-						},
-						{
-							id: 'markets-with-currency-as-quote',
-							label: 'Quote',
-						},
-					]
-				}
-				data-card
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Markets</HeadingComponent>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									Markets where this currency is the base or quote leg.
-								</p>
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-markets'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'markets-with-currency-as-base',
+								label: 'Base',
+								ownsSection: true,
+							},
+							{
+								id: 'markets-with-currency-as-quote',
+								label: 'Quote',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Markets</HeadingComponent>
+							<Tooltip contentProps={{ side: 'top' }}>
+								{#snippet Content()}
+									<p>
+										Markets where this currency is the base or quote leg.
+									</p>
+								{/snippet}
+
+								<abbr
+									class="entity-heading-tip"
+									aria-label='Markets help'
+								>ⓘ</abbr>
+							</Tooltip>
+						</header>
+					{/snippet}
+
+					{#snippet MarkerMarketsWithCurrencyAsBase(_context, Content)}
+						{@const marketsWithCurrencyAsBaseResource = selection
+		.$$marketsWithCurrencyAsBase({
+			sources: [
+				Source.Constants_Internal,
+			],
+		})}
+						<ResourceBoundary
+							resource={marketsWithCurrencyAsBaseResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
 							{/snippet}
 
-							<abbr
-								class="entity-heading-tip"
-								aria-label='Markets help'
-							>ⓘ</abbr>
-						</Tooltip>
-					</header>
-				{/snippet}
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
 
-				{#snippet SectionMarketsWithCurrencyAsBase({ id, label, open })}
-					<MarketsView
-						selection={
-							selection.$$marketsWithCurrencyAsBase({
-								sources: [
-									Source.Constants_Internal,
-								],
-							})
-						}
-						href={resolve('/markets')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No base available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
 
-				{#snippet SectionMarketsWithCurrencyAsQuote({ id, label, open })}
-					<MarketsView
-						selection={
-							selection.$$marketsWithCurrencyAsQuote({
-								sources: [
-									Source.Constants_Internal,
-								],
-							})
-						}
-						href={resolve('/markets')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No quote available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet SectionMarketsWithCurrencyAsBase({ id, label, open, active })}
+						{@const marketsWithCurrencyAsBaseResource = selection
+		.$$marketsWithCurrencyAsBase({
+			sources: [
+				Source.Constants_Internal,
+			],
+		})}
+						<ResourceBoundary
+							resource={marketsWithCurrencyAsBaseResource}
+						>
+							{#snippet children(market)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<MarketsView
+										selection={marketsWithCurrencyAsBaseResource}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet MarkerMarketsWithCurrencyAsQuote(_context, Content)}
+						{@const marketsWithCurrencyAsQuoteResource = selection
+		.$$marketsWithCurrencyAsQuote({
+			sources: [
+				Source.Constants_Internal,
+			],
+		})}
+						<ResourceBoundary
+							resource={marketsWithCurrencyAsQuoteResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionMarketsWithCurrencyAsQuote({ id, label, open, active })}
+						{@const marketsWithCurrencyAsQuoteResource = selection
+		.$$marketsWithCurrencyAsQuote({
+			sources: [
+				Source.Constants_Internal,
+			],
+		})}
+						<ResourceBoundary
+							resource={marketsWithCurrencyAsQuoteResource}
+						>
+							{#snippet children(market)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<MarketsView
+										selection={marketsWithCurrencyAsQuoteResource}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
 	{/snippet}
 </EntityView>

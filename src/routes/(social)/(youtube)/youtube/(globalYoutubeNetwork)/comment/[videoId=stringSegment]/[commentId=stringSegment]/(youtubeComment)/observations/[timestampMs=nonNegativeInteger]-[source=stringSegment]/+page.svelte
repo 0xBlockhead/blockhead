@@ -33,7 +33,6 @@
 			source: params.source,
 		}).source],
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? ''), String((pageSelection.entitySelector.source) ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation'))
 
 
 	// Components
@@ -43,7 +42,35 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • YouTube comment observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$comment: {
+			videoId: decodeURIComponent(params.videoId),
+			commentId: decodeURIComponent(params.commentId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? ''), String(({
+		$comment: {
+			videoId: decodeURIComponent(params.videoId),
+			commentId: decodeURIComponent(params.commentId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.source) ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation' : [String((({ ...{
+		$comment: {
+			videoId: decodeURIComponent(params.videoId),
+			commentId: decodeURIComponent(params.commentId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? ''), String((({ ...{
+		$comment: {
+			videoId: decodeURIComponent(params.videoId),
+			commentId: decodeURIComponent(params.commentId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation')} • YouTube comment observation • Blockhead</title>
 </svelte:head>
 
 

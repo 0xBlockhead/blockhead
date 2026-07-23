@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Lightning networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LightningNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LightningNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LightningNetworkView from '$/views/LightningNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(lightningNetworks) => [...new Map(lightningNetworks.values.map((lightningNetwork) => [lightningNetwork[EntityMetaKey.SelectorKey], lightningNetwork])).values()]}
 	getKey={(lightningNetwork) => lightningNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,11 +87,10 @@
 
 	{#snippet Item({ item: lightningNetwork })}
 		{@const lightningNetworkFields = { ...lightningNetwork[EntityMetaKey.Selector], ...lightningNetwork }}
-		{@const selection = select(EntityType.LightningNetwork, lightningNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 		{@const lightningNetworkHrefFields = { ...lightningNetwork, ...lightningNetwork[EntityMetaKey.Selector] }}
-		<LightningNetworkView
-			selection={selection}
-			prefetched={lightningNetworkFields}
+		<EntityView
+			entityType={EntityType.LightningNetwork}
+			entitySelector={lightningNetwork[EntityMetaKey.Selector]}
 			href={
 				resolve('/network/[network]', {
 					network: String(lightningNetworkHrefFields.$network.slug ?? ''),
@@ -105,6 +98,15 @@
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((lightningNetworkFields.name) ?? '')].filter(Boolean).join(' ') || [[String((lightningNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [lightningNetworkFields.$network.caip2 == null ? '' : String(`${(lightningNetworkFields.$network.caip2).namespace}:${(lightningNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'Lightning network'}
+			{/snippet}
+
+			{#snippet Value()}
+				{['Lightning'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

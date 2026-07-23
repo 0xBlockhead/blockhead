@@ -29,7 +29,6 @@
 			quorumDenominator: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [(String((pageSelection.entitySelector.epoch) ?? '') ? 'Epoch ' + String((pageSelection.entitySelector.epoch) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano committee epoch' : [(String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).epoch) ?? '') ? 'Epoch ' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).epoch) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano committee epoch')))
 
 
 	// Components
@@ -39,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Cardano committee epoch • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [(String((data.selector.epoch) ?? '') ? 'Epoch ' + String((data.selector.epoch) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano committee epoch' : [(String((({ ...data.selector, ...pageSelection.entity }).epoch) ?? '') ? 'Epoch ' + String((({ ...data.selector, ...pageSelection.entity }).epoch) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano committee epoch'))} • Cardano committee epoch • Blockhead</title>
 </svelte:head>
 
 

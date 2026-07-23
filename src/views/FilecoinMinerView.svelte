@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FilecoinMiner>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FilecoinMiner>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FilecoinMiner>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,11 +44,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const filecoinMiner = $derived(selection({
+	const filecoinMiner = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.minerAddress) ?? '')].filter(Boolean).join(' ') || 'filecoin miner')
-	const viewDomId = $derived('filecoin-miner-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('filecoin-miner-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,20 +70,35 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.minerAddress !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-			minerAddress: String(pendingEntity.minerAddress ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
-		}) : pendingEntity.minerAddress !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-			minerAddress: String(pendingEntity.minerAddress ?? ''),
-			network: String(pendingEntity.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'minerAddress' in selection.entitySelector
+			&& selection.entitySelector.minerAddress != null
+			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
+				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+				&& selection.entitySelector.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+				minerAddress: String(selection.entitySelector.minerAddress ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+					&& selection.entitySelector.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+					minerAddress: String(selection.entitySelector.minerAddress ?? ''),
+					network: String(selection.entitySelector.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{[String((pendingEntity.minerAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={filecoinMiner}>
@@ -98,22 +117,23 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection.$$timestamps({
-								sources: [
-									Source.Lotus_JsonRpc,
-								],
-								fields: {
-									height: true,
-									timestampMs: true,
-									qualityAdjustedPower: true,
-									liveSectorCount: true,
-									source: true,
-								},
-								limit: 1,
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							})
+							selection
+								.$$timestamps({
+									sources: [
+										Source.Lotus_JsonRpc,
+									],
+									fields: {
+										height: true,
+										timestampMs: true,
+										qualityAdjustedPower: true,
+										liveSectorCount: true,
+										source: true,
+									},
+									limit: 1,
+									orderBy: [
+										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
+									],
+								})
 						}
 					>
 						{#snippet children(filecoinMinerTimestamps)}
@@ -129,19 +149,41 @@
 										})
 									}
 									href={
-										(filecoinMinerTimestamp[EntityMetaKey.Selector].height !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].tipsetKey !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].source !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].$miner !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.minerAddress !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
-											height: String(filecoinMinerTimestamp[EntityMetaKey.Selector].height ?? ''),
-											tipsetKey: String(filecoinMinerTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
-											source: String(filecoinMinerTimestamp[EntityMetaKey.Selector].source ?? ''),
-											minerAddress: String(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.minerAddress ?? ''),
-											network: String(caip2StringFromValue(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.caip2) ?? ''),
-										}) : filecoinMinerTimestamp[EntityMetaKey.Selector].height !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].tipsetKey !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].source !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].$miner !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.minerAddress !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network !== undefined && filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
-											height: String(filecoinMinerTimestamp[EntityMetaKey.Selector].height ?? ''),
-											tipsetKey: String(filecoinMinerTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
-											source: String(filecoinMinerTimestamp[EntityMetaKey.Selector].source ?? ''),
-											minerAddress: String(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.minerAddress ?? ''),
-											network: String(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.slug ?? ''),
-										}) : undefined)
+										(
+											filecoinMinerTimestamp[EntityMetaKey.Selector] != null && 'height' in filecoinMinerTimestamp[EntityMetaKey.Selector]
+											&& filecoinMinerTimestamp[EntityMetaKey.Selector].height != null
+											&& filecoinMinerTimestamp[EntityMetaKey.Selector] != null && 'tipsetKey' in filecoinMinerTimestamp[EntityMetaKey.Selector]
+											&& filecoinMinerTimestamp[EntityMetaKey.Selector].tipsetKey != null
+											&& filecoinMinerTimestamp[EntityMetaKey.Selector] != null && 'source' in filecoinMinerTimestamp[EntityMetaKey.Selector]
+											&& filecoinMinerTimestamp[EntityMetaKey.Selector].source != null
+											&& filecoinMinerTimestamp[EntityMetaKey.Selector] != null && '$miner' in filecoinMinerTimestamp[EntityMetaKey.Selector]
+											&& filecoinMinerTimestamp[EntityMetaKey.Selector].$miner != null && 'minerAddress' in filecoinMinerTimestamp[EntityMetaKey.Selector].$miner
+											&& filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.minerAddress != null
+											&& filecoinMinerTimestamp[EntityMetaKey.Selector].$miner != null && '$network' in filecoinMinerTimestamp[EntityMetaKey.Selector].$miner ?
+												filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network != null && 'caip2' in filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network
+												&& filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
+												height: String(filecoinMinerTimestamp[EntityMetaKey.Selector].height ?? ''),
+												tipsetKey: String(filecoinMinerTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
+												source: String(filecoinMinerTimestamp[EntityMetaKey.Selector].source ?? ''),
+												minerAddress: String(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.minerAddress ?? ''),
+												network: String(caip2StringFromValue(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.caip2) ?? ''),
+											})
+											:
+													filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network != null && 'slug' in filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network
+													&& filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
+													height: String(filecoinMinerTimestamp[EntityMetaKey.Selector].height ?? ''),
+													tipsetKey: String(filecoinMinerTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
+													source: String(filecoinMinerTimestamp[EntityMetaKey.Selector].source ?? ''),
+													minerAddress: String(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.minerAddress ?? ''),
+													network: String(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									prefetched={{ ...filecoinMinerTimestampSelector, ...filecoinMinerTimestamp }}
 									layout={EntityLayout.Value}
@@ -161,13 +203,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -202,32 +254,45 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<FilecoinMiner_TimestampsView
-				selection={
-						selection.$$timestamps({
-							sources: [
-								Source.Lotus_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Observations'
-				id='FilecoinMiner_TimestampsView-timestamps'
-			/>
-
-			<FilecoinSectorsView
-				selection={
-						selection.$$sectors({
-							sources: [
-								Source.Lotus_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Sectors'
-				id='FilecoinSectorsView-sectors'
-			/>
-		{/if}
+				{@const filecoinMinerFilecoinMinerTimestampsViewTimestampsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.Lotus_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={filecoinMinerFilecoinMinerTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<FilecoinMiner_TimestampsView
+							selection={filecoinMinerFilecoinMinerTimestampsViewTimestampsResource}
+							countResource={filecoinMinerFilecoinMinerTimestampsViewTimestampsResource.count}
+							title='Observations'
+							id='FilecoinMiner_TimestampsView-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const filecoinMinerFilecoinSectorsViewSectorsResource = selection
+		.$$sectors({
+			sources: [
+				Source.Lotus_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={filecoinMinerFilecoinSectorsViewSectorsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<FilecoinSectorsView
+							selection={filecoinMinerFilecoinSectorsViewSectorsResource}
+							countResource={filecoinMinerFilecoinSectorsViewSectorsResource.count}
+							title='Sectors'
+							id='FilecoinSectorsView-sectors'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

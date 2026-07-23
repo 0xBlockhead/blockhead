@@ -194,6 +194,25 @@ export const getActor = ({
 	})
 )
 
+export const getIdAddress = ({
+	rpcUrl,
+	address,
+	tipsetKey,
+}: {
+	rpcUrl: string
+	address: string
+	tipsetKey: LotusTipsetKey
+}) => (
+	lotusJsonRpc<string>({
+		rpcUrl,
+		method: 'Filecoin.StateLookupID',
+		params: [
+			address,
+			tipsetKey,
+		],
+	})
+)
+
 export const getMinerSectors = ({
 	rpcUrl,
 	minerAddress,

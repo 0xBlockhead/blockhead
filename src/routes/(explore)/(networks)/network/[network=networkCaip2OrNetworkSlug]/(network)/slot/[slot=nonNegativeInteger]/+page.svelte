@@ -29,7 +29,6 @@
 			signature: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.slot) ?? '') ? 'Slot #' + String((pageSelection.entitySelector.slot) ?? '') : '') || 'beacon slot' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).slot) ?? '') ? 'Slot #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).slot) ?? '') : '') || 'beacon slot')))
 
 
 	// Components
@@ -39,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • beacon slot • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String((data.selector.slot) ?? '') ? 'Slot #' + String((data.selector.slot) ?? '') : '') || 'beacon slot' : (String((({ ...data.selector, ...pageSelection.entity }).slot) ?? '') ? 'Slot #' + String((({ ...data.selector, ...pageSelection.entity }).slot) ?? '') : '') || 'beacon slot'))} • beacon slot • Blockhead</title>
 </svelte:head>
 
 

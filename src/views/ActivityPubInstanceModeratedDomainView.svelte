@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ActivityPubInstanceModeratedDomain>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ActivityPubInstanceModeratedDomain>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ActivityPubInstanceModeratedDomain>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const activityPubInstanceModeratedDomain = $derived(selection({
+	const activityPubInstanceModeratedDomain = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			severity: true,
+			comment: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			severity: true,
@@ -49,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.domain) ?? ''), String((pendingEntity.severity) ?? ''), String((pendingEntity.comment) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')
-	const viewDomId = $derived('activity-pub-instance-moderated-domain-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('activity-pub-instance-moderated-domain-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,7 +76,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'severity') && Object.hasOwn(prefetched, 'comment') && Object.hasOwn(prefetched, '$observation') && prefetched.$observation != null && Object.hasOwn(prefetched.$observation, 'title') && Object.hasOwn(prefetched.$observation, '$instance') && prefetched.$observation.$instance != null && Object.hasOwn(prefetched.$observation, 'version')}
 			{[String((pendingEntity.domain) ?? ''), String((pendingEntity.severity) ?? ''), String((pendingEntity.comment) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={activityPubInstanceModeratedDomain}>
@@ -82,32 +89,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ActivityPubInstance_TimestampView
-						selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
-						href={
-						(selection.entitySelector.$observation.timestampMs !== undefined && selection.entitySelector.$observation.source !== undefined && selection.entitySelector.$observation.$instance !== undefined && selection.entitySelector.$observation.$instance.instanceOrigin !== undefined ? resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-							timestampMs: String(selection.entitySelector.$observation.timestampMs ?? ''),
-							source: String(selection.entitySelector.$observation.source ?? ''),
-							instanceOrigin: encodeURIComponent(String(selection.entitySelector.$observation.$instance.instanceOrigin ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'severity') && Object.hasOwn(prefetched, 'comment') && Object.hasOwn(prefetched, '$observation') && prefetched.$observation != null && Object.hasOwn(prefetched.$observation, 'title') && Object.hasOwn(prefetched.$observation, '$instance') && prefetched.$observation.$instance != null && Object.hasOwn(prefetched.$observation, 'version')}
+			{@const activityPubInstanceTimestamp0 = pendingEntity.$observation}
+			{#if activityPubInstanceTimestamp0 != null && selection.entitySelector.$observation != null}
+				<ActivityPubInstance_TimestampView
+					selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation, { sources: selection.sources })}
+					prefetched={activityPubInstanceTimestamp0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={activityPubInstanceModeratedDomain}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<ActivityPubInstance_TimestampView
 						selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
-						href={
-						(selection.entitySelector.$observation.timestampMs !== undefined && selection.entitySelector.$observation.source !== undefined && selection.entitySelector.$observation.$instance !== undefined && selection.entitySelector.$observation.$instance.instanceOrigin !== undefined ? resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-							timestampMs: String(selection.entitySelector.$observation.timestampMs ?? ''),
-							source: String(selection.entitySelector.$observation.source ?? ''),
-							instanceOrigin: encodeURIComponent(String(selection.entitySelector.$observation.$instance.instanceOrigin ?? '')),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -128,13 +126,24 @@
 				<dt>Observation</dt>
 				<dd>
 					<ActivityPubInstance_TimestampView
-						selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation, {})}
+						selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
 						href={
-							(selection.entitySelector.$observation.timestampMs !== undefined && selection.entitySelector.$observation.source !== undefined && selection.entitySelector.$observation.$instance !== undefined && selection.entitySelector.$observation.$instance.instanceOrigin !== undefined ? resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+							(
+								selection.entitySelector.$observation != null && 'timestampMs' in selection.entitySelector.$observation
+								&& selection.entitySelector.$observation.timestampMs != null
+								&& selection.entitySelector.$observation != null && 'source' in selection.entitySelector.$observation
+								&& selection.entitySelector.$observation.source != null
+								&& selection.entitySelector.$observation != null && '$instance' in selection.entitySelector.$observation
+								&& selection.entitySelector.$observation.$instance != null && 'instanceOrigin' in selection.entitySelector.$observation.$instance
+								&& selection.entitySelector.$observation.$instance.instanceOrigin != null ?
+									resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(selection.entitySelector.$observation.timestampMs ?? ''),
 								source: String(selection.entitySelector.$observation.source ?? ''),
 								instanceOrigin: encodeURIComponent(String(selection.entitySelector.$observation.$instance.instanceOrigin ?? '')),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

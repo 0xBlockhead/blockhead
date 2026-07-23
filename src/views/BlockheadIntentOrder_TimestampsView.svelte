@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead intent order observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadIntentOrder_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadIntentOrder_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadIntentOrder_TimestampView from '$/views/BlockheadIntentOrder_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadIntentOrderTimestamps) => [...new Map(blockheadIntentOrderTimestamps.values.map((blockheadIntentOrderTimestamp) => [blockheadIntentOrderTimestamp[EntityMetaKey.SelectorKey], blockheadIntentOrderTimestamp])).values()]}
 	getKey={(blockheadIntentOrderTimestamp) => blockheadIntentOrderTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadIntentOrderTimestamp })}
 		{@const blockheadIntentOrderTimestampFields = { ...blockheadIntentOrderTimestamp[EntityMetaKey.Selector], ...blockheadIntentOrderTimestamp }}
-		{@const selection = select(EntityType.BlockheadIntentOrder_Timestamp, blockheadIntentOrderTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadIntentOrder_TimestampView
-			selection={selection}
-			prefetched={blockheadIntentOrderTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadIntentOrder_Timestamp}
+			entitySelector={blockheadIntentOrderTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadIntentOrderTimestampFields.status) ?? '')].filter(Boolean).join(' ') || 'blockhead intent order timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadIntentOrderTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadIntentOrderTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EigenLayerReward_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EigenLayerReward_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EigenLayerReward_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,14 +44,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eigenLayerRewardTimestamp = $derived(selection({
+	const eigenLayerRewardTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			rewardToken: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			rewardToken: true,
 		},
 	}))
-	const titleFallback = $derived('eigen layer reward timestamp')
-	const viewDomId = $derived('eigen-layer-reward-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'eigen layer reward timestamp'
+	const viewDomId = $derived('eigen-layer-reward-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -75,78 +81,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
-						href={
-						(selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$earner.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
-							network: String(selection.entitySelector.$earner.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={eigenLayerRewardTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
-						href={
-						(selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$earner.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
-							network: String(selection.entitySelector.$earner.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eigenLayerRewardTimestamp}>
+			{#snippet children(entity)}
+				<EvmNetworkAccountView
+					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.rewardContextKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={eigenLayerRewardTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.rewardContextKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eigenLayerRewardTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.rewardContextKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const rewardToken0 = pendingEntity.rewardToken}
-			{#if rewardToken0 !== undefined && rewardToken0 !== null}
-				<span data-text="muted">
-					{String((rewardToken0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={eigenLayerRewardTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rewardToken0 = resolvedEntity.rewardToken}
-					{#if rewardToken0 !== undefined && rewardToken0 !== null}
-						<span data-text="muted">
-							{String((rewardToken0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eigenLayerRewardTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const rewardToken0 = resolvedEntity.rewardToken}
+				{#if rewardToken0 !== undefined && rewardToken0 !== null}
+					<span data-text="muted">
+						{String((rewardToken0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -155,15 +122,31 @@
 				<dt>earner</dt>
 				<dd>
 					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner, {})}
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
 						href={
-							(selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$earner.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
-								network: String(selection.entitySelector.$earner.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$earner != null && '$actor' in selection.entitySelector.$earner
+								&& selection.entitySelector.$earner.$actor != null && 'address' in selection.entitySelector.$earner.$actor
+								&& selection.entitySelector.$earner.$actor.address != null
+								&& selection.entitySelector.$earner != null && '$network' in selection.entitySelector.$earner ?
+									selection.entitySelector.$earner.$network != null && 'caip2' in selection.entitySelector.$earner.$network
+									&& selection.entitySelector.$earner.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+									accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$earner.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$earner.$network != null && 'slug' in selection.entitySelector.$earner.$network
+										&& selection.entitySelector.$earner.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+										accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
+										network: String(selection.entitySelector.$earner.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

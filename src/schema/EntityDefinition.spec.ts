@@ -150,7 +150,7 @@ const selectorIsConcrete = (
 		.some((fieldDefinition) => fieldDefinition.name === fieldName))
 )
 
-entity({
+const OptionalSelectorCardinality = entity({
 	entityType: 'OptionalSelectorCardinality',
 	labels: {
 		singular: 'optional selector cardinality',
@@ -256,6 +256,28 @@ describe('entity selectors', () => {
 				extra: 'value',
 			}
 			)).toThrow(/invalid selector/)
+	})
+
+	it('accepts an explicit unresolved ZeroOrOne selector field while retaining the complete identity tuple', () => {
+		expect(validateEntitySelector(
+			[
+				OptionalSelectorCardinality,
+			],
+			OptionalSelectorCardinality,
+			{
+				optionalId: undefined,
+			}
+		)).toEqual({
+			name: 'Optional',
+			fields: ['optionalId'],
+		})
+		expect(() => validateEntitySelector(
+			[
+				OptionalSelectorCardinality,
+			],
+			OptionalSelectorCardinality,
+			{}
+		)).toThrow(/invalid selector/)
 	})
 
 	it('accepts referenced entity selectors recursively', () => {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { applicationRuntimeWhenReady } from './applicationRuntime.ts'
 
-	import ApplicationBootstrap from '$/components/ApplicationBootstrap.svelte'
+	import ApplicationBootstrap from './ApplicationBootstrap.svelte'
 
 
 	let {

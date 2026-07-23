@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLogosBlockchainWalletKeyStateTimestamp = $derived(selection({
+	const blockheadLogosBlockchainWalletKeyStateTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			balance: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			balance: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain wallet key state timestamp')
-	const viewDomId = $derived('blockhead-logos-blockchain-wallet-key-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-logos-blockchain-wallet-key-state-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,11 +77,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balance')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyStateTimestamp}>
 				{#snippet children(entity)}
@@ -90,13 +96,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const balance0 = pendingEntity.balance}
-					{#if balance0 !== undefined && balance0 !== null}
-						<NumberValue
-							value={balance0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balance')}
+			{@const balance0 = pendingEntity.balance}
+			{#if balance0 !== undefined && balance0 !== null}
+				<NumberValue
+					value={balance0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyStateTimestamp}>
 				{#snippet children(entity)}
@@ -113,7 +119,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balance')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -141,7 +147,7 @@
 				<dt>wallet key state</dt>
 				<dd>
 					<BlockheadLogosBlockchainWalletKeyStateView
-						selection={select(EntityType.BlockheadLogosBlockchainWalletKeyState, selection.entitySelector.$walletKeyState, {})}
+						selection={select(EntityType.BlockheadLogosBlockchainWalletKeyState, selection.entitySelector.$walletKeyState)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

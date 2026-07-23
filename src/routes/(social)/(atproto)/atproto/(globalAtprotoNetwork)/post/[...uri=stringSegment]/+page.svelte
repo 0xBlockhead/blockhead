@@ -20,7 +20,6 @@
 
 	const pageSelection = $derived(select(EntityType.AtprotoPost, data.selector, {
 		sources: [
-			Source.Constants_Internal,
 			Source.Atproto_Xrpc,
 		],
 		fields: {
@@ -34,7 +33,6 @@
 			selfLabelValues: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.text) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).text) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post')))
 
 
 	// Components
@@ -44,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • AT Protocol post • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post' : [String((({ ...data.selector, ...pageSelection.entity }).text) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post'))} • AT Protocol post • Blockhead</title>
 </svelte:head>
 
 

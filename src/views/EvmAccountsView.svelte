@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EVM accounts',
 		typeAnnotationParagraphs = ['An account address in the EVM address space, independent of any one chain.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmAccount>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmAccount>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmAccounts) => [...new Map(evmAccounts.values.map((evmAccount) => [evmAccount[EntityMetaKey.SelectorKey], evmAccount])).values()]}
 	getKey={(evmAccount) => evmAccount[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,18 +86,27 @@
 
 	{#snippet Item({ item: evmAccount })}
 		{@const evmAccountFields = { ...evmAccount[EntityMetaKey.Selector], ...evmAccount }}
-		{@const selection = select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmAccountHrefFields = { ...evmAccount, ...evmAccount[EntityMetaKey.Selector] }}
-		<EvmAccountView
-			selection={selection}
-			prefetched={evmAccountFields}
+		<EntityView
+			entityType={EntityType.EvmAccount}
+			entitySelector={evmAccount[EntityMetaKey.Selector]}
 			href={
-				(evmAccountHrefFields.address !== undefined ? resolve('/account/[address=evmAddress]', {
-					address: String(evmAccountHrefFields.address ?? ''),
-				}) : undefined)
+				(
+					evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
+					&& evmAccount[EntityMetaKey.Selector].address != null ?
+						resolve('/account/[address=evmAddress]', {
+					address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((evmAccountFields.address) ?? '')].filter(Boolean).join(' ') || 'EVM account'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

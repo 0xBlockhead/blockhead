@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType._GlobalSwarmAccess>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType._GlobalSwarmAccess>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType._GlobalSwarmAccess>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,11 +38,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalSwarmAccess = $derived(selection({
+	const globalSwarmAccess = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('global Swarm access')
-	const viewDomId = $derived('-global-swarm-access-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'global Swarm access'
+	const viewDomId = $derived('-global-swarm-access-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -56,18 +60,24 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? (pendingEntity.scope === '_GlobalSwarmAccess' ? resolve('/swarm/access') : undefined)}
+	href={
+		href ?? (
+			selection.entitySelector.scope === '_GlobalSwarmAccess' ?
+				resolve('/swarm/access')
+		:
+				undefined
+		)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={globalSwarmAccess}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -75,12 +85,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{titleFallback}
 		{:else}
 			<ResourceBoundary resource={globalSwarmAccess}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -116,28 +125,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<SwarmResourcesView
-				selection={
-						selection.$$observedResources({
-							count: true,
-						})
-					}
-				title='Observed resources'
-				emptyText='No Swarm resources yet.'
-				id='SwarmResourcesView-observed-resources'
-			/>
-
-			<GlobalSwarmAccess_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Observations'
-				emptyText='No Swarm access observations yet.'
-				id='_GlobalSwarmAccess_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const globalSwarmAccessSwarmResourcesViewObservedResourcesResource = selection.$$observedResources}
+		<ResourceBoundary
+			resource={globalSwarmAccessSwarmResourcesViewObservedResourcesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<SwarmResourcesView
+					selection={globalSwarmAccessSwarmResourcesViewObservedResourcesResource}
+					countResource={globalSwarmAccessSwarmResourcesViewObservedResourcesResource.count}
+					title='Observed resources'
+					id='SwarmResourcesView-observed-resources'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const globalSwarmAccessGlobalSwarmAccessTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={globalSwarmAccessGlobalSwarmAccessTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<GlobalSwarmAccess_TimestampsView
+					selection={globalSwarmAccessGlobalSwarmAccessTimestampsViewTimestampsResource}
+					countResource={globalSwarmAccessGlobalSwarmAccessTimestampsViewTimestampsResource.count}
+					title='Observations'
+					id='_GlobalSwarmAccess_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Filecoin blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FilecoinBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FilecoinBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FilecoinBlockView from '$/views/FilecoinBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,7 +65,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.Lotus_JsonRpc,
 				Source.Filfox_Rest,
 			],
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(filecoinBlocks) => [...new Map(filecoinBlocks.values.map((filecoinBlock) => [filecoinBlock[EntityMetaKey.SelectorKey], filecoinBlock])).values()]}
 	getKey={(filecoinBlock) => filecoinBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,12 +91,24 @@
 
 	{#snippet Item({ item: filecoinBlock })}
 		{@const filecoinBlockFields = { ...filecoinBlock[EntityMetaKey.Selector], ...filecoinBlock }}
-		{@const selection = select(EntityType.FilecoinBlock, filecoinBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<FilecoinBlockView
-			selection={selection}
-			prefetched={filecoinBlockFields}
+		<EntityView
+			entityType={EntityType.FilecoinBlock}
+			entitySelector={filecoinBlock[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((filecoinBlockFields.cid) ?? '')].filter(Boolean).join(' ') || 'filecoin block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((filecoinBlockFields.$miner.minerAddress) ?? '')].filter(Boolean).join(' ') || 'filecoin miner'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((filecoinBlockFields.$tipset.height) ?? '')].filter(Boolean).join(' ') || 'filecoin tipset'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CctpDomainSupport>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CctpDomainSupport>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CctpDomainSupport>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cctpDomainSupport = $derived(selection({
+	const cctpDomainSupport = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			name: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			name: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'CCTP domain support')
-	const viewDomId = $derived('cctp-domain-support-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('cctp-domain-support-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,7 +78,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
 			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cctpDomainSupport}>
@@ -85,7 +91,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
 			{[String((pendingEntity.domainId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cctpDomainSupport}>
@@ -98,7 +104,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
 			{@const cctpVersion0 = pendingEntity.cctpVersion}
 			{#if cctpVersion0 !== undefined && cctpVersion0 !== null}
 				<span data-text="muted">
@@ -206,11 +212,21 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+										(
+											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
+											&& network[EntityMetaKey.Selector].caip2 != null ?
+												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : undefined)
+										})
+										:
+												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
+												&& network[EntityMetaKey.Selector].slug != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+												network: String(network[EntityMetaKey.Selector].slug ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -396,28 +412,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CctpMessagesView
-				selection={
-						selection.$$messages({
-							count: true,
-						})
-					}
-				title='Messages'
-				emptyText='No CCTP messages.'
-				id='CctpMessagesView-messages'
-			/>
-
-			<CctpBurnFee_TimestampsView
-				selection={
-						selection.$$burnFeeTimestamps({
-							count: true,
-						})
-					}
-				title='Burn fee timestamps'
-				emptyText='No CCTP burn fee observations.'
-				id='CctpBurnFee_TimestampsView-burn-fee-timestamps'
-			/>
-		{/if}
+		{@const cctpDomainSupportCctpMessagesViewMessagesResource = selection.$$messages}
+		<ResourceBoundary
+			resource={cctpDomainSupportCctpMessagesViewMessagesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<CctpMessagesView
+					selection={cctpDomainSupportCctpMessagesViewMessagesResource}
+					countResource={cctpDomainSupportCctpMessagesViewMessagesResource.count}
+					title='Messages'
+					id='CctpMessagesView-messages'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource = selection.$$burnFeeTimestamps}
+		<ResourceBoundary
+			resource={cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<CctpBurnFee_TimestampsView
+					selection={cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource}
+					countResource={cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource.count}
+					title='Burn fee timestamps'
+					id='CctpBurnFee_TimestampsView-burn-fee-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

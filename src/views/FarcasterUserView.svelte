@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FarcasterUser>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterUser>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FarcasterUser>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const farcasterUser = $derived(selection({
+	const farcasterUser = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			displayName: true,
+			username: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			displayName: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user')
-	const viewDomId = $derived('farcaster-user-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('farcaster-user-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,9 +80,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.fid !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]', {
-			userId: String(pendingEntity.fid ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'fid' in selection.entitySelector
+			&& selection.entitySelector.fid != null ?
+				resolve('/farcaster/user/[userId=farcasterFid]', {
+			userId: String(selection.entitySelector.fid ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -86,7 +99,7 @@
 		<ResourceBoundary resource={farcasterUser}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference?.[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -99,54 +112,36 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={farcasterUser}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={farcasterUser}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={farcasterUser}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={farcasterUser}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const username0 = pendingEntity.username}
-			{#if username0 !== undefined && username0 !== null}
-				<span data-text="muted">
-					<span>@</span>
-					{String((username0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={farcasterUser}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const username0 = resolvedEntity.username}
-					{#if username0 !== undefined && username0 !== null}
-						<span data-text="muted">
-							<span>@</span>
-							{String((username0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={farcasterUser}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const username0 = resolvedEntity.username}
+				{#if username0 !== undefined && username0 !== null}
+					<span data-text="muted">
+						<span>@</span>
+						{String((username0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -251,9 +246,15 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+										(
+											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
+											&& evmAccount[EntityMetaKey.Selector].address != null ?
+												resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -286,110 +287,270 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-farcaster-user-activity'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'farcaster-user-casts',
-							label: 'Casts',
-						},
-						{
-							id: 'farcaster-user-verified-addresses',
-							label: 'Verified addresses',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-activity'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Activity</HeadingComponent>
-					</header>
-				{/snippet}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-farcaster-user-activity'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'farcaster-user-casts',
+								label: 'Casts',
+								ownsSection: true,
+							},
+							{
+								id: 'farcaster-user-verified-addresses',
+								label: 'Verified addresses',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-activity'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Activity</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet SectionFarcasterUserCasts({ id, label, open })}
-					<FarcasterCastsView
-						selection={
-							selection.$$casts({
-								sources: [
-									Source.Snapchain_Rest,
-								],
-							})
-						}
-						href={
-							(selection.entitySelector.fid !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]/casts', {
-								userId: selection.entitySelector.fid,
-							}) : undefined)
-						}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No Farcaster casts for this user.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet MarkerFarcasterUserCasts(_context, Content)}
+						{@const farcasterUserActivityFarcasterUserCastsResource = selection
+		.$$casts({
+			sources: [
+				Source.Neynar_Rest,
+				Source.Snapchain_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={farcasterUserActivityFarcasterUserCastsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
 
-				{#snippet SectionFarcasterUserVerifiedAddresses({ id, label, open })}
-					<FarcasterVerifiedAddressesView
-						selection={selection.$$verifiedAddresses}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No Farcaster verified addresses for this user.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
 
-			</CollapsibleTabs>
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-farcaster-user-observations'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'farcaster-user-timestamps',
-							label: 'Observations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-observations'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Observations</HeadingComponent>
-					</header>
-				{/snippet}
+					{#snippet SectionFarcasterUserCasts({ id, label, open, active })}
+						{@const farcasterUserActivityFarcasterUserCastsResource = selection
+		.$$casts({
+			sources: [
+				Source.Neynar_Rest,
+				Source.Snapchain_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={farcasterUserActivityFarcasterUserCastsResource}
+						>
+							{#snippet children(farcasterCast)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<FarcasterCastsView
+										selection={farcasterUserActivityFarcasterUserCastsResource}
+										href={
+											(selection.entitySelector != null && 'fid' in selection.entitySelector && selection.entitySelector.fid != null ? resolve('/farcaster/user/[userId=farcasterFid]/casts', {
+												userId: String(selection.entitySelector.fid ?? ''),
+											}) : undefined)
+										}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No Farcaster casts for this user.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
 
-				{#snippet SectionFarcasterUserTimestamps({ id, label, open })}
-					<FarcasterUser_TimestampsView
-						selection={selection.$$timestamps}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No Farcaster user observations yet.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet MarkerFarcasterUserVerifiedAddresses(_context, Content)}
+						{@const farcasterUserActivityFarcasterUserVerifiedAddressesResource = selection.$$verifiedAddresses}
+						<ResourceBoundary
+							resource={farcasterUserActivityFarcasterUserVerifiedAddressesResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionFarcasterUserVerifiedAddresses({ id, label, open, active })}
+						{@const farcasterUserActivityFarcasterUserVerifiedAddressesResource = selection.$$verifiedAddresses}
+						<ResourceBoundary
+							resource={farcasterUserActivityFarcasterUserVerifiedAddressesResource}
+						>
+							{#snippet children(farcasterVerifiedAddress)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<FarcasterVerifiedAddressesView
+										selection={farcasterUserActivityFarcasterUserVerifiedAddressesResource}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No Farcaster verified addresses for this user.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
+
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-farcaster-user-observations'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'farcaster-user-timestamps',
+								label: 'Observations',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-observations'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Observations</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet MarkerFarcasterUserTimestamps(_context, Content)}
+						{@const farcasterUserObservationsFarcasterUserTimestampsResource = selection.$$timestamps}
+						<ResourceBoundary
+							resource={farcasterUserObservationsFarcasterUserTimestampsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionFarcasterUserTimestamps({ id, label, open, active })}
+						{@const farcasterUserObservationsFarcasterUserTimestampsResource = selection.$$timestamps}
+						<ResourceBoundary
+							resource={farcasterUserObservationsFarcasterUserTimestampsResource}
+						>
+							{#snippet children(farcasterUserTimestamp)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<FarcasterUser_TimestampsView
+										selection={farcasterUserObservationsFarcasterUserTimestampsResource}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No Farcaster user observations yet.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
 	{/snippet}
 </EntityView>

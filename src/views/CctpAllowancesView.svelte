@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'CCTP allowances',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CctpAllowance>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CctpAllowance>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CctpAllowanceView from '$/views/CctpAllowanceView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cctpAllowances) => [...new Map(cctpAllowances.values.map((cctpAllowance) => [cctpAllowance[EntityMetaKey.SelectorKey], cctpAllowance])).values()]}
 	getKey={(cctpAllowance) => cctpAllowance[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: cctpAllowance })}
 		{@const cctpAllowanceFields = { ...cctpAllowance[EntityMetaKey.Selector], ...cctpAllowance }}
-		{@const selection = select(EntityType.CctpAllowance, cctpAllowance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CctpAllowanceView
-			selection={selection}
-			prefetched={cctpAllowanceFields}
+		<EntityView
+			entityType={EntityType.CctpAllowance}
+			entitySelector={cctpAllowance[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cctpAllowanceFields.apiHost) ?? '')].filter(Boolean).join(' ') || 'CCTP allowance'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((cctpAllowanceFields.allowance) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((cctpAllowanceFields.fetchedAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

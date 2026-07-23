@@ -29,7 +29,6 @@
 			$pallet: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInBlock) ?? '') ? 'Extrinsic #' + String((pageSelection.entitySelector.indexInBlock) ?? '') : '') || 'Polkadot extrinsic' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInBlock) ?? '') ? 'Extrinsic #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInBlock) ?? '') : '') || 'Polkadot extrinsic')))
 
 
 	// Components
@@ -39,7 +38,19 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Polkadot extrinsic • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
+		$block: data.selector,
+		indexInBlock: Number(params.extrinsicIndex),
+	}.indexInBlock) ?? '') ? 'Extrinsic #' + String(({
+		$block: data.selector,
+		indexInBlock: Number(params.extrinsicIndex),
+	}.indexInBlock) ?? '') : '') || 'Polkadot extrinsic' : (String((({ ...{
+		$block: data.selector,
+		indexInBlock: Number(params.extrinsicIndex),
+	}, ...pageSelection.entity }).indexInBlock) ?? '') ? 'Extrinsic #' + String((({ ...{
+		$block: data.selector,
+		indexInBlock: Number(params.extrinsicIndex),
+	}, ...pageSelection.entity }).indexInBlock) ?? '') : '') || 'Polkadot extrinsic'))} • Polkadot extrinsic • Blockhead</title>
 </svelte:head>
 
 

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Avail network observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AvailNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AvailNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AvailNetwork_TimestampView from '$/views/AvailNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(availNetworkTimestamps) => [...new Map(availNetworkTimestamps.values.map((availNetworkTimestamp) => [availNetworkTimestamp[EntityMetaKey.SelectorKey], availNetworkTimestamp])).values()]}
 	getKey={(availNetworkTimestamp) => availNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: availNetworkTimestamp })}
 		{@const availNetworkTimestampFields = { ...availNetworkTimestamp[EntityMetaKey.Selector], ...availNetworkTimestamp }}
-		{@const selection = select(EntityType.AvailNetwork_Timestamp, availNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AvailNetwork_TimestampView
-			selection={selection}
-			prefetched={availNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType.AvailNetwork_Timestamp}
+			entitySelector={availNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((availNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'avail network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((availNetworkTimestampFields.latestBlockNumber) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((availNetworkTimestampFields.source) ?? ''), String((availNetworkTimestampFields.health) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

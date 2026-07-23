@@ -29,14 +29,26 @@
 		selection={
 			select(EntityType._GlobalYoutubeNetwork, {
 				scope: '_GlobalYoutubeNetwork',
-			}).$$observedChannels({
-				sources: [
-					Source.Constants_Internal,
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-				],
-				count: true,
 			})
+				.$$observedChannels({
+					sources: [
+						Source.Constants_Internal,
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._GlobalYoutubeNetwork, {
+				scope: '_GlobalYoutubeNetwork',
+			})
+				.$$observedChannels({
+					sources: [
+						Source.Constants_Internal,
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					],
+				}).count
 		}
 		id='observed-channels'
 		data-column-item="flexible"

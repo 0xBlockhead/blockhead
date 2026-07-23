@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Tezos internal operations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TezosInternalOperation>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TezosInternalOperation>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TezosInternalOperationView from '$/views/TezosInternalOperationView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(tezosInternalOperations) => [...new Map(tezosInternalOperations.values.map((tezosInternalOperation) => [tezosInternalOperation[EntityMetaKey.SelectorKey], tezosInternalOperation])).values()]}
 	getKey={(tezosInternalOperation) => tezosInternalOperation[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: tezosInternalOperation })}
 		{@const tezosInternalOperationFields = { ...tezosInternalOperation[EntityMetaKey.Selector], ...tezosInternalOperation }}
-		{@const selection = select(EntityType.TezosInternalOperation, tezosInternalOperation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TezosInternalOperationView
-			selection={selection}
-			prefetched={tezosInternalOperationFields}
+		<EntityView
+			entityType={EntityType.TezosInternalOperation}
+			entitySelector={tezosInternalOperation[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'tezos internal operation'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

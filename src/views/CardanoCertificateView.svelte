@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CardanoCertificate>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CardanoCertificate>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoCertificate>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoCertificate = $derived(selection({
+	const cardanoCertificate = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
 		sources: selection.sources,
+		fields: {
+			certificateKind: true,
+		},
+	} : {
+		sources: selection.sources,
+		fields: {
+			certificateKind: true,
+		},
 	}))
-	const titleFallback = $derived('Cardano certificate')
-	const viewDomId = $derived('cardano-certificate-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.certificateKind) ?? ''), (String((pendingEntity.certificateIndex) ?? '') ? 'Certificate #' + String((pendingEntity.certificateIndex) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano certificate')
+	const viewDomId = $derived('cardano-certificate-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,13 +79,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'certificateKind')}
+			{[String((pendingEntity.certificateKind) ?? ''), (String((pendingEntity.certificateIndex) ?? '') ? 'Certificate #' + String((pendingEntity.certificateIndex) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cardanoCertificate}>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{title || titleFallback}
+					{[String((resolvedEntity.certificateKind) ?? ''), (String((resolvedEntity.certificateIndex) ?? '') ? 'Certificate #' + String((resolvedEntity.certificateIndex) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
@@ -88,7 +97,31 @@
 				<dt>transaction</dt>
 				<dd>
 					<CardanoTransactionView
-						selection={select(EntityType.CardanoTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.CardanoTransaction, selection.entitySelector.$transaction)}
+						href={
+							(
+								selection.entitySelector.$transaction != null && 'hash' in selection.entitySelector.$transaction
+								&& selection.entitySelector.$transaction.hash != null
+								&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
+									selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+									&& selection.entitySelector.$transaction.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+									transactionId: String(selection.entitySelector.$transaction.hash ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+										&& selection.entitySelector.$transaction.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+										transactionId: String(selection.entitySelector.$transaction.hash ?? ''),
+										network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -142,7 +175,9 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={selection.$stakeCredential}
 			>
@@ -175,13 +210,28 @@
 									selection={select(EntityType.CardanoStakePool, cardanoStakePool[EntityMetaKey.Selector])}
 									prefetched={cardanoStakePool}
 									href={
-										(cardanoStakePool[EntityMetaKey.Selector].poolId !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
-											poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
-											network: String(caip2StringFromValue(cardanoStakePool[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : cardanoStakePool[EntityMetaKey.Selector].poolId !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
-											poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
-											network: String(cardanoStakePool[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											cardanoStakePool[EntityMetaKey.Selector] != null && 'poolId' in cardanoStakePool[EntityMetaKey.Selector]
+											&& cardanoStakePool[EntityMetaKey.Selector].poolId != null
+											&& cardanoStakePool[EntityMetaKey.Selector] != null && '$network' in cardanoStakePool[EntityMetaKey.Selector] ?
+												cardanoStakePool[EntityMetaKey.Selector].$network != null && 'caip2' in cardanoStakePool[EntityMetaKey.Selector].$network
+												&& cardanoStakePool[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+												poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
+												network: String(caip2StringFromValue(cardanoStakePool[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													cardanoStakePool[EntityMetaKey.Selector].$network != null && 'slug' in cardanoStakePool[EntityMetaKey.Selector].$network
+													&& cardanoStakePool[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+													poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
+													network: String(cardanoStakePool[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -204,13 +254,28 @@
 									selection={select(EntityType.CardanoDRep, cardanoDRep[EntityMetaKey.Selector])}
 									prefetched={cardanoDRep}
 									href={
-										(cardanoDRep[EntityMetaKey.Selector].drepCredential !== undefined && cardanoDRep[EntityMetaKey.Selector].$network !== undefined && cardanoDRep[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
-											drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
-											network: String(caip2StringFromValue(cardanoDRep[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : cardanoDRep[EntityMetaKey.Selector].drepCredential !== undefined && cardanoDRep[EntityMetaKey.Selector].$network !== undefined && cardanoDRep[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
-											drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
-											network: String(cardanoDRep[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											cardanoDRep[EntityMetaKey.Selector] != null && 'drepCredential' in cardanoDRep[EntityMetaKey.Selector]
+											&& cardanoDRep[EntityMetaKey.Selector].drepCredential != null
+											&& cardanoDRep[EntityMetaKey.Selector] != null && '$network' in cardanoDRep[EntityMetaKey.Selector] ?
+												cardanoDRep[EntityMetaKey.Selector].$network != null && 'caip2' in cardanoDRep[EntityMetaKey.Selector].$network
+												&& cardanoDRep[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
+												drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
+												network: String(caip2StringFromValue(cardanoDRep[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													cardanoDRep[EntityMetaKey.Selector].$network != null && 'slug' in cardanoDRep[EntityMetaKey.Selector].$network
+													&& cardanoDRep[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
+													drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
+													network: String(cardanoDRep[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -316,7 +381,9 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({

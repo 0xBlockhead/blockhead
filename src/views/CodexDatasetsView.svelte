@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Codex datasets',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CodexDataset>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CodexDataset>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CodexDatasetView from '$/views/CodexDatasetView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(codexDatasets) => [...new Map(codexDatasets.values.map((codexDataset) => [codexDataset[EntityMetaKey.SelectorKey], codexDataset])).values()]}
 	getKey={(codexDataset) => codexDataset[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: codexDataset })}
 		{@const codexDatasetFields = { ...codexDataset[EntityMetaKey.Selector], ...codexDataset }}
-		{@const selection = select(EntityType.CodexDataset, codexDataset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CodexDatasetView
-			selection={selection}
-			prefetched={codexDatasetFields}
+		<EntityView
+			entityType={EntityType.CodexDataset}
+			entitySelector={codexDataset[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((codexDatasetFields.filename) ?? '')].filter(Boolean).join(' ') || [String((codexDatasetFields.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((codexDatasetFields.mimetype) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((codexDatasetFields.datasetSizeBytes) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

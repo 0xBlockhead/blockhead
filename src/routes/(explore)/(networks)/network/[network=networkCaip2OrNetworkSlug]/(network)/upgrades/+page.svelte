@@ -44,14 +44,14 @@
 				}
 				title='Upgrades'
 				selection={
-					projection.$$upgrades({
-						sources: [
-							Source.Constants_Internal,
-						],
-						count: true,
-					})
+					projection
+						.$$upgrades({
+							sources: [
+								Source.Constants_Internal,
+							],
+						})
 				}
-				id='upgrades'
+				id='account-ethereum-network-upgrade'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

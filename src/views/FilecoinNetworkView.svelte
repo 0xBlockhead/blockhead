@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FilecoinNetwork>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FilecoinNetwork>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FilecoinNetwork>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,11 +44,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const filecoinNetwork = $derived(selection({
+	const filecoinNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('filecoin network')
-	const viewDomId = $derived('filecoin-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'filecoin network'
+	const viewDomId = $derived('filecoin-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,51 +73,24 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={filecoinNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={filecoinNetwork}>
+			{#snippet children(entity)}
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{titleFallback}
-		{:else}
-			<ResourceBoundary resource={filecoinNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={filecoinNetwork}>
+			{#snippet children(entity)}
+				{titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -128,13 +105,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -169,32 +156,45 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<FilecoinNetwork_TimestampsView
-				selection={
-						selection.$$timestamps({
-							sources: [
-								Source.Lotus_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Observations'
-				id='FilecoinNetwork_TimestampsView-timestamps'
-			/>
-
-			<FilecoinTipsetsView
-				selection={
-						selection.$$tipsets({
-							sources: [
-								Source.Lotus_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Tipsets'
-				id='FilecoinTipsetsView-tipsets'
-			/>
-		{/if}
+				{@const filecoinNetworkFilecoinNetworkTimestampsViewTimestampsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.Lotus_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={filecoinNetworkFilecoinNetworkTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<FilecoinNetwork_TimestampsView
+							selection={filecoinNetworkFilecoinNetworkTimestampsViewTimestampsResource}
+							countResource={filecoinNetworkFilecoinNetworkTimestampsViewTimestampsResource.count}
+							title='Observations'
+							id='FilecoinNetwork_TimestampsView-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const filecoinNetworkFilecoinTipsetsViewTipsetsResource = selection
+		.$$tipsets({
+			sources: [
+				Source.Lotus_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={filecoinNetworkFilecoinTipsetsViewTipsetsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<FilecoinTipsetsView
+							selection={filecoinNetworkFilecoinTipsetsViewTipsetsResource}
+							countResource={filecoinNetworkFilecoinTipsetsViewTipsetsResource.count}
+							title='Tipsets'
+							id='FilecoinTipsetsView-tipsets'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

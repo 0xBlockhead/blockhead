@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EVM topics',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmTopic>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmTopic>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmTopicView from '$/views/EvmTopicView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,7 +66,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.Openchain_Rest,
 			],
 			fields: {
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmTopics) => [...new Map(evmTopics.values.map((evmTopic) => [evmTopic[EntityMetaKey.SelectorKey], evmTopic])).values()]}
 	getKey={(evmTopic) => evmTopic[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,18 +89,27 @@
 
 	{#snippet Item({ item: evmTopic })}
 		{@const evmTopicFields = { ...evmTopic[EntityMetaKey.Selector], ...evmTopic }}
-		{@const selection = select(EntityType.EvmTopic, evmTopic[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmTopicHrefFields = { ...evmTopic, ...evmTopic[EntityMetaKey.Selector] }}
-		<EvmTopicView
-			selection={selection}
-			prefetched={evmTopicFields}
+		<EntityView
+			entityType={EntityType.EvmTopic}
+			entitySelector={evmTopic[EntityMetaKey.Selector]}
 			href={
-				(evmTopicHrefFields.hex !== undefined ? resolve('/evm/topic/[hex=evmTopicHash]', {
-					hex: String(evmTopicHrefFields.hex ?? ''),
-				}) : undefined)
+				(
+					evmTopic[EntityMetaKey.Selector] != null && 'hex' in evmTopic[EntityMetaKey.Selector]
+					&& evmTopic[EntityMetaKey.Selector].hex != null ?
+						resolve('/evm/topic/[hex=evmTopicHash]', {
+					hex: String(evmTopic[EntityMetaKey.Selector].hex ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'EVM topic'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

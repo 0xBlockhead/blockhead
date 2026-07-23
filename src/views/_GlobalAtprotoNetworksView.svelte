@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'AT Protocol',
 		typeAnnotationParagraphs = ['AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from declared Bluesky-compatible appview sources, not a claim about every repository on the network.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalAtprotoNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalAtprotoNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalAtprotoNetworkView from '$/views/_GlobalAtprotoNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalAtprotoNetworks) => [...new Map(globalAtprotoNetworks.values.map((globalAtprotoNetwork) => [globalAtprotoNetwork[EntityMetaKey.SelectorKey], globalAtprotoNetwork])).values()]}
 	getKey={(globalAtprotoNetwork) => globalAtprotoNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,14 +87,24 @@
 
 	{#snippet Item({ item: globalAtprotoNetwork })}
 		{@const globalAtprotoNetworkFields = { ...globalAtprotoNetwork[EntityMetaKey.Selector], ...globalAtprotoNetwork }}
-		{@const selection = select(EntityType._GlobalAtprotoNetwork, globalAtprotoNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const globalAtprotoNetworkHrefFields = { ...globalAtprotoNetwork, ...globalAtprotoNetwork[EntityMetaKey.Selector] }}
-		<GlobalAtprotoNetworkView
-			selection={selection}
-			prefetched={globalAtprotoNetworkFields}
-			href={(globalAtprotoNetwork[EntityMetaKey.Selector].scope === '_GlobalAtprotoNetwork' ? resolve('/atproto') : undefined)}
+		<EntityView
+			entityType={EntityType._GlobalAtprotoNetwork}
+			entitySelector={globalAtprotoNetwork[EntityMetaKey.Selector]}
+			href={
+				(
+					globalAtprotoNetwork[EntityMetaKey.Selector].scope === '_GlobalAtprotoNetwork' ?
+						resolve('/atproto')
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((globalAtprotoNetworkFields.protocolName) ?? '')].filter(Boolean).join(' ') || [String('AT Protocol')].filter(Boolean).join(' ') || 'AT Protocol'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

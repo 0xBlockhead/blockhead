@@ -37,10 +37,10 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.BeaconValidator && data.selectorMapping.selectorName === 'NetworkIndexInNetwork' ? BeaconValidatorView : SolanaValidatorView}
+			{@const DetailView = data.entityType === EntityType.BeaconValidator && data.selectorName === 'NetworkIndexInNetwork' ? BeaconValidatorView : SolanaValidatorView}
 
 			<DetailView
-				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}
+				selection={select(data.entityType, data.selector)}
 				href={
 					resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
 						network: params.network,

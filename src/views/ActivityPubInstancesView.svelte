@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ActivityPub instances',
 		typeAnnotationParagraphs = ['A declared Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ActivityPubInstance>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ActivityPubInstance>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubInstanceView from '$/views/ActivityPubInstanceView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(activityPubInstances) => [...new Map(activityPubInstances.values.map((activityPubInstance) => [activityPubInstance[EntityMetaKey.SelectorKey], activityPubInstance])).values()]}
 	getKey={(activityPubInstance) => activityPubInstance[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,18 +86,27 @@
 
 	{#snippet Item({ item: activityPubInstance })}
 		{@const activityPubInstanceFields = { ...activityPubInstance[EntityMetaKey.Selector], ...activityPubInstance }}
-		{@const selection = select(EntityType.ActivityPubInstance, activityPubInstance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const activityPubInstanceHrefFields = { ...activityPubInstance, ...activityPubInstance[EntityMetaKey.Selector] }}
-		<ActivityPubInstanceView
-			selection={selection}
-			prefetched={activityPubInstanceFields}
+		<EntityView
+			entityType={EntityType.ActivityPubInstance}
+			entitySelector={activityPubInstance[EntityMetaKey.Selector]}
 			href={
-				(activityPubInstanceHrefFields.instanceOrigin !== undefined ? resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
-					instanceOrigin: encodeURIComponent(String(activityPubInstanceHrefFields.instanceOrigin ?? '')),
-				}) : undefined)
+				(
+					activityPubInstance[EntityMetaKey.Selector] != null && 'instanceOrigin' in activityPubInstance[EntityMetaKey.Selector]
+					&& activityPubInstance[EntityMetaKey.Selector].instanceOrigin != null ?
+						resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
+					instanceOrigin: encodeURIComponent(String(activityPubInstance[EntityMetaKey.Selector].instanceOrigin ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((activityPubInstanceFields.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

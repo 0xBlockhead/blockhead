@@ -40,13 +40,24 @@
 		selection={
 			select(EntityType.YoutubeChannel, {
 				channelId: decodeURIComponent(params.channelId),
-			}).$$videos({
-				sources: [
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-				],
-				count: true,
 			})
+				.$$videos({
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.YoutubeChannel, {
+				channelId: decodeURIComponent(params.channelId),
+			})
+				.$$videos({
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					],
+				}).count
 		}
 		id='videos'
 		data-column-item="flexible"

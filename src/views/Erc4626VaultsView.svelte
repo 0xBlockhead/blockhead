@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Erc4626 vaults',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.Erc4626Vault>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Erc4626Vault>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Erc4626VaultView from '$/views/Erc4626VaultView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(erc4626Vaults) => [...new Map(erc4626Vaults.values.map((erc4626Vault) => [erc4626Vault[EntityMetaKey.SelectorKey], erc4626Vault])).values()]}
 	getKey={(erc4626Vault) => erc4626Vault[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: erc4626Vault })}
 		{@const erc4626VaultFields = { ...erc4626Vault[EntityMetaKey.Selector], ...erc4626Vault }}
-		{@const selection = select(EntityType.Erc4626Vault, erc4626Vault[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<Erc4626VaultView
-			selection={selection}
-			prefetched={erc4626VaultFields}
+		<EntityView
+			entityType={EntityType.Erc4626Vault}
+			entitySelector={erc4626Vault[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((erc4626VaultFields.name) ?? ''), String((erc4626VaultFields.symbol) ?? '')].filter(Boolean).join(' ') || 'erc4626 vault'}
+			{/snippet}
+
+			{#snippet Value()}
+				{['EVM coin instance'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

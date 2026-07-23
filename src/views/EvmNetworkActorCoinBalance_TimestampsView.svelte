@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Balance observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmNetworkActorCoinBalance_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmNetworkActorCoinBalance_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmNetworkActorCoinBalance_TimestampView from '$/views/EvmNetworkActorCoinBalance_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmNetworkActorCoinBalanceTimestamps) => [...new Map(evmNetworkActorCoinBalanceTimestamps.values.map((evmNetworkActorCoinBalanceTimestamp) => [evmNetworkActorCoinBalanceTimestamp[EntityMetaKey.SelectorKey], evmNetworkActorCoinBalanceTimestamp])).values()]}
 	getKey={(evmNetworkActorCoinBalanceTimestamp) => evmNetworkActorCoinBalanceTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: evmNetworkActorCoinBalanceTimestamp })}
 		{@const evmNetworkActorCoinBalanceTimestampFields = { ...evmNetworkActorCoinBalanceTimestamp[EntityMetaKey.Selector], ...evmNetworkActorCoinBalanceTimestamp }}
-		{@const selection = select(EntityType.EvmNetworkActorCoinBalance_Timestamp, evmNetworkActorCoinBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<EvmNetworkActorCoinBalance_TimestampView
-			selection={selection}
-			prefetched={evmNetworkActorCoinBalanceTimestampFields}
+		<EntityView
+			entityType={EntityType.EvmNetworkActorCoinBalance_Timestamp}
+			entitySelector={evmNetworkActorCoinBalanceTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((evmNetworkActorCoinBalanceTimestampFields.source) ?? '')].filter(Boolean).join(' ') || 'EVM network actor coin balance timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[(String((evmNetworkActorCoinBalanceTimestampFields.balance) ?? '') ? String((evmNetworkActorCoinBalanceTimestampFields.balance) ?? '') + evmNetworkActorCoinBalanceTimestampFields.$actorCoin.symbol : ''), String((evmNetworkActorCoinBalanceTimestampFields.usdValue) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((evmNetworkActorCoinBalanceTimestampFields.blockNumber) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CelestiaNamespace>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CelestiaNamespace>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CelestiaNamespace>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const celestiaNamespace = $derived(selection({
+	const celestiaNamespace = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+			namespaceVersion: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.namespaceId) ?? '')].filter(Boolean).join(' ') || 'celestia namespace')
-	const viewDomId = $derived('celestia-namespace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('celestia-namespace-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,7 +79,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'namespaceVersion')}
 			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={celestiaNamespace}>
@@ -85,13 +92,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const namespaceVersion0 = pendingEntity.namespaceVersion}
-					{#if namespaceVersion0 !== undefined && namespaceVersion0 !== null}
-						<NumberValue
-							value={namespaceVersion0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'namespaceVersion')}
+			{@const namespaceVersion0 = pendingEntity.namespaceVersion}
+			{#if namespaceVersion0 !== undefined && namespaceVersion0 !== null}
+				<NumberValue
+					value={namespaceVersion0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={celestiaNamespace}>
 				{#snippet children(entity)}
@@ -113,7 +120,7 @@
 				<dt>network</dt>
 				<dd>
 					<CelestiaNetworkView
-						selection={select(EntityType.CelestiaNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.CelestiaNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -197,28 +204,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CelestiaNamespace_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='CelestiaNamespace_TimestampsView-timestamps'
-			/>
-
-			<CelestiaBlobsView
-				selection={
-						selection.$$blobs({
-							count: true,
-						})
-					}
-				title='blobs'
-				emptyText='No blobs found.'
-				id='CelestiaBlobsView-blobs'
-			/>
-		{/if}
+		{@const celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<CelestiaNamespace_TimestampsView
+					selection={celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource}
+					countResource={celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='CelestiaNamespace_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const celestiaNamespaceCelestiaBlobsViewBlobsResource = selection.$$blobs}
+		<ResourceBoundary
+			resource={celestiaNamespaceCelestiaBlobsViewBlobsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<CelestiaBlobsView
+					selection={celestiaNamespaceCelestiaBlobsViewBlobsResource}
+					countResource={celestiaNamespaceCelestiaBlobsViewBlobsResource.count}
+					title='blobs'
+					id='CelestiaBlobsView-blobs'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

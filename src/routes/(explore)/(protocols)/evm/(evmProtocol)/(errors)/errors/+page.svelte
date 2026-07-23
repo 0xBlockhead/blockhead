@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType.EvmProtocol, {
 				scope: 'EvmProtocol',
-			}).$$evmErrors({
-				sources: [
-					Source.Openchain_Rest,
-				],
-				count: true,
 			})
+				.$$evmErrors({
+					sources: [
+						Source.Openchain_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.EvmProtocol, {
+				scope: 'EvmProtocol',
+			})
+				.$$evmErrors({
+					sources: [
+						Source.Openchain_Rest,
+					],
+				}).count
 		}
 		id='evm-errors'
 		data-column-item="flexible"

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead 0G storage node state observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadZeroGStorageNodeState_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadZeroGStorageNodeState_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadZeroGStorageNodeState_TimestampView from '$/views/BlockheadZeroGStorageNodeState_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,11 +67,21 @@
 			sources: selection.sources,
 			fields: {
 				timestampMs: true,
-				$nodeState: true,
+				$nodeState: {
+					fields: {
+						$network: {
+							fields: {
+								name: true,
+								environment: true,
+							},
+						},
+					},
+				},
 				localChunkCount: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadZeroGStorageNodeStateTimestamps) => [...new Map(blockheadZeroGStorageNodeStateTimestamps.values.map((blockheadZeroGStorageNodeStateTimestamp) => [blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadZeroGStorageNodeStateTimestamp])).values()]}
 	getKey={(blockheadZeroGStorageNodeStateTimestamp) => blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +96,24 @@
 
 	{#snippet Item({ item: blockheadZeroGStorageNodeStateTimestamp })}
 		{@const blockheadZeroGStorageNodeStateTimestampFields = { ...blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadZeroGStorageNodeStateTimestamp }}
-		{@const selection = select(EntityType.BlockheadZeroGStorageNodeState_Timestamp, blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadZeroGStorageNodeState_TimestampView
-			selection={selection}
-			prefetched={blockheadZeroGStorageNodeStateTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadZeroGStorageNodeState_Timestamp}
+			entitySelector={blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadZeroGStorageNodeStateTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g storage node state timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((blockheadZeroGStorageNodeStateTimestampFields.$nodeState.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g storage node state'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadZeroGStorageNodeStateTimestampFields.localChunkCount) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

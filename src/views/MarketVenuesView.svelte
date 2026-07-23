@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Market venues',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.MarketVenue>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MarketVenue>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MarketVenueView from '$/views/MarketVenueView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -89,6 +82,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(marketVenues) => [...new Map(marketVenues.values.map((marketVenue) => [marketVenue[EntityMetaKey.SelectorKey], marketVenue])).values()]}
 	getKey={(marketVenue) => marketVenue[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -103,18 +97,27 @@
 
 	{#snippet Item({ item: marketVenue })}
 		{@const marketVenueFields = { ...marketVenue[EntityMetaKey.Selector], ...marketVenue }}
-		{@const selection = select(EntityType.MarketVenue, marketVenue[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const marketVenueHrefFields = { ...marketVenue, ...marketVenue[EntityMetaKey.Selector] }}
-		<MarketVenueView
-			selection={selection}
-			prefetched={marketVenueFields}
+		<EntityView
+			entityType={EntityType.MarketVenue}
+			entitySelector={marketVenue[EntityMetaKey.Selector]}
 			href={
-				(marketVenueHrefFields.marketVenueId !== undefined ? resolve('/market-venue/[marketVenueId=marketVenueId]', {
-					marketVenueId: String(marketVenueHrefFields.marketVenueId ?? ''),
-				}) : undefined)
+				(
+					marketVenue[EntityMetaKey.Selector] != null && 'marketVenueId' in marketVenue[EntityMetaKey.Selector]
+					&& marketVenue[EntityMetaKey.Selector].marketVenueId != null ?
+						resolve('/market-venue/[marketVenueId=marketVenueId]', {
+					marketVenueId: String(marketVenue[EntityMetaKey.Selector].marketVenueId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((marketVenueFields.label) ?? '')].filter(Boolean).join(' ') || [String((marketVenueFields.marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

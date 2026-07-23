@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Zero g network observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ZeroGNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ZeroGNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ZeroGNetwork_TimestampView from '$/views/ZeroGNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,12 +66,18 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				$network: true,
+				$network: {
+					fields: {
+						name: true,
+						environment: true,
+					},
+				},
 				timestampMs: true,
 				storageTransactionCount: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(zeroGNetworkTimestamps) => [...new Map(zeroGNetworkTimestamps.values.map((zeroGNetworkTimestamp) => [zeroGNetworkTimestamp[EntityMetaKey.SelectorKey], zeroGNetworkTimestamp])).values()]}
 	getKey={(zeroGNetworkTimestamp) => zeroGNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +92,24 @@
 
 	{#snippet Item({ item: zeroGNetworkTimestamp })}
 		{@const zeroGNetworkTimestampFields = { ...zeroGNetworkTimestamp[EntityMetaKey.Selector], ...zeroGNetworkTimestamp }}
-		{@const selection = select(EntityType.ZeroGNetwork_Timestamp, zeroGNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ZeroGNetwork_TimestampView
-			selection={selection}
-			prefetched={zeroGNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType.ZeroGNetwork_Timestamp}
+			entitySelector={zeroGNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((zeroGNetworkTimestampFields.$network.name) ?? '')].filter(Boolean).join(' ') || 'zero g network'].filter(Boolean).join(' ') || 'zero g network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((zeroGNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((zeroGNetworkTimestampFields.storageTransactionCount) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -31,7 +31,6 @@
 			source: params.source,
 		}).source],
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? ''), String((pageSelection.entitySelector.source) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist observation' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist observation'))
 
 
 	// Components
@@ -41,7 +40,31 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • YouTube playlist observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$playlist: {
+			playlistId: decodeURIComponent(params.playlistId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? ''), String(({
+		$playlist: {
+			playlistId: decodeURIComponent(params.playlistId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.source) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist observation' : [String((({ ...{
+		$playlist: {
+			playlistId: decodeURIComponent(params.playlistId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? ''), String((({ ...{
+		$playlist: {
+			playlistId: decodeURIComponent(params.playlistId),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist observation')} • YouTube playlist observation • Blockhead</title>
 </svelte:head>
 
 

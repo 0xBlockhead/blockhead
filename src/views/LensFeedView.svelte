@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LensFeed>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensFeed>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LensFeed>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -38,7 +39,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lensFeed = $derived(selection({
+	const lensFeed = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			name: true,
+			createdAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			name: true,
@@ -46,7 +53,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'Lens feed')
-	const viewDomId = $derived('lens-feed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('lens-feed-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,7 +75,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'createdAt')}
 			{[String((pendingEntity.name) ?? ''), String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={lensFeed}>
@@ -81,11 +88,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const address0 = pendingEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'createdAt')}
+			{@const address0 = pendingEntity.address}
+			{#if address0 !== undefined && address0 !== null}
+				<TruncatedValue value={String((address0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={lensFeed}>
 				{#snippet children(entity)}
@@ -100,7 +107,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'createdAt')}
 			{@const createdAt0 = pendingEntity.createdAt}
 			{#if createdAt0 !== undefined && createdAt0 !== null}
 				<span data-text="muted">
@@ -242,18 +249,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<LensPostsView
-				selection={
-						selection.$$posts({
-							count: true,
-						})
-					}
-				title='Posts'
-				href={resolve('/lens/observations/posts')}
-				emptyText='No Lens posts for this feed.'
-				id='LensPostsView-posts'
-			/>
-		{/if}
+		{@const lensFeedLensPostsViewPostsResource = selection.$$posts}
+		<ResourceBoundary
+			resource={lensFeedLensPostsViewPostsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<LensPostsView
+					selection={lensFeedLensPostsViewPostsResource}
+					countResource={lensFeedLensPostsViewPostsResource.count}
+					title='Posts'
+					id='LensPostsView-posts'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

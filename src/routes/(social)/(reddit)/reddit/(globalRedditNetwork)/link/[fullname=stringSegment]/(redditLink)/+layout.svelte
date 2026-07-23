@@ -40,7 +40,6 @@
 
 			<DetailView
 				selection={select(EntityType.RedditLink, data.selector, { sources: [
-		Source.Constants_Internal,
 		Source.Reddit_PublicJson,
 	] })}
 				href={

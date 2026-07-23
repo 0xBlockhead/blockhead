@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'MCP prompt results',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.McpPromptResult>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.McpPromptResult>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import McpPromptResultView from '$/views/McpPromptResultView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,11 +67,22 @@
 			sources: selection.sources,
 			fields: {
 				timestampMs: true,
-				$prompt: true,
+				$prompt: {
+					fields: {
+						title: true,
+						$server: {
+							fields: {
+								transportKind: true,
+								endpointUrl: true,
+							},
+						},
+					},
+				},
 				error: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(mcpPromptResults) => [...new Map(mcpPromptResults.values.map((mcpPromptResult) => [mcpPromptResult[EntityMetaKey.SelectorKey], mcpPromptResult])).values()]}
 	getKey={(mcpPromptResult) => mcpPromptResult[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +97,24 @@
 
 	{#snippet Item({ item: mcpPromptResult })}
 		{@const mcpPromptResultFields = { ...mcpPromptResult[EntityMetaKey.Selector], ...mcpPromptResult }}
-		{@const selection = select(EntityType.McpPromptResult, mcpPromptResult[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<McpPromptResultView
-			selection={selection}
-			prefetched={mcpPromptResultFields}
+		<EntityView
+			entityType={EntityType.McpPromptResult}
+			entitySelector={mcpPromptResult[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((mcpPromptResultFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp prompt result'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((mcpPromptResultFields.$prompt.title) ?? '')].filter(Boolean).join(' ') || [String((mcpPromptResultFields.$prompt.name) ?? '')].filter(Boolean).join(' ') || 'mcp prompt'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((mcpPromptResultFields.error) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

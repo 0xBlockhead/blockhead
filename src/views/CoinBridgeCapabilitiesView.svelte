@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Coin bridge capabilities',
 		typeAnnotationParagraphs = ['A supported bridge path between two EVM coin instances through a specific bridge tool.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CoinBridgeCapability>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CoinBridgeCapability>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CoinBridgeCapabilityView from '$/views/CoinBridgeCapabilityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(coinBridgeCapabilities) => [...new Map(coinBridgeCapabilities.values.map((coinBridgeCapability) => [coinBridgeCapability[EntityMetaKey.SelectorKey], coinBridgeCapability])).values()]}
 	getKey={(coinBridgeCapability) => coinBridgeCapability[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,22 +89,51 @@
 
 	{#snippet Item({ item: coinBridgeCapability })}
 		{@const coinBridgeCapabilityFields = { ...coinBridgeCapability[EntityMetaKey.Selector], ...coinBridgeCapability }}
-		{@const selection = select(EntityType.CoinBridgeCapability, coinBridgeCapability[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const coinBridgeCapabilityHrefFields = { ...coinBridgeCapability, ...coinBridgeCapability[EntityMetaKey.Selector] }}
-		<CoinBridgeCapabilityView
-			selection={selection}
-			prefetched={coinBridgeCapabilityFields}
+		<EntityView
+			entityType={EntityType.CoinBridgeCapability}
+			entitySelector={coinBridgeCapability[EntityMetaKey.Selector]}
 			href={
-				(coinBridgeCapabilityHrefFields.toolKey !== undefined && coinBridgeCapabilityHrefFields.$fromInstance !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$network !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$network.caip2 !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$network.caip2.reference !== undefined && (coinBridgeCapabilityHrefFields.$fromInstance !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.type !== undefined && (coinBridgeCapabilityHrefFields.$fromInstance.type === 'NativeCurrency' ? true : coinBridgeCapabilityHrefFields.$fromInstance !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$contract !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$contract.address !== undefined)) && coinBridgeCapabilityHrefFields.$toInstance !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$network !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$network.caip2 !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$network.caip2.reference !== undefined && (coinBridgeCapabilityHrefFields.$toInstance !== undefined && coinBridgeCapabilityHrefFields.$toInstance.type !== undefined && (coinBridgeCapabilityHrefFields.$toInstance.type === 'NativeCurrency' ? true : coinBridgeCapabilityHrefFields.$toInstance !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$contract !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$contract.address !== undefined)) ? resolve('/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]', {
-					toolKey: String(coinBridgeCapabilityHrefFields.toolKey ?? ''),
-					fromChainId: String(coinBridgeCapabilityHrefFields.$fromInstance.$network.caip2.reference ?? ''),
-					fromCoinInstanceSlug: String((coinBridgeCapabilityHrefFields.$fromInstance.type === 'NativeCurrency' ? 'native' : coinBridgeCapabilityHrefFields.$fromInstance.$contract.address)),
-					toChainId: String(coinBridgeCapabilityHrefFields.$toInstance.$network.caip2.reference ?? ''),
-					toCoinInstanceSlug: String((coinBridgeCapabilityHrefFields.$toInstance.type === 'NativeCurrency' ? 'native' : coinBridgeCapabilityHrefFields.$toInstance.$contract.address)),
-				}) : undefined)
+				(
+					coinBridgeCapability[EntityMetaKey.Selector] != null && 'toolKey' in coinBridgeCapability[EntityMetaKey.Selector]
+					&& coinBridgeCapability[EntityMetaKey.Selector].toolKey != null
+					&& coinBridgeCapability[EntityMetaKey.Selector] != null && '$fromInstance' in coinBridgeCapability[EntityMetaKey.Selector]
+					&& coinBridgeCapability[EntityMetaKey.Selector].$fromInstance != null && '$network' in coinBridgeCapability[EntityMetaKey.Selector].$fromInstance
+					&& coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.$network != null && 'caip2' in coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.$network
+					&& coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.$network.caip2 != null && 'reference' in coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.$network.caip2
+					&& coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.$network.caip2.reference != null
+					&& (coinBridgeCapability[EntityMetaKey.Selector] != null && '$fromInstance' in coinBridgeCapability[EntityMetaKey.Selector] && coinBridgeCapability[EntityMetaKey.Selector].$fromInstance != null && 'type' in coinBridgeCapability[EntityMetaKey.Selector].$fromInstance && coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.type != null && (coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.type === 'NativeCurrency' ? true : coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.type === 'Erc20Token' ? coinBridgeCapability[EntityMetaKey.Selector] != null && '$fromInstance' in coinBridgeCapability[EntityMetaKey.Selector] && coinBridgeCapability[EntityMetaKey.Selector].$fromInstance != null && '$contract' in coinBridgeCapability[EntityMetaKey.Selector].$fromInstance && coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.$contract != null && 'address' in coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.$contract && coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.$contract.address != null : true))
+					&& coinBridgeCapability[EntityMetaKey.Selector] != null && '$toInstance' in coinBridgeCapability[EntityMetaKey.Selector]
+					&& coinBridgeCapability[EntityMetaKey.Selector].$toInstance != null && '$network' in coinBridgeCapability[EntityMetaKey.Selector].$toInstance
+					&& coinBridgeCapability[EntityMetaKey.Selector].$toInstance.$network != null && 'caip2' in coinBridgeCapability[EntityMetaKey.Selector].$toInstance.$network
+					&& coinBridgeCapability[EntityMetaKey.Selector].$toInstance.$network.caip2 != null && 'reference' in coinBridgeCapability[EntityMetaKey.Selector].$toInstance.$network.caip2
+					&& coinBridgeCapability[EntityMetaKey.Selector].$toInstance.$network.caip2.reference != null
+					&& (coinBridgeCapability[EntityMetaKey.Selector] != null && '$toInstance' in coinBridgeCapability[EntityMetaKey.Selector] && coinBridgeCapability[EntityMetaKey.Selector].$toInstance != null && 'type' in coinBridgeCapability[EntityMetaKey.Selector].$toInstance && coinBridgeCapability[EntityMetaKey.Selector].$toInstance.type != null && (coinBridgeCapability[EntityMetaKey.Selector].$toInstance.type === 'NativeCurrency' ? true : coinBridgeCapability[EntityMetaKey.Selector].$toInstance.type === 'Erc20Token' ? coinBridgeCapability[EntityMetaKey.Selector] != null && '$toInstance' in coinBridgeCapability[EntityMetaKey.Selector] && coinBridgeCapability[EntityMetaKey.Selector].$toInstance != null && '$contract' in coinBridgeCapability[EntityMetaKey.Selector].$toInstance && coinBridgeCapability[EntityMetaKey.Selector].$toInstance.$contract != null && 'address' in coinBridgeCapability[EntityMetaKey.Selector].$toInstance.$contract && coinBridgeCapability[EntityMetaKey.Selector].$toInstance.$contract.address != null : true)) ?
+						resolve('/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]', {
+					toolKey: String(coinBridgeCapability[EntityMetaKey.Selector].toolKey ?? ''),
+					fromChainId: String(coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.$network.caip2.reference ?? ''),
+					fromCoinInstanceSlug: String((coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.type === 'NativeCurrency' ? 'native' : coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.type === 'Erc20Token' ? coinBridgeCapability[EntityMetaKey.Selector].$fromInstance.$contract.address : '')),
+					toChainId: String(coinBridgeCapability[EntityMetaKey.Selector].$toInstance.$network.caip2.reference ?? ''),
+					toCoinInstanceSlug: String((coinBridgeCapability[EntityMetaKey.Selector].$toInstance.type === 'NativeCurrency' ? 'native' : coinBridgeCapability[EntityMetaKey.Selector].$toInstance.type === 'Erc20Token' ? coinBridgeCapability[EntityMetaKey.Selector].$toInstance.$contract.address : '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((coinBridgeCapabilityFields.toolKey) ?? '')].filter(Boolean).join(' ') || 'Coin bridge capability'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((coinBridgeCapabilityFields.toolKey) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((coinBridgeCapabilityFields.railId) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

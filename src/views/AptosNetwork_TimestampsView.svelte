@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Aptos network observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AptosNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AptosNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AptosNetwork_TimestampView from '$/views/AptosNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(aptosNetworkTimestamps) => [...new Map(aptosNetworkTimestamps.values.map((aptosNetworkTimestamp) => [aptosNetworkTimestamp[EntityMetaKey.SelectorKey], aptosNetworkTimestamp])).values()]}
 	getKey={(aptosNetworkTimestamp) => aptosNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: aptosNetworkTimestamp })}
 		{@const aptosNetworkTimestampFields = { ...aptosNetworkTimestamp[EntityMetaKey.Selector], ...aptosNetworkTimestamp }}
-		{@const selection = select(EntityType.AptosNetwork_Timestamp, aptosNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AptosNetwork_TimestampView
-			selection={selection}
-			prefetched={aptosNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType.AptosNetwork_Timestamp}
+			entitySelector={aptosNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((aptosNetworkTimestampFields.ledgerVersion) ?? '')].filter(Boolean).join(' ') || 'aptos network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((aptosNetworkTimestampFields.blockHeight) ?? ''), String((aptosNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((aptosNetworkTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

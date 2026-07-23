@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
@@ -85,6 +86,12 @@ export const YoutubeVideo = entity({
 		label: 'Author',
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.YoutubeChannel,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$thumbnail: {
+		label: 'Thumbnail',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {

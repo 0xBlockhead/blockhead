@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AvailAppId>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AvailAppId>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvailAppId>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const availAppId = $derived(selection({
+	const availAppId = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.appId) ?? '')].filter(Boolean).join(' ') || 'avail app ID')
-	const viewDomId = $derived('avail-app-id-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('avail-app-id-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,7 +76,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label')}
 			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={availAppId}>
@@ -83,13 +89,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const appId0 = pendingEntity.appId}
-					{#if appId0 !== undefined && appId0 !== null}
-						<NumberValue
-							value={appId0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label')}
+			{@const appId0 = pendingEntity.appId}
+			{#if appId0 !== undefined && appId0 !== null}
+				<NumberValue
+					value={appId0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={availAppId}>
 				{#snippet children(entity)}
@@ -111,7 +117,7 @@
 				<dt>network</dt>
 				<dd>
 					<AvailNetworkView
-						selection={select(EntityType.AvailNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.AvailNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -171,28 +177,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AvailAppId_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='AvailAppId_TimestampsView-timestamps'
-			/>
-
-			<AvailDataSubmissionsView
-				selection={
-						selection.$$dataSubmissions({
-							count: true,
-						})
-					}
-				title='data submissions'
-				emptyText='No data submissions found.'
-				id='AvailDataSubmissionsView-data-submissions'
-			/>
-		{/if}
+		{@const availAppIdAvailAppIdTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={availAppIdAvailAppIdTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvailAppId_TimestampsView
+					selection={availAppIdAvailAppIdTimestampsViewTimestampsResource}
+					countResource={availAppIdAvailAppIdTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='AvailAppId_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const availAppIdAvailDataSubmissionsViewDataSubmissionsResource = selection.$$dataSubmissions}
+		<ResourceBoundary
+			resource={availAppIdAvailDataSubmissionsViewDataSubmissionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvailDataSubmissionsView
+					selection={availAppIdAvailDataSubmissionsViewDataSubmissionsResource}
+					countResource={availAppIdAvailDataSubmissionsViewDataSubmissionsResource.count}
+					title='data submissions'
+					id='AvailDataSubmissionsView-data-submissions'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

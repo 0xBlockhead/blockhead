@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType.LensNetwork, {
 				scope: 'LensNetwork',
-			}).$$lensAccounts({
-				sources: [
-					Source.Constants_Internal,
-				],
-				count: true,
 			})
+				.$$lensAccounts({
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.LensNetwork, {
+				scope: 'LensNetwork',
+			})
+				.$$lensAccounts({
+					sources: [
+						Source.Constants_Internal,
+					],
+				}).count
 		}
 		id='lens-accounts'
 		data-column-item="flexible"

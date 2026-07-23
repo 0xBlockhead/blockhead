@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EigenLayerDelegation_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EigenLayerDelegation_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EigenLayerDelegation_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,11 +44,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eigenLayerDelegationTimestamp = $derived(selection({
+	const eigenLayerDelegationTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('eigen layer delegation timestamp')
-	const viewDomId = $derived('eigen-layer-delegation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'eigen layer delegation timestamp'
+	const viewDomId = $derived('eigen-layer-delegation-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,88 +75,44 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
-						href={
-						(selection.entitySelector.$staker.$actor !== undefined && selection.entitySelector.$staker.$actor.address !== undefined && selection.entitySelector.$staker.$network !== undefined && selection.entitySelector.$staker.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$staker.$actor.address ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$staker.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$staker.$actor !== undefined && selection.entitySelector.$staker.$actor.address !== undefined && selection.entitySelector.$staker.$network !== undefined && selection.entitySelector.$staker.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$staker.$actor.address ?? ''),
-							network: String(selection.entitySelector.$staker.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
-						href={
-						(selection.entitySelector.$staker.$actor !== undefined && selection.entitySelector.$staker.$actor.address !== undefined && selection.entitySelector.$staker.$network !== undefined && selection.entitySelector.$staker.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$staker.$actor.address ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$staker.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$staker.$actor !== undefined && selection.entitySelector.$staker.$actor.address !== undefined && selection.entitySelector.$staker.$network !== undefined && selection.entitySelector.$staker.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$staker.$actor.address ?? ''),
-							network: String(selection.entitySelector.$staker.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-	{/snippet}
-
-	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<span data-text="muted">
-				<EigenLayerStrategyView
-					selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+		<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
+			{#snippet children(entity)}
+				<EvmNetworkAccountView
+					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
+					href=""
 					layout={EntityLayout.Title}
 					open={false}
 				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<span data-text="muted">
-						<EigenLayerStrategyView
-							selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
+			{#snippet children(entity)}
+				<EigenLayerOperatorView
+					selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={eigenLayerDelegationTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<EigenLayerStrategyView
+						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -161,15 +121,31 @@
 				<dt>staker</dt>
 				<dd>
 					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker, {})}
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
 						href={
-							(selection.entitySelector.$staker.$actor !== undefined && selection.entitySelector.$staker.$actor.address !== undefined && selection.entitySelector.$staker.$network !== undefined && selection.entitySelector.$staker.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(selection.entitySelector.$staker.$actor.address ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$staker.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$staker.$actor !== undefined && selection.entitySelector.$staker.$actor.address !== undefined && selection.entitySelector.$staker.$network !== undefined && selection.entitySelector.$staker.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(selection.entitySelector.$staker.$actor.address ?? ''),
-								network: String(selection.entitySelector.$staker.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$staker != null && '$actor' in selection.entitySelector.$staker
+								&& selection.entitySelector.$staker.$actor != null && 'address' in selection.entitySelector.$staker.$actor
+								&& selection.entitySelector.$staker.$actor.address != null
+								&& selection.entitySelector.$staker != null && '$network' in selection.entitySelector.$staker ?
+									selection.entitySelector.$staker.$network != null && 'caip2' in selection.entitySelector.$staker.$network
+									&& selection.entitySelector.$staker.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+									accountId: String(selection.entitySelector.$staker.$actor.address ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$staker.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$staker.$network != null && 'slug' in selection.entitySelector.$staker.$network
+										&& selection.entitySelector.$staker.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+										accountId: String(selection.entitySelector.$staker.$actor.address ?? ''),
+										network: String(selection.entitySelector.$staker.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -181,7 +157,7 @@
 				<dt>operator</dt>
 				<dd>
 					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator, {})}
+						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -192,7 +168,7 @@
 				<dt>strategy</dt>
 				<dd>
 					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy, {})}
+						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

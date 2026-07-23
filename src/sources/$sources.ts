@@ -117,10 +117,15 @@ export const indexSourceProviders = <
 			return {}
 
 		const subset = Object.fromEntries(
-			envSchema.props.map((property) => [
-				String(property.key),
-				resolverPublicEnv[String(property.key)] ?? '',
-			])
+			envSchema.props.flatMap((property) => (
+				(resolverPublicEnv[String(property.key)] ?? '').trim() === '' ?
+					[]
+				:
+					[[
+						String(property.key),
+						resolverPublicEnv[String(property.key)],
+					]]
+			))
 		) satisfies SourcePublicEnv
 		const out = envSchema(subset)
 		if (out instanceof arktype.errors)
@@ -187,10 +192,15 @@ export const indexSourceProviders = <
 			return [{
 				sourceDefinition,
 				publicEnv: (
-					Object.keys(merged).length === 0 ?
-						resolverPublicEnv
-					:
+					'env' in sourceProvider
+					|| 'env' in sourceDefinition
+					|| sourceBindings.some((binding) => binding.credentials.some((credential) => (
+						credential.scope === SourceCredentialScope.PublicConfig
+						&& credential.env != null
+					))) ?
 						merged
+					:
+						resolverPublicEnv
 				),
 			}]
 		})

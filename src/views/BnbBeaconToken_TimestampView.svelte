@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BnbBeaconToken_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BnbBeaconToken_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BnbBeaconToken_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bnbBeaconTokenTimestamp = $derived(selection({
+	const bnbBeaconTokenTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			totalSupply: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			totalSupply: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token timestamp')
-	const viewDomId = $derived('bnb-beacon-token-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bnb-beacon-token-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,11 +77,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'totalSupply')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={bnbBeaconTokenTimestamp}>
 				{#snippet children(entity)}
@@ -90,13 +96,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const totalSupply0 = pendingEntity.totalSupply}
-					{#if totalSupply0 !== undefined && totalSupply0 !== null}
-						<NumberValue
-							value={totalSupply0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'totalSupply')}
+			{@const totalSupply0 = pendingEntity.totalSupply}
+			{#if totalSupply0 !== undefined && totalSupply0 !== null}
+				<NumberValue
+					value={totalSupply0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={bnbBeaconTokenTimestamp}>
 				{#snippet children(entity)}
@@ -113,7 +119,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'totalSupply')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -141,7 +147,7 @@
 				<dt>token</dt>
 				<dd>
 					<BnbBeaconTokenView
-						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token, {})}
+						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

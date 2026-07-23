@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Coin observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.Coin_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Coin_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Coin_TimestampView from '$/views/Coin_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(coinTimestamps) => [...new Map(coinTimestamps.values.map((coinTimestamp) => [coinTimestamp[EntityMetaKey.SelectorKey], coinTimestamp])).values()]}
 	getKey={(coinTimestamp) => coinTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,20 +91,42 @@
 
 	{#snippet Item({ item: coinTimestamp })}
 		{@const coinTimestampFields = { ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }}
-		{@const selection = select(EntityType.Coin_Timestamp, coinTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const coinTimestampHrefFields = { ...coinTimestamp, ...coinTimestamp[EntityMetaKey.Selector] }}
-		<Coin_TimestampView
-			selection={selection}
-			prefetched={coinTimestampFields}
+		<EntityView
+			entityType={EntityType.Coin_Timestamp}
+			entitySelector={coinTimestamp[EntityMetaKey.Selector]}
 			href={
-				(coinTimestampHrefFields.timestampMs !== undefined && coinTimestampHrefFields.source !== undefined && coinTimestampHrefFields.$coin !== undefined && coinTimestampHrefFields.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(coinTimestampHrefFields.timestampMs ?? ''),
-					source: String(coinTimestampHrefFields.source ?? ''),
-					coinId: String(coinTimestampHrefFields.$coin.coinId ?? ''),
-				}) : undefined)
+				(
+					coinTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in coinTimestamp[EntityMetaKey.Selector]
+					&& coinTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& coinTimestamp[EntityMetaKey.Selector] != null && 'source' in coinTimestamp[EntityMetaKey.Selector]
+					&& coinTimestamp[EntityMetaKey.Selector].source != null
+					&& coinTimestamp[EntityMetaKey.Selector] != null && '$coin' in coinTimestamp[EntityMetaKey.Selector]
+					&& coinTimestamp[EntityMetaKey.Selector].$coin != null && 'coinId' in coinTimestamp[EntityMetaKey.Selector].$coin
+					&& coinTimestamp[EntityMetaKey.Selector].$coin.coinId != null ?
+						resolve('/coin/[coinId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(coinTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(coinTimestamp[EntityMetaKey.Selector].source ?? ''),
+					coinId: String(coinTimestamp[EntityMetaKey.Selector].$coin.coinId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((coinTimestampFields.$coin.symbol) ?? ''), String((coinTimestampFields.$coin.name) ?? '')].filter(Boolean).join(' ') || 'Coin'].filter(Boolean).join(' ') || 'coin timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((coinTimestampFields.marketCap) ?? ''), String((coinTimestampFields.marketCapUsd) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[(String((coinTimestampFields.change24hPercent) ?? '') ? String((coinTimestampFields.change24hPercent) ?? '') + '%' : '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

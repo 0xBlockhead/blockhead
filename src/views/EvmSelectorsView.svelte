@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EVM selectors',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmSelector>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmSelector>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmSelectorView from '$/views/EvmSelectorView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,7 +66,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.Openchain_Rest,
 			],
 			fields: {
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmSelectors) => [...new Map(evmSelectors.values.map((evmSelector) => [evmSelector[EntityMetaKey.SelectorKey], evmSelector])).values()]}
 	getKey={(evmSelector) => evmSelector[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,18 +89,27 @@
 
 	{#snippet Item({ item: evmSelector })}
 		{@const evmSelectorFields = { ...evmSelector[EntityMetaKey.Selector], ...evmSelector }}
-		{@const selection = select(EntityType.EvmSelector, evmSelector[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmSelectorHrefFields = { ...evmSelector, ...evmSelector[EntityMetaKey.Selector] }}
-		<EvmSelectorView
-			selection={selection}
-			prefetched={evmSelectorFields}
+		<EntityView
+			entityType={EntityType.EvmSelector}
+			entitySelector={evmSelector[EntityMetaKey.Selector]}
 			href={
-				(evmSelectorHrefFields.hex !== undefined ? resolve('/evm/selector/[hex=zeroExHex]', {
-					hex: String(evmSelectorHrefFields.hex ?? ''),
-				}) : undefined)
+				(
+					evmSelector[EntityMetaKey.Selector] != null && 'hex' in evmSelector[EntityMetaKey.Selector]
+					&& evmSelector[EntityMetaKey.Selector].hex != null ?
+						resolve('/evm/selector/[hex=zeroExHex]', {
+					hex: String(evmSelector[EntityMetaKey.Selector].hex ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'EVM selector'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

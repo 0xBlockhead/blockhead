@@ -26,7 +26,6 @@
 			lpTokenCurrency: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'XRPL AMM' : 'XRPL AMM')))
 
 
 	// Components
@@ -36,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • XRPL AMM • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'XRPL AMM' : 'XRPL AMM'))} • XRPL AMM • Blockhead</title>
 </svelte:head>
 
 

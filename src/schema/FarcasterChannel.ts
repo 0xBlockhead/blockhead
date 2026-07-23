@@ -130,7 +130,6 @@ export const FarcasterChannel = entity({
 		entityType: EntityType.FarcasterCast,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Farcaster_Rest,
 			Source.Neynar_Rest,
 			Source.Snapchain_Rest,
 		],

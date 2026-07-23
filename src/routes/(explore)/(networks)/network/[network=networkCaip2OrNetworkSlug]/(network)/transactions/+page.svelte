@@ -44,14 +44,14 @@
 				}
 				title='Transactions'
 				selection={
-					projection.$$transactions({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$transactions({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
-				id='transactions'
+				id='account-evm-transaction'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

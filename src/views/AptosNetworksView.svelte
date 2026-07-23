@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Aptos networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AptosNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AptosNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AptosNetworkView from '$/views/AptosNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,6 +70,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(aptosNetworks) => [...new Map(aptosNetworks.values.map((aptosNetwork) => [aptosNetwork[EntityMetaKey.SelectorKey], aptosNetwork])).values()]}
 	getKey={(aptosNetwork) => aptosNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -91,12 +85,16 @@
 
 	{#snippet Item({ item: aptosNetwork })}
 		{@const aptosNetworkFields = { ...aptosNetwork[EntityMetaKey.Selector], ...aptosNetwork }}
-		{@const selection = select(EntityType.AptosNetwork, aptosNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AptosNetworkView
-			selection={selection}
-			prefetched={aptosNetworkFields}
+		<EntityView
+			entityType={EntityType.AptosNetwork}
+			entitySelector={aptosNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((aptosNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [aptosNetworkFields.$network.caip2 == null ? '' : String(`${(aptosNetworkFields.$network.caip2).namespace}:${(aptosNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'aptos network'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

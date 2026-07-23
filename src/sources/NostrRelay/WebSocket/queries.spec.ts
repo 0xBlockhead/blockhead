@@ -1,8 +1,19 @@
+import { schnorr } from '@noble/curves/secp256k1.js'
+import * as Hex from 'ox/Hex'
 import type { NostrRelaySocket } from '$/sources/NostrRelay/WebSocket/types.ts'
 import {
+	latestNostrRelayListFromEvents,
+	nostrCommentFromEvent,
+	nostrRelayListFromEvent,
+	nostrZapReceiptFromEvent,
+	nostrZapRequestFromEvent,
 	openRelaySubscription,
 	relayWebSocketUrl,
 } from '$/sources/NostrRelay/WebSocket/queries.ts'
+import {
+	nostrEventId,
+	type NostrEventEnvelope,
+} from '$/sources/NostrRelay/Nip01/event.ts'
 import {
 	afterEach,
 	describe,
@@ -10,6 +21,29 @@ import {
 	it,
 	vi,
 } from 'vitest'
+
+const secretKey = Hex.toBytes(`0x${'01'.repeat(32)}`)
+const pubkey = Hex.fromBytes(schnorr.getPublicKey(secretKey)).slice(2)
+const signedEvent = (
+	kind: number,
+	overrides: Partial<Omit<NostrEventEnvelope, 'id' | 'sig'>> = {},
+	signingKey = secretKey
+) => {
+	const unsignedEvent = {
+		pubkey: Hex.fromBytes(schnorr.getPublicKey(signingKey)).slice(2),
+		created_at: 1_700_000_000,
+		kind,
+		tags: [],
+		content: '',
+		...overrides,
+	}
+	const id = nostrEventId(unsignedEvent)
+	return {
+		...unsignedEvent,
+		id,
+		sig: Hex.fromBytes(schnorr.sign(Hex.toBytes(`0x${id}`), signingKey, new Uint8Array(32))).slice(2),
+	}
+}
 
 class RelaySocketFixture {
 	readyState = WebSocket.CONNECTING
@@ -79,6 +113,287 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		`wss://${'a'.repeat(254)}`,
 	])('rejects unsafe relay ingress %s', (relayUrl) => {
 		expect(() => relayWebSocketUrl(relayUrl)).toThrow()
+	})
+
+	it('verifies and normalizes NIP-65 access markers without duplicate relays', () => {
+		const event = signedEvent(10_002, {
+			tags: [
+				['r', 'https://Relay.Example:443', 'read'],
+				['r', 'wss://relay.example/', 'write'],
+				['r', 'wss://write.example', 'write'],
+				['r', 'wss://both.example'],
+				['r', 'wss://ignored.example', 'search'],
+				['r', 'ftp://ignored.example'],
+				['p', '02'.repeat(32), 'wss://not-a-relay-list-tag.example'],
+			],
+		})
+
+		expect(nostrRelayListFromEvent(event, pubkey)).toEqual({
+			eventId: event.id,
+			pubkey,
+			createdAt: 1_700_000_000,
+			relays: [
+				{
+					relayUrl: 'wss://relay.example/',
+					read: true,
+					write: true,
+				},
+				{
+					relayUrl: 'wss://write.example/',
+					read: false,
+					write: true,
+				},
+				{
+					relayUrl: 'wss://both.example/',
+					read: true,
+					write: true,
+				},
+			],
+		})
+	})
+
+	it('keeps the newest signed replacement and never treats comments or zaps as relay lists', () => {
+		const older = signedEvent(10_002, {
+			created_at: 10,
+			tags: [['r', 'wss://older.example']],
+		})
+		const tied = [
+			signedEvent(10_002, {
+				created_at: 20,
+				content: 'first tie',
+				tags: [['r', 'wss://first.example']],
+			}),
+			signedEvent(10_002, {
+				created_at: 20,
+				content: 'second tie',
+				tags: [['r', 'wss://second.example']],
+			}),
+		]
+		const expected = tied.toSorted((left, right) => left.id.localeCompare(right.id))[0]
+		const invalidSignature = {
+			...signedEvent(10_002, {
+				created_at: 30,
+				tags: [['r', 'wss://forged.example']],
+			}),
+			sig: '00'.repeat(64),
+		}
+
+		expect(latestNostrRelayListFromEvents([
+			older,
+			invalidSignature,
+			...tied,
+		], pubkey)?.eventId).toBe(expected.id)
+		for (const kind of [
+			1_111,
+			9_735,
+		])
+			expect(() => nostrRelayListFromEvent(signedEvent(kind, {
+				tags: [['r', 'wss://wrong-kind.example']],
+			}), pubkey)).toThrow('event kind')
+	})
+
+	it('verifies and links a signed NIP-57 receipt to its embedded request', () => {
+		const receiptSecretKey = Hex.toBytes(`0x${'02'.repeat(32)}`)
+		const receiptPubkey = Hex.fromBytes(schnorr.getPublicKey(receiptSecretKey)).slice(2)
+		const recipientPubkey = '03'.repeat(32)
+		const targetEventId = '04'.repeat(32)
+		const targetCoordinate = `30023:${'05'.repeat(32)}:article`
+		const request = signedEvent(9_734, {
+			content: 'Excellent post',
+			tags: [
+				['relays', 'https://Relay.Example', 'wss://relay.example/'],
+				['amount', '21000'],
+				['lnurl', 'lnurl1opaque'],
+				['p', recipientPubkey],
+				['e', targetEventId],
+				['a', targetCoordinate],
+				['k', '1'],
+				['P', receiptPubkey],
+			],
+		})
+		const receipt = signedEvent(9_735, {
+			created_at: 1_700_000_001,
+			tags: [
+				['p', recipientPubkey],
+				['P', request.pubkey],
+				['e', targetEventId],
+				['a', targetCoordinate],
+				['k', '1'],
+				['bolt11', 'lnbc1opaqueinvoice'],
+				['description', JSON.stringify(request)],
+				['preimage', 'opaque-preimage'],
+			],
+		}, receiptSecretKey)
+
+		expect(nostrZapRequestFromEvent(request)).toMatchObject({
+			eventId: request.id,
+			senderPubkey: request.pubkey,
+			recipientPubkey,
+			relayUrls: ['wss://relay.example/'],
+			amountMillisats: '21000',
+			targetEventId,
+			targetCoordinate,
+			targetKind: '1',
+			receiptPubkey,
+		})
+		expect(nostrZapReceiptFromEvent(receipt, {
+			receiptPubkey,
+			recipientPubkey,
+		})).toMatchObject({
+			eventId: receipt.id,
+			receiptPubkey,
+			request: {
+				eventId: request.id,
+				senderPubkey: request.pubkey,
+				recipientPubkey,
+			},
+			bolt11: 'lnbc1opaqueinvoice',
+			preimage: 'opaque-preimage',
+		})
+	})
+
+	it('rejects forged, mismatched, duplicated, and non-zap receipt semantics', () => {
+		const recipientPubkey = '06'.repeat(32)
+		const targetEventId = '07'.repeat(32)
+		const request = signedEvent(9_734, {
+			tags: [
+				['relays', 'wss://relay.example'],
+				['p', recipientPubkey],
+				['e', targetEventId],
+			],
+		})
+		const receiptTags = [
+			['p', recipientPubkey],
+			['P', request.pubkey],
+			['e', targetEventId],
+			['bolt11', 'opaque-invoice'],
+			['description', JSON.stringify(request)],
+		]
+
+		expect(() => nostrZapReceiptFromEvent({
+			...signedEvent(9_735, { tags: receiptTags }),
+			sig: '00'.repeat(64),
+		})).toThrow('signature')
+		expect(() => nostrZapReceiptFromEvent(signedEvent(9_735, {
+			tags: receiptTags.map((tag) => tag[0] === 'p' ? ['p', '08'.repeat(32)] : tag),
+		}))).toThrow('recipient')
+		expect(() => nostrZapReceiptFromEvent(signedEvent(9_735, {
+			tags: [
+				...receiptTags,
+				['e', '09'.repeat(32)],
+			],
+		}))).toThrow('cardinality')
+		expect(() => nostrZapReceiptFromEvent(signedEvent(9_735, {
+			tags: receiptTags.map((tag) => tag[0] === 'description' ? [
+				'description',
+				JSON.stringify({
+					...request,
+					content: 'forged embedded request',
+				}),
+			] : tag),
+		}))).toThrow('valid signed zap request')
+		for (const kind of [
+			1_111,
+			10_002,
+		])
+			expect(() => nostrZapReceiptFromEvent(signedEvent(kind, {
+				tags: receiptTags,
+			}))).toThrow('event kind')
+	})
+
+	it('preserves distinct NIP-22 root and parent targets with author provenance', () => {
+		const rootAuthor = '0a'.repeat(32)
+		const parentAuthor = '0b'.repeat(32)
+		const rootCoordinate = `30023:${rootAuthor}:article`
+		const parentEventId = '0c'.repeat(32)
+		const comment = signedEvent(1_111, {
+			content: 'Reply to the article discussion',
+			tags: [
+				['A', rootCoordinate],
+				['K', '30023'],
+				['P', rootAuthor],
+				['e', parentEventId, 'wss://relay.example', parentAuthor],
+				['k', '1111'],
+				['p', parentAuthor],
+			],
+		})
+
+		expect(nostrCommentFromEvent(comment)).toEqual({
+			eventId: comment.id,
+			authorPubkey: comment.pubkey,
+			createdAt: comment.created_at,
+			content: comment.content,
+			tags: comment.tags,
+			root: {
+				type: 'addressable',
+				coordinate: rootCoordinate,
+				kind: 30_023,
+				authorPubkey: rootAuthor,
+			},
+			parent: {
+				type: 'event',
+				eventId: parentEventId,
+				kind: 1_111,
+				authorPubkey: parentAuthor,
+			},
+		})
+	})
+
+	it('accepts supported external scopes and rejects ambiguous or NIP-10 targets', () => {
+		const url = 'https://example.com/articles/one'
+		const externalComment = signedEvent(1_111, {
+			tags: [
+				['I', url],
+				['K', 'web'],
+				['i', url],
+				['k', 'web'],
+			],
+		})
+		expect(nostrCommentFromEvent(externalComment)).toMatchObject({
+			root: {
+				type: 'external',
+				identifier: url,
+				kind: 'web',
+			},
+			parent: {
+				type: 'external',
+				identifier: url,
+				kind: 'web',
+			},
+		})
+
+		const author = '0d'.repeat(32)
+		const eventId = '0e'.repeat(32)
+		for (const tags of [
+			[
+				['E', eventId],
+				['E', '0f'.repeat(32)],
+				['K', '1063'],
+				['P', author],
+				['e', eventId],
+				['k', '1063'],
+				['p', author],
+			],
+			[
+				['E', eventId],
+				['K', '1'],
+				['P', author],
+				['e', eventId],
+				['k', '1'],
+				['p', author],
+			],
+			[
+				['I', 'opaque:value'],
+				['K', 'unknown-external-kind'],
+				['i', 'opaque:value'],
+				['k', 'unknown-external-kind'],
+			],
+		])
+			expect(() => nostrCommentFromEvent(signedEvent(1_111, { tags }))).toThrow()
+		expect(() => nostrCommentFromEvent({
+			...externalComment,
+			content: 'forged',
+		})).toThrow('canonical serialization')
 	})
 
 	it('sends one REQ, deduplicates events, and handles EOSE and CLOSED', () => {

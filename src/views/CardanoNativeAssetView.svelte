@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CardanoNativeAsset>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CardanoNativeAsset>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoNativeAsset>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoNativeAsset = $derived(selection({
+	const cardanoNativeAsset = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
 		sources: selection.sources,
+		fields: {
+			fingerprint: true,
+		},
+	} : {
+		sources: selection.sources,
+		fields: {
+			fingerprint: true,
+		},
 	}))
-	const titleFallback = $derived('Cardano native asset')
-	const viewDomId = $derived('cardano-native-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.assetName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.policyId) ?? '')].filter(Boolean).join(' ') || 'Cardano native asset')
+	const viewDomId = $derived('cardano-native-asset-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,13 +75,26 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'fingerprint')}
+			{[String((pendingEntity.assetName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cardanoNativeAsset}>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{title || titleFallback}
+					{[String((resolvedEntity.assetName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet Value()}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'fingerprint')}
+			{[String((pendingEntity.fingerprint) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.assetName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoNativeAsset}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.fingerprint) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.assetName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
@@ -84,13 +106,23 @@
 				<dt>network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

@@ -42,12 +42,23 @@
 			select(EntityType.ActivityPubActor, {
 				instanceOrigin: decodeURIComponent(params.instanceOrigin),
 				localAccountId: params.localAccountId,
-			}).$$notes({
-				sources: [
-					Source.Mastodon_Rest,
-				],
-				count: true,
 			})
+				.$$notes({
+					sources: [
+						Source.Mastodon_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.ActivityPubActor, {
+				instanceOrigin: decodeURIComponent(params.instanceOrigin),
+				localAccountId: params.localAccountId,
+			})
+				.$$notes({
+					sources: [
+						Source.Mastodon_Rest,
+					],
+				}).count
 		}
 		id='notes'
 		data-column-item="flexible"

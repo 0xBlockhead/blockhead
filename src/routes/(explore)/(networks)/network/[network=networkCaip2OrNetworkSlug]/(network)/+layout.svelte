@@ -36,10 +36,10 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.Network && data.selectorMapping.selectorName === 'Caip2' ? NetworkView : NetworkView}
+			{@const DetailView = data.entityType === EntityType.Network && data.selectorName === 'Caip2' ? NetworkView : NetworkView}
 
 			<DetailView
-				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector, { sources: [
+				selection={select(data.entityType, data.selector, { sources: [
 		Source.Constants_Internal,
 	] })}
 				href={

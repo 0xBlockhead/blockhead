@@ -20,7 +20,6 @@
 
 	const pageSelection = $derived(select(EntityType.RedditLink, data.selector, {
 		sources: [
-			Source.Constants_Internal,
 			Source.Reddit_PublicJson,
 		],
 		fields: {
@@ -33,7 +32,6 @@
 			permalink: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.title) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission')))
 
 
 	// Components
@@ -43,7 +41,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Reddit submission • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission' : [String((({ ...data.selector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission'))} • Reddit submission • Blockhead</title>
 </svelte:head>
 
 

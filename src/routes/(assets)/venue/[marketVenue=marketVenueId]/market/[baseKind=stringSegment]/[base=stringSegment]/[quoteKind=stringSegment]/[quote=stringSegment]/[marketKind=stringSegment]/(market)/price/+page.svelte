@@ -32,7 +32,6 @@
 			$parentMarket: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'Market price' : 'Market price')))
 
 
 	// Components
@@ -42,7 +41,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Market price • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Market price' : 'Market price'))} • Market price • Blockhead</title>
 </svelte:head>
 
 

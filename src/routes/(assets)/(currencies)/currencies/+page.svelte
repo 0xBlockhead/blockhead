@@ -28,9 +28,12 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$currencies',
-			}).$$currencies({
-				count: true,
-			})
+			}).$$currencies
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$currencies',
+			}).$$currencies.count
 		}
 		id='currencies'
 		data-column-item="flexible"

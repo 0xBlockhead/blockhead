@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadSource_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadSource_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSource_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSourceTimestamp = $derived(selection({
+	const blockheadSourceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			health: true,
+			enabled: true,
+			latencyMs: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			health: true,
@@ -50,7 +58,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead source timestamp')
-	const viewDomId = $derived('blockhead-source-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-source-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,11 +79,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'health') && Object.hasOwn(prefetched, 'enabled') && Object.hasOwn(prefetched, 'latencyMs')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadSourceTimestamp}>
 				{#snippet children(entity)}
@@ -90,7 +98,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'health') && Object.hasOwn(prefetched, 'enabled') && Object.hasOwn(prefetched, 'latencyMs')}
 			{[String((pendingEntity.health) ?? ''), String((pendingEntity.enabled) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadSourceTimestamp}>
@@ -103,7 +111,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'health') && Object.hasOwn(prefetched, 'enabled') && Object.hasOwn(prefetched, 'latencyMs')}
 			{@const latencyMs0 = pendingEntity.latencyMs}
 			{#if latencyMs0 !== undefined && latencyMs0 !== null}
 				<span data-text="muted">
@@ -349,11 +357,17 @@
 				<dt>Source</dt>
 				<dd>
 					<BlockheadSourceView
-						selection={select(EntityType.BlockheadSource, selection.entitySelector.$source, {})}
+						selection={select(EntityType.BlockheadSource, selection.entitySelector.$source)}
 						href={
-							(selection.entitySelector.$source.id !== undefined ? resolve('/~/manage/source/[sourceId=stringSegment]', {
+							(
+								selection.entitySelector.$source != null && 'id' in selection.entitySelector.$source
+								&& selection.entitySelector.$source.id != null ?
+									resolve('/~/manage/source/[sourceId=stringSegment]', {
 								sourceId: String(selection.entitySelector.$source.id ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

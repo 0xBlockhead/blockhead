@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hyperliquid spot assets',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HyperliquidSpotAsset>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HyperliquidSpotAsset>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HyperliquidSpotAssetView from '$/views/HyperliquidSpotAssetView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(hyperliquidSpotAssets) => [...new Map(hyperliquidSpotAssets.values.map((hyperliquidSpotAsset) => [hyperliquidSpotAsset[EntityMetaKey.SelectorKey], hyperliquidSpotAsset])).values()]}
 	getKey={(hyperliquidSpotAsset) => hyperliquidSpotAsset[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: hyperliquidSpotAsset })}
 		{@const hyperliquidSpotAssetFields = { ...hyperliquidSpotAsset[EntityMetaKey.Selector], ...hyperliquidSpotAsset }}
-		{@const selection = select(EntityType.HyperliquidSpotAsset, hyperliquidSpotAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HyperliquidSpotAssetView
-			selection={selection}
-			prefetched={hyperliquidSpotAssetFields}
+		<EntityView
+			entityType={EntityType.HyperliquidSpotAsset}
+			entitySelector={hyperliquidSpotAsset[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((hyperliquidSpotAssetFields.name) ?? '')].filter(Boolean).join(' ') || [String((hyperliquidSpotAssetFields.assetId) ?? '')].filter(Boolean).join(' ') || 'hyperliquid spot asset'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((hyperliquidSpotAssetFields.assetId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((hyperliquidSpotAssetFields.$network.name) ?? '')].filter(Boolean).join(' ') || [hyperliquidSpotAssetFields.$network.caip2 == null ? '' : String(`${(hyperliquidSpotAssetFields.$network.caip2).namespace}:${(hyperliquidSpotAssetFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

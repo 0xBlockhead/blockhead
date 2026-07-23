@@ -30,7 +30,6 @@
 			removed: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInTransaction) ?? '') ? 'Log #' + String((pageSelection.entitySelector.indexInTransaction) ?? '') : '') || 'EVM log' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Log #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'EVM log')))
 
 
 	// Components
@@ -40,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM log • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String((data.selector.indexInTransaction) ?? '') ? 'Log #' + String((data.selector.indexInTransaction) ?? '') : '') || 'EVM log' : (String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Log #' + String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'EVM log'))} • EVM log • Blockhead</title>
 </svelte:head>
 
 

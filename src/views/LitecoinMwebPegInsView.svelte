@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Litecoin MWEB peg ins',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LitecoinMwebPegIn>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LitecoinMwebPegIn>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LitecoinMwebPegInView from '$/views/LitecoinMwebPegInView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(litecoinMwebPegIns) => [...new Map(litecoinMwebPegIns.values.map((litecoinMwebPegIn) => [litecoinMwebPegIn[EntityMetaKey.SelectorKey], litecoinMwebPegIn])).values()]}
 	getKey={(litecoinMwebPegIn) => litecoinMwebPegIn[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: litecoinMwebPegIn })}
 		{@const litecoinMwebPegInFields = { ...litecoinMwebPegIn[EntityMetaKey.Selector], ...litecoinMwebPegIn }}
-		{@const selection = select(EntityType.LitecoinMwebPegIn, litecoinMwebPegIn[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<LitecoinMwebPegInView
-			selection={selection}
-			prefetched={litecoinMwebPegInFields}
+		<EntityView
+			entityType={EntityType.LitecoinMwebPegIn}
+			entitySelector={litecoinMwebPegIn[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[[(String((litecoinMwebPegInFields.$transaction.$mwebBlock.$block.height) ?? '') ? 'Block #' + String((litecoinMwebPegInFields.$transaction.$mwebBlock.$block.height) ?? '') : '') || [String((litecoinMwebPegInFields.$transaction.$mwebBlock.$block.hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block'].filter(Boolean).join(' ') || 'litecoin MWEB block'].filter(Boolean).join(' ') || 'litecoin MWEB transaction'].filter(Boolean).join(' ') || 'litecoin MWEB peg in'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((litecoinMwebPegInFields.pegInIndex) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[(String((litecoinMwebPegInFields.$transparentOutput.indexInTransaction) ?? '') ? 'Output #' + String((litecoinMwebPegInFields.$transparentOutput.indexInTransaction) ?? '') : '') || 'UTXO output'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

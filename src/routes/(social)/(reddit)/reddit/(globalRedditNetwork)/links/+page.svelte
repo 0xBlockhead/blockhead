@@ -29,13 +29,22 @@
 		selection={
 			select(EntityType._GlobalRedditNetwork, {
 				scope: '_GlobalRedditNetwork',
-			}).$$observedLinks({
-				sources: [
-					Source.Constants_Internal,
-					Source.Reddit_PublicJson,
-				],
-				count: true,
 			})
+				.$$observedLinks({
+					sources: [
+						Source.Reddit_PublicJson,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._GlobalRedditNetwork, {
+				scope: '_GlobalRedditNetwork',
+			})
+				.$$observedLinks({
+					sources: [
+						Source.Reddit_PublicJson,
+					],
+				}).count
 		}
 		id='observed-links'
 		data-column-item="flexible"

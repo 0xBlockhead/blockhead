@@ -4,3 +4,5 @@ export type {
 	SubstrateRuntimeVersion as BittensorRuntimeVersion,
 	SubstrateSystemHealth as BittensorSystemHealth,
 } from '$/sources/Substrate/JsonRpc/types.ts'
+
+export type BittensorScaleBytes = number[]

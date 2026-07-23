@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Dogecoin block aux pows',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.DogecoinBlockAuxPow>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.DogecoinBlockAuxPow>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import DogecoinBlockAuxPowView from '$/views/DogecoinBlockAuxPowView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(dogecoinBlockAuxPows) => [...new Map(dogecoinBlockAuxPows.values.map((dogecoinBlockAuxPow) => [dogecoinBlockAuxPow[EntityMetaKey.SelectorKey], dogecoinBlockAuxPow])).values()]}
 	getKey={(dogecoinBlockAuxPow) => dogecoinBlockAuxPow[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: dogecoinBlockAuxPow })}
 		{@const dogecoinBlockAuxPowFields = { ...dogecoinBlockAuxPow[EntityMetaKey.Selector], ...dogecoinBlockAuxPow }}
-		{@const selection = select(EntityType.DogecoinBlockAuxPow, dogecoinBlockAuxPow[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<DogecoinBlockAuxPowView
-			selection={selection}
-			prefetched={dogecoinBlockAuxPowFields}
+		<EntityView
+			entityType={EntityType.DogecoinBlockAuxPow}
+			entitySelector={dogecoinBlockAuxPow[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[(String((dogecoinBlockAuxPowFields.$block.height) ?? '') ? 'Block #' + String((dogecoinBlockAuxPowFields.$block.height) ?? '') : '') || [String((dogecoinBlockAuxPowFields.$block.hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block'].filter(Boolean).join(' ') || 'dogecoin block aux pow'}
+			{/snippet}
+
+			{#snippet Value()}
+				{['dogecoin aux pow parent block header'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

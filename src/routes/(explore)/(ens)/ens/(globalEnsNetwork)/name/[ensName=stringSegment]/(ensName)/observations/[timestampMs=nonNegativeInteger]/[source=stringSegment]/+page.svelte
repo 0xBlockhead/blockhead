@@ -40,7 +40,6 @@
 			isMigrated: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'ENS name observation' : 'ENS name observation'))
 
 
 	// Components
@@ -50,7 +49,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ENS name observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'ENS name observation' : 'ENS name observation')} • ENS name observation • Blockhead</title>
 </svelte:head>
 
 

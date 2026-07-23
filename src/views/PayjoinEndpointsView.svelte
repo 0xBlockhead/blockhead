@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Payjoin endpoints',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.PayjoinEndpoint>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.PayjoinEndpoint>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import PayjoinEndpointView from '$/views/PayjoinEndpointView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(payjoinEndpoints) => [...new Map(payjoinEndpoints.values.map((payjoinEndpoint) => [payjoinEndpoint[EntityMetaKey.SelectorKey], payjoinEndpoint])).values()]}
 	getKey={(payjoinEndpoint) => payjoinEndpoint[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: payjoinEndpoint })}
 		{@const payjoinEndpointFields = { ...payjoinEndpoint[EntityMetaKey.Selector], ...payjoinEndpoint }}
-		{@const selection = select(EntityType.PayjoinEndpoint, payjoinEndpoint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<PayjoinEndpointView
-			selection={selection}
-			prefetched={payjoinEndpointFields}
+		<EntityView
+			entityType={EntityType.PayjoinEndpoint}
+			entitySelector={payjoinEndpoint[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((payjoinEndpointFields.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'payjoin endpoint'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((payjoinEndpointFields.protocolVersion) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((payjoinEndpointFields.$directory.directoryUrl) ?? '')].filter(Boolean).join(' ') || 'payjoin directory'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

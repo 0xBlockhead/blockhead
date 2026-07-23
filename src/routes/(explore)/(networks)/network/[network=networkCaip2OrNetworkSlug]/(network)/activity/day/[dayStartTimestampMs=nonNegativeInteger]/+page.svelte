@@ -29,7 +29,6 @@
 			resolvedAtMs: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.dayStartTimestampMs) ?? '')].filter(Boolean).join(' ') || 'network activity day' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).dayStartTimestampMs) ?? '')].filter(Boolean).join(' ') || 'network activity day')))
 
 
 	// Components
@@ -39,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • network activity day • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.dayStartTimestampMs) ?? '')].filter(Boolean).join(' ') || 'network activity day' : [String((({ ...data.selector, ...pageSelection.entity }).dayStartTimestampMs) ?? '')].filter(Boolean).join(' ') || 'network activity day'))} • network activity day • Blockhead</title>
 </svelte:head>
 
 

@@ -34,7 +34,6 @@
 			$targetArticle: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.content) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr reaction' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).content) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr reaction'))
 
 
 	// Components
@@ -44,7 +43,13 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Nostr reaction • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		eventId: params.eventId,
+	}.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr reaction' : [String((({ ...{
+		eventId: params.eventId,
+	}, ...pageSelection.entity }).content) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
+		eventId: params.eventId,
+	}, ...pageSelection.entity }).eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr reaction')} • Nostr reaction • Blockhead</title>
 </svelte:head>
 
 

@@ -19,7 +19,6 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.Url, data.selector))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.url) ?? '')].filter(Boolean).join(' ') || 'URL' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).url) ?? '')].filter(Boolean).join(' ') || 'URL')))
 
 
 	// Components
@@ -29,7 +28,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • URL • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.url) ?? '')].filter(Boolean).join(' ') || 'URL' : [String((({ ...data.selector, ...pageSelection.entity }).url) ?? '')].filter(Boolean).join(' ') || 'URL'))} • URL • Blockhead</title>
 </svelte:head>
 
 

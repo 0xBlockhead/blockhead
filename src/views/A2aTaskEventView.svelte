@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.A2aTaskEvent>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.A2aTaskEvent>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aTaskEvent>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aTaskEvent = $derived(selection({
+	const a2aTaskEvent = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			eventKind: true,
+			timestampMs: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			eventKind: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.sequence) ?? '')].filter(Boolean).join(' ') || 'A2A task event')
-	const viewDomId = $derived('a2a-task-event-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('a2a-task-event-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,7 +77,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'eventKind') && Object.hasOwn(prefetched, 'timestampMs')}
 			{[String((pendingEntity.sequence) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aTaskEvent}>
@@ -83,7 +90,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'eventKind') && Object.hasOwn(prefetched, 'timestampMs')}
 			{[String((pendingEntity.eventKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.sequence) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aTaskEvent}>
@@ -96,7 +103,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'eventKind') && Object.hasOwn(prefetched, 'timestampMs')}
 			{@const timestampMs0 = pendingEntity.timestampMs}
 			{#if timestampMs0 !== undefined && timestampMs0 !== null}
 				<span data-text="muted">
@@ -124,7 +131,7 @@
 				<dt>task</dt>
 				<dd>
 					<A2aTaskView
-						selection={select(EntityType.A2aTask, selection.entitySelector.$task, {})}
+						selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LensUsernameNamespace>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensUsernameNamespace>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LensUsernameNamespace>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,7 +38,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lensUsernameNamespace = $derived(selection({
+	const lensUsernameNamespace = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			namespace: true,
+			tokenName: true,
+			totalUsernames: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			namespace: true,
@@ -46,7 +54,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.namespace) ?? ''), String((pendingEntity.tokenName) ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')
-	const viewDomId = $derived('lens-username-namespace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('lens-username-namespace-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,7 +76,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'namespace') && Object.hasOwn(prefetched, 'tokenName') && Object.hasOwn(prefetched, 'totalUsernames')}
 			{[String((pendingEntity.namespace) ?? ''), String((pendingEntity.tokenName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={lensUsernameNamespace}>
@@ -81,11 +89,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const address0 = pendingEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'namespace') && Object.hasOwn(prefetched, 'tokenName') && Object.hasOwn(prefetched, 'totalUsernames')}
+			{@const address0 = pendingEntity.address}
+			{#if address0 !== undefined && address0 !== null}
+				<TruncatedValue value={String((address0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={lensUsernameNamespace}>
 				{#snippet children(entity)}
@@ -100,7 +108,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'namespace') && Object.hasOwn(prefetched, 'tokenName') && Object.hasOwn(prefetched, 'totalUsernames')}
 			{@const totalUsernames0 = pendingEntity.totalUsernames}
 			{#if totalUsernames0 !== undefined && totalUsernames0 !== null}
 				<span data-text="muted">
@@ -316,17 +324,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<LensUsernamesView
-				selection={
-						selection.$$usernames({
-							count: true,
-						})
-					}
-				title='Usernames'
-				emptyText='No Lens usernames in this namespace.'
-				id='LensUsernamesView-usernames'
-			/>
-		{/if}
+		{@const lensUsernameNamespaceLensUsernamesViewUsernamesResource = selection.$$usernames}
+		<ResourceBoundary
+			resource={lensUsernameNamespaceLensUsernamesViewUsernamesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<LensUsernamesView
+					selection={lensUsernameNamespaceLensUsernamesViewUsernamesResource}
+					countResource={lensUsernameNamespaceLensUsernamesViewUsernamesResource.count}
+					title='Usernames'
+					id='LensUsernamesView-usernames'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -33,7 +33,6 @@
 			paymentRequest: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.memo) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning invoice' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).memo) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning invoice')))
 
 
 	// Components
@@ -43,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Lightning invoice • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning invoice' : [String((({ ...data.selector, ...pageSelection.entity }).memo) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning invoice'))} • Lightning invoice • Blockhead</title>
 </svelte:head>
 
 

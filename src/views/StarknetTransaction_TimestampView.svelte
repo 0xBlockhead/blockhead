@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.StarknetTransaction_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.StarknetTransaction_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StarknetTransaction_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const starknetTransactionTimestamp = $derived(selection({
+	const starknetTransactionTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			executionStatus: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			executionStatus: true,
 		},
 	}))
-	const titleFallback = $derived('starknet transaction timestamp')
-	const viewDomId = $derived('starknet-transaction-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'starknet transaction timestamp'
+	const viewDomId = $derived('starknet-transaction-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,66 +75,42 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<StarknetTransactionView
-						selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={starknetTransactionTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<StarknetTransactionView
-						selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={starknetTransactionTimestamp}>
+			{#snippet children(entity)}
+				<StarknetTransactionView
+					selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={starknetTransactionTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={starknetTransactionTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const executionStatus0 = pendingEntity.executionStatus}
-			{#if executionStatus0 !== undefined && executionStatus0 !== null}
-				<span data-text="muted">
-					{String((executionStatus0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={starknetTransactionTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const executionStatus0 = resolvedEntity.executionStatus}
-					{#if executionStatus0 !== undefined && executionStatus0 !== null}
-						<span data-text="muted">
-							{String((executionStatus0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={starknetTransactionTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const executionStatus0 = resolvedEntity.executionStatus}
+				{#if executionStatus0 !== undefined && executionStatus0 !== null}
+					<span data-text="muted">
+						{String((executionStatus0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -137,7 +119,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<StarknetTransactionView
-						selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

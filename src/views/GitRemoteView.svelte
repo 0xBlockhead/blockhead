@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.GitRemote>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.GitRemote>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitRemote>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitRemote = $derived(selection({
+	const gitRemote = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			url: true,
+			transportKind: true,
+			hostKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			url: true,
@@ -49,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || 'Git remote')
-	const viewDomId = $derived('git-remote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('git-remote-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,7 +78,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'url') && Object.hasOwn(prefetched, 'transportKind') && Object.hasOwn(prefetched, 'hostKind')}
 			{[String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={gitRemote}>
@@ -83,18 +91,18 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const url0 = pendingEntity.url}
-					{#if url0 !== undefined && url0 !== null}
-						<svelte:element
-							this={'a'}
-							href={String(url0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(url0)} />
-						</svelte:element>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'url') && Object.hasOwn(prefetched, 'transportKind') && Object.hasOwn(prefetched, 'hostKind')}
+			{@const url0 = pendingEntity.url}
+			{#if url0 !== undefined && url0 !== null}
+				<svelte:element
+					this={'a'}
+					href={String(url0)}
+					target="_blank"
+					rel="noreferrer noopener"
+				>
+					<TruncatedValue value={String(url0)} />
+				</svelte:element>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={gitRemote}>
 				{#snippet children(entity)}
@@ -116,7 +124,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'url') && Object.hasOwn(prefetched, 'transportKind') && Object.hasOwn(prefetched, 'hostKind')}
 			{@const transportKind0 = pendingEntity.transportKind}
 			{#if transportKind0 !== undefined && transportKind0 !== null}
 				<span data-text="muted">
@@ -156,7 +164,7 @@
 				<dt>repository</dt>
 				<dd>
 					<GitRepositoryView
-						selection={select(EntityType.GitRepository, selection.entitySelector.$repository, {})}
+						selection={select(EntityType.GitRepository, selection.entitySelector.$repository)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

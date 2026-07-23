@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AtprotoRepoCommit>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AtprotoRepoCommit>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AtprotoRepoCommit>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,11 +38,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const atprotoRepoCommit = $derived(selection({
+	const atprotoRepoCommit = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.rev) ?? ''), String((pendingEntity.commitCid) ?? '')].filter(Boolean).join(' ') || 'AT Protocol repo commit')
-	const viewDomId = $derived('atproto-repo-commit-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('atproto-repo-commit-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -63,7 +67,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'rev') && Object.hasOwn(prefetched, 'commitCid')}
 			{[String((pendingEntity.rev) ?? ''), String((pendingEntity.commitCid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={atprotoRepoCommit}>
@@ -76,7 +80,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'rev') && Object.hasOwn(prefetched, 'commitCid')}
 			{[String((pendingEntity.repoDid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.rev) ?? ''), String((pendingEntity.commitCid) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={atprotoRepoCommit}>
@@ -89,7 +93,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'rev') && Object.hasOwn(prefetched, 'commitCid')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -604,18 +608,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AtprotoPostsView
-				selection={
-						selection.$$posts({
-							count: true,
-						})
-					}
-				title='Posts'
-				href={resolve('/atproto/posts')}
-				emptyText='No posts in this commit.'
-				id='AtprotoPostsView-posts'
-			/>
-		{/if}
+		{@const atprotoRepoCommitAtprotoPostsViewPostsResource = selection.$$posts}
+		<ResourceBoundary
+			resource={atprotoRepoCommitAtprotoPostsViewPostsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AtprotoPostsView
+					selection={atprotoRepoCommitAtprotoPostsViewPostsResource}
+					countResource={atprotoRepoCommitAtprotoPostsViewPostsResource.count}
+					title='Posts'
+					id='AtprotoPostsView-posts'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

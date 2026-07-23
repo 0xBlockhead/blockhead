@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Zcash shielded actions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ZcashShieldedAction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ZcashShieldedAction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ZcashShieldedActionView from '$/views/ZcashShieldedActionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -84,6 +77,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(zcashShieldedActions) => [...new Map(zcashShieldedActions.values.map((zcashShieldedAction) => [zcashShieldedAction[EntityMetaKey.SelectorKey], zcashShieldedAction])).values()]}
 	getKey={(zcashShieldedAction) => zcashShieldedAction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -98,28 +92,61 @@
 
 	{#snippet Item({ item: zcashShieldedAction })}
 		{@const zcashShieldedActionFields = { ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }}
-		{@const selection = select(EntityType.ZcashShieldedAction, zcashShieldedAction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const zcashShieldedActionHrefFields = { ...zcashShieldedAction, ...zcashShieldedAction[EntityMetaKey.Selector] }}
-		<ZcashShieldedActionView
-			selection={selection}
-			prefetched={zcashShieldedActionFields}
+		<EntityView
+			entityType={EntityType.ZcashShieldedAction}
+			entitySelector={zcashShieldedAction[EntityMetaKey.Selector]}
 			href={
-				(zcashShieldedActionHrefFields.pool !== undefined && zcashShieldedActionHrefFields.actionKind !== undefined && zcashShieldedActionHrefFields.indexInTransaction !== undefined && zcashShieldedActionHrefFields.$transaction !== undefined && zcashShieldedActionHrefFields.$transaction.txId !== undefined && zcashShieldedActionHrefFields.$transaction.$network !== undefined && zcashShieldedActionHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
-					pool: String(zcashShieldedActionHrefFields.pool ?? ''),
-					actionKind: String(zcashShieldedActionHrefFields.actionKind ?? ''),
-					actionIndex: String(zcashShieldedActionHrefFields.indexInTransaction ?? ''),
-					transactionId: String(zcashShieldedActionHrefFields.$transaction.txId ?? ''),
-					network: String(caip2StringFromValue(zcashShieldedActionHrefFields.$transaction.$network.caip2) ?? ''),
-				}) : zcashShieldedActionHrefFields.pool !== undefined && zcashShieldedActionHrefFields.actionKind !== undefined && zcashShieldedActionHrefFields.indexInTransaction !== undefined && zcashShieldedActionHrefFields.$transaction !== undefined && zcashShieldedActionHrefFields.$transaction.txId !== undefined && zcashShieldedActionHrefFields.$transaction.$network !== undefined && zcashShieldedActionHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
-					pool: String(zcashShieldedActionHrefFields.pool ?? ''),
-					actionKind: String(zcashShieldedActionHrefFields.actionKind ?? ''),
-					actionIndex: String(zcashShieldedActionHrefFields.indexInTransaction ?? ''),
-					transactionId: String(zcashShieldedActionHrefFields.$transaction.txId ?? ''),
-					network: String(zcashShieldedActionHrefFields.$transaction.$network.slug ?? ''),
-				}) : undefined)
+				(
+					zcashShieldedAction[EntityMetaKey.Selector] != null && 'pool' in zcashShieldedAction[EntityMetaKey.Selector]
+					&& zcashShieldedAction[EntityMetaKey.Selector].pool != null
+					&& zcashShieldedAction[EntityMetaKey.Selector] != null && 'actionKind' in zcashShieldedAction[EntityMetaKey.Selector]
+					&& zcashShieldedAction[EntityMetaKey.Selector].actionKind != null
+					&& zcashShieldedAction[EntityMetaKey.Selector] != null && 'indexInTransaction' in zcashShieldedAction[EntityMetaKey.Selector]
+					&& zcashShieldedAction[EntityMetaKey.Selector].indexInTransaction != null
+					&& zcashShieldedAction[EntityMetaKey.Selector] != null && '$transaction' in zcashShieldedAction[EntityMetaKey.Selector]
+					&& zcashShieldedAction[EntityMetaKey.Selector].$transaction != null && 'txId' in zcashShieldedAction[EntityMetaKey.Selector].$transaction
+					&& zcashShieldedAction[EntityMetaKey.Selector].$transaction.txId != null
+					&& zcashShieldedAction[EntityMetaKey.Selector].$transaction != null && '$network' in zcashShieldedAction[EntityMetaKey.Selector].$transaction ?
+						zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network != null && 'caip2' in zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network
+						&& zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
+						pool: String(zcashShieldedAction[EntityMetaKey.Selector].pool ?? ''),
+						actionKind: String(zcashShieldedAction[EntityMetaKey.Selector].actionKind ?? ''),
+						actionIndex: String(zcashShieldedAction[EntityMetaKey.Selector].indexInTransaction ?? ''),
+						transactionId: String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.txId ?? ''),
+						network: String(caip2StringFromValue(zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2) ?? ''),
+					})
+					:
+							zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network != null && 'slug' in zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network
+							&& zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
+							pool: String(zcashShieldedAction[EntityMetaKey.Selector].pool ?? ''),
+							actionKind: String(zcashShieldedAction[EntityMetaKey.Selector].actionKind ?? ''),
+							actionIndex: String(zcashShieldedAction[EntityMetaKey.Selector].indexInTransaction ?? ''),
+							transactionId: String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.txId ?? ''),
+							network: String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((zcashShieldedActionFields.actionKind) ?? ''), String((zcashShieldedActionFields.indexInTransaction) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((zcashShieldedActionFields.pool) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((zcashShieldedActionFields.nullifier) ?? ''), String((zcashShieldedActionFields.noteCommitment) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

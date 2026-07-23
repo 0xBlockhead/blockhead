@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.KaspaAcceptedTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.KaspaAcceptedTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.KaspaAcceptedTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaAcceptedTransaction = $derived(selection({
+	const kaspaAcceptedTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('kaspa accepted transaction')
-	const viewDomId = $derived('kaspa-accepted-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'kaspa accepted transaction'
+	const viewDomId = $derived('kaspa-accepted-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,12 +71,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={kaspaAcceptedTransaction}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -85,7 +88,7 @@
 				<dt>accepting block</dt>
 				<dd>
 					<KaspaBlockView
-						selection={select(EntityType.KaspaBlock, selection.entitySelector.$acceptingBlock, {})}
+						selection={select(EntityType.KaspaBlock, selection.entitySelector.$acceptingBlock)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -96,7 +99,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<KaspaTransactionView
-						selection={select(EntityType.KaspaTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.KaspaTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

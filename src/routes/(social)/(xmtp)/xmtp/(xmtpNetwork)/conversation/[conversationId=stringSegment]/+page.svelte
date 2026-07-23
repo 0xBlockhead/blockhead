@@ -30,7 +30,6 @@
 			consentState: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.topic) ?? ''), String((pageSelection.entitySelector.peerInboxId) ?? ''), String((pageSelection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).topic) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).peerInboxId) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation'))
 
 
 	// Components
@@ -40,7 +39,15 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • XMTP conversation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		id: params.conversationId,
+	}.id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation' : [String((({ ...{
+		id: params.conversationId,
+	}, ...pageSelection.entity }).topic) ?? ''), String((({ ...{
+		id: params.conversationId,
+	}, ...pageSelection.entity }).peerInboxId) ?? ''), String((({ ...{
+		id: params.conversationId,
+	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation')} • XMTP conversation • Blockhead</title>
 </svelte:head>
 
 

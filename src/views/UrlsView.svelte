@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'URLs',
 		typeAnnotationParagraphs = ['A web URL that is modeled as a referenced resource rather than an inline string.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.Url>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Url>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import UrlView from '$/views/UrlView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(urls) => [...new Map(urls.values.map((url) => [url[EntityMetaKey.SelectorKey], url])).values()]}
 	getKey={(url) => url[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,18 +86,31 @@
 
 	{#snippet Item({ item: url })}
 		{@const urlFields = { ...url[EntityMetaKey.Selector], ...url }}
-		{@const selection = select(EntityType.Url, url[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const urlHrefFields = { ...url, ...url[EntityMetaKey.Selector] }}
-		<UrlView
-			selection={selection}
-			prefetched={urlFields}
+		<EntityView
+			entityType={EntityType.Url}
+			entitySelector={url[EntityMetaKey.Selector]}
 			href={
-				(urlHrefFields.url !== undefined ? resolve('/url/[url=absoluteUrl]', {
-					url: encodeURIComponent(String(urlHrefFields.url ?? '')),
-				}) : undefined)
+				(
+					url[EntityMetaKey.Selector] != null && 'url' in url[EntityMetaKey.Selector]
+					&& url[EntityMetaKey.Selector].url != null ?
+						resolve('/url/[url=absoluteUrl]', {
+					url: encodeURIComponent(String(url[EntityMetaKey.Selector].url ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((urlFields.url) ?? '')].filter(Boolean).join(' ') || 'URL'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((urlFields.url) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

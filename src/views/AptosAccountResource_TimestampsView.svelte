@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Aptos account resource observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AptosAccountResource_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AptosAccountResource_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AptosAccountResource_TimestampView from '$/views/AptosAccountResource_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(aptosAccountResourceTimestamps) => [...new Map(aptosAccountResourceTimestamps.values.map((aptosAccountResourceTimestamp) => [aptosAccountResourceTimestamp[EntityMetaKey.SelectorKey], aptosAccountResourceTimestamp])).values()]}
 	getKey={(aptosAccountResourceTimestamp) => aptosAccountResourceTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: aptosAccountResourceTimestamp })}
 		{@const aptosAccountResourceTimestampFields = { ...aptosAccountResourceTimestamp[EntityMetaKey.Selector], ...aptosAccountResourceTimestamp }}
-		{@const selection = select(EntityType.AptosAccountResource_Timestamp, aptosAccountResourceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AptosAccountResource_TimestampView
-			selection={selection}
-			prefetched={aptosAccountResourceTimestampFields}
+		<EntityView
+			entityType={EntityType.AptosAccountResource_Timestamp}
+			entitySelector={aptosAccountResourceTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((aptosAccountResourceTimestampFields.ledgerVersion) ?? '')].filter(Boolean).join(' ') || 'aptos account resource timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((aptosAccountResourceTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((aptosAccountResourceTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

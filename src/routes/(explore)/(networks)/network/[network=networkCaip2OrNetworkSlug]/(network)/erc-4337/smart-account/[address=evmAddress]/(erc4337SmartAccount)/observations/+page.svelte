@@ -40,12 +40,20 @@
 		}
 		title='Smart account observations'
 		selection={
-			select(EntityType.Erc4337SmartAccount, data.selector).$$timestamps({
-				sources: [
-					Source.Blockscout_Rest,
-				],
-				count: true,
-			})
+			select(EntityType.Erc4337SmartAccount, data.selector)
+				.$$timestamps({
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.Erc4337SmartAccount, data.selector)
+				.$$timestamps({
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				}).count
 		}
 		id='timestamps'
 		data-column-item="flexible"

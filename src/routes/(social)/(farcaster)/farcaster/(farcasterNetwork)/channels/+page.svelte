@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType.FarcasterNetwork, {
 				scope: 'FarcasterNetwork',
-			}).$$channels({
-				sources: [
-					Source.Farcaster_Rest,
-				],
-				count: true,
 			})
+				.$$channels({
+					sources: [
+						Source.Farcaster_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.FarcasterNetwork, {
+				scope: 'FarcasterNetwork',
+			})
+				.$$channels({
+					sources: [
+						Source.Farcaster_Rest,
+					],
+				}).count
 		}
 		id='channels'
 		data-column-item="flexible"

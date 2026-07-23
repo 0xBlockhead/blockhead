@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AlgorandAsset>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AlgorandAsset>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AlgorandAsset>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandAsset = $derived(selection({
+	const algorandAsset = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			creator: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			creator: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || 'algorand asset')
-	const viewDomId = $derived('algorand-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('algorand-asset-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,7 +75,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$network') && prefetched.$network != null && Object.hasOwn(prefetched, 'creator')}
 			{[String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={algorandAsset}>
@@ -82,18 +88,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<AlgorandNetworkView
-						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$network') && prefetched.$network != null && Object.hasOwn(prefetched, 'creator')}
+			{@const algorandNetwork0 = pendingEntity.$network}
+			{#if algorandNetwork0 != null && selection.entitySelector.$network != null}
+				<AlgorandNetworkView
+					selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network, { sources: selection.sources })}
+					prefetched={algorandNetwork0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={algorandAsset}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<AlgorandNetworkView
 						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -103,7 +114,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$network') && prefetched.$network != null && Object.hasOwn(prefetched, 'creator')}
 			{@const creator0 = pendingEntity.creator}
 			{#if creator0 !== undefined && creator0 !== null}
 				<span data-text="muted">
@@ -131,7 +142,7 @@
 				<dt>network</dt>
 				<dd>
 					<AlgorandNetworkView
-						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -189,28 +200,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AlgorandAssetHolding_RoundsView
-				selection={
-						selection.$$holdingRounds({
-							count: true,
-						})
-					}
-				title='holding rounds'
-				emptyText='No Algorand asset holding rounds.'
-				id='AlgorandAssetHolding_RoundsView-holding-rounds'
-			/>
-
-			<AlgorandAsset_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No Algorand asset observations.'
-				id='AlgorandAsset_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const algorandAssetAlgorandAssetHoldingRoundsViewHoldingRoundsResource = selection.$$holdingRounds}
+		<ResourceBoundary
+			resource={algorandAssetAlgorandAssetHoldingRoundsViewHoldingRoundsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AlgorandAssetHolding_RoundsView
+					selection={algorandAssetAlgorandAssetHoldingRoundsViewHoldingRoundsResource}
+					countResource={algorandAssetAlgorandAssetHoldingRoundsViewHoldingRoundsResource.count}
+					title='holding rounds'
+					id='AlgorandAssetHolding_RoundsView-holding-rounds'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const algorandAssetAlgorandAssetTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={algorandAssetAlgorandAssetTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AlgorandAsset_TimestampsView
+					selection={algorandAssetAlgorandAssetTimestampsViewTimestampsResource}
+					countResource={algorandAssetAlgorandAssetTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='AlgorandAsset_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

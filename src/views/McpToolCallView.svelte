@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.McpToolCall>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.McpToolCall>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.McpToolCall>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const mcpToolCall = $derived(selection({
+	const mcpToolCall = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			startedAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			startedAt: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.callId) ?? '')].filter(Boolean).join(' ') || 'mcp tool call')
-	const viewDomId = $derived('mcp-tool-call-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('mcp-tool-call-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,82 +78,48 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.callId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={mcpToolCall}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.callId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpToolCall}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.callId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={selection.$tool}
-					>
-						{#snippet children(mcpTool)}
-							{#if mcpTool != null && mcpTool[EntityMetaKey.Selector] != null}
-								<McpToolView
-									selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
-									prefetched={mcpTool}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={mcpToolCall}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$tool}
-					>
-						{#snippet children(mcpTool)}
-							{#if mcpTool != null && mcpTool[EntityMetaKey.Selector] != null}
-								<McpToolView
-									selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
-									prefetched={mcpTool}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpToolCall}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={selection.$tool}
+				>
+					{#snippet children(mcpTool)}
+						{#if mcpTool != null && mcpTool[EntityMetaKey.Selector] != null}
+							<McpToolView
+								selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
+								prefetched={mcpTool}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const startedAt0 = pendingEntity.startedAt}
-			{#if startedAt0 !== undefined && startedAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(startedAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={mcpToolCall}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const startedAt0 = resolvedEntity.startedAt}
-					{#if startedAt0 !== undefined && startedAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(startedAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpToolCall}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const startedAt0 = resolvedEntity.startedAt}
+				{#if startedAt0 !== undefined && startedAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(startedAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -156,7 +128,7 @@
 				<dt>server</dt>
 				<dd>
 					<McpServerView
-						selection={select(EntityType.McpServer, selection.entitySelector.$server, {})}
+						selection={select(EntityType.McpServer, selection.entitySelector.$server)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -356,17 +328,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<McpToolCall_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No MCP tool call observations.'
-				id='McpToolCall_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const mcpToolCallMcpToolCallTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={mcpToolCallMcpToolCallTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<McpToolCall_TimestampsView
+					selection={mcpToolCallMcpToolCallTimestampsViewTimestampsResource}
+					countResource={mcpToolCallMcpToolCallTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='McpToolCall_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

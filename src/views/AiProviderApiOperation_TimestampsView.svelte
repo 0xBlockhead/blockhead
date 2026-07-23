@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'AI provider API operation observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AiProviderApiOperation_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AiProviderApiOperation_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AiProviderApiOperation_TimestampView from '$/views/AiProviderApiOperation_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,12 +66,19 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				$operation: true,
+				$operation: {
+					fields: {
+						label: true,
+						operationKind: true,
+						pathTemplate: true,
+					},
+				},
 				availabilityStatus: true,
 				error: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(aiProviderApiOperationTimestamps) => [...new Map(aiProviderApiOperationTimestamps.values.map((aiProviderApiOperationTimestamp) => [aiProviderApiOperationTimestamp[EntityMetaKey.SelectorKey], aiProviderApiOperationTimestamp])).values()]}
 	getKey={(aiProviderApiOperationTimestamp) => aiProviderApiOperationTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +93,24 @@
 
 	{#snippet Item({ item: aiProviderApiOperationTimestamp })}
 		{@const aiProviderApiOperationTimestampFields = { ...aiProviderApiOperationTimestamp[EntityMetaKey.Selector], ...aiProviderApiOperationTimestamp }}
-		{@const selection = select(EntityType.AiProviderApiOperation_Timestamp, aiProviderApiOperationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AiProviderApiOperation_TimestampView
-			selection={selection}
-			prefetched={aiProviderApiOperationTimestampFields}
+		<EntityView
+			entityType={EntityType.AiProviderApiOperation_Timestamp}
+			entitySelector={aiProviderApiOperationTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((aiProviderApiOperationTimestampFields.$operation.label) ?? '')].filter(Boolean).join(' ') || [String((aiProviderApiOperationTimestampFields.$operation.operationId) ?? '')].filter(Boolean).join(' ') || 'AI provider API operation'].filter(Boolean).join(' ') || 'AI provider API operation timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((aiProviderApiOperationTimestampFields.availabilityStatus) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((aiProviderApiOperationTimestampFields.error) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

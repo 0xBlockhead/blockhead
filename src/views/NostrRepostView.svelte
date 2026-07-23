@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NostrRepost>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NostrRepost>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NostrRepost>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -53,7 +54,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost')
-	const viewDomId = $derived('nostr-repost-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('nostr-repost-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,31 +72,30 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.eventId !== undefined ? resolve('/nostr/repost/[eventId=stringSegment]', {
-			eventId: String(pendingEntity.eventId ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'eventId' in selection.entitySelector
+			&& selection.entitySelector.eventId != null ?
+				resolve('/nostr/repost/[eventId=stringSegment]', {
+			eventId: String(selection.entitySelector.eventId ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const repostedEventId0 = pendingEntity.repostedEventId}
-					{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
-						<TruncatedValue value={String((repostedEventId0) ?? '')} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={nostrRepost}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const repostedEventId0 = resolvedEntity.repostedEventId}
-					{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
-						<TruncatedValue value={String((repostedEventId0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nostrRepost}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const repostedEventId0 = resolvedEntity.repostedEventId}
+				{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
+					<TruncatedValue value={String((repostedEventId0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
@@ -106,26 +106,17 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const createdAt0 = pendingEntity.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nostrRepost}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt0 = resolvedEntity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nostrRepost}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const createdAt0 = resolvedEntity.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -239,11 +230,12 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection.$author({
-							sources: [
-								Source.NostrBand_Rest,
-							],
-						})
+						selection
+							.$author({
+								sources: [
+									Source.NostrBand_Rest,
+								],
+							})
 					}
 				>
 					{#snippet children(nostrProfile)}
@@ -255,9 +247,15 @@
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										prefetched={nostrProfile}
 										href={
-											(nostrProfile[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/nostr/profile/[pubkey=stringSegment]', {
+											(
+												nostrProfile[EntityMetaKey.Selector] != null && 'pubkey' in nostrProfile[EntityMetaKey.Selector]
+												&& nostrProfile[EntityMetaKey.Selector].pubkey != null ?
+													resolve('/nostr/profile/[pubkey=stringSegment]', {
 												pubkey: String(nostrProfile[EntityMetaKey.Selector].pubkey ?? ''),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -298,11 +296,12 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection.$repostedNote({
-							sources: [
-								Source.NostrBand_Rest,
-							],
-						})
+						selection
+							.$repostedNote({
+								sources: [
+									Source.NostrBand_Rest,
+								],
+							})
 					}
 				>
 					{#snippet children(nostrNote)}
@@ -314,9 +313,15 @@
 										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
 										href={
-											(nostrNote[EntityMetaKey.Selector].eventId !== undefined ? resolve('/nostr/note/[eventId=stringSegment]', {
+											(
+												nostrNote[EntityMetaKey.Selector] != null && 'eventId' in nostrNote[EntityMetaKey.Selector]
+												&& nostrNote[EntityMetaKey.Selector].eventId != null ?
+													resolve('/nostr/note/[eventId=stringSegment]', {
 												eventId: String(nostrNote[EntityMetaKey.Selector].eventId ?? ''),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -331,11 +336,12 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection.$repostedArticle({
-							sources: [
-								Source.NostrBand_Rest,
-							],
-						})
+						selection
+							.$repostedArticle({
+								sources: [
+									Source.NostrBand_Rest,
+								],
+							})
 					}
 				>
 					{#snippet children(nostrArticle)}
@@ -347,10 +353,19 @@
 										selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
 										prefetched={nostrArticle}
 										href={
-											(nostrArticle[EntityMetaKey.Selector].kind === 30023 && nostrArticle[EntityMetaKey.Selector].pubkey !== undefined && nostrArticle[EntityMetaKey.Selector].identifier !== undefined ? resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
+											(
+												nostrArticle[EntityMetaKey.Selector].kind === 30023
+												&& nostrArticle[EntityMetaKey.Selector] != null && 'pubkey' in nostrArticle[EntityMetaKey.Selector]
+												&& nostrArticle[EntityMetaKey.Selector].pubkey != null
+												&& nostrArticle[EntityMetaKey.Selector] != null && 'identifier' in nostrArticle[EntityMetaKey.Selector]
+												&& nostrArticle[EntityMetaKey.Selector].identifier != null ?
+													resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
 												pubkey: String(nostrArticle[EntityMetaKey.Selector].pubkey ?? ''),
 												identifier: String(nostrArticle[EntityMetaKey.Selector].identifier ?? ''),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}

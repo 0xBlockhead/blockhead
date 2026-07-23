@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'YouTube Videos',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.YoutubeVideo>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.YoutubeVideo>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import YoutubeVideoView from '$/views/YoutubeVideoView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(youtubeVideos) => [...new Map(youtubeVideos.values.map((youtubeVideo) => [youtubeVideo[EntityMetaKey.SelectorKey], youtubeVideo])).values()]}
 	getKey={(youtubeVideo) => youtubeVideo[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,18 +89,35 @@
 
 	{#snippet Item({ item: youtubeVideo })}
 		{@const youtubeVideoFields = { ...youtubeVideo[EntityMetaKey.Selector], ...youtubeVideo }}
-		{@const selection = select(EntityType.YoutubeVideo, youtubeVideo[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const youtubeVideoHrefFields = { ...youtubeVideo, ...youtubeVideo[EntityMetaKey.Selector] }}
-		<YoutubeVideoView
-			selection={selection}
-			prefetched={youtubeVideoFields}
+		<EntityView
+			entityType={EntityType.YoutubeVideo}
+			entitySelector={youtubeVideo[EntityMetaKey.Selector]}
 			href={
-				(youtubeVideoHrefFields.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
-					videoId: encodeURIComponent(String(youtubeVideoHrefFields.videoId ?? '')),
-				}) : undefined)
+				(
+					youtubeVideo[EntityMetaKey.Selector] != null && 'videoId' in youtubeVideo[EntityMetaKey.Selector]
+					&& youtubeVideo[EntityMetaKey.Selector].videoId != null ?
+						resolve('/youtube/video/[videoId=stringSegment]', {
+					videoId: encodeURIComponent(String(youtubeVideo[EntityMetaKey.Selector].videoId ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((youtubeVideoFields.title) ?? '')].filter(Boolean).join(' ') || [String((youtubeVideoFields.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((youtubeVideoFields.$author.title) ?? '')].filter(Boolean).join(' ') || [String((youtubeVideoFields.$author.channelId) ?? '')].filter(Boolean).join(' ') || 'YouTube channel'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((youtubeVideoFields.publishedAtMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

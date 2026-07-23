@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Lens',
 		typeAnnotationParagraphs = ['Lens is a social graph protocol. This hub shows bounded account and post windows from the declared Lens GraphQL source.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LensNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LensNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LensNetworkView from '$/views/LensNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(lensNetworks) => [...new Map(lensNetworks.values.map((lensNetwork) => [lensNetwork[EntityMetaKey.SelectorKey], lensNetwork])).values()]}
 	getKey={(lensNetwork) => lensNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,14 +87,24 @@
 
 	{#snippet Item({ item: lensNetwork })}
 		{@const lensNetworkFields = { ...lensNetwork[EntityMetaKey.Selector], ...lensNetwork }}
-		{@const selection = select(EntityType.LensNetwork, lensNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const lensNetworkHrefFields = { ...lensNetwork, ...lensNetwork[EntityMetaKey.Selector] }}
-		<LensNetworkView
-			selection={selection}
-			prefetched={lensNetworkFields}
-			href={(lensNetwork[EntityMetaKey.Selector].scope === 'LensNetwork' ? resolve('/lens') : undefined)}
+		<EntityView
+			entityType={EntityType.LensNetwork}
+			entitySelector={lensNetwork[EntityMetaKey.Selector]}
+			href={
+				(
+					lensNetwork[EntityMetaKey.Selector].scope === 'LensNetwork' ?
+						resolve('/lens')
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((lensNetworkFields.protocolName) ?? '')].filter(Boolean).join(' ') || 'Lens'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

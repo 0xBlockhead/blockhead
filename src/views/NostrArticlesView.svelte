@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Nostr articles',
 		typeAnnotationParagraphs = ['A Nostr long-form article is a replaceable kind-30023 event addressed by author public key and identifier.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrArticle>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NostrArticle>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrArticleView from '$/views/NostrArticleView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,11 +70,10 @@
 				identifier: true,
 				pubkey: true,
 				kind: true,
-				sensitive: true,
-				contentWarning: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nostrArticles) => [...new Map(nostrArticles.values.map((nostrArticle) => [nostrArticle[EntityMetaKey.SelectorKey], nostrArticle])).values()]}
 	getKey={(nostrArticle) => nostrArticle[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,19 +88,35 @@
 
 	{#snippet Item({ item: nostrArticle })}
 		{@const nostrArticleFields = { ...nostrArticle[EntityMetaKey.Selector], ...nostrArticle }}
-		{@const selection = select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const nostrArticleHrefFields = { ...nostrArticle, ...nostrArticle[EntityMetaKey.Selector] }}
-		<NostrArticleView
-			selection={selection}
-			prefetched={nostrArticleFields}
+		<EntityView
+			entityType={EntityType.NostrArticle}
+			entitySelector={nostrArticle[EntityMetaKey.Selector]}
 			href={
-				(nostrArticle[EntityMetaKey.Selector].kind === 30023 && nostrArticleHrefFields.pubkey !== undefined && nostrArticleHrefFields.identifier !== undefined ? resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
-					pubkey: String(nostrArticleHrefFields.pubkey ?? ''),
-					identifier: String(nostrArticleHrefFields.identifier ?? ''),
-				}) : undefined)
+				(
+					nostrArticle[EntityMetaKey.Selector].kind === 30023
+					&& nostrArticle[EntityMetaKey.Selector] != null && 'pubkey' in nostrArticle[EntityMetaKey.Selector]
+					&& nostrArticle[EntityMetaKey.Selector].pubkey != null
+					&& nostrArticle[EntityMetaKey.Selector] != null && 'identifier' in nostrArticle[EntityMetaKey.Selector]
+					&& nostrArticle[EntityMetaKey.Selector].identifier != null ?
+						resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
+					pubkey: String(nostrArticle[EntityMetaKey.Selector].pubkey ?? ''),
+					identifier: String(nostrArticle[EntityMetaKey.Selector].identifier ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((nostrArticleFields.$latestEvent.title) ?? ''), String((nostrArticleFields.$latestEvent.identifier) ?? '')].filter(Boolean).join(' ') || [String((nostrArticleFields.$latestEvent.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr article event', String((nostrArticleFields.identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[(String((nostrArticleFields.kind) ?? '') ? 'kind ' + String((nostrArticleFields.kind) ?? '') : '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Lens posts',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LensPost>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LensPost>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LensPostView from '$/views/LensPostView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(lensPosts) => [...new Map(lensPosts.values.map((lensPost) => [lensPost[EntityMetaKey.SelectorKey], lensPost])).values()]}
 	getKey={(lensPost) => lensPost[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,18 +88,31 @@
 
 	{#snippet Item({ item: lensPost })}
 		{@const lensPostFields = { ...lensPost[EntityMetaKey.Selector], ...lensPost }}
-		{@const selection = select(EntityType.LensPost, lensPost[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const lensPostHrefFields = { ...lensPost, ...lensPost[EntityMetaKey.Selector] }}
-		<LensPostView
-			selection={selection}
-			prefetched={lensPostFields}
+		<EntityView
+			entityType={EntityType.LensPost}
+			entitySelector={lensPost[EntityMetaKey.Selector]}
 			href={
-				(lensPostHrefFields.id !== undefined ? resolve('/lens/post/[postId=stringSegment]', {
-					postId: String(lensPostHrefFields.id ?? ''),
-				}) : undefined)
+				(
+					lensPost[EntityMetaKey.Selector] != null && 'id' in lensPost[EntityMetaKey.Selector]
+					&& lensPost[EntityMetaKey.Selector].id != null ?
+						resolve('/lens/post/[postId=stringSegment]', {
+					postId: String(lensPost[EntityMetaKey.Selector].id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((lensPostFields.text) ?? ''), String((lensPostFields.id) ?? '')].filter(Boolean).join(' ') || 'Lens post'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((lensPostFields.timestamp) ?? ''), String((lensPostFields.id) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

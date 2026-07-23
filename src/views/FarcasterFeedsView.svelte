@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Farcaster feeds',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FarcasterFeed>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FarcasterFeed>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FarcasterFeedView from '$/views/FarcasterFeedView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(farcasterFeeds) => [...new Map(farcasterFeeds.values.map((farcasterFeed) => [farcasterFeed[EntityMetaKey.SelectorKey], farcasterFeed])).values()]}
 	getKey={(farcasterFeed) => farcasterFeed[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,22 +90,49 @@
 
 	{#snippet Item({ item: farcasterFeed })}
 		{@const farcasterFeedFields = { ...farcasterFeed[EntityMetaKey.Selector], ...farcasterFeed }}
-		{@const selection = select(EntityType.FarcasterFeed, farcasterFeed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const farcasterFeedHrefFields = { ...farcasterFeed, ...farcasterFeed[EntityMetaKey.Selector] }}
-		<FarcasterFeedView
-			selection={selection}
-			prefetched={farcasterFeedFields}
+		<EntityView
+			entityType={EntityType.FarcasterFeed}
+			entitySelector={farcasterFeed[EntityMetaKey.Selector]}
 			href={
-				(farcasterFeed[EntityMetaKey.Selector].variant === 'trending' ? resolve('/farcaster/feed/trending') : farcasterFeed[EntityMetaKey.Selector].variant === 'byUser' && farcasterFeedHrefFields.fid !== undefined ? resolve('/farcaster/feed/user/[userId=farcasterFid]', {
-					userId: String(farcasterFeedHrefFields.fid ?? ''),
-				}) : farcasterFeed[EntityMetaKey.Selector].variant === 'byChannel' && farcasterFeedHrefFields.channelId !== undefined ? resolve('/farcaster/feed/channel/[channelId=stringSegment]', {
-					channelId: String(farcasterFeedHrefFields.channelId ?? ''),
-				}) : farcasterFeed[EntityMetaKey.Selector].variant === 'following' && farcasterFeedHrefFields.viewerFid !== undefined ? resolve('/farcaster/feed/following/[userId=farcasterFid]', {
-					userId: String(farcasterFeedHrefFields.viewerFid ?? ''),
-				}) : undefined)
+				(
+					farcasterFeed[EntityMetaKey.Selector].variant === 'trending' ?
+						resolve('/farcaster/feed/trending')
+				:
+						farcasterFeed[EntityMetaKey.Selector].variant === 'byUser'
+						&& farcasterFeed[EntityMetaKey.Selector] != null && 'fid' in farcasterFeed[EntityMetaKey.Selector]
+						&& farcasterFeed[EntityMetaKey.Selector].fid != null ?
+							resolve('/farcaster/feed/user/[userId=farcasterFid]', {
+						userId: String(farcasterFeed[EntityMetaKey.Selector].fid ?? ''),
+					})
+					:
+							farcasterFeed[EntityMetaKey.Selector].variant === 'byChannel'
+							&& farcasterFeed[EntityMetaKey.Selector] != null && 'channelId' in farcasterFeed[EntityMetaKey.Selector]
+							&& farcasterFeed[EntityMetaKey.Selector].channelId != null ?
+								resolve('/farcaster/feed/channel/[channelId=stringSegment]', {
+							channelId: String(farcasterFeed[EntityMetaKey.Selector].channelId ?? ''),
+						})
+						:
+								farcasterFeed[EntityMetaKey.Selector].variant === 'following'
+								&& farcasterFeed[EntityMetaKey.Selector] != null && 'viewerFid' in farcasterFeed[EntityMetaKey.Selector]
+								&& farcasterFeed[EntityMetaKey.Selector].viewerFid != null ?
+									resolve('/farcaster/feed/following/[userId=farcasterFid]', {
+								userId: String(farcasterFeed[EntityMetaKey.Selector].viewerFid ?? ''),
+							})
+							:
+								undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((farcasterFeedFields.label) ?? ''), String((farcasterFeedFields.variant) ?? '')].filter(Boolean).join(' ') || 'Farcaster feed'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((farcasterFeedFields.variant) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

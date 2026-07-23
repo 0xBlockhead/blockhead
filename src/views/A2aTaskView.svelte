@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.A2aTask>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.A2aTask>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aTask>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aTask = $derived(selection({
+	const a2aTask = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			contextId: true,
+			updatedAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			contextId: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.taskId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerTaskId) ?? '')].filter(Boolean).join(' ') || 'A2A task')
-	const viewDomId = $derived('a2a-task-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('a2a-task-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -76,7 +83,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'taskId') && Object.hasOwn(prefetched, 'contextId') && Object.hasOwn(prefetched, 'providerTaskId') && Object.hasOwn(prefetched, 'updatedAt')}
 			{[String((pendingEntity.taskId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aTask}>
@@ -89,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'taskId') && Object.hasOwn(prefetched, 'contextId') && Object.hasOwn(prefetched, 'providerTaskId') && Object.hasOwn(prefetched, 'updatedAt')}
 			{[String((pendingEntity.contextId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.taskId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aTask}>
@@ -102,7 +109,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'taskId') && Object.hasOwn(prefetched, 'contextId') && Object.hasOwn(prefetched, 'providerTaskId') && Object.hasOwn(prefetched, 'updatedAt')}
 			{@const updatedAt0 = pendingEntity.updatedAt}
 			{#if updatedAt0 !== undefined && updatedAt0 !== null}
 				<span data-text="muted">
@@ -319,137 +326,395 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-a2a-task-conversation'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'a2a-task-events',
-							label: 'Events',
-						},
-						{
-							id: 'a2a-task-messages',
-							label: 'Messages',
-						},
-						{
-							id: 'a2a-task-artifacts',
-							label: 'Artifacts',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-conversation'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Conversation</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-a2a-task-conversation'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'a2a-task-events',
+						label: 'Events',
+						ownsSection: true,
+					},
+					{
+						id: 'a2a-task-messages',
+						label: 'Messages',
+						ownsSection: true,
+					},
+					{
+						id: 'a2a-task-artifacts',
+						label: 'Artifacts',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-conversation'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Conversation</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionA2aTaskEvents({ id, label, open })}
-					<A2aTaskEventsView
-						selection={selection.$$events}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No A2A task events.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerA2aTaskEvents(_context, Content)}
+				{@const a2aTaskConversationA2aTaskEventsResource = selection.$$events}
+				<ResourceBoundary
+					resource={a2aTaskConversationA2aTaskEventsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionA2aTaskMessages({ id, label, open })}
-					<A2aMessagesView
-						selection={selection.$$messages}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No A2A messages.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionA2aTaskArtifacts({ id, label, open })}
-					<A2aArtifactsView
-						selection={selection.$$artifacts}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No A2A artifacts.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			</CollapsibleTabs>
+			{#snippet SectionA2aTaskEvents({ id, label, open, active })}
+				{@const a2aTaskConversationA2aTaskEventsResource = selection.$$events}
+				<ResourceBoundary
+					resource={a2aTaskConversationA2aTaskEventsResource}
+				>
+					{#snippet children(a2aTaskEvent)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<A2aTaskEventsView
+								selection={a2aTaskConversationA2aTaskEventsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No A2A task events.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-a2a-task-delivery'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'a2a-task-push',
-							label: 'Push notification configs',
-						},
-						{
-							id: 'a2a-task-observations',
-							label: 'Observations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-delivery'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Delivery and observations</HeadingComponent>
-					</header>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-				{#snippet SectionA2aTaskPush({ id, label, open })}
-					<A2aPushNotificationConfigsView
-						selection={selection.$$pushNotificationConfigs}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No A2A push notification configs.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionA2aTaskObservations({ id, label, open })}
-					<A2aTask_TimestampsView
-						selection={selection.$$timestamps}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No A2A task observations.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerA2aTaskMessages(_context, Content)}
+				{@const a2aTaskConversationA2aTaskMessagesResource = selection.$$messages}
+				<ResourceBoundary
+					resource={a2aTaskConversationA2aTaskMessagesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionA2aTaskMessages({ id, label, open, active })}
+				{@const a2aTaskConversationA2aTaskMessagesResource = selection.$$messages}
+				<ResourceBoundary
+					resource={a2aTaskConversationA2aTaskMessagesResource}
+				>
+					{#snippet children(a2aMessage)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<A2aMessagesView
+								selection={a2aTaskConversationA2aTaskMessagesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No A2A messages.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerA2aTaskArtifacts(_context, Content)}
+				{@const a2aTaskConversationA2aTaskArtifactsResource = selection.$$artifacts}
+				<ResourceBoundary
+					resource={a2aTaskConversationA2aTaskArtifactsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionA2aTaskArtifacts({ id, label, open, active })}
+				{@const a2aTaskConversationA2aTaskArtifactsResource = selection.$$artifacts}
+				<ResourceBoundary
+					resource={a2aTaskConversationA2aTaskArtifactsResource}
+				>
+					{#snippet children(a2aArtifact)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<A2aArtifactsView
+								selection={a2aTaskConversationA2aTaskArtifactsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No A2A artifacts.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-a2a-task-delivery'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'a2a-task-push',
+						label: 'Push notification configs',
+						ownsSection: true,
+					},
+					{
+						id: 'a2a-task-observations',
+						label: 'Observations',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-delivery'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Delivery and observations</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerA2aTaskPush(_context, Content)}
+				{@const a2aTaskDeliveryA2aTaskPushResource = selection.$$pushNotificationConfigs}
+				<ResourceBoundary
+					resource={a2aTaskDeliveryA2aTaskPushResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionA2aTaskPush({ id, label, open, active })}
+				{@const a2aTaskDeliveryA2aTaskPushResource = selection.$$pushNotificationConfigs}
+				<ResourceBoundary
+					resource={a2aTaskDeliveryA2aTaskPushResource}
+				>
+					{#snippet children(a2aPushNotificationConfig)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<A2aPushNotificationConfigsView
+								selection={a2aTaskDeliveryA2aTaskPushResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No A2A push notification configs.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerA2aTaskObservations(_context, Content)}
+				{@const a2aTaskDeliveryA2aTaskObservationsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={a2aTaskDeliveryA2aTaskObservationsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionA2aTaskObservations({ id, label, open, active })}
+				{@const a2aTaskDeliveryA2aTaskObservationsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={a2aTaskDeliveryA2aTaskObservationsResource}
+				>
+					{#snippet children(a2aTaskTimestamp)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<A2aTask_TimestampsView
+								selection={a2aTaskDeliveryA2aTaskObservationsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No A2A task observations.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

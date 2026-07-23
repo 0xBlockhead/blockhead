@@ -35,7 +35,6 @@
 			description: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? ''), String((pageSelection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel')))
 
 
 	// Components
@@ -45,7 +44,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Farcaster channel • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel' : [String((({ ...data.selector, ...pageSelection.entity }).name) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel'))} • Farcaster channel • Blockhead</title>
 </svelte:head>
 
 

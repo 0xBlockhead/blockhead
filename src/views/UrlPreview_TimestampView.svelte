@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.UrlPreview_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.UrlPreview_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.UrlPreview_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const urlPreviewTimestamp = $derived(selection({
+	const urlPreviewTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			title: true,
+			siteName: true,
+			previewStatus: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			title: true,
@@ -51,7 +59,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || 'URL preview timestamp')
-	const viewDomId = $derived('url-preview-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('url-preview-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,11 +77,22 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$url !== undefined && pendingEntity.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			url: encodeURIComponent(String(pendingEntity.$url.url ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$url' in selection.entitySelector
+			&& selection.entitySelector.$url != null && 'url' in selection.entitySelector.$url
+			&& selection.entitySelector.$url.url != null ?
+				resolve('/url/[url=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			url: encodeURIComponent(String(selection.entitySelector.$url.url ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -84,7 +103,7 @@
 		<ResourceBoundary resource={urlPreviewTimestamp}>
 			{#snippet children(entity)}
 				{@const reference = entity.$image}
-				{#if reference?.[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -97,80 +116,45 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const title0 = pendingEntity.title}
-					{#if title0 !== undefined && title0 !== null}
-						{String((title0) ?? '')}
-					{/if}
+		<ResourceBoundary resource={urlPreviewTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const title0 = resolvedEntity.title}
+				{#if title0 !== undefined && title0 !== null}
+					{String((title0) ?? '')}
+				{/if}
 
-					<UrlView
-						selection={select(EntityType.Url, selection.entitySelector.$url)}
-						href={
-						(selection.entitySelector.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]', {
-							url: encodeURIComponent(String(selection.entitySelector.$url.url ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={urlPreviewTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const title0 = resolvedEntity.title}
-					{#if title0 !== undefined && title0 !== null}
-						{String((title0) ?? '')}
-					{/if}
-
-					<UrlView
-						selection={select(EntityType.Url, selection.entitySelector.$url)}
-						href={
-						(selection.entitySelector.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]', {
-							url: encodeURIComponent(String(selection.entitySelector.$url.url ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				<UrlView
+					selection={select(EntityType.Url, selection.entitySelector.$url)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.title) ?? ''), String((pendingEntity.siteName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={urlPreviewTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.siteName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={urlPreviewTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.siteName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const previewStatus0 = pendingEntity.previewStatus}
-			{#if previewStatus0 !== undefined && previewStatus0 !== null}
-				<span data-text="muted">
-					{String((previewStatus0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={urlPreviewTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previewStatus0 = resolvedEntity.previewStatus}
-					{#if previewStatus0 !== undefined && previewStatus0 !== null}
-						<span data-text="muted">
-							{String((previewStatus0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={urlPreviewTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const previewStatus0 = resolvedEntity.previewStatus}
+				{#if previewStatus0 !== undefined && previewStatus0 !== null}
+					<span data-text="muted">
+						{String((previewStatus0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -364,9 +348,15 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
+										(
+											media[EntityMetaKey.Selector] != null && 'url' in media[EntityMetaKey.Selector]
+											&& media[EntityMetaKey.Selector].url != null ?
+												resolve('/media/[url=absoluteUrl]', {
 											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -381,11 +371,17 @@
 				<dt>URL</dt>
 				<dd>
 					<UrlView
-						selection={select(EntityType.Url, selection.entitySelector.$url, {})}
+						selection={select(EntityType.Url, selection.entitySelector.$url)}
 						href={
-							(selection.entitySelector.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]', {
+							(
+								selection.entitySelector.$url != null && 'url' in selection.entitySelector.$url
+								&& selection.entitySelector.$url.url != null ?
+									resolve('/url/[url=absoluteUrl]', {
 								url: encodeURIComponent(String(selection.entitySelector.$url.url ?? '')),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

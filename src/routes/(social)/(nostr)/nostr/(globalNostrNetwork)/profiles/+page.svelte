@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			}).$$observedProfiles({
-				sources: [
-					Source.NostrBand_Rest,
-				],
-				count: true,
 			})
+				.$$observedProfiles({
+					sources: [
+						Source.NostrBand_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._GlobalNostrNetwork, {
+				scope: '_GlobalNostrNetwork',
+			})
+				.$$observedProfiles({
+					sources: [
+						Source.NostrBand_Rest,
+					],
+				}).count
 		}
 		id='observed-profiles'
 		data-column-item="flexible"

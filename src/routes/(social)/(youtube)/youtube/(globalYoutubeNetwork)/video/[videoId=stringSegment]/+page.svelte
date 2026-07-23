@@ -32,7 +32,6 @@
 			description: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.title) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video')))
 
 
 	// Components
@@ -42,7 +41,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • YouTube video • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video' : [String((({ ...data.selector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video'))} • YouTube video • Blockhead</title>
 </svelte:head>
 
 

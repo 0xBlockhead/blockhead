@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Eip8004AgentRegistrationFile>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Eip8004AgentRegistrationFile>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Eip8004AgentRegistrationFile>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eip8004AgentRegistrationFile = $derived(selection({
+	const eip8004AgentRegistrationFile = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.fileUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration file')
-	const viewDomId = $derived('eip8004agent-registration-file-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('eip8004agent-registration-file-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,7 +70,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$registration') && prefetched.$registration != null}
 			{[String((pendingEntity.fileUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={eip8004AgentRegistrationFile}>
@@ -79,18 +83,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<Eip8004AgentRegistrationView
-						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$registration') && prefetched.$registration != null}
+			{@const eip8004AgentRegistration0 = pendingEntity.$registration}
+			{#if eip8004AgentRegistration0 != null && selection.entitySelector.$registration != null}
+				<Eip8004AgentRegistrationView
+					selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration, { sources: selection.sources })}
+					prefetched={eip8004AgentRegistration0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={eip8004AgentRegistrationFile}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<Eip8004AgentRegistrationView
 						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -105,7 +114,7 @@
 				<dt>Registration</dt>
 				<dd>
 					<Eip8004AgentRegistrationView
-						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration, {})}
+						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

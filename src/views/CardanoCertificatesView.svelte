@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Cardano certificates',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CardanoCertificate>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CardanoCertificate>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CardanoCertificateView from '$/views/CardanoCertificateView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,8 +65,13 @@
 	resource={
 		selection({
 			sources: selection.sources,
+			fields: {
+				certificateKind: true,
+				certificateIndex: true,
+			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cardanoCertificates) => [...new Map(cardanoCertificates.values.map((cardanoCertificate) => [cardanoCertificate[EntityMetaKey.SelectorKey], cardanoCertificate])).values()]}
 	getKey={(cardanoCertificate) => cardanoCertificate[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +86,16 @@
 
 	{#snippet Item({ item: cardanoCertificate })}
 		{@const cardanoCertificateFields = { ...cardanoCertificate[EntityMetaKey.Selector], ...cardanoCertificate }}
-		{@const selection = select(EntityType.CardanoCertificate, cardanoCertificate[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CardanoCertificateView
-			selection={selection}
-			prefetched={cardanoCertificateFields}
+		<EntityView
+			entityType={EntityType.CardanoCertificate}
+			entitySelector={cardanoCertificate[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cardanoCertificateFields.certificateKind) ?? ''), (String((cardanoCertificateFields.certificateIndex) ?? '') ? 'Certificate #' + String((cardanoCertificateFields.certificateIndex) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano certificate'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -38,9 +38,7 @@ export type FxEmbedTwitterStatus = {
 	replying_to?: {
 		status?: string
 	} | null
-	quote?: {
-		id?: string
-	} | null
+	quote?: FxEmbedTwitterStatus | null
 }
 
 export type FxEmbedSocialThread = {

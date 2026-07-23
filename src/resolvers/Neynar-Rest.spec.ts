@@ -109,6 +109,9 @@ describe('Neynar Farcaster feed resolver', () => {
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: '0xabcdef',
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
 						[EntityMetaKey.Selector]: { fid: 42 },
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.FarcasterUser, [], 'username')]: 'alice',
+						},
 					},
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: 'A live cast from the feed',
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: Date.parse('2026-07-15T12:34:56.000Z'),
@@ -245,6 +248,76 @@ describe('Neynar Farcaster feed resolver', () => {
 		)
 	})
 
+	it('excludes foreign, unowned, dehydrated, and wrong-channel cast rows', () => {
+		const page = {
+			casts: [
+				{
+					object: 'cast' as const,
+					hash: '0x1111',
+					author: { fid: 42 },
+					channel: { id: 'design' },
+				},
+				{
+					object: 'cast' as const,
+					hash: '0x2222',
+					author: { fid: 43 },
+					channel: { id: 'design' },
+				},
+				{
+					object: 'cast_dehydrated' as const,
+					hash: '0x3333',
+					author: { fid: 42 },
+					channel: { id: 'design' },
+				},
+				{
+					object: 'cast' as const,
+					hash: '0x4444',
+					channel: { id: 'design' },
+				},
+				{
+					object: 'cast' as const,
+					hash: '0x5555',
+					author: { fid: 42 },
+					channel: { id: 'other' },
+				},
+			],
+		}
+		const userProjection = userFeedResolver.projections.$$casts
+		const channelProjection = channelFeedResolver.projections.$$casts
+		if (
+			typeof userProjection === 'function'
+			|| userProjection.select == null
+			|| typeof channelProjection === 'function'
+			|| channelProjection.select == null
+		)
+			throw new Error('Neynar spec missing scoped cast selectors')
+
+		expect(userProjection.select(
+			page,
+			{ fid: 42 },
+			resolverContext
+		)).toHaveLength(2)
+		expect(channelProjection.select(
+			page,
+			{ id: 'design' },
+			resolverContext
+		)).toHaveLength(2)
+		expect(userProjection.select(
+			page,
+			{ fid: 42 },
+			resolverContext
+		).map((cast) => cast[EntityMetaKey.Selector])).toEqual([
+			{
+				fid: 42,
+				hash: '0x1111',
+			},
+			{
+				fid: 42,
+				hash: '0x5555',
+			},
+		])
+	})
+
 	it('marks user and channel continuations terminal without inventing tokens', () => {
 		for (const resolver of [
 			userFeedResolver,
@@ -290,10 +363,10 @@ describe('Neynar Farcaster cast resolver', () => {
 		await expect(castResolver.resolve[FarcasterCastSelector.FidHash].resolve({
 			fid: 42,
 			hash: '0xABCDEF',
-		}, resolverContext)).resolves.toEqual({
+		}, resolverContext)).resolves.toEqual(expect.objectContaining({
 			fid: 42,
 			hash: '0xabcdef',
-		})
+		}))
 	})
 
 	for (const {

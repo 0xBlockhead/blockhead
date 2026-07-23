@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Farcaster channel observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FarcasterChannel_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FarcasterChannel_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FarcasterChannel_TimestampView from '$/views/FarcasterChannel_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(farcasterChannelTimestamps) => [...new Map(farcasterChannelTimestamps.values.map((farcasterChannelTimestamp) => [farcasterChannelTimestamp[EntityMetaKey.SelectorKey], farcasterChannelTimestamp])).values()]}
 	getKey={(farcasterChannelTimestamp) => farcasterChannelTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,19 +87,35 @@
 
 	{#snippet Item({ item: farcasterChannelTimestamp })}
 		{@const farcasterChannelTimestampFields = { ...farcasterChannelTimestamp[EntityMetaKey.Selector], ...farcasterChannelTimestamp }}
-		{@const selection = select(EntityType.FarcasterChannel_Timestamp, farcasterChannelTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const farcasterChannelTimestampHrefFields = { ...farcasterChannelTimestamp, ...farcasterChannelTimestamp[EntityMetaKey.Selector] }}
-		<FarcasterChannel_TimestampView
-			selection={selection}
-			prefetched={farcasterChannelTimestampFields}
+		<EntityView
+			entityType={EntityType.FarcasterChannel_Timestamp}
+			entitySelector={farcasterChannelTimestamp[EntityMetaKey.Selector]}
 			href={
-				(farcasterChannelTimestampHrefFields.timestampMs !== undefined && farcasterChannelTimestampHrefFields.$channel !== undefined && farcasterChannelTimestampHrefFields.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-					timestampMs: String(farcasterChannelTimestampHrefFields.timestampMs ?? ''),
-					channelId: String(farcasterChannelTimestampHrefFields.$channel.id ?? ''),
-				}) : undefined)
+				(
+					farcasterChannelTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in farcasterChannelTimestamp[EntityMetaKey.Selector]
+					&& farcasterChannelTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& farcasterChannelTimestamp[EntityMetaKey.Selector] != null && '$channel' in farcasterChannelTimestamp[EntityMetaKey.Selector]
+					&& farcasterChannelTimestamp[EntityMetaKey.Selector].$channel != null && 'id' in farcasterChannelTimestamp[EntityMetaKey.Selector].$channel
+					&& farcasterChannelTimestamp[EntityMetaKey.Selector].$channel.id != null ?
+						resolve('/farcaster/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+					timestampMs: String(farcasterChannelTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					channelId: String(farcasterChannelTimestamp[EntityMetaKey.Selector].$channel.id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((farcasterChannelTimestampFields.$channel.name) ?? ''), String((farcasterChannelTimestampFields.$channel.id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel'].filter(Boolean).join(' ') || 'Farcaster channel observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((farcasterChannelTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

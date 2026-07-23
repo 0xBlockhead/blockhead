@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadMoneroTransferState>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadMoneroTransferState>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadMoneroTransferState>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadMoneroTransferState = $derived(selection({
+	const blockheadMoneroTransferState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			direction: true,
+			amountAtomicUnits: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			direction: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'blockhead monero transfer state')
-	const viewDomId = $derived('blockhead-monero-transfer-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-monero-transfer-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,7 +81,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'direction') && Object.hasOwn(prefetched, 'amountAtomicUnits')}
 			{[String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadMoneroTransferState}>
@@ -87,7 +94,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'direction') && Object.hasOwn(prefetched, 'amountAtomicUnits')}
 			{[String((pendingEntity.direction) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadMoneroTransferState}>
@@ -100,7 +107,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'direction') && Object.hasOwn(prefetched, 'amountAtomicUnits')}
 			{@const amountAtomicUnits0 = pendingEntity.amountAtomicUnits}
 			{#if amountAtomicUnits0 !== undefined && amountAtomicUnits0 !== null}
 				<span data-text="muted">
@@ -493,17 +500,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadMoneroTransferState_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No Monero transfer observations.'
-				id='BlockheadMoneroTransferState_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadMoneroTransferStateBlockheadMoneroTransferStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadMoneroTransferStateBlockheadMoneroTransferStateTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadMoneroTransferState_TimestampsView
+					selection={blockheadMoneroTransferStateBlockheadMoneroTransferStateTimestampsViewTimestampsResource}
+					countResource={blockheadMoneroTransferStateBlockheadMoneroTransferStateTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadMoneroTransferState_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

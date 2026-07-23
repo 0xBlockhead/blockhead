@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'dYdX chain orders',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.DydxChainOrder>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.DydxChainOrder>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import DydxChainOrderView from '$/views/DydxChainOrderView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(dydxChainOrders) => [...new Map(dydxChainOrders.values.map((dydxChainOrder) => [dydxChainOrder[EntityMetaKey.SelectorKey], dydxChainOrder])).values()]}
 	getKey={(dydxChainOrder) => dydxChainOrder[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: dydxChainOrder })}
 		{@const dydxChainOrderFields = { ...dydxChainOrder[EntityMetaKey.Selector], ...dydxChainOrder }}
-		{@const selection = select(EntityType.DydxChainOrder, dydxChainOrder[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<DydxChainOrderView
-			selection={selection}
-			prefetched={dydxChainOrderFields}
+		<EntityView
+			entityType={EntityType.DydxChainOrder}
+			entitySelector={dydxChainOrder[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((dydxChainOrderFields.orderId) ?? '')].filter(Boolean).join(' ') || 'dydx chain order'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((dydxChainOrderFields.side) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((dydxChainOrderFields.orderType) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

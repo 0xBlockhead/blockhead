@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Network_Activity_Day>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Network_Activity_Day>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Network_Activity_Day>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const networkActivityDay = $derived(selection({
+	const networkActivityDay = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			transactionCount: true,
+			trustModel: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			transactionCount: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.dayStartTimestampMs) ?? '')].filter(Boolean).join(' ') || 'network activity day')
-	const viewDomId = $derived('network-activity-day-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('network-activity-day-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,24 +74,40 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.source === 'SpaceAndTime_MakeInfinite' && pendingEntity.dayStartTimestampMs !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/activity/day/[dayStartTimestampMs=nonNegativeInteger]', {
-			dayStartTimestampMs: String(pendingEntity.dayStartTimestampMs ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
-		}) : pendingEntity.source === 'SpaceAndTime_MakeInfinite' && pendingEntity.dayStartTimestampMs !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/activity/day/[dayStartTimestampMs=nonNegativeInteger]', {
-			dayStartTimestampMs: String(pendingEntity.dayStartTimestampMs ?? ''),
-			network: String(pendingEntity.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector.source === 'SpaceAndTime_MakeInfinite'
+			&& selection.entitySelector != null && 'dayStartTimestampMs' in selection.entitySelector
+			&& selection.entitySelector.dayStartTimestampMs != null
+			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
+				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+				&& selection.entitySelector.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/activity/day/[dayStartTimestampMs=nonNegativeInteger]', {
+				dayStartTimestampMs: String(selection.entitySelector.dayStartTimestampMs ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+					&& selection.entitySelector.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/activity/day/[dayStartTimestampMs=nonNegativeInteger]', {
+					dayStartTimestampMs: String(selection.entitySelector.dayStartTimestampMs ?? ''),
+					network: String(selection.entitySelector.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const dayStartTimestampMs0 = pendingEntity.dayStartTimestampMs}
-					{#if dayStartTimestampMs0 !== undefined && dayStartTimestampMs0 !== null}
-						<Timestamp timestamp={Number(dayStartTimestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionCount') && Object.hasOwn(prefetched, 'trustModel')}
+			{@const dayStartTimestampMs0 = pendingEntity.dayStartTimestampMs}
+			{#if dayStartTimestampMs0 !== undefined && dayStartTimestampMs0 !== null}
+				<Timestamp timestamp={Number(dayStartTimestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={networkActivityDay}>
 				{#snippet children(entity)}
@@ -99,13 +122,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const transactionCount0 = pendingEntity.transactionCount}
-					{#if transactionCount0 !== undefined && transactionCount0 !== null}
-						<NumberValue
-							value={transactionCount0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionCount') && Object.hasOwn(prefetched, 'trustModel')}
+			{@const transactionCount0 = pendingEntity.transactionCount}
+			{#if transactionCount0 !== undefined && transactionCount0 !== null}
+				<NumberValue
+					value={transactionCount0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={networkActivityDay}>
 				{#snippet children(entity)}
@@ -122,7 +145,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionCount') && Object.hasOwn(prefetched, 'trustModel')}
 			{@const trustModel0 = pendingEntity.trustModel}
 			{#if trustModel0 !== undefined && trustModel0 !== null}
 				<span data-text="muted">
@@ -156,13 +179,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

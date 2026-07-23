@@ -62,7 +62,7 @@ export const XrplAccount_Timestamp = entity({
 	flags: {
 		label: 'flags',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('unknown'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

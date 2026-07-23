@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Monero output state observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadMoneroOutputState_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadMoneroOutputState_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadMoneroOutputState_TimestampView from '$/views/BlockheadMoneroOutputState_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadMoneroOutputStateTimestamps) => [...new Map(blockheadMoneroOutputStateTimestamps.values.map((blockheadMoneroOutputStateTimestamp) => [blockheadMoneroOutputStateTimestamp[EntityMetaKey.SelectorKey], blockheadMoneroOutputStateTimestamp])).values()]}
 	getKey={(blockheadMoneroOutputStateTimestamp) => blockheadMoneroOutputStateTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: blockheadMoneroOutputStateTimestamp })}
 		{@const blockheadMoneroOutputStateTimestampFields = { ...blockheadMoneroOutputStateTimestamp[EntityMetaKey.Selector], ...blockheadMoneroOutputStateTimestamp }}
-		{@const selection = select(EntityType.BlockheadMoneroOutputState_Timestamp, blockheadMoneroOutputStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadMoneroOutputState_TimestampView
-			selection={selection}
-			prefetched={blockheadMoneroOutputStateTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadMoneroOutputState_Timestamp}
+			entitySelector={blockheadMoneroOutputStateTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadMoneroOutputStateTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead monero output state timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadMoneroOutputStateTimestampFields.spent) ?? ''), String((blockheadMoneroOutputStateTimestampFields.unlocked) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadMoneroOutputStateTimestampFields.confirmations) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

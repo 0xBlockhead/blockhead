@@ -29,13 +29,24 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$liquidityPools',
-			}).$$liquidityPools({
-				sources: [
-					Source.Dexscreener_OpenApi,
-				],
-				limit: 300,
-				count: true,
 			})
+				.$$liquidityPools({
+					sources: [
+						Source.Dexscreener_OpenApi,
+					],
+					limit: 300,
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$liquidityPools',
+			})
+				.$$liquidityPools({
+					sources: [
+						Source.Dexscreener_OpenApi,
+					],
+					limit: 300,
+				}).count
 		}
 		id='liquidity-pools'
 		data-column-item="flexible"

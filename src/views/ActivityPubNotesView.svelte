@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ActivityPub notes',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ActivityPubNote>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ActivityPubNote>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubNoteView from '$/views/ActivityPubNoteView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(activityPubNotes) => [...new Map(activityPubNotes.values.map((activityPubNote) => [activityPubNote[EntityMetaKey.SelectorKey], activityPubNote])).values()]}
 	getKey={(activityPubNote) => activityPubNote[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,19 +91,34 @@
 
 	{#snippet Item({ item: activityPubNote })}
 		{@const activityPubNoteFields = { ...activityPubNote[EntityMetaKey.Selector], ...activityPubNote }}
-		{@const selection = select(EntityType.ActivityPubNote, activityPubNote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const activityPubNoteHrefFields = { ...activityPubNote, ...activityPubNote[EntityMetaKey.Selector] }}
-		<ActivityPubNoteView
-			selection={selection}
-			prefetched={activityPubNoteFields}
+		<EntityView
+			entityType={EntityType.ActivityPubNote}
+			entitySelector={activityPubNote[EntityMetaKey.Selector]}
 			href={
-				(activityPubNoteHrefFields.instanceOrigin !== undefined && activityPubNoteHrefFields.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-					instanceOrigin: encodeURIComponent(String(activityPubNoteHrefFields.instanceOrigin ?? '')),
-					localStatusId: String(activityPubNoteHrefFields.localStatusId ?? ''),
-				}) : undefined)
+				(
+					activityPubNote[EntityMetaKey.Selector] != null && 'instanceOrigin' in activityPubNote[EntityMetaKey.Selector]
+					&& activityPubNote[EntityMetaKey.Selector].instanceOrigin != null
+					&& activityPubNote[EntityMetaKey.Selector] != null && 'localStatusId' in activityPubNote[EntityMetaKey.Selector]
+					&& activityPubNote[EntityMetaKey.Selector].localStatusId != null ?
+						resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
+					instanceOrigin: encodeURIComponent(String(activityPubNote[EntityMetaKey.Selector].instanceOrigin ?? '')),
+					localStatusId: String(activityPubNote[EntityMetaKey.Selector].localStatusId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[activityPubNoteFields.content == null ? '' : String((htmlToPlainText((activityPubNoteFields.content))) ?? ''), String((activityPubNoteFields.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((activityPubNoteFields.createdAt) ?? ''), String((activityPubNoteFields.localStatusId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Liquidity pool blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LiquidityPool_Block>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LiquidityPool_Block>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LiquidityPool_BlockView from '$/views/LiquidityPool_BlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(liquidityPoolBlocks) => [...new Map(liquidityPoolBlocks.values.map((liquidityPoolBlock) => [liquidityPoolBlock[EntityMetaKey.SelectorKey], liquidityPoolBlock])).values()]}
 	getKey={(liquidityPoolBlock) => liquidityPoolBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,20 +88,44 @@
 
 	{#snippet Item({ item: liquidityPoolBlock })}
 		{@const liquidityPoolBlockFields = { ...liquidityPoolBlock[EntityMetaKey.Selector], ...liquidityPoolBlock }}
-		{@const selection = select(EntityType.LiquidityPool_Block, liquidityPoolBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const liquidityPoolBlockHrefFields = { ...liquidityPoolBlock, ...liquidityPoolBlock[EntityMetaKey.Selector] }}
-		<LiquidityPool_BlockView
-			selection={selection}
-			prefetched={liquidityPoolBlockFields}
+		<EntityView
+			entityType={EntityType.LiquidityPool_Block}
+			entitySelector={liquidityPoolBlock[EntityMetaKey.Selector]}
 			href={
-				(liquidityPoolBlockHrefFields.blockNumber !== undefined && liquidityPoolBlockHrefFields.$liquidityPool !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2 !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2.reference !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.id !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/block/[blockNumber=nonNegativeBigInt]', {
-					blockNumber: String(liquidityPoolBlockHrefFields.blockNumber ?? ''),
-					chainId: String(liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2.reference ?? ''),
-					poolId: String(liquidityPoolBlockHrefFields.$liquidityPool.id ?? ''),
-				}) : undefined)
+				(
+					liquidityPoolBlock[EntityMetaKey.Selector] != null && 'blockNumber' in liquidityPoolBlock[EntityMetaKey.Selector]
+					&& liquidityPoolBlock[EntityMetaKey.Selector].blockNumber != null
+					&& liquidityPoolBlock[EntityMetaKey.Selector] != null && '$liquidityPool' in liquidityPoolBlock[EntityMetaKey.Selector]
+					&& liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool != null && '$network' in liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool
+					&& liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool.$network != null && 'caip2' in liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool.$network
+					&& liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool.$network.caip2 != null && 'reference' in liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool.$network.caip2
+					&& liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool.$network.caip2.reference != null
+					&& liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool != null && 'id' in liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool
+					&& liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool.id != null ?
+						resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/block/[blockNumber=nonNegativeBigInt]', {
+					blockNumber: String(liquidityPoolBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+					chainId: String(liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool.$network.caip2.reference ?? ''),
+					poolId: String(liquidityPoolBlock[EntityMetaKey.Selector].$liquidityPool.id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((liquidityPoolBlockFields.blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((liquidityPoolBlockFields.tick) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((liquidityPoolBlockFields.$liquidityPool.id) ?? '')].filter(Boolean).join(' ') || 'liquidity pool'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

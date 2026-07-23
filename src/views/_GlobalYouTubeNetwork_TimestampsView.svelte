@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'YouTube hub observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType._GlobalYoutubeNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalYoutubeNetwork_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,10 +44,11 @@
 		>
 	> = $props()
 
+	const collectionSelection = $derived(selection)
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import GlobalYoutubeNetwork_TimestampView from '$/views/_GlobalYoutubeNetwork_TimestampView.svelte'
 </script>
@@ -61,76 +60,44 @@
 	{/each}
 {/snippet}
 
-{#if open}
-	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					timestampMs: true,
-					source: true,
-				},
-			})
-		}
-		{placeholderText}
-	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalYoutubeNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				placeholderText={placeholderText}
-			/>
-		{/snippet}
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType._GlobalYoutubeNetwork_Timestamp}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{showTypeAnnotation}
+	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	resource={
+		selection({
+			sources: selection.sources,
+			fields: {
+				timestampMs: true,
+				source: true,
+			},
+		})
+	}
+	getResourceItems={(globalYoutubeNetworkTimestamps) => [...new Map(globalYoutubeNetworkTimestamps.values.map((globalYoutubeNetworkTimestamp) => [globalYoutubeNetworkTimestamp[EntityMetaKey.SelectorKey], globalYoutubeNetworkTimestamp])).values()]}
+	getKey={(globalYoutubeNetworkTimestamp) => globalYoutubeNetworkTimestamp[EntityMetaKey.SelectorKey]}
+	{placeholderText}
+>
+	{#snippet Empty()}
+		{#if emptyText != null}
+			<p data-text="muted">{emptyText}</p>
+		{:else}
+			<p data-text="muted">No YouTube hub observations yet.</p>
+		{/if}
+	{/snippet}
 
-		{#snippet children(globalYoutubeNetworkTimestamps)}
-			{@const uniqueGlobalYoutubeNetworkTimestamps = [...new Map(globalYoutubeNetworkTimestamps.values.map((globalYoutubeNetworkTimestamp) => [globalYoutubeNetworkTimestamp[EntityMetaKey.SelectorKey], globalYoutubeNetworkTimestamp])).values()]}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalYoutubeNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalYoutubeNetworkTimestamps.totalCount}
-				getKey={(globalYoutubeNetworkTimestamp) => globalYoutubeNetworkTimestamp[EntityMetaKey.SelectorKey]}
-				items={uniqueGlobalYoutubeNetworkTimestamps}
-			>
-				{#snippet Empty()}
-					{#if emptyText != null}
-						<p data-text="muted">{emptyText}</p>
-					{:else}
-						<p data-text="muted">No YouTube hub observations yet.</p>
-					{/if}
-				{/snippet}
-
-				{#snippet Item({ item: globalYoutubeNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalYoutubeNetwork_Timestamp> })}
-					{@const globalYoutubeNetworkTimestampFields = { ...globalYoutubeNetworkTimestamp[EntityMetaKey.Selector], ...globalYoutubeNetworkTimestamp }}
-					<GlobalYoutubeNetwork_TimestampView
-						selection={select(EntityType._GlobalYoutubeNetwork_Timestamp, globalYoutubeNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
-						prefetched={globalYoutubeNetworkTimestampFields}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-				{/snippet}
-			</EntitiesList>
-		{/snippet}
-	</ResourceBoundary>
-{:else}
-	<EntitiesList
-		{...EntitiesListProps}
-		entityType={EntityType._GlobalYoutubeNetwork_Timestamp}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
-		{showTypeAnnotation}
-		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	/>
-{/if}
+	{#snippet Item({ item: globalYoutubeNetworkTimestamp })}
+		{@const globalYoutubeNetworkTimestampFields = { ...globalYoutubeNetworkTimestamp[EntityMetaKey.Selector], ...globalYoutubeNetworkTimestamp }}
+		{@const selection = select(EntityType._GlobalYoutubeNetwork_Timestamp, globalYoutubeNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+		<GlobalYoutubeNetwork_TimestampView
+			selection={selection}
+			prefetched={globalYoutubeNetworkTimestampFields}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
+	{/snippet}
+</EntitiesList>

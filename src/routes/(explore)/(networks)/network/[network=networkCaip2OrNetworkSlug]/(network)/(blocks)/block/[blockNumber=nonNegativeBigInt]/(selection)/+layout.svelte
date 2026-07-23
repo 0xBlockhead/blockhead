@@ -39,10 +39,10 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.EvmBlock && data.selectorMapping.selectorName === 'EvmNetworkBlockNumber' ? EvmBlockView : data.selectorMapping.entityType === EntityType.SolanaBlock && data.selectorMapping.selectorName === 'Slot' ? SolanaBlockView : data.selectorMapping.entityType === EntityType.UtxoBlock && data.selectorMapping.selectorName === 'NetworkHeight' ? UtxoBlockView : PolkadotBlockView}
+			{@const DetailView = data.entityType === EntityType.EvmBlock && data.selectorName === 'EvmNetworkBlockNumber' ? EvmBlockView : data.entityType === EntityType.SolanaBlock && data.selectorName === 'Slot' ? SolanaBlockView : data.entityType === EntityType.UtxoBlock && data.selectorName === 'NetworkHeight' ? UtxoBlockView : PolkadotBlockView}
 
 			<DetailView
-				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}
+				selection={select(data.entityType, data.selector)}
 				href={
 					resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 						network: params.network,

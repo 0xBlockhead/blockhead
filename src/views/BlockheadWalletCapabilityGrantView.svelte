@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadWalletCapabilityGrant>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadWalletCapabilityGrant>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadWalletCapabilityGrant>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadWalletCapabilityGrant = $derived(selection({
+	const blockheadWalletCapabilityGrant = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			authorizationKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			authorizationKind: true,
@@ -50,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.grantId) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet capability grant')
-	const viewDomId = $derived('blockhead-wallet-capability-grant-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-wallet-capability-grant-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -58,7 +64,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadWalletConnectionView from '$/views/BlockheadWalletConnectionView.svelte'
-	import BlockheadWalletAccountView from '$/views/BlockheadWalletAccountView.svelte'
+	import AccountView from '$/views/AccountView.svelte'
 </script>
 
 
@@ -73,7 +79,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'authorizationKind')}
 			{[String((pendingEntity.grantId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadWalletCapabilityGrant}>
@@ -86,7 +92,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'authorizationKind')}
 			{[String((pendingEntity.authorizationKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.grantId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadWalletCapabilityGrant}>
@@ -136,9 +142,15 @@
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
 									href={
-										(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey !== undefined ? resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
+										(
+											blockheadWalletConnection[EntityMetaKey.Selector] != null && 'connectionKey' in blockheadWalletConnection[EntityMetaKey.Selector]
+											&& blockheadWalletConnection[EntityMetaKey.Selector].connectionKey != null ?
+												resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
 											connectionKey: String(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -152,14 +164,14 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
-				{#snippet children(blockheadWalletAccount)}
-					{#if blockheadWalletAccount != null && blockheadWalletAccount[EntityMetaKey.Selector] != null}
+				{#snippet children(account)}
+					{#if account != null && account[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>account</dt>
 							<dd>
-								<BlockheadWalletAccountView
-									selection={select(EntityType.BlockheadWalletAccount, blockheadWalletAccount[EntityMetaKey.Selector])}
-									prefetched={blockheadWalletAccount}
+								<AccountView
+									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
+									prefetched={account}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

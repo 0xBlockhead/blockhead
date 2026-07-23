@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadActionReadinessCheck>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadActionReadinessCheck>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadActionReadinessCheck>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadActionReadinessCheck = $derived(selection({
+	const blockheadActionReadinessCheck = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			checkKind: true,
+			createdAt: true,
+			capabilityKey: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			checkKind: true,
@@ -50,7 +58,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.checkKind) ?? '')].filter(Boolean).join(' ') || 'blockhead action readiness check')
-	const viewDomId = $derived('blockhead-action-readiness-check-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-action-readiness-check-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,7 +82,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'checkKind') && Object.hasOwn(prefetched, 'capabilityKey') && Object.hasOwn(prefetched, 'createdAt')}
 			{[String((pendingEntity.checkKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadActionReadinessCheck}>
@@ -87,7 +95,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'checkKind') && Object.hasOwn(prefetched, 'capabilityKey') && Object.hasOwn(prefetched, 'createdAt')}
 			{[String((pendingEntity.capabilityKey) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.checkKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadActionReadinessCheck}>
@@ -100,7 +108,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'checkKind') && Object.hasOwn(prefetched, 'capabilityKey') && Object.hasOwn(prefetched, 'createdAt')}
 			{@const createdAt0 = pendingEntity.createdAt}
 			{#if createdAt0 !== undefined && createdAt0 !== null}
 				<span data-text="muted">
@@ -209,7 +217,7 @@
 						<div>
 							<dt>network CAIP-2</dt>
 							<dd>
-								<TruncatedValue value={networkCaip2 == null ? '' : String((`${(networkCaip2).namespace}:${(networkCaip2).reference}`) ?? '')} />
+								<TruncatedValue value={networkCaip2 == null ? '' : String(`${(networkCaip2).namespace}:${(networkCaip2).reference}`)} />
 							</dd>
 						</div>
 					{/if}
@@ -233,7 +241,7 @@
 						<div>
 							<dt>account CAIP-10</dt>
 							<dd>
-								<TruncatedValue value={accountCaip10 == null ? '' : String((`${(accountCaip10).namespace}:${(accountCaip10).reference}:${(accountCaip10).accountAddress}`) ?? '')} />
+								<TruncatedValue value={accountCaip10 == null ? '' : String(`${(accountCaip10).namespace}:${(accountCaip10).reference}:${(accountCaip10).accountAddress}`)} />
 							</dd>
 						</div>
 					{/if}
@@ -441,17 +449,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadActionReadinessCheck_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No readiness observations.'
-				id='BlockheadActionReadinessCheck_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadActionReadinessCheckBlockheadActionReadinessCheckTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadActionReadinessCheckBlockheadActionReadinessCheckTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadActionReadinessCheck_TimestampsView
+					selection={blockheadActionReadinessCheckBlockheadActionReadinessCheckTimestampsViewTimestampsResource}
+					countResource={blockheadActionReadinessCheckBlockheadActionReadinessCheckTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadActionReadinessCheck_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

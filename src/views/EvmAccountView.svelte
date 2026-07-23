@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
@@ -30,7 +31,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmAccount>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmAccount>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmAccount>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -48,7 +49,7 @@
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'EVM account')
-	const viewDomId = $derived('evm-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('evm-account-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,31 +68,30 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.address !== undefined ? resolve('/account/[address=evmAddress]', {
-			address: String(pendingEntity.address ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'address' in selection.entitySelector
+			&& selection.entitySelector.address != null ?
+				resolve('/account/[address=evmAddress]', {
+			address: String(selection.entitySelector.address ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const address0 = pendingEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={evmAccount}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const address0 = resolvedEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmAccount}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const address0 = resolvedEntity.address}
+				{#if address0 !== undefined && address0 !== null}
+					<TruncatedValue value={String((address0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
@@ -225,9 +225,15 @@
 									selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
 									prefetched={ensName}
 									href={
-										(ensName[EntityMetaKey.Selector].name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
+										(
+											ensName[EntityMetaKey.Selector] != null && 'name' in ensName[EntityMetaKey.Selector]
+											&& ensName[EntityMetaKey.Selector].name != null ?
+												resolve('/ens/name/[ensName=stringSegment]', {
 											ensName: encodeURIComponent(String(ensName[EntityMetaKey.Selector].name ?? '')),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -241,55 +247,105 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-identity'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'actor-ens',
-							label: 'Labels',
-						},
-					]
-				}
-				data-card
-				class='actor-view-collapsible-identity'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Identity</HeadingComponent>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									Primary label and owned ENS names are resolver-backed identity evidence for this account.
-								</p>
-							{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-identity'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'actor-ens',
+						label: 'Labels',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='actor-view-collapsible-identity'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Identity</HeadingComponent>
+					<Tooltip contentProps={{ side: 'top' }}>
+						{#snippet Content()}
+							<p>
+								Primary label and owned ENS names are resolver-backed identity evidence for this account.
+							</p>
+						{/snippet}
 
-							<abbr
-								class="entity-heading-tip"
-								aria-label='Identity help'
-							>ⓘ</abbr>
-						</Tooltip>
-					</header>
-				{/snippet}
+						<abbr
+							class="entity-heading-tip"
+							aria-label='Identity help'
+						>ⓘ</abbr>
+					</Tooltip>
+				</header>
+			{/snippet}
 
-				{#snippet SectionActorEns({ id, label, open })}
-					<EnsNamesView
-						selection={selection.$$ensNamesOwned}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No ENS names owned by this account yet.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerActorEns(_context, Content)}
+				{@const identityActorEnsResource = selection.$$ensNamesOwned}
+				<ResourceBoundary
+					resource={identityActorEnsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionActorEns({ id, label, open, active })}
+				{@const identityActorEnsResource = selection.$$ensNamesOwned}
+				<ResourceBoundary
+					resource={identityActorEnsResource}
+				>
+					{#snippet children(ensName)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<EnsNamesView
+								selection={identityActorEnsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No ENS names owned by this account yet.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

@@ -40,7 +40,6 @@
 			providerAssetId: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'coin timestamp' : 'coin timestamp'))
 
 
 	// Components
@@ -50,7 +49,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • coin timestamp • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'coin timestamp' : 'coin timestamp')} • coin timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AtprotoPost>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AtprotoPost>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AtprotoPost>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const atprotoPost = $derived(selection({
+	const atprotoPost = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			text: true,
+			createdAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			text: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.text) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post')
-	const viewDomId = $derived('atproto-post-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('atproto-post-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,20 +77,26 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]', {
-			uri: encodeURIComponent(String(pendingEntity.uri ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'uri' in selection.entitySelector
+			&& selection.entitySelector.uri != null ?
+				resolve('/atproto/post/[...uri=stringSegment]', {
+			uri: encodeURIComponent(String(selection.entitySelector.uri ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const text0 = pendingEntity.text}
-					{#if text0 !== undefined && text0 !== null}
-						<span data-text="long-text">{String((text0) ?? '')}</span>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'text') && Object.hasOwn(prefetched, 'createdAt')}
+			{@const text0 = pendingEntity.text}
+			{#if text0 !== undefined && text0 !== null}
+				<span data-text="long-text">{String((text0) ?? '')}</span>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={atprotoPost}>
 				{#snippet children(entity)}
@@ -98,7 +111,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'text') && Object.hasOwn(prefetched, 'createdAt')}
 			{@const createdAt0 = pendingEntity.createdAt}
 			{#if createdAt0 !== undefined && createdAt0 !== null}
 				<span data-text="muted">
@@ -165,9 +178,15 @@
 										selection={select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector])}
 										prefetched={atprotoActor}
 										href={
-											(atprotoActor[EntityMetaKey.Selector].did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
+											(
+												atprotoActor[EntityMetaKey.Selector] != null && 'did' in atprotoActor[EntityMetaKey.Selector]
+												&& atprotoActor[EntityMetaKey.Selector].did != null ?
+													resolve('/atproto/actor/[did=stringSegment]', {
 												did: encodeURIComponent(String(atprotoActor[EntityMetaKey.Selector].did ?? '')),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -192,9 +211,15 @@
 										selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
 										prefetched={atprotoPost}
 										href={
-											(atprotoPost[EntityMetaKey.Selector].uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]', {
+											(
+												atprotoPost[EntityMetaKey.Selector] != null && 'uri' in atprotoPost[EntityMetaKey.Selector]
+												&& atprotoPost[EntityMetaKey.Selector].uri != null ?
+													resolve('/atproto/post/[...uri=stringSegment]', {
 												uri: encodeURIComponent(String(atprotoPost[EntityMetaKey.Selector].uri ?? '')),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -219,9 +244,15 @@
 										selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
 										prefetched={atprotoPost}
 										href={
-											(atprotoPost[EntityMetaKey.Selector].uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]', {
+											(
+												atprotoPost[EntityMetaKey.Selector] != null && 'uri' in atprotoPost[EntityMetaKey.Selector]
+												&& atprotoPost[EntityMetaKey.Selector].uri != null ?
+													resolve('/atproto/post/[...uri=stringSegment]', {
 												uri: encodeURIComponent(String(atprotoPost[EntityMetaKey.Selector].uri ?? '')),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -359,42 +390,55 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AtprotoPostsView
-				selection={
-						selection.$$thread({
-							sources: [
-								Source.Atproto_Xrpc,
-							],
-							count: true,
-						})
-					}
-				title='Thread posts'
-				href={
-						(selection.entitySelector.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]/thread', {
-							uri: encodeURIComponent(String(selection.entitySelector.uri ?? '')),
-						}) : undefined)
-					}
-				id='AtprotoPostsView-thread'
-			/>
-
-			<AtprotoPost_TimestampsView
-				selection={
-						selection.$$timestamps({
-							sources: [
-								Source.Atproto_Xrpc,
-							],
-							count: true,
-						})
-					}
-				title='Metric observations'
-				href={
-						(selection.entitySelector.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]/observations', {
-							uri: encodeURIComponent(String(selection.entitySelector.uri ?? '')),
-						}) : undefined)
-					}
-				id='AtprotoPost_TimestampsView-timestamps'
-			/>
-		{/if}
+				{@const atprotoPostAtprotoPostsViewThreadResource = selection
+		.$$thread({
+			sources: [
+				Source.Atproto_Xrpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={atprotoPostAtprotoPostsViewThreadResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<AtprotoPostsView
+							selection={atprotoPostAtprotoPostsViewThreadResource}
+							countResource={atprotoPostAtprotoPostsViewThreadResource.count}
+							title='Thread posts'
+							href={
+									(selection.entitySelector != null && 'uri' in selection.entitySelector && selection.entitySelector.uri != null ? resolve('/atproto/post/[...uri=stringSegment]/thread', {
+										uri: encodeURIComponent(String(selection.entitySelector.uri ?? '')),
+									}) : undefined)
+								}
+							id='AtprotoPostsView-thread'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const atprotoPostAtprotoPostTimestampsViewTimestampsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.Atproto_Xrpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={atprotoPostAtprotoPostTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<AtprotoPost_TimestampsView
+							selection={atprotoPostAtprotoPostTimestampsViewTimestampsResource}
+							countResource={atprotoPostAtprotoPostTimestampsViewTimestampsResource.count}
+							title='Metric observations'
+							href={
+									(selection.entitySelector != null && 'uri' in selection.entitySelector && selection.entitySelector.uri != null ? resolve('/atproto/post/[...uri=stringSegment]/observations', {
+										uri: encodeURIComponent(String(selection.entitySelector.uri ?? '')),
+									}) : undefined)
+								}
+							id='AtprotoPost_TimestampsView-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -25,7 +25,7 @@
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: Number(params.chainId),
+					reference: params.chainId,
 				},
 			},
 			address: params.coin,
@@ -45,7 +45,6 @@
 			$spenderContract: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'allowance' : 'allowance'))
 
 
 	// Components
@@ -55,7 +54,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • allowance • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'allowance' : 'allowance')} • allowance • Blockhead</title>
 </svelte:head>
 
 

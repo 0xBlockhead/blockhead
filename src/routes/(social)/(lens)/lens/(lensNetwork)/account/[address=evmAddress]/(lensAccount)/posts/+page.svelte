@@ -40,12 +40,22 @@
 		selection={
 			select(EntityType.LensAccount, {
 				address: params.address,
-			}).$$posts({
-				sources: [
-					Source.Lens_Graphql,
-				],
-				count: true,
 			})
+				.$$posts({
+					sources: [
+						Source.Lens_Graphql,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.LensAccount, {
+				address: params.address,
+			})
+				.$$posts({
+					sources: [
+						Source.Lens_Graphql,
+					],
+				}).count
 		}
 		id='posts'
 		data-column-item="flexible"

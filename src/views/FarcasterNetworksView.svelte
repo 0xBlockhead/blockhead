@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Farcaster',
 		typeAnnotationParagraphs = ['Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from declared Farcaster sources.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FarcasterNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FarcasterNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FarcasterNetworkView from '$/views/FarcasterNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(farcasterNetworks) => [...new Map(farcasterNetworks.values.map((farcasterNetwork) => [farcasterNetwork[EntityMetaKey.SelectorKey], farcasterNetwork])).values()]}
 	getKey={(farcasterNetwork) => farcasterNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,14 +87,24 @@
 
 	{#snippet Item({ item: farcasterNetwork })}
 		{@const farcasterNetworkFields = { ...farcasterNetwork[EntityMetaKey.Selector], ...farcasterNetwork }}
-		{@const selection = select(EntityType.FarcasterNetwork, farcasterNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const farcasterNetworkHrefFields = { ...farcasterNetwork, ...farcasterNetwork[EntityMetaKey.Selector] }}
-		<FarcasterNetworkView
-			selection={selection}
-			prefetched={farcasterNetworkFields}
-			href={(farcasterNetwork[EntityMetaKey.Selector].scope === 'FarcasterNetwork' ? resolve('/farcaster') : undefined)}
+		<EntityView
+			entityType={EntityType.FarcasterNetwork}
+			entitySelector={farcasterNetwork[EntityMetaKey.Selector]}
+			href={
+				(
+					farcasterNetwork[EntityMetaKey.Selector].scope === 'FarcasterNetwork' ?
+						resolve('/farcaster')
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((farcasterNetworkFields.protocolName) ?? '')].filter(Boolean).join(' ') || 'Farcaster'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

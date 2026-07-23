@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'State channel states',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadStateChannelState>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadStateChannelState>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadStateChannelStateView from '$/views/BlockheadStateChannelStateView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadStateChannelStates) => [...new Map(blockheadStateChannelStates.values.map((blockheadStateChannelState) => [blockheadStateChannelState[EntityMetaKey.SelectorKey], blockheadStateChannelState])).values()]}
 	getKey={(blockheadStateChannelState) => blockheadStateChannelState[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadStateChannelState })}
 		{@const blockheadStateChannelStateFields = { ...blockheadStateChannelState[EntityMetaKey.Selector], ...blockheadStateChannelState }}
-		{@const selection = select(EntityType.BlockheadStateChannelState, blockheadStateChannelState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadStateChannelStateView
-			selection={selection}
-			prefetched={blockheadStateChannelStateFields}
+		<EntityView
+			entityType={EntityType.BlockheadStateChannelState}
+			entitySelector={blockheadStateChannelState[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadStateChannelStateFields.version) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel state'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadStateChannelStateFields.isFinal) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadStateChannelStateFields.timestamp) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -29,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NostrProfile>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NostrProfile>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NostrProfile>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,30 +43,26 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nostrProfile = $derived(selection({
+	const nostrProfile = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
 		sources: selection.sources,
-		fields: {
-			displayName: true,
-			about: true,
-			nip05: true,
-			website: true,
-			metadataUpdatedAt: true,
-		},
+		fields: {},
+	} : {
+		sources: selection.sources,
 	}))
-	const titleFallback = $derived([String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile')
-	const viewDomId = $derived('nostr-profile-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile')
+	const viewDomId = $derived('nostr-profile-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import NostrProfileMetadataEventsView from '$/views/NostrProfileMetadataEventsView.svelte'
+	import NostrProfileMetadataEventView from '$/views/NostrProfileMetadataEventView.svelte'
 	import NostrNotesView from '$/views/NostrNotesView.svelte'
 	import NostrArticlesView from '$/views/NostrArticlesView.svelte'
 	import NostrRepostsView from '$/views/NostrRepostsView.svelte'
-	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -76,42 +72,48 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.pubkey !== undefined ? resolve('/nostr/profile/[pubkey=stringSegment]', {
-			pubkey: String(pendingEntity.pubkey ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'pubkey' in selection.entitySelector
+			&& selection.entitySelector.pubkey != null ?
+				resolve('/nostr/profile/[pubkey=stringSegment]', {
+			pubkey: String(selection.entitySelector.pubkey ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-
-	{#snippet Icon()}
+	{#snippet Title()}
 		<ResourceBoundary resource={nostrProfile}>
 			{#snippet children(entity)}
-				{@const reference = entity.$icon}
-				{#if reference?.[EntityMetaKey.Selector] !== undefined}
-					<MediaView
-						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
-						prefetched={reference}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/if}
+				<ResourceBoundary
+					resource={
+						selection
+							.$latestMetadataEvent({
+								sources: [
+									Source.NostrBand_Rest,
+									Source.Primal_Rest,
+								],
+							})
+					}
+				>
+					{#snippet children(nostrProfileMetadataEvent)}
+						{#if nostrProfileMetadataEvent != null && nostrProfileMetadataEvent[EntityMetaKey.Selector] != null}
+							<NostrProfileMetadataEventView
+								selection={select(EntityType.NostrProfileMetadataEvent, nostrProfileMetadataEvent[EntityMetaKey.Selector])}
+								prefetched={nostrProfileMetadataEvent}
+								href=""
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nostrProfile}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -122,283 +124,379 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
+			<div>
+				<dt>Pubkey</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									pubkey: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const pubkey = resolvedEntity.pubkey}
+							{#if pubkey !== undefined && pubkey !== null}
+								<TruncatedValue value={String((pubkey) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							displayName: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const displayName = resolvedEntity.displayName}
-					{#if displayName !== undefined && displayName !== null}
-						<div>
-							<dt>Display name</dt>
-							<dd>
-								{String((displayName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							about: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const about = resolvedEntity.about}
-					{#if about !== undefined && about !== null}
-						<div>
-							<dt>About</dt>
-							<dd>
-								<span data-text="long-text">{String((about) ?? '')}</span>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							nip05: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nip05 = resolvedEntity.nip05}
-					{#if nip05 !== undefined && nip05 !== null}
-						<div>
-							<dt>NIP-05</dt>
-							<dd>
-								{String((nip05) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			{#if contentOpen}
-				<div>
-					<dt>Pubkey</dt>
-					<dd>
-						<ResourceBoundary
-							resource={
-								selection({
-									sources: selection.sources,
-									fields: {
-										pubkey: true,
-									},
-								})
-							}
-						>
-							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const pubkey = resolvedEntity.pubkey}
-								{#if pubkey !== undefined && pubkey !== null}
-									<TruncatedValue value={String((pubkey) ?? '')} />
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={
-						selection({
-							sources: selection.sources,
-							fields: {
-								website: true,
-							},
+					selection
+						.$latestMetadataEvent({
+							sources: [
+								Source.NostrBand_Rest,
+								Source.Primal_Rest,
+							],
 						})
-					}
-				>
-					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const website = resolvedEntity.website}
-						{#if website !== undefined && website !== null}
-							<div>
-								<dt>Website</dt>
-								<dd>
-									<svelte:element
-										this={'a'}
-										href={String(website)}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue value={String(website)} />
-									</svelte:element>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={
-						selection({
-							sources: selection.sources,
-							fields: {
-								metadataUpdatedAt: true,
-							},
-						})
-					}
-				>
-					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const metadataUpdatedAt = resolvedEntity.metadataUpdatedAt}
-						{#if metadataUpdatedAt !== undefined && metadataUpdatedAt !== null}
-							<div>
-								<dt>Metadata updated</dt>
-								<dd>
-									<Timestamp timestamp={Number(metadataUpdatedAt)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
+				}
+			>
+				{#snippet children(nostrProfileMetadataEvent)}
+					{#if nostrProfileMetadataEvent != null && nostrProfileMetadataEvent[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>Latest signed metadata</dt>
+							<dd>
+								<NostrProfileMetadataEventView
+									selection={select(EntityType.NostrProfileMetadataEvent, nostrProfileMetadataEvent[EntityMetaKey.Selector])}
+									prefetched={nostrProfileMetadataEvent}
+									href={
+										(
+											nostrProfileMetadataEvent[EntityMetaKey.Selector] != null && 'eventId' in nostrProfileMetadataEvent[EntityMetaKey.Selector]
+											&& nostrProfileMetadataEvent[EntityMetaKey.Selector].eventId != null ?
+												resolve('/nostr/profile-metadata-version/[eventId=stringSegment]', {
+											eventId: String(nostrProfileMetadataEvent[EntityMetaKey.Selector].eventId ?? ''),
+										})
+										:
+												undefined
+										)
+									}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-nostr-profile-content'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'nostr-profile-notes',
-							label: 'Notes',
-						},
-						{
-							id: 'nostr-profile-articles',
-							label: 'Articles',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-content'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Notes and articles</HeadingComponent>
-					</header>
-				{/snippet}
+				{@const nostrProfileNostrProfileMetadataEventsViewMetadataEventsResource = selection
+		.$$metadataEvents({
+			sources: [
+				Source.NostrBand_Rest,
+				Source.Primal_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={nostrProfileNostrProfileMetadataEventsViewMetadataEventsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<NostrProfileMetadataEventsView
+							selection={nostrProfileNostrProfileMetadataEventsViewMetadataEventsResource}
+							countResource={nostrProfileNostrProfileMetadataEventsViewMetadataEventsResource.count}
+							title='Signed metadata history'
+							id='NostrProfileMetadataEventsView-metadata-events'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-				{#snippet SectionNostrProfileNotes({ id, label, open })}
-					<NostrNotesView
-						selection={
-							selection.$$notes({
-								sources: [
-									Source.Constants_Internal,
-									Source.NostrBand_Rest,
-								],
-							})
-						}
-						href={resolve('/nostr/notes')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No notes in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-nostr-profile-content'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'nostr-profile-notes',
+								label: 'Notes',
+								ownsSection: true,
+							},
+							{
+								id: 'nostr-profile-articles',
+								label: 'Articles',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-content'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Notes and articles</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet SectionNostrProfileArticles({ id, label, open })}
-					<NostrArticlesView
-						selection={
-							selection.$$articles({
-								sources: [
-									Source.Constants_Internal,
-									Source.NostrBand_Rest,
-								],
-							})
-						}
-						href={resolve('/nostr/articles')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No articles in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet MarkerNostrProfileNotes(_context, Content)}
+						{@const nostrProfileContentNostrProfileNotesResource = selection
+		.$$notes({
+			sources: [
+				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={nostrProfileContentNostrProfileNotesResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
 
-			</CollapsibleTabs>
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-nostr-profile-engagement'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'nostr-profile-reposts',
-							label: 'Reposts',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-engagement'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Engagement</HeadingComponent>
-					</header>
-				{/snippet}
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
 
-				{#snippet SectionNostrProfileReposts({ id, label, open })}
-					<NostrRepostsView
-						selection={
-							selection.$$reposts({
-								sources: [
-									Source.Constants_Internal,
-									Source.NostrBand_Rest,
-								],
-							})
-						}
-						href={resolve('/nostr/reposts')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No reposts in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet SectionNostrProfileNotes({ id, label, open, active })}
+						{@const nostrProfileContentNostrProfileNotesResource = selection
+		.$$notes({
+			sources: [
+				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={nostrProfileContentNostrProfileNotesResource}
+						>
+							{#snippet children(nostrNote)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<NostrNotesView
+										selection={nostrProfileContentNostrProfileNotesResource}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No notes in this observed.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet MarkerNostrProfileArticles(_context, Content)}
+						{@const nostrProfileContentNostrProfileArticlesResource = selection
+		.$$articles({
+			sources: [
+				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={nostrProfileContentNostrProfileArticlesResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionNostrProfileArticles({ id, label, open, active })}
+						{@const nostrProfileContentNostrProfileArticlesResource = selection
+		.$$articles({
+			sources: [
+				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={nostrProfileContentNostrProfileArticlesResource}
+						>
+							{#snippet children(nostrArticle)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<NostrArticlesView
+										selection={nostrProfileContentNostrProfileArticlesResource}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No articles in this observed.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
+
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-nostr-profile-engagement'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'nostr-profile-reposts',
+								label: 'Reposts',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-engagement'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Engagement</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet MarkerNostrProfileReposts(_context, Content)}
+						{@const nostrProfileEngagementNostrProfileRepostsResource = selection
+		.$$reposts({
+			sources: [
+				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={nostrProfileEngagementNostrProfileRepostsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionNostrProfileReposts({ id, label, open, active })}
+						{@const nostrProfileEngagementNostrProfileRepostsResource = selection
+		.$$reposts({
+			sources: [
+				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+			],
+		})}
+						<ResourceBoundary
+							resource={nostrProfileEngagementNostrProfileRepostsResource}
+						>
+							{#snippet children(nostrRepost)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<NostrRepostsView
+										selection={nostrProfileEngagementNostrProfileRepostsResource}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No reposts in this observed.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
 	{/snippet}
 </EntityView>

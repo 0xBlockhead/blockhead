@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmProtocol>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmProtocol>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmProtocol>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,7 +38,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmProtocol = $derived(selection({
+	const evmProtocol = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			protocolName: true,
+			registryName: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			protocolName: true,
@@ -46,7 +53,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'EVM protocol')
-	const viewDomId = $derived('evm-protocol-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('evm-protocol-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,13 +72,20 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? (pendingEntity.scope === 'EvmProtocol' ? resolve('/evm') : undefined)}
+	href={
+		href ?? (
+			selection.entitySelector.scope === 'EvmProtocol' ?
+				resolve('/evm')
+		:
+				undefined
+		)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName') && Object.hasOwn(prefetched, 'registryName')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={evmProtocol}>
@@ -84,7 +98,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName') && Object.hasOwn(prefetched, 'registryName')}
 			{[String((pendingEntity.registryName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={evmProtocol}>
@@ -241,102 +255,256 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-evm-protocol-signatures'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'evm-protocol-selectors',
-							label: 'Selectors',
-						},
-						{
-							id: 'evm-protocol-topics',
-							label: 'Topics',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-signatures'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Signatures</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-evm-protocol-signatures'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'evm-protocol-selectors',
+						label: 'Selectors',
+						ownsSection: true,
+					},
+					{
+						id: 'evm-protocol-topics',
+						label: 'Topics',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-signatures'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Signatures</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionEvmProtocolSelectors({ id, label, open })}
-					<EvmSelectorsView
-						selection={selection.$$evmSelectors}
-						href={resolve('/evm/selectors')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No EVM selectors in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerEvmProtocolSelectors(_context, Content)}
+				{@const evmProtocolSignaturesEvmProtocolSelectorsResource = selection.$$evmSelectors}
+				<ResourceBoundary
+					resource={evmProtocolSignaturesEvmProtocolSelectorsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionEvmProtocolTopics({ id, label, open })}
-					<EvmTopicsView
-						selection={selection.$$evmTopics}
-						href={resolve('/evm/topics')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No EVM topics in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-evm-protocol-errors'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'evm-protocol-error-list',
-							label: 'Errors',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-errors'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Errors</HeadingComponent>
-					</header>
-				{/snippet}
+			{#snippet SectionEvmProtocolSelectors({ id, label, open, active })}
+				{@const evmProtocolSignaturesEvmProtocolSelectorsResource = selection.$$evmSelectors}
+				<ResourceBoundary
+					resource={evmProtocolSignaturesEvmProtocolSelectorsResource}
+				>
+					{#snippet children(evmSelector)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<EvmSelectorsView
+								selection={evmProtocolSignaturesEvmProtocolSelectorsResource}
+								href={resolve('/evm/selectors')}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No EVM selectors in this observed.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-				{#snippet SectionEvmProtocolErrorList({ id, label, open })}
-					<EvmErrorsView
-						selection={selection.$$evmErrors}
-						href={resolve('/evm/errors')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No EVM errors in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerEvmProtocolTopics(_context, Content)}
+				{@const evmProtocolSignaturesEvmProtocolTopicsResource = selection.$$evmTopics}
+				<ResourceBoundary
+					resource={evmProtocolSignaturesEvmProtocolTopicsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionEvmProtocolTopics({ id, label, open, active })}
+				{@const evmProtocolSignaturesEvmProtocolTopicsResource = selection.$$evmTopics}
+				<ResourceBoundary
+					resource={evmProtocolSignaturesEvmProtocolTopicsResource}
+				>
+					{#snippet children(evmTopic)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<EvmTopicsView
+								selection={evmProtocolSignaturesEvmProtocolTopicsResource}
+								href={resolve('/evm/topics')}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No EVM topics in this observed.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-evm-protocol-errors'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'evm-protocol-error-list',
+						label: 'Errors',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-errors'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Errors</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerEvmProtocolErrorList(_context, Content)}
+				{@const evmProtocolErrorsEvmProtocolErrorListResource = selection.$$evmErrors}
+				<ResourceBoundary
+					resource={evmProtocolErrorsEvmProtocolErrorListResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionEvmProtocolErrorList({ id, label, open, active })}
+				{@const evmProtocolErrorsEvmProtocolErrorListResource = selection.$$evmErrors}
+				<ResourceBoundary
+					resource={evmProtocolErrorsEvmProtocolErrorListResource}
+				>
+					{#snippet children(evmError)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<EvmErrorsView
+								selection={evmProtocolErrorsEvmProtocolErrorListResource}
+								href={resolve('/evm/errors')}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No EVM errors in this observed.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

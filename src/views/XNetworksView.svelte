@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'X',
 		typeAnnotationParagraphs = ['X profiles and posts surfaced through declared public HTTP sources.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.XNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.XNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import XNetworkView from '$/views/XNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(xNetworks) => [...new Map(xNetworks.values.map((xNetwork) => [xNetwork[EntityMetaKey.SelectorKey], xNetwork])).values()]}
 	getKey={(xNetwork) => xNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,14 +87,24 @@
 
 	{#snippet Item({ item: xNetwork })}
 		{@const xNetworkFields = { ...xNetwork[EntityMetaKey.Selector], ...xNetwork }}
-		{@const selection = select(EntityType.XNetwork, xNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const xNetworkHrefFields = { ...xNetwork, ...xNetwork[EntityMetaKey.Selector] }}
-		<XNetworkView
-			selection={selection}
-			prefetched={xNetworkFields}
-			href={(xNetwork[EntityMetaKey.Selector].scope === 'XNetwork' ? resolve('/x') : undefined)}
+		<EntityView
+			entityType={EntityType.XNetwork}
+			entitySelector={xNetwork[EntityMetaKey.Selector]}
+			href={
+				(
+					xNetwork[EntityMetaKey.Selector].scope === 'XNetwork' ?
+						resolve('/x')
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((xNetworkFields.protocolName) ?? '')].filter(Boolean).join(' ') || 'X'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

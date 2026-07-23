@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadCashuMintQuote>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadCashuMintQuote>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadCashuMintQuote>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadCashuMintQuote = $derived(selection({
+	const blockheadCashuMintQuote = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			amount: true,
+			unit: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			amount: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu mint quote')
-	const viewDomId = $derived('blockhead-cashu-mint-quote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-cashu-mint-quote-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,7 +78,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'unit')}
 			{[String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadCashuMintQuote}>
@@ -84,15 +91,15 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const amount0 = pendingEntity.amount}
-					{#if amount0 !== undefined && amount0 !== null}
-						<NumberValue
-							value={amount0}
-						/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'unit')}
+			{@const amount0 = pendingEntity.amount}
+			{#if amount0 !== undefined && amount0 !== null}
+				<NumberValue
+					value={amount0}
+				/>
 
-						<span>{pendingEntity.unit == null ? '' : ` ${String(pendingEntity.unit)}`}</span>
-					{/if}
+				<span>{pendingEntity.unit == null ? '' : ` ${String(pendingEntity.unit)}`}</span>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadCashuMintQuote}>
 				{#snippet children(entity)}
@@ -116,7 +123,7 @@
 				<dt>mint</dt>
 				<dd>
 					<CashuMintView
-						selection={select(EntityType.CashuMint, selection.entitySelector.$mint, {})}
+						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -249,17 +256,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadCashuMintQuote_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='BlockheadCashuMintQuote_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadCashuMintQuote_TimestampsView
+					selection={blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource}
+					countResource={blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadCashuMintQuote_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

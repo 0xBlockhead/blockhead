@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LitecoinMwebOutput>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LitecoinMwebOutput>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LitecoinMwebOutput>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const litecoinMwebOutput = $derived(selection({
+	const litecoinMwebOutput = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			commitment: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			commitment: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.commitment) ?? '')].filter(Boolean).join(' ') || 'litecoin MWEB output')
-	const viewDomId = $derived('litecoin-mweb-output-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('litecoin-mweb-output-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,7 +74,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'commitment') && Object.hasOwn(prefetched, '$transaction') && prefetched.$transaction != null && Object.hasOwn(prefetched.$transaction, '$mwebBlock') && prefetched.$transaction.$mwebBlock != null && Object.hasOwn(prefetched.$transaction.$mwebBlock, '$block') && prefetched.$transaction.$mwebBlock.$block != null && Object.hasOwn(prefetched.$transaction.$mwebBlock.$block, 'hash') && Object.hasOwn(prefetched.$transaction.$mwebBlock.$block, 'transactionCount') && Object.hasOwn(prefetched.$transaction.$mwebBlock, 'hogExTransactionId') && Object.hasOwn(prefetched.$transaction.$mwebBlock, 'kernelRoot') && Object.hasOwn(prefetched.$transaction, 'kernelOffset')}
 			{[String((pendingEntity.commitment) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={litecoinMwebOutput}>
@@ -81,13 +87,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const outputIndex0 = pendingEntity.outputIndex}
-					{#if outputIndex0 !== undefined && outputIndex0 !== null}
-						<NumberValue
-							value={outputIndex0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'commitment') && Object.hasOwn(prefetched, '$transaction') && prefetched.$transaction != null && Object.hasOwn(prefetched.$transaction, '$mwebBlock') && prefetched.$transaction.$mwebBlock != null && Object.hasOwn(prefetched.$transaction.$mwebBlock, '$block') && prefetched.$transaction.$mwebBlock.$block != null && Object.hasOwn(prefetched.$transaction.$mwebBlock.$block, 'hash') && Object.hasOwn(prefetched.$transaction.$mwebBlock.$block, 'transactionCount') && Object.hasOwn(prefetched.$transaction.$mwebBlock, 'hogExTransactionId') && Object.hasOwn(prefetched.$transaction.$mwebBlock, 'kernelRoot') && Object.hasOwn(prefetched.$transaction, 'kernelOffset')}
+			{@const outputIndex0 = pendingEntity.outputIndex}
+			{#if outputIndex0 !== undefined && outputIndex0 !== null}
+				<NumberValue
+					value={outputIndex0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={litecoinMwebOutput}>
 				{#snippet children(entity)}
@@ -109,7 +115,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<LitecoinMwebTransactionView
-						selection={select(EntityType.LitecoinMwebTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.LitecoinMwebTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

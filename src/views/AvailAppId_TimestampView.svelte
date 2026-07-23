@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AvailAppId_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AvailAppId_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvailAppId_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const availAppIdTimestamp = $derived(selection({
+	const availAppIdTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			dataSubmissionCount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			dataSubmissionCount: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'avail app ID timestamp')
-	const viewDomId = $derived('avail-app-id-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('avail-app-id-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,11 +75,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'dataSubmissionCount')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={availAppIdTimestamp}>
 				{#snippet children(entity)}
@@ -88,13 +94,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const dataSubmissionCount0 = pendingEntity.dataSubmissionCount}
-					{#if dataSubmissionCount0 !== undefined && dataSubmissionCount0 !== null}
-						<NumberValue
-							value={dataSubmissionCount0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'dataSubmissionCount')}
+			{@const dataSubmissionCount0 = pendingEntity.dataSubmissionCount}
+			{#if dataSubmissionCount0 !== undefined && dataSubmissionCount0 !== null}
+				<NumberValue
+					value={dataSubmissionCount0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={availAppIdTimestamp}>
 				{#snippet children(entity)}
@@ -111,7 +117,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'dataSubmissionCount')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -139,7 +145,7 @@
 				<dt>app ID</dt>
 				<dd>
 					<AvailAppIdView
-						selection={select(EntityType.AvailAppId, selection.entitySelector.$appId, {})}
+						selection={select(EntityType.AvailAppId, selection.entitySelector.$appId)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

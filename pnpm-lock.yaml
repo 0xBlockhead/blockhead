@@ -8,6 +8,9 @@ overrides:
   '@napi-rs/wasm-runtime': 1.1.5
   cookie: 0.7.2
 
+patchedDependencies:
+  '@tanstack/db-sqlite-persistence-core@0.1.11': 4954fffb916188a485a0c83a3b5755f03dd92a599467180004047049119a5831
+
 importers:
 
   .:
@@ -24,6 +27,12 @@ importers:
       '@journeyapps/wa-sqlite':
         specifier: 1.7.0
         version: 1.7.0
+      '@noble/curves':
+        specifier: 2.2.0
+        version: 2.2.0
+      '@scure/base':
+        specifier: 2.2.0
+        version: 2.2.0
       '@tanstack/browser-db-sqlite-persistence':
         specifier: ^0.1.11
         version: 0.1.11(@journeyapps/wa-sqlite@1.7.0)(typescript@6.0.3)
@@ -32,7 +41,7 @@ importers:
         version: 0.6.7(typescript@6.0.3)
       '@tanstack/db-sqlite-persistence-core':
         specifier: ^0.1.11
-        version: 0.1.11(typescript@6.0.3)
+        version: 0.1.11(patch_hash=4954fffb916188a485a0c83a3b5755f03dd92a599467180004047049119a5831)(typescript@6.0.3)
       '@tanstack/query-core':
         specifier: ^5.100.14
         version: 5.100.14
@@ -3596,7 +3605,7 @@ snapshots:
   '@tanstack/browser-db-sqlite-persistence@0.1.11(@journeyapps/wa-sqlite@1.7.0)(typescript@6.0.3)':
     dependencies:
       '@journeyapps/wa-sqlite': 1.7.0
-      '@tanstack/db-sqlite-persistence-core': 0.1.11(typescript@6.0.3)
+      '@tanstack/db-sqlite-persistence-core': 0.1.11(patch_hash=4954fffb916188a485a0c83a3b5755f03dd92a599467180004047049119a5831)(typescript@6.0.3)
       typescript: 6.0.3
 
   '@tanstack/db-ivm@0.1.18(typescript@6.0.3)':
@@ -3605,7 +3614,7 @@ snapshots:
       sorted-btree: 1.8.1
       typescript: 6.0.3
 
-  '@tanstack/db-sqlite-persistence-core@0.1.11(typescript@6.0.3)':
+  '@tanstack/db-sqlite-persistence-core@0.1.11(patch_hash=4954fffb916188a485a0c83a3b5755f03dd92a599467180004047049119a5831)(typescript@6.0.3)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@tanstack/db': 0.6.7(typescript@6.0.3)

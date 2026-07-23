@@ -35,7 +35,6 @@
 			error: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'RSS item observation' : 'RSS item observation')))
 
 
 	// Components
@@ -45,7 +44,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • RSS item observation • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'RSS item observation' : 'RSS item observation'))} • RSS item observation • Blockhead</title>
 </svelte:head>
 
 

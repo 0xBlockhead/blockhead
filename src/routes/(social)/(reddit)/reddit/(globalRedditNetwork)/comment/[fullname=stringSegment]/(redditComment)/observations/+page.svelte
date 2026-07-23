@@ -40,12 +40,22 @@
 		selection={
 			select(EntityType.RedditComment, {
 				fullname: decodeURIComponent(params.fullname),
-			}).$$timestamps({
-				sources: [
-					Source.Reddit_PublicJson,
-				],
-				count: true,
 			})
+				.$$timestamps({
+					sources: [
+						Source.Reddit_PublicJson,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.RedditComment, {
+				fullname: decodeURIComponent(params.fullname),
+			})
+				.$$timestamps({
+					sources: [
+						Source.Reddit_PublicJson,
+					],
+				}).count
 		}
 		id='timestamps'
 		data-column-item="flexible"

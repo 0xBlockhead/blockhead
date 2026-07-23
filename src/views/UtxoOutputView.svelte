@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.UtxoOutput>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.UtxoOutput>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.UtxoOutput>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const utxoOutput = $derived(selection({
+	const utxoOutput = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			isSpent: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			isSpent: true,
 		},
 	}))
 	const titleFallback = $derived((String((pendingEntity.indexInTransaction) ?? '') ? 'Output #' + String((pendingEntity.indexInTransaction) ?? '') : '') || 'UTXO output')
-	const viewDomId = $derived('utxo-output-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('utxo-output-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,15 +76,33 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.indexInTransaction ?? '')}
 	href={
-		href ?? (pendingEntity.indexInTransaction !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.txId !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
-			outputIndex: String(pendingEntity.indexInTransaction ?? ''),
-			transactionId: String(pendingEntity.$transaction.txId ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$transaction.$network.caip2) ?? ''),
-		}) : pendingEntity.indexInTransaction !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.txId !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
-			outputIndex: String(pendingEntity.indexInTransaction ?? ''),
-			transactionId: String(pendingEntity.$transaction.txId ?? ''),
-			network: String(pendingEntity.$transaction.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'indexInTransaction' in selection.entitySelector
+			&& selection.entitySelector.indexInTransaction != null
+			&& selection.entitySelector != null && '$transaction' in selection.entitySelector
+			&& selection.entitySelector.$transaction != null && 'txId' in selection.entitySelector.$transaction
+			&& selection.entitySelector.$transaction.txId != null
+			&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
+				selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+				&& selection.entitySelector.$transaction.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+				outputIndex: String(selection.entitySelector.indexInTransaction ?? ''),
+				transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+					&& selection.entitySelector.$transaction.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+					outputIndex: String(selection.entitySelector.indexInTransaction ?? ''),
+					transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+					network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -106,80 +130,57 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<ResourceBoundary
-				resource={selection.$address}
-			>
-				{#snippet children(utxoAddress)}
-					{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
-						<span data-text="muted">
-							<UtxoAddressView
-								selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
-								prefetched={utxoAddress}
-								href={
-									(utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-										address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
-										network: String(caip2StringFromValue(utxoAddress[EntityMetaKey.Selector].$network.caip2) ?? ''),
-									}) : utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-										address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
-										network: String(utxoAddress[EntityMetaKey.Selector].$network.slug ?? ''),
-									}) : undefined)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{:else}
-						<span data-text="muted">Unavailable</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-			{@const isSpent1 = pendingEntity.isSpent}
-			{#if isSpent1 !== undefined && isSpent1 !== null}
-				<span data-text="muted">
-					{isSpent1 ? 'Yes' : 'No'}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={utxoOutput}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$address}
-					>
-						{#snippet children(utxoAddress)}
-							{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
-								<span data-text="muted">
-									<UtxoAddressView
-										selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
-										prefetched={utxoAddress}
-										href={
-											(utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+		<ResourceBoundary resource={utxoOutput}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<ResourceBoundary
+					resource={selection.$address}
+				>
+					{#snippet children(utxoAddress)}
+						{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<UtxoAddressView
+									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
+									prefetched={utxoAddress}
+									href={
+										(
+											utxoAddress[EntityMetaKey.Selector] != null && 'address' in utxoAddress[EntityMetaKey.Selector]
+											&& utxoAddress[EntityMetaKey.Selector].address != null
+											&& utxoAddress[EntityMetaKey.Selector] != null && '$network' in utxoAddress[EntityMetaKey.Selector] ?
+												utxoAddress[EntityMetaKey.Selector].$network != null && 'caip2' in utxoAddress[EntityMetaKey.Selector].$network
+												&& utxoAddress[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
 												address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
 												network: String(caip2StringFromValue(utxoAddress[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											}) : utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-												address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
-												network: String(utxoAddress[EntityMetaKey.Selector].$network.slug ?? ''),
-											}) : undefined)
-										}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
-								</span>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-					{@const isSpent1 = resolvedEntity.isSpent}
-					{#if isSpent1 !== undefined && isSpent1 !== null}
-						<span data-text="muted">
-							{isSpent1 ? 'Yes' : 'No'}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+											})
+											:
+													utxoAddress[EntityMetaKey.Selector].$network != null && 'slug' in utxoAddress[EntityMetaKey.Selector].$network
+													&& utxoAddress[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+													address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
+													network: String(utxoAddress[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const isSpent1 = resolvedEntity.isSpent}
+				{#if isSpent1 !== undefined && isSpent1 !== null}
+					<span data-text="muted">
+						{isSpent1 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -248,13 +249,28 @@
 									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
 									prefetched={utxoAddress}
 									href={
-										(utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-											address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
-											network: String(caip2StringFromValue(utxoAddress[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : utxoAddress[EntityMetaKey.Selector].address !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-											address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
-											network: String(utxoAddress[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											utxoAddress[EntityMetaKey.Selector] != null && 'address' in utxoAddress[EntityMetaKey.Selector]
+											&& utxoAddress[EntityMetaKey.Selector].address != null
+											&& utxoAddress[EntityMetaKey.Selector] != null && '$network' in utxoAddress[EntityMetaKey.Selector] ?
+												utxoAddress[EntityMetaKey.Selector].$network != null && 'caip2' in utxoAddress[EntityMetaKey.Selector].$network
+												&& utxoAddress[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+												address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
+												network: String(caip2StringFromValue(utxoAddress[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													utxoAddress[EntityMetaKey.Selector].$network != null && 'slug' in utxoAddress[EntityMetaKey.Selector].$network
+													&& utxoAddress[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+													address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
+													network: String(utxoAddress[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -553,15 +569,30 @@
 				<dt>Transaction</dt>
 				<dd>
 					<UtxoTransactionView
-						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction)}
 						href={
-							(selection.entitySelector.$transaction.txId !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$transaction.txId !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
-								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$transaction != null && 'txId' in selection.entitySelector.$transaction
+								&& selection.entitySelector.$transaction.txId != null
+								&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
+									selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+									&& selection.entitySelector.$transaction.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+									transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+										&& selection.entitySelector.$transaction.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+										transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+										network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

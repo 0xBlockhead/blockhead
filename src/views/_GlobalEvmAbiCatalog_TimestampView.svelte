@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType._GlobalEvmAbiCatalog_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType._GlobalEvmAbiCatalog_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType._GlobalEvmAbiCatalog_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalEvmAbiCatalogTimestamp = $derived(selection({
+	const globalEvmAbiCatalogTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('global EVM ABI catalog timestamp')
-	const viewDomId = $derived('-global-evm-abi-catalog-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'global EVM ABI catalog timestamp'
+	const viewDomId = $derived('-global-evm-abi-catalog-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,18 +70,23 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<GlobalEvmAbiCatalogView
-						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$hub') && prefetched.$hub != null}
+			{@const globalEvmAbiCatalog0 = pendingEntity.$hub}
+			{#if globalEvmAbiCatalog0 != null && selection.entitySelector.$hub != null}
+				<GlobalEvmAbiCatalogView
+					selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub, { sources: selection.sources })}
+					prefetched={globalEvmAbiCatalog0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={globalEvmAbiCatalogTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<GlobalEvmAbiCatalogView
 						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -87,11 +96,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$hub') && prefetched.$hub != null}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={globalEvmAbiCatalogTimestamp}>
 				{#snippet children(entity)}
@@ -111,7 +120,7 @@
 				<dt>hub</dt>
 				<dd>
 					<GlobalEvmAbiCatalogView
-						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub, {})}
+						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

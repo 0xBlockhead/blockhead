@@ -23,7 +23,6 @@
 			url: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.host) ?? '')].filter(Boolean).join(' ') || 'MEV relay' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).host) ?? '')].filter(Boolean).join(' ') || 'MEV relay')))
 
 
 	// Components
@@ -33,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • MEV relay • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.host) ?? '')].filter(Boolean).join(' ') || 'MEV relay' : [String((({ ...data.selector, ...pageSelection.entity }).host) ?? '')].filter(Boolean).join(' ') || 'MEV relay'))} • MEV relay • Blockhead</title>
 </svelte:head>
 
 

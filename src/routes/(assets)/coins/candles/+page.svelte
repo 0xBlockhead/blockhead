@@ -29,13 +29,24 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$marketTimeIntervalTimestamps',
-			}).$$marketTimeIntervalTimestamps({
-				sources: [
-					Source.Constants_Internal,
-				],
-				limit: 256,
-				count: true,
 			})
+				.$$marketTimeIntervalTimestamps({
+					sources: [
+						Source.Constants_Internal,
+					],
+					limit: 256,
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$marketTimeIntervalTimestamps',
+			})
+				.$$marketTimeIntervalTimestamps({
+					sources: [
+						Source.Constants_Internal,
+					],
+					limit: 256,
+				}).count
 		}
 		id='market-time-interval-timestamps'
 		data-column-item="flexible"

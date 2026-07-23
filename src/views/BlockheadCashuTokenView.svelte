@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadCashuToken>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadCashuToken>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadCashuToken>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadCashuToken = $derived(selection({
+	const blockheadCashuToken = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			status: true,
+			totalAmount: true,
+			unit: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			status: true,
@@ -49,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu token')
-	const viewDomId = $derived('blockhead-cashu-token-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-cashu-token-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,7 +81,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'totalAmount') && Object.hasOwn(prefetched, 'unit')}
 			{[String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadCashuToken}>
@@ -86,19 +94,19 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const status0 = pendingEntity.status}
-					{#if status0 !== undefined && status0 !== null}
-						{String((status0) ?? '')}
-					{/if}
-					{@const totalAmount1 = pendingEntity.totalAmount}
-					{#if totalAmount1 !== undefined && totalAmount1 !== null}
-						<NumberValue
-							value={totalAmount1}
-						/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'totalAmount') && Object.hasOwn(prefetched, 'unit')}
+			{@const status0 = pendingEntity.status}
+			{#if status0 !== undefined && status0 !== null}
+				{String((status0) ?? '')}
+			{/if}
+			{@const totalAmount1 = pendingEntity.totalAmount}
+			{#if totalAmount1 !== undefined && totalAmount1 !== null}
+				<NumberValue
+					value={totalAmount1}
+				/>
 
-						<span>{pendingEntity.unit == null ? '' : ` ${String(pendingEntity.unit)}`}</span>
-					{/if}
+				<span>{pendingEntity.unit == null ? '' : ` ${String(pendingEntity.unit)}`}</span>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadCashuToken}>
 				{#snippet children(entity)}
@@ -424,17 +432,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadCashuProofsView
-				selection={
-						selection.$$proofs({
-							count: true,
-						})
-					}
-				title='proofs'
-				emptyText='No proofs found.'
-				id='BlockheadCashuProofsView-proofs'
-			/>
-		{/if}
+		{@const blockheadCashuTokenBlockheadCashuProofsViewProofsResource = selection.$$proofs}
+		<ResourceBoundary
+			resource={blockheadCashuTokenBlockheadCashuProofsViewProofsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadCashuProofsView
+					selection={blockheadCashuTokenBlockheadCashuProofsViewProofsResource}
+					countResource={blockheadCashuTokenBlockheadCashuProofsViewProofsResource.count}
+					title='proofs'
+					id='BlockheadCashuProofsView-proofs'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

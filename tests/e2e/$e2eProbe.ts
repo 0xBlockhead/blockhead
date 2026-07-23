@@ -102,50 +102,6 @@ export const openBlockheadBrowserDatabase = (
 ) => {
 	const key = `${options.vfsName ?? 'opfs'}:${options.databaseName}`
 	const openDatabase = () => openBrowserWASQLiteOPFSDatabase(options)
-		.then((database) => {
-			let queue = Promise.resolve()
-			let transactionComplete: Promise<void> | undefined
-			let resolveTransactionComplete: (() => void) | undefined
-			const execute: BrowserWASQLiteDatabase['execute'] = <_Row = Record<string, null | number | string>>(
-				sql: string,
-				params?: Parameters<BrowserWASQLiteDatabase['execute']>[1]
-			) => {
-				const normalizedSql = sql.trim().toUpperCase()
-				const result = queue.then(async () => {
-					if (normalizedSql.startsWith('BEGIN')) {
-						while (transactionComplete != null)
-							await transactionComplete
-
-						const rows = await database.execute<_Row>(sql, params)
-						transactionComplete = new Promise((resolve) => {
-							resolveTransactionComplete = resolve
-						})
-						return rows
-					}
-
-					const rows = await database.execute<_Row>(sql, params)
-					if (normalizedSql.startsWith('COMMIT') || normalizedSql.startsWith('ROLLBACK')) {
-						resolveTransactionComplete?.()
-						transactionComplete = undefined
-						resolveTransactionComplete = undefined
-					}
-					return rows
-				})
-				queue = result.then(
-					() => undefined,
-					() => undefined
-				)
-				return result
-			}
-			return {
-				execute,
-				close: async () => {
-					await queue
-					await transactionComplete
-					await database.close?.()
-				},
-			} satisfies BrowserWASQLiteDatabase
-		})
 	if (typeof window === 'undefined')
 		return openDatabase()
 
@@ -171,23 +127,6 @@ export const createE2EClientInstrumentation = <
 >(
 	basePersistence: _Persistence
 ) => {
-	let persistenceQueue = Promise.resolve()
-	const runSerializedPersistence = <_Result>(
-		fn: () => Promise<_Result>
-	) => {
-		const result = persistenceQueue.then(fn)
-		persistenceQueue = result.then(
-			() => undefined,
-			() => undefined
-		)
-		return result
-	}
-	const pendingPersistenceByCollection = new Map<string, Set<Promise<void>>>()
-	const waitForPersistence = async (collectionId: string) => {
-		await new Promise((resolve) => setTimeout(resolve, 50))
-		while ((pendingPersistenceByCollection.get(collectionId)?.size ?? 0) > 0)
-			await Promise.all(pendingPersistenceByCollection.get(collectionId) ?? [])
-	}
 	const traceAdapter = (collectionPersistence: PersistedCollectionPersistence) => {
 		const scanRows = collectionPersistence.adapter.scanRows?.bind(collectionPersistence.adapter)
 		const markIndexRemoved = collectionPersistence.adapter.markIndexRemoved?.bind(collectionPersistence.adapter)
@@ -198,17 +137,15 @@ export const createE2EClientInstrumentation = <
 				Object.create(collectionPersistence.adapter),
 				{
 					applyCommittedTx: async (collectionId: string, tx: PersistedTx) => {
-						const persistencePromise = (async () => {
-							pushPersistenceTrace({
-								type: 'applyCommittedTx:start',
-								collectionId,
-								mutationCount: tx.mutations.length,
-								rowMetadataMutationCount: tx.rowMetadataMutations?.length ?? 0,
-								collectionMetadataMutationCount: tx.collectionMetadataMutations?.length ?? 0,
-							})
-							await runSerializedPersistence(() => (
-								collectionPersistence.adapter.applyCommittedTx(collectionId, tx)
-							))
+						pushPersistenceTrace({
+							type: 'applyCommittedTx:start',
+							collectionId,
+							mutationCount: tx.mutations.length,
+							rowMetadataMutationCount: tx.rowMetadataMutations?.length ?? 0,
+							collectionMetadataMutationCount: tx.collectionMetadataMutations?.length ?? 0,
+						})
+						try {
+							await collectionPersistence.adapter.applyCommittedTx(collectionId, tx)
 							pushPersistenceTrace({
 								type: 'applyCommittedTx:done',
 								collectionId,
@@ -216,13 +153,6 @@ export const createE2EClientInstrumentation = <
 								rowMetadataMutationCount: tx.rowMetadataMutations?.length ?? 0,
 								collectionMetadataMutationCount: tx.collectionMetadataMutations?.length ?? 0,
 							})
-						})()
-						pendingPersistenceByCollection.set(
-							collectionId,
-							(pendingPersistenceByCollection.get(collectionId) ?? new Set()).add(persistencePromise)
-						)
-						try {
-							await persistencePromise
 						} catch (error) {
 							pushPersistenceTrace({
 								type: 'applyCommittedTx:error',
@@ -230,8 +160,6 @@ export const createE2EClientInstrumentation = <
 								error: error instanceof Error ? error.message : String(error),
 							})
 							throw error
-						} finally {
-							pendingPersistenceByCollection.get(collectionId)?.delete(persistencePromise)
 						}
 					},
 					loadSubset: async (
@@ -239,9 +167,7 @@ export const createE2EClientInstrumentation = <
 						options: LoadSubsetOptions,
 						context?: Parameters<NonNullable<PersistenceAdapter['loadSubset']>>[2]
 					) => {
-						const rows = await runSerializedPersistence(() => (
-							collectionPersistence.adapter.loadSubset(collectionId, options, context)
-						))
+						const rows = await collectionPersistence.adapter.loadSubset(collectionId, options, context)
 						pushPersistenceTrace({
 							type: 'loadSubset',
 							collectionId,
@@ -250,9 +176,9 @@ export const createE2EClientInstrumentation = <
 						return rows
 					},
 					loadCollectionMetadata: async (collectionId: string) => {
-						const collectionMetadata = await runSerializedPersistence(async () => (
+						const collectionMetadata = (
 							await collectionPersistence.adapter.loadCollectionMetadata?.(collectionId) ?? []
-						))
+						)
 						pushPersistenceTrace({
 							type: 'loadCollectionMetadata',
 							collectionId,
@@ -266,35 +192,29 @@ export const createE2EClientInstrumentation = <
 						(
 							collectionId: string,
 							options?: Parameters<NonNullable<PersistenceAdapter['scanRows']>>[1]
-						) => runSerializedPersistence(() => (
-							scanRows(collectionId, options)
-						)),
+						) => scanRows(collectionId, options),
 					ensureIndex: (
 						collectionId: string,
 						signature: string,
 						spec: Parameters<PersistenceAdapter['ensureIndex']>[2]
-					) => runSerializedPersistence(() => (
+					) => (
 						collectionPersistence.adapter.ensureIndex(
 							collectionId,
 							signature,
 							spec
 						)
-					)),
+					),
 					markIndexRemoved: markIndexRemoved == null ?
 						undefined
 					:
 						(
 							collectionId: string,
 							signature: string
-						) => runSerializedPersistence(() => (
-							markIndexRemoved(collectionId, signature)
-						)),
+						) => markIndexRemoved(collectionId, signature),
 					getStreamPosition: getStreamPosition == null ?
 						undefined
 					:
-						(collectionId: string) => runSerializedPersistence(() => (
-							getStreamPosition(collectionId)
-						)),
+						(collectionId: string) => getStreamPosition(collectionId),
 				}
 			),
 		}
@@ -318,7 +238,6 @@ export const createE2EClientInstrumentation = <
 			:
 				basePersistence
 		),
-		waitForPersistence,
 	}
 }
 

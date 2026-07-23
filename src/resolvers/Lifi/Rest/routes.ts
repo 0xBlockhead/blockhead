@@ -8,9 +8,8 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { bridgeRouteStepEntityFieldsFromLifiQuoteStep } from '$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
-import { lifiRestFetch } from '$/sources/Lifi/Rest/client.ts'
+import { fetchQuote } from '$/sources/Lifi/Rest/queries.ts'
 import type {
 	LifiQuoteRequest,
 	LifiQuoteStep,
@@ -65,22 +64,7 @@ const bridgeRouteQuoteIdToRequest = (
 export const fetchLifiQuoteStep = async (
 	params: LifiQuoteRequest,
 	options?: { baseUrl?: string }
-): Promise<LifiQuoteStep> => {
-	const search = new URLSearchParams({
-		fromChain: String(params.fromChain),
-		toChain: String(params.toChain),
-		fromToken: params.fromToken,
-		toToken: params.toToken,
-		fromAmount: params.fromAmount,
-		fromAddress: params.fromAddress,
-		...(params.toAddress != null && { toAddress: params.toAddress }),
-		...(params.slippage != null && { slippage: String(params.slippage) }),
-	})
-	const path = `/v1/quote?${search}`
-	const res = await lifiRestFetch(path, undefined, options)
-	await throwIfHttpNotOk(res, path)
-	return res.json<LifiQuoteStep>()
-}
+): Promise<LifiQuoteStep> => fetchQuote(params, options)
 
 const parseLifiQuoteAmountBigInt = (
 	value: string | undefined,

@@ -3,11 +3,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -26,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.HederaAllowance>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.HederaAllowance>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HederaAllowance>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,15 +43,20 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaAllowance = $derived(selection({
+	const hederaAllowance = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('hedera allowance')
-	const viewDomId = $derived('hedera-allowance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.allowanceKind) ?? '')].filter(Boolean).join(' ') || 'hedera allowance')
+	const viewDomId = $derived('hedera-allowance-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import HederaAllowance_TimestampsView from '$/views/HederaAllowance_TimestampsView.svelte'
 	import HederaAccountView from '$/views/HederaAccountView.svelte'
 	import HederaTokenView from '$/views/HederaTokenView.svelte'
 	import HederaNftView from '$/views/HederaNftView.svelte'
@@ -66,16 +74,57 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hederaAllowance}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={hederaAllowance}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.allowanceKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={hederaAllowance}>
+			{#snippet children(entity)}
+				<HederaAccountView
+					selection={select(EntityType.HederaAccount, selection.entitySelector.$spender)}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={hederaAllowance}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<ResourceBoundary
+					resource={selection.$token}
+				>
+					{#snippet children(hederaToken)}
+						{#if hederaToken != null && hederaToken[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<HederaTokenView
+									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
+									prefetched={hederaToken}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const serialNumber1 = resolvedEntity.serialNumber}
+				{#if serialNumber1 !== undefined && serialNumber1 !== null}
+					<span data-text="muted">
+						<NumberValue
+							value={serialNumber1}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -84,7 +133,31 @@
 				<dt>owner</dt>
 				<dd>
 					<HederaAccountView
-						selection={select(EntityType.HederaAccount, selection.entitySelector.$owner, {})}
+						selection={select(EntityType.HederaAccount, selection.entitySelector.$owner)}
+						href={
+							(
+								selection.entitySelector.$owner != null && 'accountId' in selection.entitySelector.$owner
+								&& selection.entitySelector.$owner.accountId != null
+								&& selection.entitySelector.$owner != null && '$network' in selection.entitySelector.$owner ?
+									selection.entitySelector.$owner.$network != null && 'caip2' in selection.entitySelector.$owner.$network
+									&& selection.entitySelector.$owner.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+									accountId: String(selection.entitySelector.$owner.accountId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$owner.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$owner.$network != null && 'slug' in selection.entitySelector.$owner.$network
+										&& selection.entitySelector.$owner.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+										accountId: String(selection.entitySelector.$owner.accountId ?? ''),
+										network: String(selection.entitySelector.$owner.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -95,7 +168,31 @@
 				<dt>spender</dt>
 				<dd>
 					<HederaAccountView
-						selection={select(EntityType.HederaAccount, selection.entitySelector.$spender, {})}
+						selection={select(EntityType.HederaAccount, selection.entitySelector.$spender)}
+						href={
+							(
+								selection.entitySelector.$spender != null && 'accountId' in selection.entitySelector.$spender
+								&& selection.entitySelector.$spender.accountId != null
+								&& selection.entitySelector.$spender != null && '$network' in selection.entitySelector.$spender ?
+									selection.entitySelector.$spender.$network != null && 'caip2' in selection.entitySelector.$spender.$network
+									&& selection.entitySelector.$spender.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+									accountId: String(selection.entitySelector.$spender.accountId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$spender.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$spender.$network != null && 'slug' in selection.entitySelector.$spender.$network
+										&& selection.entitySelector.$spender.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+										accountId: String(selection.entitySelector.$spender.accountId ?? ''),
+										network: String(selection.entitySelector.$spender.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -125,25 +222,23 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							tokenId: true,
-						},
-					})
-				}
+				resource={selection.$token}
 			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenId = resolvedEntity.tokenId}
-					{#if tokenId !== undefined && tokenId !== null}
+				{#snippet children(hederaToken)}
+					{#if hederaToken != null && hederaToken[EntityMetaKey.Selector] != null}
 						<div>
-							<dt>Token ID</dt>
+							<dt>token</dt>
 							<dd>
-								{String((tokenId) ?? '')}
+								<HederaTokenView
+									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
+									prefetched={hederaToken}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -167,26 +262,8 @@
 						<div>
 							<dt>serial number</dt>
 							<dd>
-								{String((serialNumber) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$token}
-			>
-				{#snippet children(hederaToken)}
-					{#if hederaToken != null && hederaToken[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>token</dt>
-							<dd>
-								<HederaTokenView
-									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
-									prefetched={hederaToken}
-									layout={EntityLayout.Value}
-									open={false}
+								<NumberValue
+									value={serialNumber}
 								/>
 							</dd>
 						</div>
@@ -214,5 +291,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{@const hederaAllowanceHederaAllowanceTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={hederaAllowanceHederaAllowanceTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<HederaAllowance_TimestampsView
+					selection={hederaAllowanceHederaAllowanceTimestampsViewTimestampsResource}
+					countResource={hederaAllowanceHederaAllowanceTimestampsViewTimestampsResource.count}
+					title='Observations'
+					id='HederaAllowance_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

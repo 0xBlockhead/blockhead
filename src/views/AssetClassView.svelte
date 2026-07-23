@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AssetClass>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AssetClass>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AssetClass>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const assetClass = $derived(selection({
+	const assetClass = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.label) ?? ''), String((pendingEntity.classKey) ?? '')].filter(Boolean).join(' ') || 'asset class')
-	const viewDomId = $derived('asset-class-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('asset-class-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,7 +76,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, '$assetInstance') && prefetched.$assetInstance != null && Object.hasOwn(prefetched.$assetInstance, 'symbol') && Object.hasOwn(prefetched.$assetInstance, 'name')}
 			{[String((pendingEntity.label) ?? ''), String((pendingEntity.classKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={assetClass}>
@@ -83,7 +89,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, '$assetInstance') && prefetched.$assetInstance != null && Object.hasOwn(prefetched.$assetInstance, 'symbol') && Object.hasOwn(prefetched.$assetInstance, 'name')}
 			{[String((pendingEntity.classKind) ?? ''), String((pendingEntity.classKey) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? ''), String((pendingEntity.classKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={assetClass}>
@@ -96,20 +102,37 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, '$assetInstance') && prefetched.$assetInstance != null && Object.hasOwn(prefetched.$assetInstance, 'symbol') && Object.hasOwn(prefetched.$assetInstance, 'name')}
 			<span data-text="muted">
 				<AssetInstanceView
 					selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 					href={
-						(selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-							kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-							assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-							kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-							assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-							network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
-						}) : undefined)
+						(
+							selection.entitySelector.$assetInstance != null && 'kind' in selection.entitySelector.$assetInstance
+							&& selection.entitySelector.$assetInstance.kind != null
+							&& selection.entitySelector.$assetInstance != null && 'assetKey' in selection.entitySelector.$assetInstance
+							&& selection.entitySelector.$assetInstance.assetKey != null
+							&& selection.entitySelector.$assetInstance != null && '$network' in selection.entitySelector.$assetInstance ?
+								selection.entitySelector.$assetInstance.$network != null && 'caip2' in selection.entitySelector.$assetInstance.$network
+								&& selection.entitySelector.$assetInstance.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
+							})
+							:
+									selection.entitySelector.$assetInstance.$network != null && 'slug' in selection.entitySelector.$assetInstance.$network
+									&& selection.entitySelector.$assetInstance.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+									kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+									assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+									network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
+								})
+								:
+									undefined
+						:
+								undefined
+						)
 					}
 					layout={EntityLayout.Title}
 					open={false}
@@ -123,15 +146,32 @@
 						<AssetInstanceView
 							selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 							href={
-								(selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-									kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-									assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
-								}) : selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-									kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-									assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-									network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
-								}) : undefined)
+								(
+									selection.entitySelector.$assetInstance != null && 'kind' in selection.entitySelector.$assetInstance
+									&& selection.entitySelector.$assetInstance.kind != null
+									&& selection.entitySelector.$assetInstance != null && 'assetKey' in selection.entitySelector.$assetInstance
+									&& selection.entitySelector.$assetInstance.assetKey != null
+									&& selection.entitySelector.$assetInstance != null && '$network' in selection.entitySelector.$assetInstance ?
+										selection.entitySelector.$assetInstance.$network != null && 'caip2' in selection.entitySelector.$assetInstance.$network
+										&& selection.entitySelector.$assetInstance.$network.caip2 != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+										kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+										assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+										network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
+									})
+									:
+											selection.entitySelector.$assetInstance.$network != null && 'slug' in selection.entitySelector.$assetInstance.$network
+											&& selection.entitySelector.$assetInstance.$network.slug != null ?
+												resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+											kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+											assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+											network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
+										})
+										:
+											undefined
+								:
+										undefined
+								)
 							}
 							layout={EntityLayout.Title}
 							open={false}
@@ -331,17 +371,34 @@
 				<dt>Asset instance</dt>
 				<dd>
 					<AssetInstanceView
-						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance, {})}
+						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						href={
-							(selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-								network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$assetInstance != null && 'kind' in selection.entitySelector.$assetInstance
+								&& selection.entitySelector.$assetInstance.kind != null
+								&& selection.entitySelector.$assetInstance != null && 'assetKey' in selection.entitySelector.$assetInstance
+								&& selection.entitySelector.$assetInstance.assetKey != null
+								&& selection.entitySelector.$assetInstance != null && '$network' in selection.entitySelector.$assetInstance ?
+									selection.entitySelector.$assetInstance.$network != null && 'caip2' in selection.entitySelector.$assetInstance.$network
+									&& selection.entitySelector.$assetInstance.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+									kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+									assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$assetInstance.$network != null && 'slug' in selection.entitySelector.$assetInstance.$network
+										&& selection.entitySelector.$assetInstance.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+										kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+										assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+										network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

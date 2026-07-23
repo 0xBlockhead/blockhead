@@ -41,7 +41,6 @@
 			value: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'ENS record observation' : 'ENS record observation'))
 
 
 	// Components
@@ -51,7 +50,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ENS record observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'ENS record observation' : 'ENS record observation')} • ENS record observation • Blockhead</title>
 </svelte:head>
 
 

@@ -23,7 +23,7 @@
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: Number(params.fromChainId),
+						reference: params.fromChainId,
 					},
 				},
 				type: 'NativeCurrency',
@@ -33,7 +33,7 @@
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: Number(params.fromChainId),
+						reference: params.fromChainId,
 					},
 				},
 				type: 'Erc20Token',
@@ -41,7 +41,7 @@
 					$network: {
 						caip2: {
 							namespace: 'eip155',
-							reference: Number(params.fromChainId),
+							reference: params.fromChainId,
 						},
 					},
 					address: params.fromCoinInstanceSlug,
@@ -54,7 +54,7 @@
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: Number(params.toChainId),
+						reference: params.toChainId,
 					},
 				},
 				type: 'NativeCurrency',
@@ -64,7 +64,7 @@
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: Number(params.toChainId),
+						reference: params.toChainId,
 					},
 				},
 				type: 'Erc20Token',
@@ -72,7 +72,7 @@
 					$network: {
 						caip2: {
 							namespace: 'eip155',
-							reference: Number(params.toChainId),
+							reference: params.toChainId,
 						},
 					},
 					address: params.toCoinInstanceSlug,
@@ -88,7 +88,6 @@
 			assetOutcome: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.toolKey) ?? '')].filter(Boolean).join(' ') || 'Coin bridge capability' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).toolKey) ?? '')].filter(Boolean).join(' ') || 'Coin bridge capability'))
 
 
 	// Components
@@ -98,7 +97,135 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Coin bridge capability • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$fromInstance: (
+		params.fromCoinInstanceSlug === 'native' ?
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: params.fromChainId,
+					},
+				},
+				type: 'NativeCurrency',
+			}
+		:
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: params.fromChainId,
+					},
+				},
+				type: 'Erc20Token',
+				$contract: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.fromChainId,
+						},
+					},
+					address: params.fromCoinInstanceSlug,
+				},
+			}
+		),
+		$toInstance: (
+		params.toCoinInstanceSlug === 'native' ?
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: params.toChainId,
+					},
+				},
+				type: 'NativeCurrency',
+			}
+		:
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: params.toChainId,
+					},
+				},
+				type: 'Erc20Token',
+				$contract: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.toChainId,
+						},
+					},
+					address: params.toCoinInstanceSlug,
+				},
+			}
+		),
+		toolKey: params.toolKey,
+	}.toolKey) ?? '')].filter(Boolean).join(' ') || 'Coin bridge capability' : [String((({ ...{
+		$fromInstance: (
+		params.fromCoinInstanceSlug === 'native' ?
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: params.fromChainId,
+					},
+				},
+				type: 'NativeCurrency',
+			}
+		:
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: params.fromChainId,
+					},
+				},
+				type: 'Erc20Token',
+				$contract: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.fromChainId,
+						},
+					},
+					address: params.fromCoinInstanceSlug,
+				},
+			}
+		),
+		$toInstance: (
+		params.toCoinInstanceSlug === 'native' ?
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: params.toChainId,
+					},
+				},
+				type: 'NativeCurrency',
+			}
+		:
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: params.toChainId,
+					},
+				},
+				type: 'Erc20Token',
+				$contract: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.toChainId,
+						},
+					},
+					address: params.toCoinInstanceSlug,
+				},
+			}
+		),
+		toolKey: params.toolKey,
+	}, ...pageSelection.entity }).toolKey) ?? '')].filter(Boolean).join(' ') || 'Coin bridge capability')} • Coin bridge capability • Blockhead</title>
 </svelte:head>
 
 

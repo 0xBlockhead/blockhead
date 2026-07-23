@@ -10,7 +10,6 @@
 	} from '$/schema/$schema.ts'
 	import { ProjectionResolution } from '$/schema/$schema.ts'
 
-
 	// State
 	let {
 		projection,

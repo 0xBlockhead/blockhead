@@ -49,7 +49,22 @@ const comment = {
 		link_id: 't3_1u8x2f8',
 		parent_id: 't3_1u8x2f8',
 		score: 17,
-		replies: '',
+		replies: redditListing([
+			{
+				kind: 't1',
+				data: {
+					name: 't1_nestedreply',
+					body: 'Layer two keeps the discussion grounded.',
+					author: '/u/reply_reader',
+					created_utc: 1_781_758_925,
+					depth: 1,
+					link_id: 't3_1u8x2f8',
+					parent_id: 't1_osbo75d',
+					score: 9,
+					replies: '',
+				},
+			},
+		]),
 	},
 }
 
@@ -128,8 +143,12 @@ test.beforeEach(async ({ page }, testInfo) => {
 		if (url.includes('/api/info.json')) {
 			await route.fulfill({
 				json: redditListing([
-					url.includes('t1_osbo75d') ?
+					url.includes('t1_nestedreply') ?
+						comment.data.replies.data.children[0]
+					: url.includes('t1_osbo75d') ?
 						comment
+					: url.includes('t3_second') ?
+						secondSubmission
 					:
 						submission,
 				]),
@@ -143,6 +162,18 @@ test.beforeEach(async ({ page }, testInfo) => {
 
 test('community to post preserves Reddit identity and navigation', async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test * 2)
+	const consoleErrors: string[] = []
+	const pageErrors: string[] = []
+	const redditPublicProxyRequests: string[] = []
+	page.on('console', (message) => {
+		if (message.type() === 'error')
+			consoleErrors.push(message.text())
+	})
+	page.on('pageerror', (error) => pageErrors.push(error.message))
+	page.on('request', (request) => {
+		if (request.url().includes('/api-proxy/Reddit_PublicJson-'))
+			redditPublicProxyRequests.push(decodeURIComponent(request.url()))
+	})
 	const {
 		diagnostics,
 		flushArtifacts,
@@ -170,14 +201,26 @@ test('community to post preserves Reddit identity and navigation', async ({ page
 			}
 		))
 		await step(expect(page.locator('[data-social-client-archetype="reddit"] nav')).toBeVisible())
+		const communityCards = page.locator('#main article#RedditLinksView-links[data-card][data-scroll-container]')
+		await step(expect(communityCards).toHaveCount(1))
+		await step(expect(communityCards.getByRole('heading', {
+			name: /Submissions/,
+		})).toBeAttached())
 
-		await step(page.getByRole('link', {
+		await step(communityCards.getByRole('link', {
 			name: 'Daily General Discussion June 18, 2026',
 		}).first().click())
 		await step(expect(page).toHaveURL('/reddit/link/t3_1u8x2f8'))
 		await step(expect(page.getByRole('navigation', {
 			name: 'Reddit navigation',
 		})).toBeVisible())
+		await step(expect(page.locator('#main a[href="/reddit/r/ethereum"]')).toBeAttached())
+		await step(expect(page.locator('#main [data-error], #main [role="alert"]')).toHaveCount(0))
+		expect(redditPublicProxyRequests.some((url) => url.includes('/r/ethereum/about.json'))).toBe(true)
+		expect(redditPublicProxyRequests.some((url) => url.includes('/r/ethereum/hot.json'))).toBe(true)
+		expect(redditPublicProxyRequests.some((url) => url.includes('/api/info.json'))).toBe(true)
+		expect(pageErrors).toEqual([])
+		expect(consoleErrors).toEqual([])
 	}
 	catch (error) {
 		await flushArtifacts(testInfo)
@@ -197,12 +240,26 @@ test('comment thread opens an authored comment and parent submission', async ({ 
 	}).first()).toBeVisible({
 		timeout: routeViewSmokeTimeoutsMs.settle,
 	})
+	const commentCards = page.locator('#main article[data-card][data-scroll-container]').filter({
+		has: page.getByRole('heading', {
+			name: /Comments/,
+		}),
+	})
+	await expect(commentCards).toHaveCount(1)
+	await expect(commentCards.getByRole('heading', {
+		name: /Comments/,
+	})).toBeAttached()
+	await expect(commentCards.getByText('Layer two keeps the discussion grounded.', {
+		exact: true,
+	})).toBeAttached()
 	await page.getByRole('link', {
 		name: 'Ethereum!',
 	}).first().click()
 	await expect(page).toHaveURL('/reddit/comment/t1_osbo75d')
 	await expect(page.locator('#main')).toContainText('/u/Mysterious_Town6196')
 	await expect(page.locator('#main')).toContainText('Daily General Discussion June 18, 2026')
+	await expect(page.locator('#main a[href="/reddit/link/t3_1u8x2f8"]')).toBeAttached()
+	await expect(page.locator('#main [data-error], #main [role="alert"]')).toHaveCount(0)
 })
 
 test('back navigation restores the community reading position', async ({ page }, testInfo) => {

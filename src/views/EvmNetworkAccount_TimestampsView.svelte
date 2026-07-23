@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EVM network account observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmNetworkAccount_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmNetworkAccount_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmNetworkAccount_TimestampView from '$/views/EvmNetworkAccount_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmNetworkAccountTimestamps) => [...new Map(evmNetworkAccountTimestamps.values.map((evmNetworkAccountTimestamp) => [evmNetworkAccountTimestamp[EntityMetaKey.SelectorKey], evmNetworkAccountTimestamp])).values()]}
 	getKey={(evmNetworkAccountTimestamp) => evmNetworkAccountTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: evmNetworkAccountTimestamp })}
 		{@const evmNetworkAccountTimestampFields = { ...evmNetworkAccountTimestamp[EntityMetaKey.Selector], ...evmNetworkAccountTimestamp }}
-		{@const selection = select(EntityType.EvmNetworkAccount_Timestamp, evmNetworkAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<EvmNetworkAccount_TimestampView
-			selection={selection}
-			prefetched={evmNetworkAccountTimestampFields}
+		<EntityView
+			entityType={EntityType.EvmNetworkAccount_Timestamp}
+			entitySelector={evmNetworkAccountTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[[String((evmNetworkAccountTimestampFields.$account.$actor.address) ?? '')].filter(Boolean).join(' ') || 'EVM account'].filter(Boolean).join(' ') || 'EVM network account'].filter(Boolean).join(' ') || 'EVM network account timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((evmNetworkAccountTimestampFields.transactionCount) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((evmNetworkAccountTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

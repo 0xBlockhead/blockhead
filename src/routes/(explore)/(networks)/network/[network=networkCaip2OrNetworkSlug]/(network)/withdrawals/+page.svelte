@@ -44,14 +44,14 @@
 				}
 				title='Beacon withdrawals'
 				selection={
-					projection.$$beaconWithdrawals({
-						sources: [
-							Source.Beacon_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$beaconWithdrawals({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
 				}
-				id='beacon-withdrawals'
+				id='account-beacon-withdrawal'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

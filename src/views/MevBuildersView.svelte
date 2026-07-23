@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'MEV builders',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.MevBuilder>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MevBuilder>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MevBuilderView from '$/views/MevBuilderView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(mevBuilders) => [...new Map(mevBuilders.values.map((mevBuilder) => [mevBuilder[EntityMetaKey.SelectorKey], mevBuilder])).values()]}
 	getKey={(mevBuilder) => mevBuilder[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,22 +88,48 @@
 
 	{#snippet Item({ item: mevBuilder })}
 		{@const mevBuilderFields = { ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }}
-		{@const selection = select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const mevBuilderHrefFields = { ...mevBuilder, ...mevBuilder[EntityMetaKey.Selector] }}
-		<MevBuilderView
-			selection={selection}
-			prefetched={mevBuilderFields}
+		<EntityView
+			entityType={EntityType.MevBuilder}
+			entitySelector={mevBuilder[EntityMetaKey.Selector]}
 			href={
-				(mevBuilderHrefFields.builderPubkey !== undefined && mevBuilderHrefFields.$network !== undefined && mevBuilderHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-					builderPubkey: String(mevBuilderHrefFields.builderPubkey ?? ''),
-					network: String(caip2StringFromValue(mevBuilderHrefFields.$network.caip2) ?? ''),
-				}) : mevBuilderHrefFields.builderPubkey !== undefined && mevBuilderHrefFields.$network !== undefined && mevBuilderHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-					builderPubkey: String(mevBuilderHrefFields.builderPubkey ?? ''),
-					network: String(mevBuilderHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					mevBuilder[EntityMetaKey.Selector] != null && 'builderPubkey' in mevBuilder[EntityMetaKey.Selector]
+					&& mevBuilder[EntityMetaKey.Selector].builderPubkey != null
+					&& mevBuilder[EntityMetaKey.Selector] != null && '$network' in mevBuilder[EntityMetaKey.Selector] ?
+						mevBuilder[EntityMetaKey.Selector].$network != null && 'caip2' in mevBuilder[EntityMetaKey.Selector].$network
+						&& mevBuilder[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+						builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
+						network: String(caip2StringFromValue(mevBuilder[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							mevBuilder[EntityMetaKey.Selector].$network != null && 'slug' in mevBuilder[EntityMetaKey.Selector].$network
+							&& mevBuilder[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+							builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
+							network: String(mevBuilder[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((mevBuilderFields.builderPubkey) ?? '')].filter(Boolean).join(' ') || 'MEV builder'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((mevBuilderFields.builderPubkey) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((mevBuilderFields.$network.name) ?? '')].filter(Boolean).join(' ') || [mevBuilderFields.$network.caip2 == null ? '' : String(`${(mevBuilderFields.$network.caip2).namespace}:${(mevBuilderFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

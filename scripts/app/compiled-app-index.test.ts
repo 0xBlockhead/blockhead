@@ -52,68 +52,92 @@ test('exports only complete immutable generated-file IR', () => {
 })
 
 test('keeps same-named facet fields source-precise in generated IR', () => {
+	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
 	const networkView = baselineCompiledApp.generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/NetworkView.svelte')
+	assert.ok(network)
 	assert.ok(networkView)
 	assert.equal(networkView.kind, 'svelte')
 	const source = renderGeneratedFile(networkView)
 	const cardanoTransactions = source.match(/\{#snippet SectionCardanoChainTransactions[\s\S]*?\{\/snippet\}/)?.[0]
 	const evmTransactions = source.match(/\{#snippet SectionEvmExecutionTransactions[\s\S]*?\{\/snippet\}/)?.[0]
+	const sectionSources = (
+		facetName: string,
+		sectionId: string
+	) => network.facets
+		.find((facet) => facet.name === facetName)
+		?.singularView?.carousels
+		?.flatMap((carousel) => carousel.sections)
+		.find((section) => section.id === sectionId)
+		?.selection?.sources ?? []
+	const generatedSources = (section: string) => [
+		...section.matchAll(/Source\.([A-Za-z0-9_]+)/g),
+	].map((match) => match[1])
 
 	assert.ok(cardanoTransactions)
-	assert.match(cardanoTransactions, /Source\.CardanoKoios_Rest/)
-	assert.match(cardanoTransactions, /Source\.Blockfrost_Rest/)
-	assert.doesNotMatch(cardanoTransactions, /Blockscout_Rest/)
+	assert.deepEqual(
+		generatedSources(cardanoTransactions),
+		sectionSources('Cardano', 'cardano-chain-transactions')
+	)
 	assert.ok(evmTransactions)
-	assert.match(evmTransactions, /Source\.Blockscout_Rest/)
+	assert.deepEqual(
+		generatedSources(evmTransactions),
+		sectionSources('Evm', 'evm-execution-transactions')
+	)
 })
 
-test('keeps Cardano breadth in one fully declared carousel', () => {
+test('keeps every APP-authored Cardano carousel and section in generated IR', () => {
+	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
 	const networkView = baselineCompiledApp.generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/NetworkView.svelte')
+	const cardanoCarousels = network?.facets
+		.find((facet) => facet.name === 'Cardano')
+		?.singularView?.carousels ?? []
+	assert.ok(network)
 	assert.ok(networkView)
 	assert.equal(networkView.kind, 'svelte')
 	const source = renderGeneratedFile(networkView)
-	const cardanoExplorer = source.match(/id=\{viewDomId \+ '-carousel-cardano-explorer'\}[\s\S]*?<\/CollapsibleTabs>/)?.[0]
 
-	assert.ok(cardanoExplorer)
-	assert.equal([...source.matchAll(/id=\{viewDomId \+ '-carousel-cardano-/g)].length, 1)
-	assert.match(cardanoExplorer, /id: 'cardano-chain-blocks',[\s\S]*?id: 'cardano-chain-transactions',[\s\S]*?id: 'cardano-chain-observations'/)
-	for (const sectionSnippet of [
-		'SectionCardanoStakePools',
-		'SectionCardanoGovernanceProposals',
-		'SectionCardanoGovernanceDreps',
-		'SectionCardanoGovernanceCommittee',
-		'SectionCardanoAssetsNative',
-		'SectionCardanoProtocolParameters',
-		'SectionCardanoResourcesEndpoints',
-	])
-		assert.match(cardanoExplorer, new RegExp(`\\{#snippet ${sectionSnippet}`))
+	assert.ok(cardanoCarousels.length > 0)
+	assert.equal(
+		[...source.matchAll(/id=\{viewDomId \+ '-carousel-cardano-/g)].length,
+		cardanoCarousels.length
+	)
+	for (const carousel of cardanoCarousels) {
+		const generatedCarousel = source.match(new RegExp(
+			`id=\\{viewDomId \\+ '-carousel-${carousel.id}'\\}[\\s\\S]*?<\\/CollapsibleTabs>`
+		))?.[0]
+		assert.ok(generatedCarousel, carousel.id)
+		for (const section of carousel.sections) {
+			assert.match(generatedCarousel, new RegExp(`id: '${section.id}'`))
+			assert.match(
+				generatedCarousel,
+				new RegExp(`\\{#snippet Section${section.id.split('-').map((part) => `${part[0]?.toUpperCase() ?? ''}${part.slice(1)}`).join('')}`)
+			)
+		}
+	}
 })
 
-test('keeps wallet controls hand-owned and portfolio selections account-scoped', () => {
+test('keeps account controls hand-owned and account aggregation declarative', () => {
 	const accountsRoute = app.routes.children['~'].children.accounts
-	const accountsContent = accountsRoute.page?.view?.Content.raw ?? ''
-	const balancesContent = accountsRoute.children.balances.page?.view?.Content.raw ?? ''
 
-	assert.match(
-		accountsContent,
-		/<WalletConnectionsControl/
-	)
-	assert.match(
-		accountsContent,
-		/<WalletAccountPortfolio/
-	)
-	assert.doesNotMatch(
-		accountsContent,
-		/\$\$actorCoins/
-	)
-	assert.match(
-		balancesContent,
-		/<WalletAccountPortfolio/
-	)
-	assert.equal(
-		'collections' in accountsRoute.children.balances,
-		false
-	)
+	assert.deepEqual(accountsRoute.collections?.[0]?.field, [
+		EntityType._Global,
+		'$$blockheadAccounts',
+	])
+	for (const route of [
+		accountsRoute.children.balances,
+		accountsRoute.children.transactions,
+	]) {
+		assert.ok((route.collections?.length ?? 0) > 0)
+		for (const collection of route.collections ?? []) {
+			assert.deepEqual(collection.field.slice(0, 3), [
+				EntityType._Global,
+				'$$blockheadAccounts',
+				'$account',
+			])
+			assert.ok(collection.field.length > 3)
+			assert.equal(collection.page?.view, undefined)
+		}
+	}
 })
 
 test('rejects mutation at every exported IR depth', () => {

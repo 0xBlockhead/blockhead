@@ -217,5 +217,5 @@ export const getJson = async <T = JsonValue>(
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))
 
-	return response.json<T>()
+	return response.json()
 }

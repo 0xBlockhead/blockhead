@@ -23,7 +23,7 @@
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: Number(params.chainId),
+					reference: params.chainId,
 				},
 			},
 			id: params.poolId,
@@ -56,7 +56,6 @@
 			$parentLiquidityPool: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.baseTokenSymbol) ?? ''), String((pageSelection.entitySelector.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).baseTokenSymbol) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp'))
 
 
 	// Components
@@ -66,7 +65,31 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • liquidity pool timestamp • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'liquidity pool timestamp' : [String((({ ...{
+		$liquidityPool: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			id: params.poolId,
+		},
+		timestampMs: Number(params.timestampMs),
+		feedKey: decodeURIComponent(params.feedKey),
+	}, ...pageSelection.entity }).baseTokenSymbol) ?? ''), String((({ ...{
+		$liquidityPool: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			id: params.poolId,
+		},
+		timestampMs: Number(params.timestampMs),
+		feedKey: decodeURIComponent(params.feedKey),
+	}, ...pageSelection.entity }).quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp')} • liquidity pool timestamp • Blockhead</title>
 </svelte:head>
 
 

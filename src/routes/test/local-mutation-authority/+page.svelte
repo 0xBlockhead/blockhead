@@ -59,36 +59,6 @@
 			connectionKey: true,
 		},
 	})
-	const wallets = select(
-		EntityType._Global,
-		{
-			scope: '$$blockheadWallets',
-		},
-		{
-			sources: [Source.Local_Internal],
-		}
-	).$$blockheadWallets
-	const walletRows = wallets({
-		sources: [Source.Local_Internal],
-		fields: {
-			id: true,
-		},
-	})
-	const walletAccounts = select(
-		EntityType._Global,
-		{
-			scope: '$$blockheadWalletAccounts',
-		},
-		{
-			sources: [Source.Local_Internal],
-		}
-	).$$blockheadWalletAccounts
-	const walletAccountRows = walletAccounts({
-		sources: [Source.Local_Internal],
-		fields: {
-			caip10: true,
-		},
-	})
 	const walletConnectionHydration = select(
 		EntityType.BlockheadWalletConnection,
 		{
@@ -98,32 +68,68 @@
 			sources: [Source.Local_Internal],
 		}
 	)
-	const walletHydrationVisible = $derived(
-		walletConnectionRows.current?.values.some((connection) => connection.connectionKey === 'authority-connection-a') === true
-		&& walletRows.current?.values.some((wallet) => wallet.id === 'authority-wallet-a') === true
-		&& walletAccountRows.current?.values.some((account) => account.caip10.accountAddress === '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa') === true
-	)
+	let sessionsPersisted = $state(false)
+	let walletsPersisted = $state(false)
+	let walletHydrationEnabled = $state(false)
+	let walletHydrationSettled = $state(false)
+	let walletHydrationSummary = $state('')
+	void walletConnectionRows.then(async (connections) => {
+		walletHydrationEnabled = connections.values.some((connection) => (
+			connection.connectionKey === 'authority-connection-a'
+		))
+		if (!walletHydrationEnabled) return
+		const walletResource = walletConnectionHydration.$wallet
+		const accountsResource = walletConnectionHydration.$$accounts({
+				sources: [Source.Local_Internal],
+			})
+		const activeAccountResource = walletConnectionHydration.$activeAccount
+		const [wallet, accounts, activeAccount] = await Promise.all([
+			walletResource,
+			accountsResource,
+			activeAccountResource,
+		])
+		walletHydrationSummary = `${wallet[EntityMetaKey.Selector].id}|${accounts.values.length}|${activeAccount?.[EntityMetaKey.Selector].caip10.accountAddress ?? 'none'}`
+		walletHydrationSettled = true
+	})
 
 
 	// Functions
-	const createSessions = () => {
-		writeLocalBlockheadSession(getAppClient(), sessionParentSelector, 'Authority Session A')
-		writeLocalBlockheadSession(getAppClient(), sessionParentSelector, 'Authority Session B')
+	const createSessions = async () => {
+		sessionsPersisted = false
+		const client = getAppClient()
+		await writeLocalBlockheadSession(client, sessionParentSelector, 'Authority Session A')
+		await writeLocalBlockheadSession(client, sessionParentSelector, 'Authority Session B')
+		sessionsPersisted = true
 	}
 
-	const deleteFirstSession = () => {
+	const deleteFirstSession = async () => {
+		sessionsPersisted = false
 		const session = sessionRows.current?.values.find((row) => row.name === 'Authority Session A')
 		if (session != null)
-			deleteLocalBlockheadSession(
+			await deleteLocalBlockheadSession(
 				getAppClient(),
 				sessionParentSelector,
 				session[EntityMetaKey.Selector]
 			)
+		sessionsPersisted = true
 	}
 
-	const createWalletConnections = () => {
+	const clearSessions = async () => {
+		sessionsPersisted = false
+		for (const session of sessionRows.current?.values ?? [])
+			await deleteLocalBlockheadSession(
+				getAppClient(),
+				sessionParentSelector,
+				session[EntityMetaKey.Selector]
+			)
+		sessionsPersisted = true
+	}
+
+	const createWalletConnections = async () => {
+		walletsPersisted = false
+		walletHydrationEnabled = false
 		for (const suffix of ['a', 'b']) {
-			writeLocalBlockheadWallet(getAppClient(), {
+			await writeLocalBlockheadWallet(getAppClient(), {
 				id: `authority-wallet-${suffix}`,
 				name: `Authority Wallet ${suffix.toUpperCase()}`,
 				icon: '',
@@ -132,7 +138,7 @@
 				transportKind: WalletTransportKind.InjectedProvider,
 				capabilities: [WalletCapability.Connect],
 			})
-			writeLocalBlockheadWalletConnection(getAppClient(), {
+			await writeLocalBlockheadWalletConnection(getAppClient(), {
 				connectionKey: `authority-connection-${suffix}`,
 				walletId: `authority-wallet-${suffix}`,
 				status: BlockheadConnectionStatus.Connected,
@@ -149,6 +155,45 @@
 				connectedAt: 1,
 			})
 		}
+		walletsPersisted = true
+		walletHydrationEnabled = true
+	}
+
+	const clearWalletConnections = async () => {
+		walletsPersisted = false
+		walletHydrationEnabled = false
+		for (const connection of walletConnectionRows.current?.values ?? [])
+			await deleteLocalBlockheadWalletConnection(
+				getAppClient(),
+				connection.connectionKey
+			)
+		walletsPersisted = true
+	}
+
+	const deleteFirstWalletConnection = async () => {
+		walletsPersisted = false
+		await deleteLocalBlockheadWalletConnection(
+			getAppClient(),
+			'authority-connection-a'
+		)
+		walletsPersisted = true
+	}
+
+	const disconnectFirstWalletConnection = async () => {
+		walletsPersisted = false
+		await writeLocalBlockheadWalletConnection(getAppClient(), {
+			connectionKey: 'authority-connection-a',
+			walletId: 'authority-wallet-a',
+			status: BlockheadConnectionStatus.Disconnected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [],
+			selected: false,
+			disconnectedAt: 2,
+		})
+		walletHydrationEnabled = false
+		walletsPersisted = true
 	}
 
 
@@ -169,12 +214,17 @@
 	<h2>Sessions</h2>
 
 	<div data-row="wrap gap-2">
+		<button type="button" onclick={clearSessions}>Clear sessions</button>
 		<button type="button" onclick={createSessions}>Create sessions</button>
 		<button type="button" onclick={deleteFirstSession}>Delete first session</button>
 	</div>
 
 	<p data-testid="session-direct">
 		{sessionRows.current?.values.map((session) => session.name).join('|') ?? ''}
+	</p>
+
+	<p data-testid="sessions-persisted">
+		{sessionsPersisted ? 'persisted' : 'pending'}
 	</p>
 
 	<ResourceBoundary resource={sessionRows}>
@@ -197,13 +247,12 @@
 	<h2>Wallet connections</h2>
 
 	<div data-row="wrap gap-2">
+		<button type="button" onclick={clearWalletConnections}>Clear wallet connections</button>
 		<button type="button" onclick={createWalletConnections}>Create wallet connections</button>
+		<button type="button" onclick={disconnectFirstWalletConnection}>Disconnect first wallet connection</button>
 		<button
 			type="button"
-			onclick={() => deleteLocalBlockheadWalletConnection(
-				getAppClient(),
-				'authority-connection-a'
-			)}
+			onclick={deleteFirstWalletConnection}
 		>
 			Delete first wallet connection
 		</button>
@@ -213,6 +262,10 @@
 		{walletConnectionRows.current?.values.map((connection) => connection.connectionKey).join('|') ?? ''}
 	</p>
 
+	<p data-testid="wallets-persisted">{walletsPersisted ? 'persisted' : 'pending'}</p>
+	<p data-testid="wallet-hydration-settled">{walletHydrationSettled ? 'settled' : 'pending'}</p>
+	<p data-testid="wallet-hydration-summary">{walletHydrationSummary}</p>
+
 	<ResourceBoundary resource={walletConnectionRows}>
 		{#snippet children(resolvedWalletConnections)}
 			<p data-testid="wallet-awaited">
@@ -220,37 +273,6 @@
 			</p>
 		{/snippet}
 	</ResourceBoundary>
-
-	{#if walletHydrationVisible}
-		<ResourceBoundary resource={walletConnectionHydration.$wallet}>
-		{#snippet children(wallet)}
-			<p data-testid="wallet-hydration-wallet">
-				{wallet[EntityMetaKey.Selector].id}
-			</p>
-		{/snippet}
-		</ResourceBoundary>
-
-	<ResourceBoundary resource={walletConnectionHydration.$activeAccount}>
-		{#snippet children(activeAccount)}
-			<p data-testid="wallet-hydration-active-account">
-				{activeAccount[EntityMetaKey.Selector].caip10.accountAddress}
-			</p>
-		{/snippet}
-		</ResourceBoundary>
-
-	<ResourceBoundary
-		resource={walletConnectionHydration.$$connectedAccounts({
-			sources: [Source.Local_Internal],
-			count: true,
-		})}
-	>
-		{#snippet children(accounts)}
-			<p data-testid="wallet-hydration-account-count">
-				{accounts.values.length}
-			</p>
-		{/snippet}
-		</ResourceBoundary>
-	{/if}
 
 	<BlockheadWalletConnectionsView
 		selection={walletConnections}

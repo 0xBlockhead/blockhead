@@ -46,7 +46,6 @@
 			text: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.canonicalUri) ?? '')].filter(Boolean).join(' ') || 'IPFS resource' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).canonicalUri) ?? '')].filter(Boolean).join(' ') || 'IPFS resource'))
 
 
 	// Components
@@ -56,7 +55,11 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • IPFS resource • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'IPFS resource' : [String((({ ...{
+		namespace: params.namespace,
+		target: params.target,
+		contentPath: params.contentPath,
+	}, ...pageSelection.entity }).canonicalUri) ?? '')].filter(Boolean).join(' ') || 'IPFS resource')} • IPFS resource • Blockhead</title>
 </svelte:head>
 
 

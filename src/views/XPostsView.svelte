@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'X posts',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.XPost>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.XPost>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import XPostView from '$/views/XPostView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(xPosts) => [...new Map(xPosts.values.map((xPost) => [xPost[EntityMetaKey.SelectorKey], xPost])).values()]}
 	getKey={(xPost) => xPost[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,18 +88,35 @@
 
 	{#snippet Item({ item: xPost })}
 		{@const xPostFields = { ...xPost[EntityMetaKey.Selector], ...xPost }}
-		{@const selection = select(EntityType.XPost, xPost[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const xPostHrefFields = { ...xPost, ...xPost[EntityMetaKey.Selector] }}
-		<XPostView
-			selection={selection}
-			prefetched={xPostFields}
+		<EntityView
+			entityType={EntityType.XPost}
+			entitySelector={xPost[EntityMetaKey.Selector]}
 			href={
-				(xPostHrefFields.id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
-					postId: String(xPostHrefFields.id ?? ''),
-				}) : undefined)
+				(
+					xPost[EntityMetaKey.Selector] != null && 'id' in xPost[EntityMetaKey.Selector]
+					&& xPost[EntityMetaKey.Selector].id != null ?
+						resolve('/x/post/[postId=stringSegment]', {
+					postId: String(xPost[EntityMetaKey.Selector].id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((xPostFields.text) ?? ''), String((xPostFields.id) ?? '')].filter(Boolean).join(' ') || 'X post'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((xPostFields.id) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((xPostFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

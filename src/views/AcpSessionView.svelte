@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AcpSession>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AcpSession>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpSession>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpSession = $derived(selection({
+	const acpSession = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			workspaceUri: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			workspaceUri: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || 'ACP session')
-	const viewDomId = $derived('acp-session-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('acp-session-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,96 +77,55 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpSession}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={selection.$runtime}
-					>
-						{#snippet children(acpAgentRuntime)}
-							{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
-								<AcpAgentRuntimeView
-									selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
-									prefetched={acpAgentRuntime}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={acpSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$runtime}
-					>
-						{#snippet children(acpAgentRuntime)}
-							{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
-								<AcpAgentRuntimeView
-									selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
-									prefetched={acpAgentRuntime}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpSession}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={selection.$runtime}
+				>
+					{#snippet children(acpAgentRuntime)}
+						{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
+							<AcpAgentRuntimeView
+								selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
+								prefetched={acpAgentRuntime}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const workspaceUri0 = pendingEntity.workspaceUri}
-			{#if workspaceUri0 !== undefined && workspaceUri0 !== null}
-				<span data-text="muted">
-					<svelte:element
-						this={'a'}
-						href={String(workspaceUri0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(workspaceUri0)} />
-					</svelte:element>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={acpSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const workspaceUri0 = resolvedEntity.workspaceUri}
-					{#if workspaceUri0 !== undefined && workspaceUri0 !== null}
-						<span data-text="muted">
-							<svelte:element
-								this={'a'}
-								href={String(workspaceUri0)}
-								target="_blank"
-								rel="noreferrer noopener"
-							>
-								<TruncatedValue value={String(workspaceUri0)} />
-							</svelte:element>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpSession}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const workspaceUri0 = resolvedEntity.workspaceUri}
+				{#if workspaceUri0 !== undefined && workspaceUri0 !== null}
+					<span data-text="muted">
+						<svelte:element
+							this={'a'}
+							href={String(workspaceUri0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(workspaceUri0)} />
+						</svelte:element>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -413,17 +378,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AcpPromptTurnsView
-				selection={
-						selection.$$promptTurns({
-							count: true,
-						})
-					}
-				title='prompt turns'
-				emptyText='No ACP prompt turns.'
-				id='AcpPromptTurnsView-prompt-turns'
-			/>
-		{/if}
+		{@const acpSessionAcpPromptTurnsViewPromptTurnsResource = selection.$$promptTurns}
+		<ResourceBoundary
+			resource={acpSessionAcpPromptTurnsViewPromptTurnsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AcpPromptTurnsView
+					selection={acpSessionAcpPromptTurnsViewPromptTurnsResource}
+					countResource={acpSessionAcpPromptTurnsViewPromptTurnsResource.count}
+					title='prompt turns'
+					id='AcpPromptTurnsView-prompt-turns'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

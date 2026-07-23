@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ZeroGSettlementTrace>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ZeroGSettlementTrace>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZeroGSettlementTrace>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zeroGSettlementTrace = $derived(selection({
+	const zeroGSettlementTrace = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			settlementTransactionHash: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			settlementTransactionHash: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.traceId) ?? '')].filter(Boolean).join(' ') || 'zero g settlement trace')
-	const viewDomId = $derived('zero-gsettlement-trace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('zero-gsettlement-trace-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,60 +75,39 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.traceId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={zeroGSettlementTrace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.traceId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={zeroGSettlementTrace}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.traceId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ZeroGServiceRequestView
-						selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={zeroGSettlementTrace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ZeroGServiceRequestView
-						selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={zeroGSettlementTrace}>
+			{#snippet children(entity)}
+				<ZeroGServiceRequestView
+					selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const settlementTransactionHash0 = pendingEntity.settlementTransactionHash}
-			{#if settlementTransactionHash0 !== undefined && settlementTransactionHash0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String((settlementTransactionHash0) ?? '')} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={zeroGSettlementTrace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const settlementTransactionHash0 = resolvedEntity.settlementTransactionHash}
-					{#if settlementTransactionHash0 !== undefined && settlementTransactionHash0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String((settlementTransactionHash0) ?? '')} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={zeroGSettlementTrace}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const settlementTransactionHash0 = resolvedEntity.settlementTransactionHash}
+				{#if settlementTransactionHash0 !== undefined && settlementTransactionHash0 !== null}
+					<span data-text="muted">
+						<TruncatedValue value={String((settlementTransactionHash0) ?? '')} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -131,7 +116,7 @@
 				<dt>service request</dt>
 				<dd>
 					<ZeroGServiceRequestView
-						selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest, {})}
+						selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

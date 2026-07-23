@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EigenLayerSlashingEvent>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EigenLayerSlashingEvent>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EigenLayerSlashingEvent>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,14 +44,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eigenLayerSlashingEvent = $derived(selection({
+	const eigenLayerSlashingEvent = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			slashedShares: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			slashedShares: true,
 		},
 	}))
-	const titleFallback = $derived('eigen layer slashing event')
-	const viewDomId = $derived('eigen-layer-slashing-event-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'eigen layer slashing event'
+	const viewDomId = $derived('eigen-layer-slashing-event-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -76,116 +82,63 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={selection.$operator}
-					>
-						{#snippet children(eigenLayerOperator)}
-							{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
-								<EigenLayerOperatorView
-									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
-									prefetched={eigenLayerOperator}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={eigenLayerSlashingEvent}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$operator}
-					>
-						{#snippet children(eigenLayerOperator)}
-							{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
-								<EigenLayerOperatorView
-									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
-									prefetched={eigenLayerOperator}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eigenLayerSlashingEvent}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={selection.$operator}
+				>
+					{#snippet children(eigenLayerOperator)}
+						{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
+							<EigenLayerOperatorView
+								selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
+								prefetched={eigenLayerOperator}
+								href=""
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={selection.$avs}
-					>
-						{#snippet children(eigenLayerAvs)}
-							{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
-								<EigenLayerAvsView
-									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
-									prefetched={eigenLayerAvs}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={eigenLayerSlashingEvent}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$avs}
-					>
-						{#snippet children(eigenLayerAvs)}
-							{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
-								<EigenLayerAvsView
-									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
-									prefetched={eigenLayerAvs}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eigenLayerSlashingEvent}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={selection.$avs}
+				>
+					{#snippet children(eigenLayerAvs)}
+						{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
+							<EigenLayerAvsView
+								selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
+								prefetched={eigenLayerAvs}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const slashedShares0 = pendingEntity.slashedShares}
-			{#if slashedShares0 !== undefined && slashedShares0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={slashedShares0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={eigenLayerSlashingEvent}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slashedShares0 = resolvedEntity.slashedShares}
-					{#if slashedShares0 !== undefined && slashedShares0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={slashedShares0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eigenLayerSlashingEvent}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const slashedShares0 = resolvedEntity.slashedShares}
+				{#if slashedShares0 !== undefined && slashedShares0 !== null}
+					<span data-text="muted">
+						<NumberValue
+							value={slashedShares0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -364,11 +317,21 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+										(
+											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
+											&& network[EntityMetaKey.Selector].caip2 != null ?
+												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : undefined)
+										})
+										:
+												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
+												&& network[EntityMetaKey.Selector].slug != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+												network: String(network[EntityMetaKey.Selector].slug ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}

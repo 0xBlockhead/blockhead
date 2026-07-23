@@ -37,11 +37,8 @@
 			})
 		}
 		title='Block explorers'
-		selection={
-			select(EntityType.Network, data.selector).$$blockExplorerUrls({
-				count: true,
-			})
-		}
+		selection={select(EntityType.Network, data.selector).$$blockExplorerUrls}
+		countResource={select(EntityType.Network, data.selector).$$blockExplorerUrls.count}
 		id='block-explorer-urls'
 		data-column-item="flexible"
 		data-card

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Starknet account observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.StarknetAccount_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.StarknetAccount_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import StarknetAccount_TimestampView from '$/views/StarknetAccount_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(starknetAccountTimestamps) => [...new Map(starknetAccountTimestamps.values.map((starknetAccountTimestamp) => [starknetAccountTimestamp[EntityMetaKey.SelectorKey], starknetAccountTimestamp])).values()]}
 	getKey={(starknetAccountTimestamp) => starknetAccountTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: starknetAccountTimestamp })}
 		{@const starknetAccountTimestampFields = { ...starknetAccountTimestamp[EntityMetaKey.Selector], ...starknetAccountTimestamp }}
-		{@const selection = select(EntityType.StarknetAccount_Timestamp, starknetAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<StarknetAccount_TimestampView
-			selection={selection}
-			prefetched={starknetAccountTimestampFields}
+		<EntityView
+			entityType={EntityType.StarknetAccount_Timestamp}
+			entitySelector={starknetAccountTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((starknetAccountTimestampFields.$contract.address) ?? '')].filter(Boolean).join(' ') || 'starknet contract'].filter(Boolean).join(' ') || 'starknet account timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((starknetAccountTimestampFields.blockNumber) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((starknetAccountTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

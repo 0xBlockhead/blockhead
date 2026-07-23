@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ENS records',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EnsRecord>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EnsRecord>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EnsRecordView from '$/views/EnsRecordView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(ensRecords) => [...new Map(ensRecords.values.map((ensRecord) => [ensRecord[EntityMetaKey.SelectorKey], ensRecord])).values()]}
 	getKey={(ensRecord) => ensRecord[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,19 +87,35 @@
 
 	{#snippet Item({ item: ensRecord })}
 		{@const ensRecordFields = { ...ensRecord[EntityMetaKey.Selector], ...ensRecord }}
-		{@const selection = select(EntityType.EnsRecord, ensRecord[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const ensRecordHrefFields = { ...ensRecord, ...ensRecord[EntityMetaKey.Selector] }}
-		<EnsRecordView
-			selection={selection}
-			prefetched={ensRecordFields}
+		<EntityView
+			entityType={EntityType.EnsRecord}
+			entitySelector={ensRecord[EntityMetaKey.Selector]}
 			href={
-				(ensRecordHrefFields.recordKey !== undefined && ensRecordHrefFields.$name !== undefined && ensRecordHrefFields.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
-					recordId: encodeURIComponent(String(ensRecordHrefFields.recordKey ?? '')),
-					ensName: encodeURIComponent(String(ensRecordHrefFields.$name.name ?? '')),
-				}) : undefined)
+				(
+					ensRecord[EntityMetaKey.Selector] != null && 'recordKey' in ensRecord[EntityMetaKey.Selector]
+					&& ensRecord[EntityMetaKey.Selector].recordKey != null
+					&& ensRecord[EntityMetaKey.Selector] != null && '$name' in ensRecord[EntityMetaKey.Selector]
+					&& ensRecord[EntityMetaKey.Selector].$name != null && 'name' in ensRecord[EntityMetaKey.Selector].$name
+					&& ensRecord[EntityMetaKey.Selector].$name.name != null ?
+						resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
+					recordId: encodeURIComponent(String(ensRecord[EntityMetaKey.Selector].recordKey ?? '')),
+					ensName: encodeURIComponent(String(ensRecord[EntityMetaKey.Selector].$name.name ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((ensRecordFields.recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((ensRecordFields.$name.name) ?? '')].filter(Boolean).join(' ') || 'ENS name'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

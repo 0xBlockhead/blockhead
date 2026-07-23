@@ -1,23 +1,34 @@
-import { corsFetch, fetchFailedMessage } from '$/lib/http.ts'
+import { Source } from '$/sources/Source.ts'
 import {
-	baseUrl,
-	dexscreenerOrigins,
-} from '$/sources/Dexscreener/OpenApi/constants.ts'
+	ApiFamily,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceTargetKind,
+	WireProtocol,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 
-export const getDexscreenerJson = async <_Response>(
+export const getDexscreenerJson = <_Response>(
+	binding: SourceBinding,
 	pathAndQuery: string
 ): Promise<_Response> => {
-	const href = `${baseUrl}${pathAndQuery}`
-	const response = await corsFetch(href, {
-		origins: dexscreenerOrigins,
-		init: {
-			headers: {
-				Accept: 'application/json',
-			},
-		},
-	})
+	if (
+		binding.provider !== SourceProvider.Dexscreener
+		|| binding.source !== Source.Dexscreener_OpenApi
+		|| binding.target.kind !== SourceTargetKind.Global
+		|| binding.target.key !== 'dexscreener-openapi'
+		|| binding.wireProtocol !== WireProtocol.HttpRest
+		|| binding.apiFamily !== ApiFamily.OpenApiHttp
+		|| binding.delivery !== SourceDelivery.HttpProxy
+		|| !binding.credentials.every((credential) => (
+			credential.scope === SourceCredentialScope.None
+		))
+		|| firstHttpUrlForBinding(binding) !== 'https://api.dexscreener.com'
+	)
+		throw new Error('Dexscreener_OpenApi: expected canonical proxied source binding')
 
-	if (!response.ok) throw new Error(await fetchFailedMessage(href, response))
-
-	return response.json<_Response>()
+	return getJson<_Response>(binding, pathAndQuery)
 }

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -25,7 +26,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.RssNetwork>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.RssNetwork>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.RssNetwork>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -39,7 +40,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const rssNetwork = $derived(selection({
+	const rssNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			protocolName: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			protocolName: true,
@@ -50,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'RSS / Atom')
-	const viewDomId = $derived('rss-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('rss-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,13 +73,20 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? (pendingEntity.scope === 'RssNetwork' ? resolve('/rss') : undefined)}
+	href={
+		href ?? (
+			selection.entitySelector.scope === 'RssNetwork' ?
+				resolve('/rss')
+		:
+				undefined
+		)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={rssNetwork}>
@@ -86,7 +99,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={rssNetwork}>
@@ -251,50 +264,104 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-rss-network-feeds'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'rss-network-feeds',
-							label: 'Feeds',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-directory'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Feeds</HeadingComponent>
-					</header>
-				{/snippet}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-rss-network-feeds'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'rss-network-feeds',
+								label: 'Feeds',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-directory'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Feeds</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet SectionRssNetworkFeeds({ id, label, open })}
-					<RssFeedsView
-						selection={
-							selection.$$rssFeeds({
-								sources: [
-									Source.Constants_Internal,
-								],
-							})
-						}
-						href={resolve('/rss/feeds')}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No RSS feeds in this hub yet.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet MarkerRssNetworkFeeds(_context, Content)}
+						{@const rssNetworkFeedsRssNetworkFeedsResource = selection
+		.$$rssFeeds({
+			sources: [
+				Source.Constants_Internal,
+			],
+		})}
+						<ResourceBoundary
+							resource={rssNetworkFeedsRssNetworkFeedsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionRssNetworkFeeds({ id, label, open, active })}
+						{@const rssNetworkFeedsRssNetworkFeedsResource = selection
+		.$$rssFeeds({
+			sources: [
+				Source.Constants_Internal,
+			],
+		})}
+						<ResourceBoundary
+							resource={rssNetworkFeedsRssNetworkFeedsResource}
+						>
+							{#snippet children(rssFeed)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<RssFeedsView
+										selection={rssNetworkFeedsRssNetworkFeedsResource}
+										href={resolve('/rss/feeds')}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										emptyText='No RSS feeds in this hub yet.'
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
 	{/snippet}
 </EntityView>

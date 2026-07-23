@@ -18,7 +18,6 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.UtxoAddress, data.selector))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.address) ?? '')].filter(Boolean).join(' ') || 'UTXO address' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'UTXO address')))
 
 
 	// Components
@@ -28,7 +27,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • UTXO address • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'UTXO address' : [String((({ ...data.selector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'UTXO address'))} • UTXO address • Blockhead</title>
 </svelte:head>
 
 

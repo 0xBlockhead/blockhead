@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Zero g settlement traces',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ZeroGSettlementTrace>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ZeroGSettlementTrace>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ZeroGSettlementTraceView from '$/views/ZeroGSettlementTraceView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(zeroGSettlementTraces) => [...new Map(zeroGSettlementTraces.values.map((zeroGSettlementTrace) => [zeroGSettlementTrace[EntityMetaKey.SelectorKey], zeroGSettlementTrace])).values()]}
 	getKey={(zeroGSettlementTrace) => zeroGSettlementTrace[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: zeroGSettlementTrace })}
 		{@const zeroGSettlementTraceFields = { ...zeroGSettlementTrace[EntityMetaKey.Selector], ...zeroGSettlementTrace }}
-		{@const selection = select(EntityType.ZeroGSettlementTrace, zeroGSettlementTrace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ZeroGSettlementTraceView
-			selection={selection}
-			prefetched={zeroGSettlementTraceFields}
+		<EntityView
+			entityType={EntityType.ZeroGSettlementTrace}
+			entitySelector={zeroGSettlementTrace[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((zeroGSettlementTraceFields.traceId) ?? '')].filter(Boolean).join(' ') || 'zero g settlement trace'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((zeroGSettlementTraceFields.$serviceRequest.requestId) ?? '')].filter(Boolean).join(' ') || 'zero g service request'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((zeroGSettlementTraceFields.settlementTransactionHash) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

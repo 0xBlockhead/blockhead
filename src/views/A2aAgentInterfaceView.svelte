@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.A2aAgentInterface>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.A2aAgentInterface>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aAgentInterface>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aAgentInterface = $derived(selection({
+	const a2aAgentInterface = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			transportKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			transportKind: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || 'A2A agent interface')
-	const viewDomId = $derived('a2a-agent-interface-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('a2a-agent-interface-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,7 +75,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
 			{[String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aAgentInterface}>
@@ -82,7 +88,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
 			{[String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={a2aAgentInterface}>
@@ -95,7 +101,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
 			{@const transportKind0 = pendingEntity.transportKind}
 			{#if transportKind0 !== undefined && transportKind0 !== null}
 				<span data-text="muted">
@@ -123,7 +129,7 @@
 				<dt>card snapshot</dt>
 				<dd>
 					<A2aAgentCard_SnapshotView
-						selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot, {})}
+						selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -28,12 +28,6 @@ export const _GlobalIpfsAccess = entity({
 		entityType: EntityType.IpfsResource,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$timestamps: {
-		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType._GlobalIpfsAccess_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		Scope: [

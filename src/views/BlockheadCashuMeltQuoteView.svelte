@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadCashuMeltQuote>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadCashuMeltQuote>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadCashuMeltQuote>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadCashuMeltQuote = $derived(selection({
+	const blockheadCashuMeltQuote = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			amount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			amount: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu melt quote')
-	const viewDomId = $derived('blockhead-cashu-melt-quote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-cashu-melt-quote-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,7 +77,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount')}
 			{[String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadCashuMeltQuote}>
@@ -84,13 +90,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const amount0 = pendingEntity.amount}
-					{#if amount0 !== undefined && amount0 !== null}
-						<NumberValue
-							value={amount0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount')}
+			{@const amount0 = pendingEntity.amount}
+			{#if amount0 !== undefined && amount0 !== null}
+				<NumberValue
+					value={amount0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadCashuMeltQuote}>
 				{#snippet children(entity)}
@@ -112,7 +118,7 @@
 				<dt>mint</dt>
 				<dd>
 					<CashuMintView
-						selection={select(EntityType.CashuMint, selection.entitySelector.$mint, {})}
+						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -274,28 +280,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadCashuProofsView
-				selection={
-						selection.$$inputProofs({
-							count: true,
-						})
-					}
-				title='input proofs'
-				emptyText='No input proofs found.'
-				id='BlockheadCashuProofsView-input-proofs'
-			/>
-
-			<BlockheadCashuMeltQuote_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='BlockheadCashuMeltQuote_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadCashuMeltQuoteBlockheadCashuProofsViewInputProofsResource = selection.$$inputProofs}
+		<ResourceBoundary
+			resource={blockheadCashuMeltQuoteBlockheadCashuProofsViewInputProofsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadCashuProofsView
+					selection={blockheadCashuMeltQuoteBlockheadCashuProofsViewInputProofsResource}
+					countResource={blockheadCashuMeltQuoteBlockheadCashuProofsViewInputProofsResource.count}
+					title='input proofs'
+					id='BlockheadCashuProofsView-input-proofs'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const blockheadCashuMeltQuoteBlockheadCashuMeltQuoteTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadCashuMeltQuoteBlockheadCashuMeltQuoteTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadCashuMeltQuote_TimestampsView
+					selection={blockheadCashuMeltQuoteBlockheadCashuMeltQuoteTimestampsViewTimestampsResource}
+					countResource={blockheadCashuMeltQuoteBlockheadCashuMeltQuoteTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadCashuMeltQuote_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

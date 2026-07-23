@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Bridge transfers',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BridgeTransfer>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BridgeTransfer>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BridgeTransferView from '$/views/BridgeTransferView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(bridgeTransfers) => [...new Map(bridgeTransfers.values.map((bridgeTransfer) => [bridgeTransfer[EntityMetaKey.SelectorKey], bridgeTransfer])).values()]}
 	getKey={(bridgeTransfer) => bridgeTransfer[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: bridgeTransfer })}
 		{@const bridgeTransferFields = { ...bridgeTransfer[EntityMetaKey.Selector], ...bridgeTransfer }}
-		{@const selection = select(EntityType.BridgeTransfer, bridgeTransfer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BridgeTransferView
-			selection={selection}
-			prefetched={bridgeTransferFields}
+		<EntityView
+			entityType={EntityType.BridgeTransfer}
+			entitySelector={bridgeTransfer[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((bridgeTransferFields.transferId) ?? '')].filter(Boolean).join(' ') || 'bridge transfer'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((bridgeTransferFields.source) ?? ''), String((bridgeTransferFields.railId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

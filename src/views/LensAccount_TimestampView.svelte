@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LensAccount_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensAccount_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LensAccount_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lensAccountTimestamp = $derived(selection({
+	const lensAccountTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('Lens account observation')
-	const viewDomId = $derived('lens-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'Lens account observation'
+	const viewDomId = $derived('lens-account-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -63,63 +67,47 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$account !== undefined && pendingEntity.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			address: String(pendingEntity.$account.address ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && '$account' in selection.entitySelector
+			&& selection.entitySelector.$account != null && 'address' in selection.entitySelector.$account
+			&& selection.entitySelector.$account.address != null ?
+				resolve('/lens/account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			address: String(selection.entitySelector.$account.address ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<LensAccountView
-						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
-						href={
-						(selection.entitySelector.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
-							address: String(selection.entitySelector.$account.address ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={lensAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<LensAccountView
-						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
-						href={
-						(selection.entitySelector.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
-							address: String(selection.entitySelector.$account.address ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={lensAccountTimestamp}>
+			{#snippet children(entity)}
+				<LensAccountView
+					selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={lensAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={lensAccountTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -128,11 +116,17 @@
 				<dt>Account</dt>
 				<dd>
 					<LensAccountView
-						selection={select(EntityType.LensAccount, selection.entitySelector.$account, {})}
+						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
 						href={
-							(selection.entitySelector.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
+							(
+								selection.entitySelector.$account != null && 'address' in selection.entitySelector.$account
+								&& selection.entitySelector.$account.address != null ?
+									resolve('/lens/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$account.address ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

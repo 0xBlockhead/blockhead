@@ -42,12 +42,8 @@
 					})
 				}
 				title='Bridges'
-				selection={
-					projection.$$bridges({
-						count: true,
-					})
-				}
-				id='bridges'
+				selection={projection.$$bridges}
+				id='account-evm-network-bridge'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

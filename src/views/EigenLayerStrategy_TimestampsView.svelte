@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Eigen layer strategy observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EigenLayerStrategy_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EigenLayerStrategy_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EigenLayerStrategy_TimestampView from '$/views/EigenLayerStrategy_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(eigenLayerStrategyTimestamps) => [...new Map(eigenLayerStrategyTimestamps.values.map((eigenLayerStrategyTimestamp) => [eigenLayerStrategyTimestamp[EntityMetaKey.SelectorKey], eigenLayerStrategyTimestamp])).values()]}
 	getKey={(eigenLayerStrategyTimestamp) => eigenLayerStrategyTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: eigenLayerStrategyTimestamp })}
 		{@const eigenLayerStrategyTimestampFields = { ...eigenLayerStrategyTimestamp[EntityMetaKey.Selector], ...eigenLayerStrategyTimestamp }}
-		{@const selection = select(EntityType.EigenLayerStrategy_Timestamp, eigenLayerStrategyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<EigenLayerStrategy_TimestampView
-			selection={selection}
-			prefetched={eigenLayerStrategyTimestampFields}
+		<EntityView
+			entityType={EntityType.EigenLayerStrategy_Timestamp}
+			entitySelector={eigenLayerStrategyTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((eigenLayerStrategyTimestampFields.$strategy.strategyAddress) ?? '')].filter(Boolean).join(' ') || 'eigen layer strategy'].filter(Boolean).join(' ') || 'eigen layer strategy timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((eigenLayerStrategyTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((eigenLayerStrategyTimestampFields.totalShares) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

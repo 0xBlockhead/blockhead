@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'A2A agent cards',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.A2aAgentCard>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.A2aAgentCard>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import A2aAgentCardView from '$/views/A2aAgentCardView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,6 +70,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(a2aAgentCards) => [...new Map(a2aAgentCards.values.map((a2aAgentCard) => [a2aAgentCard[EntityMetaKey.SelectorKey], a2aAgentCard])).values()]}
 	getKey={(a2aAgentCard) => a2aAgentCard[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -91,12 +85,16 @@
 
 	{#snippet Item({ item: a2aAgentCard })}
 		{@const a2aAgentCardFields = { ...a2aAgentCard[EntityMetaKey.Selector], ...a2aAgentCard }}
-		{@const selection = select(EntityType.A2aAgentCard, a2aAgentCard[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<A2aAgentCardView
-			selection={selection}
-			prefetched={a2aAgentCardFields}
+		<EntityView
+			entityType={EntityType.A2aAgentCard}
+			entitySelector={a2aAgentCard[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((a2aAgentCardFields.agentCardUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent card'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

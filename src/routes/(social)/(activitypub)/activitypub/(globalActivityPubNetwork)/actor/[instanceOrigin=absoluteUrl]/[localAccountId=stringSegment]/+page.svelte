@@ -23,6 +23,8 @@
 			Source.Mastodon_Rest,
 		],
 		fields: {
+			activityStreamsUri: true,
+			acct: true,
 			$icon: true,
 			displayName: true,
 			username: true,
@@ -31,7 +33,6 @@
 			note: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.displayName) ?? ''), String((pageSelection.entitySelector.acct) ?? ''), String((pageSelection.entitySelector.username) ?? ''), String((pageSelection.entitySelector.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).acct) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).username) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')))
 
 
 	// Components
@@ -41,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ActivityPub actor • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor' : [String((({ ...data.selector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).acct) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).username) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor'))} • ActivityPub actor • Blockhead</title>
 </svelte:head>
 
 

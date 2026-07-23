@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Payjoin endpoint observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.PayjoinEndpoint_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.PayjoinEndpoint_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import PayjoinEndpoint_TimestampView from '$/views/PayjoinEndpoint_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(payjoinEndpointTimestamps) => [...new Map(payjoinEndpointTimestamps.values.map((payjoinEndpointTimestamp) => [payjoinEndpointTimestamp[EntityMetaKey.SelectorKey], payjoinEndpointTimestamp])).values()]}
 	getKey={(payjoinEndpointTimestamp) => payjoinEndpointTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,12 +89,24 @@
 
 	{#snippet Item({ item: payjoinEndpointTimestamp })}
 		{@const payjoinEndpointTimestampFields = { ...payjoinEndpointTimestamp[EntityMetaKey.Selector], ...payjoinEndpointTimestamp }}
-		{@const selection = select(EntityType.PayjoinEndpoint_Timestamp, payjoinEndpointTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<PayjoinEndpoint_TimestampView
-			selection={selection}
-			prefetched={payjoinEndpointTimestampFields}
+		<EntityView
+			entityType={EntityType.PayjoinEndpoint_Timestamp}
+			entitySelector={payjoinEndpointTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((payjoinEndpointTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'payjoin endpoint timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((payjoinEndpointTimestampFields.responseStatus) ?? ''), String((payjoinEndpointTimestampFields.error) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((payjoinEndpointTimestampFields.requiresOhttp) ?? ''), String((payjoinEndpointTimestampFields.supportsOutputSubstitution) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

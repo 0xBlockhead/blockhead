@@ -86,6 +86,12 @@ export type LifiBridgeTool = {
 
 export type LifiToolsResponse = {
 	bridges: LifiBridgeTool[]
+	exchanges?: {
+		key: string
+		name: string
+		logoURI?: string
+		supportedChains: (number | string)[]
+	}[]
 }
 
 /** `GET /v1/quote` — single-step quote (tool + estimate). */
@@ -101,6 +107,7 @@ export type LifiQuoteRequest = {
 }
 
 export type LifiQuoteStepLike = {
+	id: string
 	type: string
 	tool: string
 	toolDetails?: {
@@ -110,24 +117,29 @@ export type LifiQuoteStepLike = {
 	action: {
 		fromChainId: number
 		toChainId: number
-		fromAmount?: string
+		fromAmount: string
 		toAmount?: string
 		fromToken: LifiToken
 		toToken: LifiToken
 		fromAddress?: string
 		toAddress?: string
+		slippage?: number
 	}
-	estimate?: {
-		toAmount?: string
-		toAmountMin?: string
-		executionDuration?: number
+	estimate: {
+		tool: string
+		fromAmount: string
+		toAmount: string
+		toAmountMin: string
+		approvalAddress?: string
+		executionDuration: number
 		gasCosts?: {
-			amount?: string
-			amountUSD?: string
+			amount: string
+			amountUSD: string
 		}[]
 		feeCosts?: {
 			amount?: string
-			amountUSD?: string
+			amountUSD: string
+			percentage?: string
 		}[]
 	}
 }

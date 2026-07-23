@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Governance proposals',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CosmosGovernanceProposal>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CosmosGovernanceProposal>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CosmosGovernanceProposalView from '$/views/CosmosGovernanceProposalView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cosmosGovernanceProposals) => [...new Map(cosmosGovernanceProposals.values.map((cosmosGovernanceProposal) => [cosmosGovernanceProposal[EntityMetaKey.SelectorKey], cosmosGovernanceProposal])).values()]}
 	getKey={(cosmosGovernanceProposal) => cosmosGovernanceProposal[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: cosmosGovernanceProposal })}
 		{@const cosmosGovernanceProposalFields = { ...cosmosGovernanceProposal[EntityMetaKey.Selector], ...cosmosGovernanceProposal }}
-		{@const selection = select(EntityType.CosmosGovernanceProposal, cosmosGovernanceProposal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CosmosGovernanceProposalView
-			selection={selection}
-			prefetched={cosmosGovernanceProposalFields}
+		<EntityView
+			entityType={EntityType.CosmosGovernanceProposal}
+			entitySelector={cosmosGovernanceProposal[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cosmosGovernanceProposalFields.title) ?? ''), (String((cosmosGovernanceProposalFields.proposalId) ?? '') ? 'Proposal ' + String((cosmosGovernanceProposalFields.proposalId) ?? '') : '')].filter(Boolean).join(' ') || 'Cosmos governance proposal'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[(String((cosmosGovernanceProposalFields.proposalId) ?? '') ? 'Proposal ' + String((cosmosGovernanceProposalFields.proposalId) ?? '') : '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((cosmosGovernanceProposalFields.$network.name) ?? '')].filter(Boolean).join(' ') || [cosmosGovernanceProposalFields.$network.caip2 == null ? '' : String(`${(cosmosGovernanceProposalFields.$network.caip2).namespace}:${(cosmosGovernanceProposalFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -5,12 +5,16 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { TonAccountSelector } from '$/schema/TonAccount.ts'
 import { TonJettonSelector } from '$/schema/TonJetton.ts'
 import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 import accountFixtureJson from '$/sources/TonApi/Rest/fixtures/account.json'
-import type { TonApiAccount } from '$/sources/TonApi/Rest/types.ts'
+import type {
+	TonApiAccount,
+	TonApiMasterchainHead,
+} from '$/sources/TonApi/Rest/types.ts'
 
 const { sourceGetJson } = vi.hoisted(() => ({
 	sourceGetJson: vi.fn(),
@@ -21,13 +25,21 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson,
 }))
 
-const { getAccount } = await import('$/sources/TonApi/Rest/queries.ts')
+const {
+	getAccount,
+	getBlockchainMasterchainHead,
+} = await import('$/sources/TonApi/Rest/queries.ts')
 const { default: tonApiResolvers } = await import('$/resolvers/TonApi-Rest.ts')
 
 const accountFixture = {
 	...accountFixtureJson,
 	status: 'active',
 } satisfies TonApiAccount
+
+const masterchainHeadFixture = {
+	seqno: 45_678_901,
+	gen_utime: 1_750_000_000,
+} satisfies TonApiMasterchainHead
 
 const tonApiBinding = sourceProviderDefinitions
 	.flatMap((provider) => provider.bindings)
@@ -39,12 +51,97 @@ if (tonApiBinding == null)
 const accountResolver = tonApiResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.TonAccount
 ))
+const networkResolver = tonApiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+))
 const jettonResolver = tonApiResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.TonJetton
 ))
 
-if (accountResolver == null || jettonResolver == null)
-	throw new Error('TonApi-Rest spec missing account or jetton resolver')
+if (networkResolver == null || accountResolver == null || jettonResolver == null)
+	throw new Error('TonApi-Rest spec missing network, account, or jetton resolver')
+
+describe('TonAPI masterchain-head transport', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('uses the canonical binding and typed masterchain-head endpoint', async () => {
+		sourceGetJson.mockResolvedValueOnce(masterchainHeadFixture)
+
+		await expect(getBlockchainMasterchainHead(tonApiBinding)).resolves.toEqual(masterchainHeadFixture)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			tonApiBinding,
+			'https://tonapi.io/v2/blockchain/masterchain-head'
+		)
+	})
+
+	it('rejects malformed and unsafe masterchain-head wire data', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...masterchainHeadFixture,
+			seqno: '45678901',
+		})
+
+		await expect(getBlockchainMasterchainHead(tonApiBinding)).rejects.toThrow()
+
+		sourceGetJson.mockResolvedValueOnce({
+			...masterchainHeadFixture,
+			gen_utime: Number.MAX_SAFE_INTEGER,
+		})
+
+		await expect(getBlockchainMasterchainHead(tonApiBinding)).rejects.toThrow('safe numeric bounds')
+	})
+})
+
+describe('TonAPI network observation resolver', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it.each([
+		[
+			NetworkSelector.Caip2,
+			{
+				caip2: {
+					namespace: 'ton',
+					reference: '-239',
+				},
+			},
+		],
+		[
+			NetworkSelector.Slug,
+			{
+				slug: 'ton',
+			},
+		],
+	] as const)('maps %s to one canonical embedded observation row', async (selector, network) => {
+		sourceGetJson.mockResolvedValueOnce(masterchainHeadFixture)
+		vi.spyOn(Date, 'now').mockReturnValueOnce(1_750_000_000_123)
+
+		await expect(networkResolver.resolve[selector].resolve(network)).resolves.toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					timestampMs: 1_750_000_000_123,
+					source: Source.TonApi_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'timestampMs')]: 1_750_000_000_123,
+					[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'masterchainSeqno')]: 45_678_901n,
+					[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')]: 1_750_000_000_000,
+				},
+			},
+		])
+		expect(sourceGetJson).toHaveBeenCalledTimes(1)
+	})
+
+	it('rejects unsupported networks before transport', async () => {
+		await expect(networkResolver.resolve[NetworkSelector.Slug].resolve({
+			slug: 'ethereum',
+		})).rejects.toThrow('unsupported network')
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+})
 
 describe('TonAPI account transport', () => {
 	beforeEach(() => {

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LightningNode_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LightningNode_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LightningNode_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lightningNodeTimestamp = $derived(selection({
+	const lightningNodeTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			alias: true,
+			capacitySats: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			alias: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.alias) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning node timestamp')
-	const viewDomId = $derived('lightning-node-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('lightning-node-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,7 +80,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'alias') && Object.hasOwn(prefetched, 'capacitySats')}
 			{[String((pendingEntity.alias) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={lightningNodeTimestamp}>
@@ -86,13 +93,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const capacitySats0 = pendingEntity.capacitySats}
-					{#if capacitySats0 !== undefined && capacitySats0 !== null}
-						<NumberValue
-							value={capacitySats0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'alias') && Object.hasOwn(prefetched, 'capacitySats')}
+			{@const capacitySats0 = pendingEntity.capacitySats}
+			{#if capacitySats0 !== undefined && capacitySats0 !== null}
+				<NumberValue
+					value={capacitySats0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={lightningNodeTimestamp}>
 				{#snippet children(entity)}
@@ -114,15 +121,30 @@
 				<dt>Node</dt>
 				<dd>
 					<LightningNodeView
-						selection={select(EntityType.LightningNode, selection.entitySelector.$node, {})}
+						selection={select(EntityType.LightningNode, selection.entitySelector.$node)}
 						href={
-							(selection.entitySelector.$node.publicKey !== undefined && selection.entitySelector.$node.$network !== undefined && selection.entitySelector.$node.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-								pubkey: String(selection.entitySelector.$node.publicKey ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$node.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$node.publicKey !== undefined && selection.entitySelector.$node.$network !== undefined && selection.entitySelector.$node.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-								pubkey: String(selection.entitySelector.$node.publicKey ?? ''),
-								network: String(selection.entitySelector.$node.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$node != null && 'publicKey' in selection.entitySelector.$node
+								&& selection.entitySelector.$node.publicKey != null
+								&& selection.entitySelector.$node != null && '$network' in selection.entitySelector.$node ?
+									selection.entitySelector.$node.$network != null && 'caip2' in selection.entitySelector.$node.$network
+									&& selection.entitySelector.$node.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+									pubkey: String(selection.entitySelector.$node.publicKey ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$node.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$node.$network != null && 'slug' in selection.entitySelector.$node.$network
+										&& selection.entitySelector.$node.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+										pubkey: String(selection.entitySelector.$node.publicKey ?? ''),
+										network: String(selection.entitySelector.$node.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

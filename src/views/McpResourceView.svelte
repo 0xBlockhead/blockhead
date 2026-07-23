@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.McpResource>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.McpResource>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.McpResource>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,15 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const mcpResource = $derived(selection({
+	const mcpResource = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			title: true,
+			mimeType: true,
+			name: true,
+			subscribed: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			title: true,
@@ -51,7 +60,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.uri) ?? '')].filter(Boolean).join(' ') || 'mcp resource')
-	const viewDomId = $derived('mcp-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('mcp-resource-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,7 +82,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'title') && Object.hasOwn(prefetched, 'mimeType') && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'subscribed')}
 			{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={mcpResource}>
@@ -86,7 +95,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'title') && Object.hasOwn(prefetched, 'mimeType') && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'subscribed')}
 			{[String((pendingEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={mcpResource}>
@@ -99,7 +108,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'title') && Object.hasOwn(prefetched, 'mimeType') && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'subscribed')}
 			{@const subscribed0 = pendingEntity.subscribed}
 			{#if subscribed0 !== undefined && subscribed0 !== null}
 				<span data-text="muted">
@@ -127,7 +136,7 @@
 				<dt>server</dt>
 				<dd>
 					<McpServerView
-						selection={select(EntityType.McpServer, selection.entitySelector.$server, {})}
+						selection={select(EntityType.McpServer, selection.entitySelector.$server)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -288,17 +297,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<McpResourceContent_TimestampsView
-				selection={
-						selection.$$contentTimestamps({
-							count: true,
-						})
-					}
-				title='content timestamps'
-				emptyText='No MCP resource content observations.'
-				id='McpResourceContent_TimestampsView-content-timestamps'
-			/>
-		{/if}
+		{@const mcpResourceMcpResourceContentTimestampsViewContentTimestampsResource = selection.$$contentTimestamps}
+		<ResourceBoundary
+			resource={mcpResourceMcpResourceContentTimestampsViewContentTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<McpResourceContent_TimestampsView
+					selection={mcpResourceMcpResourceContentTimestampsViewContentTimestampsResource}
+					countResource={mcpResourceMcpResourceContentTimestampsViewContentTimestampsResource.count}
+					title='content timestamps'
+					id='McpResourceContent_TimestampsView-content-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

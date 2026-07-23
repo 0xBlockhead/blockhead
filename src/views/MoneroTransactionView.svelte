@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.MoneroTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MoneroTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MoneroTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,14 +44,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const moneroTransaction = $derived(selection({
+	const moneroTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			feeAtomicUnits: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			feeAtomicUnits: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'monero transaction')
-	const viewDomId = $derived('monero-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('monero-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -75,104 +81,60 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const txHash0 = pendingEntity.txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String((txHash0) ?? '')} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={moneroTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const txHash0 = resolvedEntity.txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String((txHash0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={moneroTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const txHash0 = resolvedEntity.txHash}
+				{#if txHash0 !== undefined && txHash0 !== null}
+					<TruncatedValue value={String((txHash0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={
-						selection.$block({
-							sources: [
-								Source.MoneroDaemonRpc_JsonRpc,
-							],
-						})
+		<ResourceBoundary resource={moneroTransaction}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={
+						selection
+							.$block({
+								sources: [
+									Source.MoneroDaemonRpc_JsonRpc,
+								],
+							})
 					}
-					>
-						{#snippet children(moneroBlock)}
-							{#if moneroBlock != null && moneroBlock[EntityMetaKey.Selector] != null}
-								<MoneroBlockView
-									selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
-									prefetched={moneroBlock}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={moneroTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={
-						selection.$block({
-							sources: [
-								Source.MoneroDaemonRpc_JsonRpc,
-							],
-						})
-					}
-					>
-						{#snippet children(moneroBlock)}
-							{#if moneroBlock != null && moneroBlock[EntityMetaKey.Selector] != null}
-								<MoneroBlockView
-									selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
-									prefetched={moneroBlock}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				>
+					{#snippet children(moneroBlock)}
+						{#if moneroBlock != null && moneroBlock[EntityMetaKey.Selector] != null}
+							<MoneroBlockView
+								selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
+								prefetched={moneroBlock}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const feeAtomicUnits0 = pendingEntity.feeAtomicUnits}
-			{#if feeAtomicUnits0 !== undefined && feeAtomicUnits0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={feeAtomicUnits0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={moneroTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const feeAtomicUnits0 = resolvedEntity.feeAtomicUnits}
-					{#if feeAtomicUnits0 !== undefined && feeAtomicUnits0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={feeAtomicUnits0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={moneroTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const feeAtomicUnits0 = resolvedEntity.feeAtomicUnits}
+				{#if feeAtomicUnits0 !== undefined && feeAtomicUnits0 !== null}
+					<span data-text="muted">
+						<NumberValue
+							value={feeAtomicUnits0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -181,13 +143,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -221,11 +193,12 @@
 
 			<ResourceBoundary
 				resource={
-					selection.$block({
-						sources: [
-							Source.MoneroDaemonRpc_JsonRpc,
-						],
-					})
+					selection
+						.$block({
+							sources: [
+								Source.MoneroDaemonRpc_JsonRpc,
+							],
+						})
 				}
 			>
 				{#snippet children(moneroBlock)}
@@ -326,32 +299,45 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<MoneroKeyImagesView
-				selection={
-						selection.$$keyImages({
-							sources: [
-								Source.MoneroDaemonRpc_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Key images'
-				id='MoneroKeyImagesView-key-images'
-			/>
-
-			<MoneroStealthOutputsView
-				selection={
-						selection.$$stealthOutputs({
-							sources: [
-								Source.MoneroDaemonRpc_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Stealth outputs'
-				id='MoneroStealthOutputsView-stealth-outputs'
-			/>
-		{/if}
+				{@const moneroTransactionMoneroKeyImagesViewKeyImagesResource = selection
+		.$$keyImages({
+			sources: [
+				Source.MoneroDaemonRpc_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={moneroTransactionMoneroKeyImagesViewKeyImagesResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<MoneroKeyImagesView
+							selection={moneroTransactionMoneroKeyImagesViewKeyImagesResource}
+							countResource={moneroTransactionMoneroKeyImagesViewKeyImagesResource.count}
+							title='Key images'
+							id='MoneroKeyImagesView-key-images'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const moneroTransactionMoneroStealthOutputsViewStealthOutputsResource = selection
+		.$$stealthOutputs({
+			sources: [
+				Source.MoneroDaemonRpc_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={moneroTransactionMoneroStealthOutputsViewStealthOutputsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<MoneroStealthOutputsView
+							selection={moneroTransactionMoneroStealthOutputsViewStealthOutputsResource}
+							countResource={moneroTransactionMoneroStealthOutputsViewStealthOutputsResource.count}
+							title='Stealth outputs'
+							id='MoneroStealthOutputsView-stealth-outputs'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

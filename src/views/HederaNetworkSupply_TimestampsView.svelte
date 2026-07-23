@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hedera network supply observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HederaNetworkSupply_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HederaNetworkSupply_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HederaNetworkSupply_TimestampView from '$/views/HederaNetworkSupply_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(hederaNetworkSupplyTimestamps) => [...new Map(hederaNetworkSupplyTimestamps.values.map((hederaNetworkSupplyTimestamp) => [hederaNetworkSupplyTimestamp[EntityMetaKey.SelectorKey], hederaNetworkSupplyTimestamp])).values()]}
 	getKey={(hederaNetworkSupplyTimestamp) => hederaNetworkSupplyTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: hederaNetworkSupplyTimestamp })}
 		{@const hederaNetworkSupplyTimestampFields = { ...hederaNetworkSupplyTimestamp[EntityMetaKey.Selector], ...hederaNetworkSupplyTimestamp }}
-		{@const selection = select(EntityType.HederaNetworkSupply_Timestamp, hederaNetworkSupplyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HederaNetworkSupply_TimestampView
-			selection={selection}
-			prefetched={hederaNetworkSupplyTimestampFields}
+		<EntityView
+			entityType={EntityType.HederaNetworkSupply_Timestamp}
+			entitySelector={hederaNetworkSupplyTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'hedera network supply timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

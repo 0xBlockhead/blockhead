@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.HyperliquidSpotPair_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.HyperliquidSpotPair_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HyperliquidSpotPair_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,15 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidSpotPairTimestamp = $derived(selection({
+	const hyperliquidSpotPairTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('hyperliquid spot pair timestamp')
-	const viewDomId = $derived('hyperliquid-spot-pair-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'hyperliquid spot pair timestamp'
+	const viewDomId = $derived('hyperliquid-spot-pair-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import HyperliquidSpotPairView from '$/views/HyperliquidSpotPairView.svelte'
 </script>
 
@@ -64,12 +69,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={hyperliquidSpotPairTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -82,7 +86,7 @@
 				<dt>spot pair</dt>
 				<dd>
 					<HyperliquidSpotPairView
-						selection={select(EntityType.HyperliquidSpotPair, selection.entitySelector.$spotPair, {})}
+						selection={select(EntityType.HyperliquidSpotPair, selection.entitySelector.$spotPair)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

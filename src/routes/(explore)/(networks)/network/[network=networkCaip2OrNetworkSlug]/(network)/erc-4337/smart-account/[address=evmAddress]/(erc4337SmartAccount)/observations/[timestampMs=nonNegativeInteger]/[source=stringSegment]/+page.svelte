@@ -32,7 +32,6 @@
 			userOperationsCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account timestamp')))
 
 
 	// Components
@@ -42,7 +41,15 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ERC-4337 smart account timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
+		$account: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account timestamp' : [String((({ ...{
+		$account: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account timestamp'))} • ERC-4337 smart account timestamp • Blockhead</title>
 </svelte:head>
 
 

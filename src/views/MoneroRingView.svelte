@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.MoneroRing>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MoneroRing>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MoneroRing>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const moneroRing = $derived(selection({
+	const moneroRing = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('monero ring')
-	const viewDomId = $derived('monero-ring-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'monero ring'
+	const viewDomId = $derived('monero-ring-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,37 +70,24 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<MoneroKeyImageView
-						selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={moneroRing}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<MoneroKeyImageView
-						selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={moneroRing}>
+			{#snippet children(entity)}
+				<MoneroKeyImageView
+					selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{titleFallback}
-		{:else}
-			<ResourceBoundary resource={moneroRing}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={moneroRing}>
+			{#snippet children(entity)}
+				{titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,7 +96,7 @@
 				<dt>Key image</dt>
 				<dd>
 					<MoneroKeyImageView
-						selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage, {})}
+						selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -115,19 +106,25 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<MoneroRingMembersView
-				selection={
-						selection.$$members({
-							sources: [
-								Source.MoneroDaemonRpc_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Members'
-				id='MoneroRingMembersView-members'
-			/>
-		{/if}
+				{@const moneroRingMoneroRingMembersViewMembersResource = selection
+		.$$members({
+			sources: [
+				Source.MoneroDaemonRpc_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={moneroRingMoneroRingMembersViewMembersResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<MoneroRingMembersView
+							selection={moneroRingMoneroRingMembersViewMembersResource}
+							countResource={moneroRingMoneroRingMembersViewMembersResource.count}
+							title='Members'
+							id='MoneroRingMembersView-members'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

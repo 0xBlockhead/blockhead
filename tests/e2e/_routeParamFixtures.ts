@@ -56,6 +56,7 @@ const YOUTUBE_PROBE_COMMENT_ID = 'UgzuC3zzpRZkjc5Qzsd4AaABAg' as const
 const YOUTUBE_PROBE_CHANNEL_ID = youtubeNetworkSeedChannels[0].channelId
 const COSMOS_PROBE_OPERATOR_ADDRESS = 'cosmosvaloper1qphf0ferqcch0jca9hlqfm3x0eds3dpkcvpafp' as const
 const COSMOS_PROBE_TX_HASH = 'B70E21EE2A02B663915426C0664D27818105296D8E9A672B7932B4F6F9DADD5F' as const
+const CARDANO_PROBE_ADDRESS = 'addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x' as const
 const CARDANO_PROBE_PROPOSAL_TX_HASH = '2dd15e0ef6e6a17841cb9541c27724072ce4d4b79b91e58432fbaa32d9572531' as const
 const CARDANO_PROBE_DREP = 'drep15cfxz9exyn5rx0807zvxfrvslrjqfchrd4d47kv9e0f46uedqtc' as const
 const CARDANO_PROBE_POOL = 'pool1pu5jlj4q9w9jlxeu370a3c9myx47md5j5m2str0naunn2q3lkdy' as const
@@ -69,6 +70,8 @@ const ETHEREUM_MARKET_TIMESTAMP_MS = '1767225600000' as const
 const ACTIVITY_PUB_PROBE_ACTOR_URI = `${activityPubNetworkSeedActors[0].instanceOrigin}/users/Gargron` as const
 
 const LENS_PROBE_POST_ID = '161m1s2r2av9deyh2a3' as const
+const X_PROBE_POST_ID = '1890000000000000000' as const
+const X_PROBE_USER_ID = '44196397' as const
 
 const ethUsdCatalogMarket = {
 	$base: {
@@ -274,10 +277,14 @@ export const e2eRouteProbeAtomValueById = {
 	"/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]:CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex.1.proposalTxHash": CARDANO_PROBE_PROPOSAL_TX_HASH,
 	"/network/[network]/stake-pool/[poolId]:CardanoStakePool.NetworkPoolId.1.network": 'cardano',
 	"/network/[network]/stake-pool/[poolId]:CardanoStakePool.NetworkPoolId.1.poolId": CARDANO_PROBE_POOL,
-	"/network/[network]/account/[accountId]:CosmosAccount.NetworkAddress.1.accountId": '3',
-	"/network/[network]/account/[accountId]:CosmosAccount.NetworkAddress.1.network": 'eip155:1',
+	"/network/[network]/account/[accountId]:CosmosAccount.NetworkAddress.1.accountId": 'cosmos1account',
+	"/network/[network]/account/[accountId]:CosmosAccount.NetworkAddress.1.network": 'cosmos',
+	"/network/[network]/account/[accountId]:CardanoAddress.NetworkAddress.1.accountId": CARDANO_PROBE_ADDRESS,
+	"/network/[network]/account/[accountId]:CardanoAddress.NetworkAddress.1.network": 'cardano',
 	"/network/[network]/account/[accountId]:EvmNetworkAccount.EvmNetworkEvmAccount.1.accountId": '3',
 	"/network/[network]/account/[accountId]:EvmNetworkAccount.EvmNetworkEvmAccount.1.network": 'eip155:1',
+	"/network/[network]/account/[accountId]:HederaAccount.NetworkAccountId.1.accountId": '0.0.1234',
+	"/network/[network]/account/[accountId]:HederaAccount.NetworkAccountId.1.network": 'hedera',
 	"/network/[network]/account/[accountId]:XrplAccount.NetworkAccount.1.accountId": XRPL_PROBE_ACCOUNT,
 	"/network/[network]/account/[accountId]:XrplAccount.NetworkAccount.1.network": 'xrpl',
 	"/network/[network]/amendment/[amendmentId]:XrplAmendment.NetworkAmendmentId.1.amendmentId": XRPL_PROBE_AMENDMENT_ID,
@@ -464,6 +471,8 @@ export const e2eRouteProbeAtomValueById = {
 	"/network/[network]/token-mint/[mintAddress]:SolanaTokenMint.NetworkMintAddress.1.network": 'eip155:1',
 	"/network/[network]/tx/[transactionId]:EvmTransaction.EvmNetworkTxHash.1.network": 'eip155:1',
 	"/network/[network]/tx/[transactionId]:EvmTransaction.EvmNetworkTxHash.1.transactionId": SAMPLE_TX_HASH,
+	"/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.network": 'cardano',
+	"/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.transactionId": CARDANO_PROBE_PROPOSAL_TX_HASH,
 	"/network/[network]/tx/[transactionId]:SolanaTransaction.NetworkSignature.1.network": 'eip155:1',
 	"/network/[network]/tx/[transactionId]:SolanaTransaction.NetworkSignature.1.transactionId": SAMPLE_TX_HASH,
 	"/network/[network]/tx/[transactionId]:UtxoTransaction.NetworkTxId.1.network": 'eip155:1',
@@ -471,6 +480,9 @@ export const e2eRouteProbeAtomValueById = {
 	"/network/[network]/tx/[transactionId]/input/[inputIndex]:UtxoInput.TransactionIndexInTransaction.1.inputIndex": '0',
 	"/network/[network]/tx/[transactionId]/input/[inputIndex]:UtxoInput.TransactionIndexInTransaction.1.network": 'bitcoin',
 	"/network/[network]/tx/[transactionId]/input/[inputIndex]:UtxoInput.TransactionIndexInTransaction.1.transactionId": BITCOIN_TX_ID,
+	"/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.inputIndex": '0',
+	"/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.network": 'cardano',
+	"/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.transactionId": CARDANO_PROBE_PROPOSAL_TX_HASH,
 	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.indexInTransaction": '0',
 	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.instructionKind": 'Instruction',
 	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.network": 'eip155:1',
@@ -493,6 +505,9 @@ export const e2eRouteProbeAtomValueById = {
 	"/network/[network]/tx/[transactionId]/output/[outputIndex]:UtxoOutput.TransactionIndexInTransaction.1.network": 'bitcoin',
 	"/network/[network]/tx/[transactionId]/output/[outputIndex]:UtxoOutput.TransactionIndexInTransaction.1.outputIndex": '0',
 	"/network/[network]/tx/[transactionId]/output/[outputIndex]:UtxoOutput.TransactionIndexInTransaction.1.transactionId": BITCOIN_TX_ID,
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.network": 'cardano',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.outputIndex": '0',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.transactionId": CARDANO_PROBE_PROPOSAL_TX_HASH,
 	"/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.actionIndex": '0',
 	"/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.actionKind": 'spend',
 	"/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.network": 'zcash',
@@ -514,7 +529,9 @@ export const e2eRouteProbeAtomValueById = {
 	"/nostr/article/[pubkey]/[identifier]:NostrArticle.CanonicalCoordinate.1.pubkey": NOSTR_PROBE_ARTICLE_PUBKEY,
 	"/nostr/note/[eventId]:NostrNote.CanonicalEventId.1.eventId": NOSTR_PROBE_NOTE_EVENT_ID,
 	"/nostr/profile/[pubkey]:NostrProfile.CanonicalPubkey.1.pubkey": NOSTR_PROBE_ARTICLE_PUBKEY,
+	'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 	'alice': 'alice',
+	'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
 	"/nostr/reaction/[eventId]:NostrReaction.CanonicalEventId.1.eventId": 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
 	"/nostr/relay/[relayKey]:NostrRelay.RelayUrl.1.relayKey": NOSTR_PROBE_RELAY_URL,
 	"/nostr/relay/[relayKey]/observations/[timestampMs]/[source]:NostrRelay_Timestamp.RelayTimestampMsSource.1.relayKey": NOSTR_PROBE_RELAY_URL,
@@ -609,12 +626,14 @@ export const e2eRouteProbeAtomValueById = {
 	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.quote": 'USD',
 	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.quoteKind": 'currency',
 	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.timestampMs": ETHEREUM_MARKET_TIMESTAMP_MS,
-	"/x/post/[postId]:XPost.Id.1.postId": LENS_PROBE_POST_ID,
-	"/x/post/[postId]/observations/[timestampMs]:XPost_Timestamp.XPostTimestampMs.1.postId": LENS_PROBE_POST_ID,
-	"/x/post/[postId]/observations/[timestampMs]:XPost_Timestamp.XPostTimestampMs.1.timestampMs": '0',
-	"/x/user/[userId]:XUser.Id.1.userId": '3',
-	"/x/user/[userId]/observations/[timestampMs]:XUser_Timestamp.XUserTimestampMs.1.timestampMs": '0',
-	"/x/user/[userId]/observations/[timestampMs]:XUser_Timestamp.XUserTimestampMs.1.userId": '3',
+	"/x/post/[postId]:XPost.Id.1.postId": X_PROBE_POST_ID,
+	"/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.postId": X_PROBE_POST_ID,
+	"/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.source": 'X_FxEmbed_Rest',
+	"/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.timestampMs": '0',
+	"/x/user/[userId]:XUser.Id.1.userId": X_PROBE_USER_ID,
+	"/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.source": 'X_FxEmbed_Rest',
+	"/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.timestampMs": '0',
+	"/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.userId": X_PROBE_USER_ID,
 	"/xmtp/conversation/[conversationId]:XmtpConversation.Id.1.conversationId": 'e2e-probe-conversation',
 	"/youtube/channel/[channelId]:YoutubeChannel.ChannelId.1.channelId": 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
 	"/youtube/channel/[channelId]/observations/[timestampMs]-[source]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMsSource.1.channelId": YOUTUBE_PROBE_CHANNEL_ID,

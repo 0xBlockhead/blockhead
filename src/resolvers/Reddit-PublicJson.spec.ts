@@ -118,7 +118,10 @@ describe('Reddit_PublicJson timestamp relationships', () => {
 			data: {
 				children: [{
 					kind,
-					data: wireMetrics,
+					data: {
+						name: fullname,
+						...wireMetrics,
+					},
 				}],
 			},
 		})
@@ -168,11 +171,20 @@ describe('Reddit_PublicJson comment hierarchy', () => {
 						kind: 't1',
 						data: {
 							name: 't1_parent',
+							link_id: 't3_root',
+							parent_id: 't3_root',
 							replies: {
 								kind: 'Listing',
 								data: {
 									children: [
-										{ kind: 't1', data: { name: 't1_child' } },
+										{
+											kind: 't1',
+											data: {
+												name: 't1_child',
+												link_id: 't3_root',
+												parent_id: 't1_parent',
+											},
+										},
 										{ kind: 'more', data: { children: ['unloaded'] } },
 									],
 								},
@@ -199,15 +211,219 @@ describe('Reddit_PublicJson comment hierarchy', () => {
 			$link: { [EntityMetaKey.Selector]: { fullname: 't3_root' } },
 			$parentComment: { [EntityMetaKey.Selector]: { fullname: 't1_parent' } },
 		})
+		vi.mocked(getInfo).mockResolvedValue({
+			kind: 'Listing',
+			data: {
+				children: [{
+					kind: 't1',
+					data: { name: 't1_parent', link_id: 't3_root' },
+				}],
+			},
+		})
 		await expect(repliesResolver.resolve[RedditCommentSelector.Fullname].resolve({
 			fullname: 't1_parent',
 		}, resolverContext)).resolves.toEqual([{
 			[EntityMetaKey.Selector]: { fullname: 't1_child' },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.RedditComment, [], '$link')]: {
+					[EntityMetaKey.Selector]: { fullname: 't3_root' },
+				},
+				[entityFieldAddressKey(EntityType.RedditComment, [], '$parentComment')]: {
+					[EntityMetaKey.Selector]: { fullname: 't1_parent' },
+				},
+			},
 		}])
+	})
+
+	it('lists only forest roots while direct replies remain parent-owned', async () => {
+		vi.mocked(getCommentsByArticleId).mockResolvedValue([
+			{ kind: 'Listing', data: { children: [] } },
+			{
+				kind: 'Listing',
+				data: {
+					children: [{
+						kind: 't1',
+						data: {
+							name: 't1_parent',
+							link_id: 't3_root',
+							parent_id: 't3_root',
+							replies: {
+								kind: 'Listing',
+								data: {
+									children: [{
+										kind: 't1',
+										data: {
+											name: 't1_child',
+											link_id: 't3_root',
+											parent_id: 't1_parent',
+										},
+									}],
+								},
+							},
+						},
+					}],
+				},
+			},
+		])
+		const commentsResolver = redditPublicJson.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.RedditLink
+			&& '$$comments' in candidate.projections
+			&& candidate.projections.$$comments.resolveCount == null
+		))
+		if (commentsResolver == null)
+			throw new Error('Reddit_PublicJson spec missing RedditLink.$$comments resolver')
+
+		await expect(commentsResolver.resolve[RedditLinkSelector.Fullname].resolve({
+			fullname: 't3_root',
+		}, resolverContext)).resolves.toEqual([
+			{
+				[EntityMetaKey.Selector]: { fullname: 't1_parent' },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.RedditComment, [], '$link')]: {
+						[EntityMetaKey.Selector]: { fullname: 't3_root' },
+					},
+				},
+			},
+		])
 	})
 })
 
 describe('Reddit_PublicJson listing continuation', () => {
+	it('materializes bounded submission cards and rejects mismatched detail subjects', async () => {
+		const page = {
+			kind: 'Listing' as const,
+			data: {
+				children: [
+					{
+						kind: 't3',
+						data: {
+							name: 't3_first',
+							title: 'First title',
+							author: 'alice',
+							created_utc: 1_750_000_000,
+							permalink: '/r/ethereum/comments/first/?utm_source=listing#comments',
+							subreddit: ' Ethereum ',
+						},
+					},
+					{ kind: 't3', data: { name: 't3_second', title: 'Second title' } },
+				],
+			},
+		}
+		const listing = redditPublicJson.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.RedditSubreddit
+			&& '$$links' in candidate.projections
+		))
+		const detail = redditPublicJson.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.RedditLink
+			&& 'title' in candidate.projections
+		))
+		if (listing == null || typeof listing.projections.$$links === 'function' || detail == null)
+			throw new Error('Reddit card resolvers missing')
+
+		expect(listing.projections.$$links.select(page, { name: 'ethereum' }, {
+			...resolverContext,
+			pagination: { limit: 1 },
+		})).toEqual([{
+			[EntityMetaKey.Selector]: { fullname: 't3_first' },
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType.RedditLink, [], 'title')]: 'First title',
+				[entityFieldAddressKey(EntityType.RedditLink, [], 'author')]: 'alice',
+				[entityFieldAddressKey(EntityType.RedditLink, [], 'createdAt')]: 1_750_000_000_000,
+				[entityFieldAddressKey(EntityType.RedditLink, [], 'permalink')]: 'https://www.reddit.com/r/ethereum/comments/first/',
+				[entityFieldAddressKey(EntityType.RedditLink, [], '$subreddit')]: {
+					[EntityMetaKey.Selector]: { name: 'ethereum' },
+				},
+			}),
+		}])
+		expect(listing.projections.$$links.select({
+			kind: 'Listing',
+			data: {
+				children: [
+					page.data.children[0],
+					{ ...page.data.children[0], data: { ...page.data.children[0].data, title: 'Duplicate' } },
+					{ kind: 't1', data: { name: 't3_wrong-kind' } },
+					{ kind: 't3', data: { name: 't1_wrong-prefix' } },
+					page.data.children[1],
+				],
+			},
+		}, { name: 'ethereum' }, {
+			...resolverContext,
+			pagination: { limit: 2 },
+		}).map((reference) => reference[EntityMetaKey.Selector].fullname)).toEqual([
+			't3_first',
+			't3_second',
+		])
+		expect(listing.projections.$$links.select(page, { name: 'ethereum' }, {
+			...resolverContext,
+			pagination: { limit: 0 },
+		})).toEqual([])
+
+		vi.mocked(getInfo).mockResolvedValue({
+			kind: 'Listing',
+			data: { children: [{ kind: 't3', data: { name: 't3_other' } }] },
+		})
+		await expect(detail.resolve[RedditLinkSelector.Fullname].resolve({
+			fullname: 't3_requested',
+		}, resolverContext)).rejects.toThrow('link response does not match request')
+
+		vi.mocked(getInfo).mockResolvedValue({
+			kind: 'Listing',
+			data: {
+				children: [
+					{ kind: 't1', data: { name: 't1_unrelated' } },
+					{ kind: 't3', data: { name: 't3_requested', title: 'Requested title' } },
+				],
+			},
+		})
+		await expect(detail.resolve[RedditLinkSelector.Fullname].resolve({
+			fullname: 't3_requested',
+		}, resolverContext)).resolves.toMatchObject({ title: 'Requested title' })
+
+		vi.mocked(getInfo).mockResolvedValue({
+			kind: 'Listing',
+			data: { children: [{ kind: 't1', data: { name: 't3_requested' } }] },
+		})
+		await expect(detail.resolve[RedditLinkSelector.Fullname].resolve({
+			fullname: 't3_requested',
+		}, resolverContext)).rejects.toThrow('link not found')
+
+		vi.mocked(getInfo).mockResolvedValue({
+			kind: 'Listing',
+			data: {
+				children: [{
+					kind: 't3',
+					data: {
+						name: 't3_requested',
+						permalink: 'https://evil.example/r/ethereum/comments/requested/',
+					},
+				}],
+			},
+		})
+		await expect(detail.resolve[RedditLinkSelector.Fullname].resolve({
+			fullname: 't3_requested',
+		}, resolverContext)).resolves.toMatchObject({
+			permalink: undefined,
+		})
+
+		vi.mocked(getInfo).mockResolvedValue({
+			kind: 'Listing',
+			data: {
+				children: [{
+					kind: 't3',
+					data: {
+						name: 't3_requested',
+						permalink: 'https://www.reddit.com/user/not-a-submission',
+					},
+				}],
+			},
+		})
+		await expect(detail.resolve[RedditLinkSelector.Fullname].resolve({
+			fullname: 't3_requested',
+		}, resolverContext)).resolves.toMatchObject({
+			permalink: undefined,
+		})
+	})
+
 	it('keeps the provider page and derives rows and the after token together', async () => {
 		const page = {
 			kind: 'Listing' as const,
@@ -249,6 +465,7 @@ describe('Reddit_PublicJson listing continuation', () => {
 			[EntityMetaKey.Selector]: {
 				fullname: 't3_post',
 			},
+			[EntityMetaKey.Fields]: {},
 		}])
 		expect(resolver.projections.$$links.continuation(
 			page,
@@ -257,6 +474,7 @@ describe('Reddit_PublicJson listing continuation', () => {
 		)).toEqual({
 			operation: 'subreddit-links:hot',
 			target: 'reddit-public-json',
+			viewerScope: 'subreddit:ethereum:hot',
 			terminal: false,
 			token: 't3_next',
 		})
@@ -287,6 +505,7 @@ describe('Reddit_PublicJson listing continuation', () => {
 		)).toEqual({
 			operation: 'subreddit-links:hot',
 			target: 'reddit-public-json',
+			viewerScope: 'subreddit:ethereum:hot',
 			terminal: true,
 		})
 	})

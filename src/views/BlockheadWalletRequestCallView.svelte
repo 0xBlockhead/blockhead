@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadWalletRequestCall>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadWalletRequestCall>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadWalletRequestCall>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadWalletRequestCall = $derived(selection({
+	const blockheadWalletRequestCall = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			toAddress: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			toAddress: true,
 		},
 	}))
 	const titleFallback = $derived((String((pendingEntity.callIndex) ?? '') ? 'Call #' + String((pendingEntity.callIndex) ?? '') : '') || 'blockhead wallet request call')
-	const viewDomId = $derived('blockhead-wallet-request-call-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-wallet-request-call-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -83,7 +89,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'toAddress')}
 			{[String((pendingEntity.toAddress) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadWalletRequestCall}>
@@ -101,7 +107,7 @@
 				<dt>wallet request</dt>
 				<dd>
 					<BlockheadWalletRequestView
-						selection={select(EntityType.BlockheadWalletRequest, selection.entitySelector.$walletRequest, {})}
+						selection={select(EntityType.BlockheadWalletRequest, selection.entitySelector.$walletRequest)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -151,7 +157,7 @@
 						<div>
 							<dt>CAIP-2</dt>
 							<dd>
-								<TruncatedValue value={caip2 == null ? '' : String((`${(caip2).namespace}:${(caip2).reference}`) ?? '')} />
+								<TruncatedValue value={caip2 == null ? '' : String(`${(caip2).namespace}:${(caip2).reference}`)} />
 							</dd>
 						</div>
 					{/if}

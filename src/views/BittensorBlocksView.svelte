@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Bittensor blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BittensorBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BittensorBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BittensorBlockView from '$/views/BittensorBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(bittensorBlocks) => [...new Map(bittensorBlocks.values.map((bittensorBlock) => [bittensorBlock[EntityMetaKey.SelectorKey], bittensorBlock])).values()]}
 	getKey={(bittensorBlock) => bittensorBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: bittensorBlock })}
 		{@const bittensorBlockFields = { ...bittensorBlock[EntityMetaKey.Selector], ...bittensorBlock }}
-		{@const selection = select(EntityType.BittensorBlock, bittensorBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BittensorBlockView
-			selection={selection}
-			prefetched={bittensorBlockFields}
+		<EntityView
+			entityType={EntityType.BittensorBlock}
+			entitySelector={bittensorBlock[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((bittensorBlockFields.blockNumber) ?? '')].filter(Boolean).join(' ') || 'Bittensor block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((bittensorBlockFields.hash) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[(String((bittensorBlockFields.extrinsicCount) ?? '') ? String((bittensorBlockFields.extrinsicCount) ?? '') + ' extrinsics' : '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

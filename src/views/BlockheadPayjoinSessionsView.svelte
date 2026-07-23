@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead payjoin sessions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadPayjoinSession>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadPayjoinSession>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadPayjoinSessionView from '$/views/BlockheadPayjoinSessionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadPayjoinSessions) => [...new Map(blockheadPayjoinSessions.values.map((blockheadPayjoinSession) => [blockheadPayjoinSession[EntityMetaKey.SelectorKey], blockheadPayjoinSession])).values()]}
 	getKey={(blockheadPayjoinSession) => blockheadPayjoinSession[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: blockheadPayjoinSession })}
 		{@const blockheadPayjoinSessionFields = { ...blockheadPayjoinSession[EntityMetaKey.Selector], ...blockheadPayjoinSession }}
-		{@const selection = select(EntityType.BlockheadPayjoinSession, blockheadPayjoinSession[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadPayjoinSessionView
-			selection={selection}
-			prefetched={blockheadPayjoinSessionFields}
+		<EntityView
+			entityType={EntityType.BlockheadPayjoinSession}
+			entitySelector={blockheadPayjoinSession[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadPayjoinSessionFields.sessionId) ?? '')].filter(Boolean).join(' ') || 'blockhead payjoin session'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadPayjoinSessionFields.status) ?? ''), String((blockheadPayjoinSessionFields.role) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadPayjoinSessionFields.amountSats) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

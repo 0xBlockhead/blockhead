@@ -44,14 +44,14 @@
 				}
 				title='Fee market'
 				selection={
-					projection.$$gasFeeBlocks({
-						sources: [
-							Source.Voltaire_JsonRpc,
-						],
-						count: true,
-					})
+					projection
+						.$$gasFeeBlocks({
+							sources: [
+								Source.Voltaire_JsonRpc,
+							],
+						})
 				}
-				id='gas-fee-blocks'
+				id='account-evm-network-gas-fee-block'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

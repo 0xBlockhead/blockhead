@@ -24,13 +24,13 @@
 			Source.Mastodon_Rest,
 		],
 		fields: {
+			activityStreamsUri: true,
 			content: true,
 			createdAt: true,
 			$author: true,
 			statusUrl: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [pageSelection.entitySelector.content == null ? '' : String((htmlToPlainText((pageSelection.entitySelector.content))) ?? ''), String((pageSelection.entitySelector.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note' : [({ ...pageSelection.entitySelector, ...pageSelection.entity }).content == null ? '' : String((htmlToPlainText((({ ...pageSelection.entitySelector, ...pageSelection.entity }).content))) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note')))
 
 
 	// Components
@@ -40,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ActivityPub note • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note' : [({ ...data.selector, ...pageSelection.entity }).content == null ? '' : String((htmlToPlainText((({ ...data.selector, ...pageSelection.entity }).content))) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note'))} • ActivityPub note • Blockhead</title>
 </svelte:head>
 
 

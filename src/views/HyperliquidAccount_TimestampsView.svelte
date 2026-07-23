@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hyperliquid account observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HyperliquidAccount_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HyperliquidAccount_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HyperliquidAccount_TimestampView from '$/views/HyperliquidAccount_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(hyperliquidAccountTimestamps) => [...new Map(hyperliquidAccountTimestamps.values.map((hyperliquidAccountTimestamp) => [hyperliquidAccountTimestamp[EntityMetaKey.SelectorKey], hyperliquidAccountTimestamp])).values()]}
 	getKey={(hyperliquidAccountTimestamp) => hyperliquidAccountTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: hyperliquidAccountTimestamp })}
 		{@const hyperliquidAccountTimestampFields = { ...hyperliquidAccountTimestamp[EntityMetaKey.Selector], ...hyperliquidAccountTimestamp }}
-		{@const selection = select(EntityType.HyperliquidAccount_Timestamp, hyperliquidAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HyperliquidAccount_TimestampView
-			selection={selection}
-			prefetched={hyperliquidAccountTimestampFields}
+		<EntityView
+			entityType={EntityType.HyperliquidAccount_Timestamp}
+			entitySelector={hyperliquidAccountTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'hyperliquid account timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

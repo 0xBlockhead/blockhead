@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CardanoGovernanceVote>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CardanoGovernanceVote>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoGovernanceVote>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,15 +43,24 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoGovernanceVote = $derived(selection({
+	const cardanoGovernanceVote = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
 		sources: selection.sources,
+		fields: {
+			vote: true,
+		},
+	} : {
+		sources: selection.sources,
+		fields: {
+			vote: true,
+		},
 	}))
-	const titleFallback = $derived('Cardano governance vote')
-	const viewDomId = $derived('cardano-governance-vote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.vote) ?? '')].filter(Boolean).join(' ') || 'Cardano governance vote')
+	const viewDomId = $derived('cardano-governance-vote-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CardanoGovernanceProposalView from '$/views/CardanoGovernanceProposalView.svelte'
 	import CardanoDRepView from '$/views/CardanoDRepView.svelte'
@@ -70,13 +80,26 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'vote')}
+			{[String((pendingEntity.vote) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cardanoGovernanceVote}>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{title || titleFallback}
+					{[String((resolvedEntity.vote) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet Value()}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'vote')}
+			{[String((pendingEntity.voterKind) ?? ''), String((pendingEntity.voterCredential) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.vote) ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoGovernanceVote}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.voterKind) ?? ''), String((resolvedEntity.voterCredential) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.vote) ?? '')].filter(Boolean).join(' ') || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
@@ -88,21 +111,62 @@
 				<dt>proposal</dt>
 				<dd>
 					<CardanoGovernanceProposalView
-						selection={select(EntityType.CardanoGovernanceProposal, selection.entitySelector.$proposal, {})}
+						selection={select(EntityType.CardanoGovernanceProposal, selection.entitySelector.$proposal)}
 						href={
-							(selection.entitySelector.$proposal.proposalTxHash !== undefined && selection.entitySelector.$proposal.proposalIndex !== undefined && selection.entitySelector.$proposal.$network !== undefined && selection.entitySelector.$proposal.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
-								proposalTxHash: String(selection.entitySelector.$proposal.proposalTxHash ?? ''),
-								proposalIndex: String(selection.entitySelector.$proposal.proposalIndex ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$proposal.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$proposal.proposalTxHash !== undefined && selection.entitySelector.$proposal.proposalIndex !== undefined && selection.entitySelector.$proposal.$network !== undefined && selection.entitySelector.$proposal.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
-								proposalTxHash: String(selection.entitySelector.$proposal.proposalTxHash ?? ''),
-								proposalIndex: String(selection.entitySelector.$proposal.proposalIndex ?? ''),
-								network: String(selection.entitySelector.$proposal.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$proposal != null && 'proposalTxHash' in selection.entitySelector.$proposal
+								&& selection.entitySelector.$proposal.proposalTxHash != null
+								&& selection.entitySelector.$proposal != null && 'proposalIndex' in selection.entitySelector.$proposal
+								&& selection.entitySelector.$proposal.proposalIndex != null
+								&& selection.entitySelector.$proposal != null && '$network' in selection.entitySelector.$proposal ?
+									selection.entitySelector.$proposal.$network != null && 'caip2' in selection.entitySelector.$proposal.$network
+									&& selection.entitySelector.$proposal.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
+									proposalTxHash: String(selection.entitySelector.$proposal.proposalTxHash ?? ''),
+									proposalIndex: String(selection.entitySelector.$proposal.proposalIndex ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$proposal.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$proposal.$network != null && 'slug' in selection.entitySelector.$proposal.$network
+										&& selection.entitySelector.$proposal.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
+										proposalTxHash: String(selection.entitySelector.$proposal.proposalTxHash ?? ''),
+										proposalIndex: String(selection.entitySelector.$proposal.proposalIndex ?? ''),
+										network: String(selection.entitySelector.$proposal.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
+				</dd>
+			</div>
+
+			<div>
+				<dt>vote</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: selection.sources,
+								fields: {
+									vote: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const vote = resolvedEntity.vote}
+							{#if vote !== undefined && vote !== null}
+								{String((vote) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 
@@ -177,31 +241,9 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+		</dl>
 
-			<div>
-				<dt>vote</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									vote: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const vote = resolvedEntity.vote}
-							{#if vote !== undefined && vote !== null}
-								{String((vote) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={selection.$drep}
 			>
@@ -214,13 +256,28 @@
 									selection={select(EntityType.CardanoDRep, cardanoDRep[EntityMetaKey.Selector])}
 									prefetched={cardanoDRep}
 									href={
-										(cardanoDRep[EntityMetaKey.Selector].drepCredential !== undefined && cardanoDRep[EntityMetaKey.Selector].$network !== undefined && cardanoDRep[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
-											drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
-											network: String(caip2StringFromValue(cardanoDRep[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : cardanoDRep[EntityMetaKey.Selector].drepCredential !== undefined && cardanoDRep[EntityMetaKey.Selector].$network !== undefined && cardanoDRep[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
-											drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
-											network: String(cardanoDRep[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											cardanoDRep[EntityMetaKey.Selector] != null && 'drepCredential' in cardanoDRep[EntityMetaKey.Selector]
+											&& cardanoDRep[EntityMetaKey.Selector].drepCredential != null
+											&& cardanoDRep[EntityMetaKey.Selector] != null && '$network' in cardanoDRep[EntityMetaKey.Selector] ?
+												cardanoDRep[EntityMetaKey.Selector].$network != null && 'caip2' in cardanoDRep[EntityMetaKey.Selector].$network
+												&& cardanoDRep[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
+												drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
+												network: String(caip2StringFromValue(cardanoDRep[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													cardanoDRep[EntityMetaKey.Selector].$network != null && 'slug' in cardanoDRep[EntityMetaKey.Selector].$network
+													&& cardanoDRep[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
+													drepCredential: String(cardanoDRep[EntityMetaKey.Selector].drepCredential ?? ''),
+													network: String(cardanoDRep[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -243,13 +300,28 @@
 									selection={select(EntityType.CardanoStakePool, cardanoStakePool[EntityMetaKey.Selector])}
 									prefetched={cardanoStakePool}
 									href={
-										(cardanoStakePool[EntityMetaKey.Selector].poolId !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
-											poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
-											network: String(caip2StringFromValue(cardanoStakePool[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : cardanoStakePool[EntityMetaKey.Selector].poolId !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network !== undefined && cardanoStakePool[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
-											poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
-											network: String(cardanoStakePool[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											cardanoStakePool[EntityMetaKey.Selector] != null && 'poolId' in cardanoStakePool[EntityMetaKey.Selector]
+											&& cardanoStakePool[EntityMetaKey.Selector].poolId != null
+											&& cardanoStakePool[EntityMetaKey.Selector] != null && '$network' in cardanoStakePool[EntityMetaKey.Selector] ?
+												cardanoStakePool[EntityMetaKey.Selector].$network != null && 'caip2' in cardanoStakePool[EntityMetaKey.Selector].$network
+												&& cardanoStakePool[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+												poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
+												network: String(caip2StringFromValue(cardanoStakePool[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													cardanoStakePool[EntityMetaKey.Selector].$network != null && 'slug' in cardanoStakePool[EntityMetaKey.Selector].$network
+													&& cardanoStakePool[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
+													poolId: String(cardanoStakePool[EntityMetaKey.Selector].poolId ?? ''),
+													network: String(cardanoStakePool[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -271,6 +343,30 @@
 								<CardanoTransactionView
 									selection={select(EntityType.CardanoTransaction, cardanoTransaction[EntityMetaKey.Selector])}
 									prefetched={cardanoTransaction}
+									href={
+										(
+											cardanoTransaction[EntityMetaKey.Selector] != null && 'hash' in cardanoTransaction[EntityMetaKey.Selector]
+											&& cardanoTransaction[EntityMetaKey.Selector].hash != null
+											&& cardanoTransaction[EntityMetaKey.Selector] != null && '$network' in cardanoTransaction[EntityMetaKey.Selector] ?
+												cardanoTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in cardanoTransaction[EntityMetaKey.Selector].$network
+												&& cardanoTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+												transactionId: String(cardanoTransaction[EntityMetaKey.Selector].hash ?? ''),
+												network: String(caip2StringFromValue(cardanoTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													cardanoTransaction[EntityMetaKey.Selector].$network != null && 'slug' in cardanoTransaction[EntityMetaKey.Selector].$network
+													&& cardanoTransaction[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+													transactionId: String(cardanoTransaction[EntityMetaKey.Selector].hash ?? ''),
+													network: String(cardanoTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -327,7 +423,9 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({

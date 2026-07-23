@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -17,10 +18,18 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.UtxoOutput, {
-		$transaction: data.selector,
-		indexInTransaction: Number(params.outputIndex),
-	}, {
+	const pageSelection = $derived(data.entityType === EntityType.CardanoTxOutput && data.selectorName === 'TransactionOutputIndex' ? select(EntityType.CardanoTxOutput, data.selector, {
+		sources: [
+			Source.Blockfrost_Rest,
+		],
+		fields: {
+			lovelace: true,
+			address: true,
+			$address: true,
+			datumHash: true,
+			referenceScriptHash: true,
+		},
+	}) : select(EntityType.UtxoOutput, data.selector, {
 		fields: {
 			$address: true,
 			isSpent: true,
@@ -38,22 +47,27 @@
 			$bitcoinCashCashTokenNft: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInTransaction) ?? '') ? 'Output #' + String((pageSelection.entitySelector.indexInTransaction) ?? '') : '') || 'UTXO output' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Output #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'UTXO output')))
-
+	const entityViewComponentByType = {
+		[EntityType.CardanoTxOutput]: CardanoTxOutputView,
+		[EntityType.UtxoOutput]: UtxoOutputView,
+	}
 
 	// Components
 	import Page from '$/components/Page.svelte'
+	import CardanoTxOutputView from '$/views/CardanoTxOutputView.svelte'
 	import UtxoOutputView from '$/views/UtxoOutputView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • UTXO output • Blockhead</title>
+	<title>{data.entityType === EntityType.CardanoTxOutput && data.selectorName === 'TransactionOutputIndex' ? (pageSelection.entity == null ? [String((data.selector.outputIndex) ?? '')].filter(Boolean).join(' ') || 'Cardano transaction output' : [String((({ ...data.selector, ...pageSelection.entity }).outputIndex) ?? '')].filter(Boolean).join(' ') || 'Cardano transaction output') : (pageSelection.entity == null ? (String((data.selector.indexInTransaction) ?? '') ? 'Output #' + String((data.selector.indexInTransaction) ?? '') : '') || 'UTXO output' : (String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Output #' + String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'UTXO output')} • {data.entityType === EntityType.CardanoTxOutput && data.selectorName === 'TransactionOutputIndex' ? 'Cardano transaction output' : 'UTXO output'} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	<UtxoOutputView
+	{@const EntityView = entityViewComponentByType[data.entityType]}
+
+	<EntityView
 		href={
 			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
 				network: params.network,

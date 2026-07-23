@@ -569,8 +569,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.AptosFullnode,
 				source: Source.AptosFullnode_Rest,
 				target: {
-					kind: SourceTargetKind.NetworkSlug,
-					key: 'aptos',
+					kind: SourceTargetKind.Caip2Network,
+					key: 'aptos:1',
 				},
 				endpoints: [
 					{
@@ -585,12 +585,13 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.RemoteQuery,
+				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'AptosFullnode_Rest-12',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenApiSpec,
@@ -626,8 +627,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.AptosIndexer,
 				source: Source.AptosIndexer_Graphql,
 				target: {
-					kind: SourceTargetKind.NetworkSlug,
-					key: 'aptos',
+					kind: SourceTargetKind.Caip2Network,
+					key: 'aptos:1',
 				},
 				endpoints: [
 					{
@@ -642,12 +643,13 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.RemoteQuery,
+				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'AptosIndexer_Graphql-13',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.GraphqlSchema,
@@ -9916,7 +9918,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						locator: 'wss://{relay-host}',
 					},
 				],
-				wireProtocol: WireProtocol.JsonRpc2,
+				wireProtocol: WireProtocol.WebSocketMessages,
 				apiFamily: ApiFamily.NostrRelay,
 				operationGroups: [
 					SourceOperationGroup.NostrRelayRead,
@@ -12276,6 +12278,13 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Starknet/JsonRpc/types.ts',
+						generated: false,
+					},
+				],
 			},
 		],
 		origins: [
@@ -13491,8 +13500,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.TronGrid,
 				source: Source.TronGrid_Rest,
 				target: {
-					kind: SourceTargetKind.NetworkSlug,
-					key: 'tron',
+					kind: SourceTargetKind.Caip2Network,
+					key: 'tron:0x2b6653dc',
 				},
 				endpoints: [
 					{
@@ -13578,8 +13587,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.TronScan,
 				source: Source.TronScan_Rest,
 				target: {
-					kind: SourceTargetKind.NetworkSlug,
-					key: 'tron',
+					kind: SourceTargetKind.Caip2Network,
+					key: 'tron:0x2b6653dc',
 				},
 				endpoints: [
 					{

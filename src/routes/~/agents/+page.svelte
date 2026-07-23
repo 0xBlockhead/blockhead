@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$blockheadAgentConversations',
-			}).$$blockheadAgentConversations({
-				sources: [
-					Source.Local_Internal,
-				],
-				count: true,
 			})
+				.$$blockheadAgentConversations({
+					sources: [
+						Source.Local_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$blockheadAgentConversations',
+			})
+				.$$blockheadAgentConversations({
+					sources: [
+						Source.Local_Internal,
+					],
+				}).count
 		}
 		id='blockhead-agent-conversations'
 		data-column-item="flexible"

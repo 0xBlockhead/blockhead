@@ -82,7 +82,8 @@ export default {
 						const verifiedAddresses = (
 							(verifications.messages ?? [])
 								.flatMap<Entity<typeof schema, EntityType.FarcasterVerifiedAddress>>((message: SnapVerify) => {
-								const body = message.data?.verificationAddAddressBody
+								if (message.data?.fid !== fid) return []
+								const body = message.data.verificationAddAddressBody
 								const address = optionalNonemptyString(body?.address)
 								const protocol = (
 									body?.protocol === 'PROTOCOL_ETHEREUM' ?
@@ -158,7 +159,9 @@ export default {
 							verification[EntityMetaKey.Selector].protocol === 'ethereum'
 						))?.[EntityMetaKey.Selector].address
 						const userFields: Partial<UserFields> = {
-							username: optionalNonemptyString(usernameProofs.proofs?.[0]?.name),
+							username: optionalNonemptyString(
+								usernameProofs.proofs?.find((proof) => proof.fid === fid)?.name
+							),
 							$$verifiedAddresses: verifiedAddresses,
 						}
 						if (primaryVerifiedEvmAddress != null)
@@ -168,8 +171,9 @@ export default {
 								},
 							}
 						for (const message of (userData.messages ?? [])) {
-							const userDataType = message.data?.userDataBody?.type
-							const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
+							if (message.data?.fid !== fid) continue
+							const userDataType = message.data.userDataBody?.type
+							const fieldValue = optionalNonemptyString(message.data.userDataBody?.value)
 							if (fieldValue == null) continue
 							if (userDataType === 'USER_DATA_TYPE_PFP') {
 								const iconUrl = snapchainUserDataPfpHttpUrl(fieldValue)
@@ -211,7 +215,8 @@ export default {
 							const verified = (
 								(verifications.messages ?? [])
 									.some((message: SnapVerify) => {
-										const body = message.data?.verificationAddAddressBody
+										if (message.data?.fid !== verifiedAddress.fid) return false
+										const body = message.data.verificationAddAddressBody
 										const protocol = (
 											body?.protocol === 'PROTOCOL_ETHEREUM' ?
 												'ethereum' as const
@@ -319,8 +324,16 @@ export default {
 							fid,
 							hash,
 						})
-						const castAddBody = snapchainCast.data?.castAddBody
-						const farcasterTimestamp = snapchainCast.data?.timestamp
+						const castHash = hexLowerOfByteSize(snapchainCast.hash, 20)
+						const requestedHash = hexLowerOfByteSize(hash, 20)
+						if (
+							snapchainCast.data?.fid !== fid
+							|| castHash == null
+							|| castHash !== requestedHash
+						)
+							throw new Error('Snapchain_Rest: cast subject mismatch')
+						const castAddBody = snapchainCast.data.castAddBody
+						const farcasterTimestamp = snapchainCast.data.timestamp
 						const parentUrl = optionalNonemptyString(castAddBody?.parentUrl)
 						const channelId = channelIdFromParentUrl(parentUrl)
 						const timestamp = snapchainCastTimestampMs(farcasterTimestamp)
@@ -329,7 +342,7 @@ export default {
 
 						return {
 							fid,
-							hash: lowerHex0xCastHash(hash),
+							hash: castHash,
 							$author: {
 								[EntityMetaKey.Selector]: {
 									fid,
@@ -366,7 +379,7 @@ export default {
 									[EntityMetaKey.Selector]: {
 										$cast: {
 											fid,
-											hash,
+											hash: castHash,
 										},
 										indexInCast,
 									},
@@ -403,6 +416,87 @@ export default {
 				$channel: (cast) => cast.$channel,
 				$$embeds: (cast) => cast.$$embeds,
 			}),
+
+		defineResolver(Source.Snapchain_Rest, {
+			entityType: EntityType.FarcasterCast,
+			resolve: {
+				[FarcasterCastSelector.FidHash]: {
+					resolve: async ({ fid, hash }, context) => {
+						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+						type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
+						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
+						const { getCastsByParent } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const parentHash = hexLowerOfByteSize(hash, 20)
+						if (parentHash == null)
+							throw new Error('Snapchain_Rest: direct replies require a 20-byte parent cast hash')
+
+						const subsetRowLimit = resolverContextRowLimit(context)
+						const directReplies: SnapCast[] = []
+						let pageToken: string | undefined
+						do {
+							const remaining = Math.max(subsetRowLimit - directReplies.length, 0)
+							if (remaining === 0) break
+							const page = await getCastsByParent({
+								fid,
+								hash: parentHash,
+								pageSize: Math.min(remaining, snapchainMaxPageSize),
+								pageToken,
+							})
+							directReplies.push(...(page.messages ?? []).slice(0, remaining))
+							pageToken = page.nextPageToken
+						} while (pageToken != null && pageToken !== '')
+
+						return directReplies.map((directReply) => {
+							const directReplyFid = directReply.data?.fid
+							const directReplyHash = hexLowerOfByteSize(directReply.hash, 20)
+							const directReplyBody = directReply.data?.castAddBody
+							const directReplyParentHash = (
+								directReplyBody?.parentCastId?.hash == null ?
+									undefined
+								:
+									hexLowerOfByteSize(directReplyBody.parentCastId.hash, 20)
+							)
+							const timestamp = snapchainCastTimestampMs(directReply.data?.timestamp)
+							if (
+								directReplyFid == null
+								|| directReplyHash == null
+								|| directReplyBody == null
+								|| directReplyBody.parentCastId?.fid !== fid
+								|| directReplyParentHash !== parentHash
+								|| timestamp == null
+							)
+								throw new Error('Snapchain_Rest: malformed or mismatched direct reply')
+
+							return {
+								[EntityMetaKey.Selector]: {
+									fid: directReplyFid,
+									hash: directReplyHash,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FarcasterCast, [], 'fid')]: directReplyFid,
+									[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: directReplyHash,
+									[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
+										[EntityMetaKey.Selector]: {
+											fid: directReplyFid,
+										},
+									},
+									[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: optionalNonemptyString(directReplyBody.text) ?? '',
+									[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
+										[EntityMetaKey.Selector]: {
+											fid,
+											hash: parentHash,
+										},
+									},
+									[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: timestamp,
+								},
+							} satisfies CastEntity
+						})
+					},
+				}
+			},
+		})({
+			$$directReplies: (directReplies) => directReplies,
+		}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast_Timestamp,
@@ -591,12 +685,18 @@ export default {
 						)
 						return (
 							casts
-								.map((cast) => (({
+								.flatMap((cast) => (
+									cast.data?.fid !== fid
+									|| hexLowerOfByteSize(cast.hash, 20) == null ?
+										[]
+									:
+										[(({
 									[EntityMetaKey.Selector]: {
 										fid: fid,
 										hash: lowerHex0xCastHash(cast.hash),
 									},
-								}) satisfies CastEntity))
+										}) satisfies CastEntity)]
+								))
 						)
 					},
 				}

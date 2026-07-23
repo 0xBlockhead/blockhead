@@ -20,7 +20,6 @@
 
 	const pageSelection = $derived(select(EntityType.RedditComment, data.selector, {
 		sources: [
-			Source.Constants_Internal,
 			Source.Reddit_PublicJson,
 		],
 		fields: {
@@ -32,7 +31,6 @@
 			$parentComment: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.body) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).body) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment')))
 
 
 	// Components
@@ -42,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Reddit comment • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment' : [String((({ ...data.selector, ...pageSelection.entity }).body) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment'))} • Reddit comment • Blockhead</title>
 </svelte:head>
 
 

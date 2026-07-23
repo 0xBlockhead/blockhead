@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AvalancheDelegator>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AvalancheDelegator>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvalancheDelegator>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const avalancheDelegator = $derived(selection({
+	const avalancheDelegator = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			delegatorAddress: true,
+			stakeAmountNavax: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			delegatorAddress: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.delegatorAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche delegator')
-	const viewDomId = $derived('avalanche-delegator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('avalanche-delegator-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,7 +78,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'delegatorAddress') && Object.hasOwn(prefetched, 'stakeAmountNavax')}
 			{[String((pendingEntity.delegatorAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={avalancheDelegator}>
@@ -84,13 +91,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const stakeAmountNavax0 = pendingEntity.stakeAmountNavax}
-					{#if stakeAmountNavax0 !== undefined && stakeAmountNavax0 !== null}
-						<NumberValue
-							value={stakeAmountNavax0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'delegatorAddress') && Object.hasOwn(prefetched, 'stakeAmountNavax')}
+			{@const stakeAmountNavax0 = pendingEntity.stakeAmountNavax}
+			{#if stakeAmountNavax0 !== undefined && stakeAmountNavax0 !== null}
+				<NumberValue
+					value={stakeAmountNavax0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={avalancheDelegator}>
 				{#snippet children(entity)}
@@ -112,7 +119,7 @@
 				<dt>validator</dt>
 				<dd>
 					<AvalancheValidatorView
-						selection={select(EntityType.AvalancheValidator, selection.entitySelector.$validator, {})}
+						selection={select(EntityType.AvalancheValidator, selection.entitySelector.$validator)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

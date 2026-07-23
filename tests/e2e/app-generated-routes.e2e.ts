@@ -209,7 +209,7 @@ const visitRawDumpRoute = async (
 	}
 
 	if (options?.expectEntityRows)
-		await step(expect(page.locator('#main li[data-list-item] [data-card] .entity-view-summary').first()).toBeAttached(attach))
+		await step(expect(page.locator('#main li[data-list-item] > article[data-card][data-scroll-container] .entity-view-summary').first()).toBeAttached(attach))
 
 	await step(assertNoGeneratedRouteArtifacts(page, pathname))
 
@@ -277,6 +277,8 @@ const exerciseNetworkCarouselSections = async (
 		carousels.first(),
 		`${pathname} must render its applicable Network facet carousels`
 	).toBeAttached(attach)
+	await assertMainSettled(page, 180_000)
+
 	const carouselIds = await carousels.evaluateAll((elements) => elements.map((element) => element.id))
 	expect(new Set(carouselIds).size, `${pathname} must have unique carousel ids`).toBe(carouselIds.length)
 	for (const facetId of inapplicableCarouselFacetIdsByPathname.get(pathname) ?? [])
@@ -290,7 +292,7 @@ const exerciseNetworkCarouselSections = async (
 		const hosts = carousel.querySelectorAll(':scope > [data-collapsible-tabs-pane-host]')
 		const markers = Array.from(carousel.querySelectorAll(':scope > summary [href^="#"][data-scroll-marker-label]'))
 		const sections = hosts.length === 1 ? Array.from(hosts[0].children) : []
-		const markerTargets = markers.map((marker) => decodeURIComponent(marker.getAttribute('href')?.slice(1) ?? ''))
+		const markerTargets = markers.map((marker) => marker.getAttribute('href')?.slice(1) ?? '')
 		const sectionIds = sections.map((section) => section.id)
 
 		return [
@@ -304,13 +306,7 @@ const exerciseNetworkCarouselSections = async (
 				`${carousel.id}: markers and sections are not bijective`
 			),
 			...sections.flatMap((section) => {
-				const articles = Array.from(section.querySelectorAll(':scope > article, :scope > * > article'))
-				const directChildrenAreCards = Array.from(section.children).every((child) => (
-					child.tagName === 'ARTICLE'
-					|| child.querySelector(':scope > article') != null
-					|| child.matches('[data-resource-state], [data-section-state]')
-					|| child.textContent?.includes('Loading') === true
-				))
+				const articles = Array.from(section.querySelectorAll(':scope > article'))
 
 				return [
 					...violation(
@@ -322,8 +318,8 @@ const exerciseNetworkCarouselSections = async (
 						`${carousel.id}/${section.id || '(missing id)'}: invalid section structure`
 					),
 					...violation(
-						(section.children.length > 0 && directChildrenAreCards),
-						`${carousel.id}/${section.id}: every section child must expose an article card`
+						articles.length > 0 && section.children.length === articles.length,
+						`${carousel.id}/${section.id}: every section child must be an article card`
 					),
 					...articles.flatMap((article) => violation(
 						article.id !== ''
@@ -333,25 +329,14 @@ const exerciseNetworkCarouselSections = async (
 						`${carousel.id}/${section.id}/${article.id || '(missing id)'}: invalid article structure`
 					)),
 					...articles.flatMap((article) => {
-						const state = article.querySelector<HTMLElement>(
-							'[data-resource-state], [data-section-state]'
-						)
-						const hasExplicitState = (
-							state?.dataset.resourceState === 'pending'
-							|| state?.dataset.resourceState === 'failed'
-							|| state?.dataset.sectionState === 'resolved-empty'
-							|| state?.dataset.sectionState === 'resolved-nonempty'
-							|| state?.dataset.sectionState === 'projection-blocked'
-							|| state?.dataset.sectionState === 'projection-unsupported'
-						)
 						const hasDomainContent = (
-							(article.textContent?.trim().length ?? 0) > 0
+							article.textContent.trim().length > 0
 							|| article.querySelector('a[href], dl, form, img, ol, table, ul, video') != null
 						)
 
 						return violation(
-							hasExplicitState || hasDomainContent,
-							`${carousel.id}/${section.id}/${article.id}: blank article without content or explicit state`
+							hasDomainContent,
+							`${carousel.id}/${section.id}/${article.id}: blank article`
 						)
 					}),
 					...Array.from(section.querySelectorAll('.tooltip-trigger [data-text="annotation"]')).flatMap((annotation) => violation(

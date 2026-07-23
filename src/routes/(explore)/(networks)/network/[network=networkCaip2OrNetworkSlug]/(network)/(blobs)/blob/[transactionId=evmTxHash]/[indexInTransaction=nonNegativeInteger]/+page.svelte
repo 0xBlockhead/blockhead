@@ -30,7 +30,6 @@
 			kzgCommitment: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInTransaction) ?? '') ? 'Blob #' + String((pageSelection.entitySelector.indexInTransaction) ?? '') : '') || 'EVM blob' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Blob #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'EVM blob')))
 
 
 	// Components
@@ -40,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM blob • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String((data.selector.indexInTransaction) ?? '') ? 'Blob #' + String((data.selector.indexInTransaction) ?? '') : '') || 'EVM blob' : (String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Blob #' + String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'EVM blob'))} • EVM blob • Blockhead</title>
 </svelte:head>
 
 

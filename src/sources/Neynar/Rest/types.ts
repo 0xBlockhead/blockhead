@@ -68,9 +68,11 @@ export type NeynarCastChannel = {
 	id?: string
 	name?: string
 	object?: string
+	image_url?: string
 }
 
 export type NeynarCast = {
+	object?: 'cast' | 'cast_dehydrated'
 	hash: string
 	parent_hash?: string
 	parent_url?: string
@@ -93,6 +95,26 @@ export type NeynarCast = {
 	mentioned_profiles?: { fid?: number }[]
 	mentioned_channels?: { id?: string }[]
 }
+
+export type NeynarConversationCast = NeynarCast & {
+	direct_replies?: NeynarCast[]
+}
+
+export type NeynarConversationResponse = {
+	conversation?: {
+		cast?: NeynarConversationCast
+	}
+}
+
+export type NeynarConversationQuery =
+	| {
+		identifier: `0x${string}`
+		type: 'hash'
+	}
+	| {
+		identifier: string
+		type: 'url'
+	}
 
 export type NeynarFeedResponse = {
 	casts?: NeynarCast[]

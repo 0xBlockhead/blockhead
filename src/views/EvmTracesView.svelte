@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Traces',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmTrace>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmTrace>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmTraceView from '$/views/EvmTraceView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmTraces) => [...new Map(evmTraces.values.map((evmTrace) => [evmTrace[EntityMetaKey.SelectorKey], evmTrace])).values()]}
 	getKey={(evmTrace) => evmTrace[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,20 @@
 
 	{#snippet Item({ item: evmTrace })}
 		{@const evmTraceFields = { ...evmTrace[EntityMetaKey.Selector], ...evmTrace }}
-		{@const selection = select(EntityType.EvmTrace, evmTrace[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<EvmTraceView
-			selection={selection}
-			prefetched={evmTraceFields}
+		<EntityView
+			entityType={EntityType.EvmTrace}
+			entitySelector={evmTrace[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((evmTraceFields.index) ?? '') ? 'Trace #' + String((evmTraceFields.index) ?? '') : '') || [String((evmTraceFields.traceAddress) ?? '')].filter(Boolean).join(' ') || 'EVM trace'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((evmTraceFields.type) ?? ''), String((evmTraceFields.error) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

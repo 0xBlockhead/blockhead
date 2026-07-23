@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType.RssNetwork, {
 				scope: 'RssNetwork',
-			}).$$rssFeeds({
-				sources: [
-					Source.Constants_Internal,
-				],
-				count: true,
 			})
+				.$$rssFeeds({
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.RssNetwork, {
+				scope: 'RssNetwork',
+			})
+				.$$rssFeeds({
+					sources: [
+						Source.Constants_Internal,
+					],
+				}).count
 		}
 		id='rss-feeds'
 		data-column-item="flexible"

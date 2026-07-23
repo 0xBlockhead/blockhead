@@ -1,4 +1,4 @@
-import { NetworkNamespace } from '$/constants/NetworkNamespace.ts'
+import { NetworkNamespace } from '$/constants/Network.ts'
 
 
 // Types
@@ -96,7 +96,7 @@ export type WalletConnectionMethod = {
 
 // Constants
 
-const walletProtocols = [
+export const walletProtocols = [
 	{ protocol: WalletProtocol.Eip6963, label: 'EIP-6963' },
 	{ protocol: WalletProtocol.Eip1193, label: 'EIP-1193' },
 	{ protocol: WalletProtocol.TronTip1193, label: 'TRON TIP-1193' },
@@ -197,7 +197,7 @@ export const walletConnectionMethods = [
 		transportKind: WalletTransportKind.InjectedSigner,
 		formFactors: [WalletFormFactor.BrowserExtension, WalletFormFactor.MobileWallet, WalletFormFactor.DesktopWallet],
 		networkNamespaces: [NetworkNamespace.Solana],
-		caipNamespaces: ['solana', 'sui'],
+		caipNamespaces: ['solana'],
 		capabilities: [
 			WalletCapability.Discover,
 			WalletCapability.Connect,
@@ -218,7 +218,7 @@ export const walletConnectionMethods = [
 		discoveryKind: WalletDiscoveryKind.InjectedEvent,
 		transportKind: WalletTransportKind.InjectedSigner,
 		formFactors: [WalletFormFactor.BrowserExtension, WalletFormFactor.MobileWallet],
-		networkNamespaces: [],
+		networkNamespaces: [NetworkNamespace.Aptos],
 		caipNamespaces: ['aptos'],
 		capabilities: [
 			WalletCapability.Discover,
@@ -238,17 +238,18 @@ export const walletConnectionMethods = [
 		discoveryKind: WalletDiscoveryKind.InjectedGlobal,
 		transportKind: WalletTransportKind.InjectedSigner,
 		formFactors: [WalletFormFactor.BrowserExtension, WalletFormFactor.MobileWallet],
-		networkNamespaces: [],
+		networkNamespaces: [NetworkNamespace.Aptos],
 		caipNamespaces: ['aptos'],
 		capabilities: [
 			WalletCapability.Discover,
 			WalletCapability.Connect,
+			WalletCapability.Reconnect,
+			WalletCapability.Disconnect,
 			WalletCapability.ListAccounts,
 			WalletCapability.WatchAccounts,
-			WalletCapability.SignMessage,
-			WalletCapability.SignTransaction,
+			WalletCapability.WatchScopes,
 		],
-		implementationStatus: WalletImplementationStatus.DiscoveryImplemented,
+		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'none',
 	},
 	{
@@ -258,8 +259,8 @@ export const walletConnectionMethods = [
 		discoveryKind: WalletDiscoveryKind.InjectedGlobal,
 		transportKind: WalletTransportKind.InjectedSigner,
 		formFactors: [WalletFormFactor.BrowserExtension, WalletFormFactor.MobileWallet],
-		networkNamespaces: [],
-		caipNamespaces: ['cardano'],
+		networkNamespaces: [NetworkNamespace.Cardano],
+		caipNamespaces: ['cip34'],
 		capabilities: [
 			WalletCapability.Connect,
 			WalletCapability.Reconnect,
@@ -280,15 +281,14 @@ export const walletConnectionMethods = [
 		networkNamespaces: [NetworkNamespace.Cosmos],
 		caipNamespaces: ['cosmos'],
 		capabilities: [
+			WalletCapability.Discover,
 			WalletCapability.Connect,
 			WalletCapability.Reconnect,
 			WalletCapability.ListAccounts,
 			WalletCapability.WatchAccounts,
 			WalletCapability.SignTransaction,
-			WalletCapability.SendTransaction,
-			WalletCapability.SwitchScope,
 		],
-		implementationStatus: WalletImplementationStatus.DiscoveryImplemented,
+		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'none',
 	},
 	{
@@ -347,7 +347,7 @@ export const walletConnectionMethods = [
 		discoveryKind: WalletDiscoveryKind.QrDeeplink,
 		transportKind: WalletTransportKind.HttpBridge,
 		formFactors: [WalletFormFactor.MobileWallet, WalletFormFactor.DesktopWallet],
-		networkNamespaces: [],
+		networkNamespaces: [NetworkNamespace.Ton],
 		caipNamespaces: ['ton'],
 		capabilities: [
 			WalletCapability.Connect,

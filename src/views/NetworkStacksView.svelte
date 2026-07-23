@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Network stacks',
 		typeAnnotationParagraphs = ['A curated protocol-stack classification used by network catalog rows.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NetworkStack>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NetworkStack>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkStackView from '$/views/NetworkStackView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(networkStacks) => [...new Map(networkStacks.values.map((networkStack) => [networkStack[EntityMetaKey.SelectorKey], networkStack])).values()]}
 	getKey={(networkStack) => networkStack[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,18 +87,27 @@
 
 	{#snippet Item({ item: networkStack })}
 		{@const networkStackFields = { ...networkStack[EntityMetaKey.Selector], ...networkStack }}
-		{@const selection = select(EntityType.NetworkStack, networkStack[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const networkStackHrefFields = { ...networkStack, ...networkStack[EntityMetaKey.Selector] }}
-		<NetworkStackView
-			selection={selection}
-			prefetched={networkStackFields}
+		<EntityView
+			entityType={EntityType.NetworkStack}
+			entitySelector={networkStack[EntityMetaKey.Selector]}
 			href={
-				(networkStackHrefFields.networkStackId !== undefined ? resolve('/network-stack/[networkStackId=stringSegment]', {
-					networkStackId: String(networkStackHrefFields.networkStackId ?? ''),
-				}) : undefined)
+				(
+					networkStack[EntityMetaKey.Selector] != null && 'networkStackId' in networkStack[EntityMetaKey.Selector]
+					&& networkStack[EntityMetaKey.Selector].networkStackId != null ?
+						resolve('/network-stack/[networkStackId=stringSegment]', {
+					networkStackId: String(networkStack[EntityMetaKey.Selector].networkStackId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((networkStackFields.label) ?? '')].filter(Boolean).join(' ') || [String((networkStackFields.networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

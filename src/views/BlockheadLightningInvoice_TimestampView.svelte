@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadLightningInvoice_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadLightningInvoice_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLightningInvoice_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLightningInvoiceTimestamp = $derived(selection({
+	const blockheadLightningInvoiceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			state: true,
+			amountPaidMsat: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			state: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning invoice timestamp')
-	const viewDomId = $derived('blockhead-lightning-invoice-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-lightning-invoice-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,11 +79,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'state') && Object.hasOwn(prefetched, 'amountPaidMsat')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadLightningInvoiceTimestamp}>
 				{#snippet children(entity)}
@@ -91,7 +98,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'state') && Object.hasOwn(prefetched, 'amountPaidMsat')}
 			{[String((pendingEntity.state) ?? ''), String((pendingEntity.amountPaidMsat) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadLightningInvoiceTimestamp}>
@@ -109,15 +116,30 @@
 				<dt>Invoice</dt>
 				<dd>
 					<BlockheadLightningInvoiceView
-						selection={select(EntityType.BlockheadLightningInvoice, selection.entitySelector.$invoice, {})}
+						selection={select(EntityType.BlockheadLightningInvoice, selection.entitySelector.$invoice)}
 						href={
-							(selection.entitySelector.$invoice.paymentHash !== undefined && selection.entitySelector.$invoice.$network !== undefined && selection.entitySelector.$invoice.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
-								paymentHash: String(selection.entitySelector.$invoice.paymentHash ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$invoice.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$invoice.paymentHash !== undefined && selection.entitySelector.$invoice.$network !== undefined && selection.entitySelector.$invoice.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
-								paymentHash: String(selection.entitySelector.$invoice.paymentHash ?? ''),
-								network: String(selection.entitySelector.$invoice.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$invoice != null && 'paymentHash' in selection.entitySelector.$invoice
+								&& selection.entitySelector.$invoice.paymentHash != null
+								&& selection.entitySelector.$invoice != null && '$network' in selection.entitySelector.$invoice ?
+									selection.entitySelector.$invoice.$network != null && 'caip2' in selection.entitySelector.$invoice.$network
+									&& selection.entitySelector.$invoice.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
+									paymentHash: String(selection.entitySelector.$invoice.paymentHash ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$invoice.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$invoice.$network != null && 'slug' in selection.entitySelector.$invoice.$network
+										&& selection.entitySelector.$invoice.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
+										paymentHash: String(selection.entitySelector.$invoice.paymentHash ?? ''),
+										network: String(selection.entitySelector.$invoice.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

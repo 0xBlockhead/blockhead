@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.SolanaValidator_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SolanaValidator_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SolanaValidator_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaValidatorTimestamp = $derived(selection({
+	const solanaValidatorTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			delinquent: true,
+			timestampMs: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			delinquent: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'solana validator timestamp')
-	const viewDomId = $derived('solana-validator-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('solana-validator-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,13 +79,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const slot0 = pendingEntity.slot}
-					{#if slot0 !== undefined && slot0 !== null}
-						<NumberValue
-							value={slot0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'delinquent') && Object.hasOwn(prefetched, 'timestampMs')}
+			{@const slot0 = pendingEntity.slot}
+			{#if slot0 !== undefined && slot0 !== null}
+				<NumberValue
+					value={slot0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={solanaValidatorTimestamp}>
 				{#snippet children(entity)}
@@ -95,7 +102,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'delinquent') && Object.hasOwn(prefetched, 'timestampMs')}
 			{[String((pendingEntity.delinquent) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={solanaValidatorTimestamp}>
@@ -108,7 +115,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'delinquent') && Object.hasOwn(prefetched, 'timestampMs')}
 			{@const timestampMs0 = pendingEntity.timestampMs}
 			{#if timestampMs0 !== undefined && timestampMs0 !== null}
 				<span data-text="muted">
@@ -136,15 +143,30 @@
 				<dt>Validator</dt>
 				<dd>
 					<SolanaValidatorView
-						selection={select(EntityType.SolanaValidator, selection.entitySelector.$validator, {})}
+						selection={select(EntityType.SolanaValidator, selection.entitySelector.$validator)}
 						href={
-							(selection.entitySelector.$validator.votePubkey !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								validatorId: String(selection.entitySelector.$validator.votePubkey ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$validator.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$validator.votePubkey !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								validatorId: String(selection.entitySelector.$validator.votePubkey ?? ''),
-								network: String(selection.entitySelector.$validator.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$validator != null && 'votePubkey' in selection.entitySelector.$validator
+								&& selection.entitySelector.$validator.votePubkey != null
+								&& selection.entitySelector.$validator != null && '$network' in selection.entitySelector.$validator ?
+									selection.entitySelector.$validator.$network != null && 'caip2' in selection.entitySelector.$validator.$network
+									&& selection.entitySelector.$validator.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+									validatorId: String(selection.entitySelector.$validator.votePubkey ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$validator.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$validator.$network != null && 'slug' in selection.entitySelector.$validator.$network
+										&& selection.entitySelector.$validator.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+										validatorId: String(selection.entitySelector.$validator.votePubkey ?? ''),
+										network: String(selection.entitySelector.$validator.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

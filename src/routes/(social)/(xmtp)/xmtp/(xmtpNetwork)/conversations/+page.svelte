@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType.XmtpNetwork, {
 				scope: 'XmtpNetwork',
-			}).$$xmtpConversations({
-				sources: [
-					Source.Local_Internal,
-				],
-				count: true,
 			})
+				.$$xmtpConversations({
+					sources: [
+						Source.Local_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.XmtpNetwork, {
+				scope: 'XmtpNetwork',
+			})
+				.$$xmtpConversations({
+					sources: [
+						Source.Local_Internal,
+					],
+				}).count
 		}
 		id='xmtp-conversations'
 		data-column-item="flexible"

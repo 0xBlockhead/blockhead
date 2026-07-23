@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'MCP tool calls',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.McpToolCall>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.McpToolCall>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import McpToolCallView from '$/views/McpToolCallView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(mcpToolCalls) => [...new Map(mcpToolCalls.values.map((mcpToolCall) => [mcpToolCall[EntityMetaKey.SelectorKey], mcpToolCall])).values()]}
 	getKey={(mcpToolCall) => mcpToolCall[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: mcpToolCall })}
 		{@const mcpToolCallFields = { ...mcpToolCall[EntityMetaKey.Selector], ...mcpToolCall }}
-		{@const selection = select(EntityType.McpToolCall, mcpToolCall[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<McpToolCallView
-			selection={selection}
-			prefetched={mcpToolCallFields}
+		<EntityView
+			entityType={EntityType.McpToolCall}
+			entitySelector={mcpToolCall[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((mcpToolCallFields.callId) ?? '')].filter(Boolean).join(' ') || 'mcp tool call'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((mcpToolCallFields.$tool.title) ?? '')].filter(Boolean).join(' ') || [String((mcpToolCallFields.$tool.name) ?? '')].filter(Boolean).join(' ') || 'mcp tool'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((mcpToolCallFields.startedAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,17 +21,13 @@
 	const pageSelection = $derived(select(EntityType.NostrProfile, data.selector, {
 		sources: [
 			Source.Constants_Internal,
+			Source.NostrBand_Rest,
+			Source.Primal_Rest,
 		],
 		fields: {
-			$icon: true,
-			displayName: true,
-			about: true,
-			nip05: true,
-			website: true,
-			metadataUpdatedAt: true,
+			$latestMetadataEvent: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.displayName) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).displayName) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile')))
 
 
 	// Components
@@ -42,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Nostr profile • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile' : [String((({ ...data.selector, ...pageSelection.entity }).pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile'))} • Nostr profile • Blockhead</title>
 </svelte:head>
 
 

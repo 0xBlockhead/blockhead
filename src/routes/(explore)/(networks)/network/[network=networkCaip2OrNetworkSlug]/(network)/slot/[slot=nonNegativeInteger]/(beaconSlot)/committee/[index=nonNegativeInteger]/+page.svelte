@@ -26,7 +26,6 @@
 			validatorIndices: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInSlot) ?? '') ? 'Committee #' + String((pageSelection.entitySelector.indexInSlot) ?? '') : '') || 'beacon committee' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Committee #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon committee')))
 
 
 	// Components
@@ -36,7 +35,23 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • beacon committee • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}.indexInSlot) ?? '') ? 'Committee #' + String(({
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}.indexInSlot) ?? '') : '') || 'beacon committee' : (String((({ ...{
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Committee #' + String((({ ...{
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon committee'))} • beacon committee • Blockhead</title>
 </svelte:head>
 
 

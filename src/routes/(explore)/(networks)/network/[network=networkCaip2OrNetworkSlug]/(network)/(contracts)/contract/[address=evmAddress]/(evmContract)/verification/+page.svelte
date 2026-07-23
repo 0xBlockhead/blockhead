@@ -30,7 +30,6 @@
 			$sourceBundle: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.match) ?? ''), String((pageSelection.entitySelector.runtimeMatch) ?? '')].filter(Boolean).join(' ') || 'EVM contract verification' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).match) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).runtimeMatch) ?? '')].filter(Boolean).join(' ') || 'EVM contract verification')))
 
 
 	// Components
@@ -40,7 +39,11 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM contract verification • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM contract verification' : [String((({ ...{
+		$contract: data.selector,
+	}, ...pageSelection.entity }).match) ?? ''), String((({ ...{
+		$contract: data.selector,
+	}, ...pageSelection.entity }).runtimeMatch) ?? '')].filter(Boolean).join(' ') || 'EVM contract verification'))} • EVM contract verification • Blockhead</title>
 </svelte:head>
 
 

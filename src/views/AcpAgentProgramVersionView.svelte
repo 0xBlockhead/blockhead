@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AcpAgentProgramVersion>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AcpAgentProgramVersion>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpAgentProgramVersion>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpAgentProgramVersion = $derived(selection({
+	const acpAgentProgramVersion = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			distributionKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			distributionKind: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || 'ACP agent program version')
-	const viewDomId = $derived('acp-agent-program-version-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('acp-agent-program-version-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,82 +76,48 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpAgentProgramVersion}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpAgentProgramVersion}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={selection.$program}
-					>
-						{#snippet children(acpAgentProgram)}
-							{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
-								<AcpAgentProgramView
-									selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
-									prefetched={acpAgentProgram}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={acpAgentProgramVersion}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$program}
-					>
-						{#snippet children(acpAgentProgram)}
-							{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
-								<AcpAgentProgramView
-									selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
-									prefetched={acpAgentProgram}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpAgentProgramVersion}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={selection.$program}
+				>
+					{#snippet children(acpAgentProgram)}
+						{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
+							<AcpAgentProgramView
+								selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
+								prefetched={acpAgentProgram}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const distributionKind0 = pendingEntity.distributionKind}
-			{#if distributionKind0 !== undefined && distributionKind0 !== null}
-				<span data-text="muted">
-					{String((distributionKind0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={acpAgentProgramVersion}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const distributionKind0 = resolvedEntity.distributionKind}
-					{#if distributionKind0 !== undefined && distributionKind0 !== null}
-						<span data-text="muted">
-							{String((distributionKind0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpAgentProgramVersion}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const distributionKind0 = resolvedEntity.distributionKind}
+				{#if distributionKind0 !== undefined && distributionKind0 !== null}
+					<span data-text="muted">
+						{String((distributionKind0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -291,17 +263,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AiDocumentsView
-				selection={
-						selection.$$documents({
-							count: true,
-						})
-					}
-				title='documents'
-				emptyText='No linked documents.'
-				id='AiDocumentsView-documents'
-			/>
-		{/if}
+		{@const acpAgentProgramVersionAiDocumentsViewDocumentsResource = selection.$$documents}
+		<ResourceBoundary
+			resource={acpAgentProgramVersionAiDocumentsViewDocumentsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AiDocumentsView
+					selection={acpAgentProgramVersionAiDocumentsViewDocumentsResource}
+					countResource={acpAgentProgramVersionAiDocumentsViewDocumentsResource.count}
+					title='documents'
+					id='AiDocumentsView-documents'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

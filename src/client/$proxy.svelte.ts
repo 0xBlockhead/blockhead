@@ -1,4 +1,7 @@
-import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
+import {
+	TanStackLiveQueryResource,
+	type SvelteKitResource,
+} from '$/lib/db/queryResource.svelte.ts'
 import type {
 	RegisteredEntityType,
 	RegisteredSchema,
@@ -12,6 +15,7 @@ import type {
 import {
 	subscribeEntity,
 	subscribeEntityField,
+	subscribeEntityFieldCount,
 	type EntityFieldResourceData,
 	type EntityResourceData,
 } from '$/client/$subscribe.svelte.ts'
@@ -27,6 +31,7 @@ import {
 	type EntityFacetPath,
 	type EntityFieldAddress,
 	type EntityFieldDefinition,
+	type EntityFieldDefinitionAtPath,
 	type EntityFieldDefinitionByName,
 	type EntityFieldName,
 	type EntityFieldSingleResolvedValueFromDefinition,
@@ -34,6 +39,7 @@ import {
 	type EntityType,
 	type ProjectionValue,
 	type Schema,
+	entityFieldCardinalityIsMultiple,
 	entityFieldAddressKey,
 	entitySelectorKey,
 } from '$/schema/$schema.ts'
@@ -44,7 +50,6 @@ import {
 
 
 export const EntityProxyField = Symbol('EntityProxyField')
-
 const svelteKitResourceProperties = new Set<PropertyKey>([
 	'current',
 	'loading',
@@ -106,7 +111,52 @@ type EntityProxyFieldSelectionEntityType<
 	} ?
 		_ReferencedEntityType
 	:
-		_EntityType
+	_EntityType
+)
+
+type EntityProxyEntitiesRelationshipFieldDefinition<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[],
+> = Extract<
+	EntityFieldDefinitionAtPath<_Schema, _EntityType, _FacetPath>,
+	{
+		readonly type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
+		readonly entityType: EntityType<_Schema>
+	}
+>
+
+type EntityProxyEntitiesRelationshipProperties<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[] = [],
+> = (
+	& {
+		readonly [
+			_FieldDefinition in EntityProxyEntitiesRelationshipFieldDefinition<
+				_Schema,
+				_EntityType,
+				_FacetPath
+			> as _FieldDefinition['name']
+		]: _FieldDefinition extends {
+			readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+		} ?
+			EntityProxyEntitiesResource<_Schema, _ReferencedEntityType>
+		:
+			never
+	}
+	& {
+		readonly [
+			_FacetName in EntityFacetName<_Schema, _EntityType, _FacetPath>
+		]: EntityProxyEntitiesRelationshipProperties<
+			_Schema,
+			_EntityType,
+			[
+				..._FacetPath,
+				_FacetName,
+			]
+		>
+	}
 )
 
 export type EntityProxyFieldResource<
@@ -160,31 +210,79 @@ export type EntityProxyFieldResource<
 		:
 			{}
 	)
+	& (
+		EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+			readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+		} ?
+			{
+				count: (
+					& SvelteKitResource<number>
+					& ((selection?: {
+						readonly sources?: readonly string[]
+					}) => SvelteKitResource<number>)
+				)
+			}
+		:
+			{}
+	)
+	& (
+		EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+			readonly type: EntityFieldType.EntitiesReference
+			readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+		} ?
+			EntityProxyEntitiesRelationshipProperties<_Schema, _ReferencedEntityType>
+		:
+			{}
+	)
 )
 
 export type EntityProxyEntitiesData<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
+	_Selection extends SubscribeSelection<_Schema, _EntityType> = SubscribeSelection<_Schema, _EntityType>,
 > = {
-	values: readonly SubscribeEntityReferenceResult<_Schema, _EntityType>[]
-	entities: readonly SubscribeEntityReferenceResult<_Schema, _EntityType>[]
-	totalCount?: number
+	values: readonly SubscribeEntityReferenceResult<_Schema, _EntityType, _Selection>[]
+	entities: readonly SubscribeEntityReferenceResult<_Schema, _EntityType, _Selection>[]
+}
+
+type EntityReferencePathData = {
+	values: readonly object[]
+	entities: readonly object[]
+}
+
+type EntityReferencePathStep = {
+	entityType: EntityType<Schema>
+	facetPath: readonly string[]
+	fieldName: string
+	selection?: SubscribeSelection<Schema, EntityType<Schema>, object>
 }
 
 export type EntityProxyEntitiesResource<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
+	_Selection extends SubscribeSelection<_Schema, _EntityType> = SubscribeSelection<_Schema, _EntityType>,
 > = (
-	& SvelteKitResource<EntityProxyEntitiesData<_Schema, _EntityType>>
-	& (<const _FieldRow extends object = object>(
-		selection?: SubscribeSelection<_Schema, _EntityType, _FieldRow>
-	) => EntityProxyEntitiesResource<_Schema, _EntityType>)
+	& SvelteKitResource<EntityProxyEntitiesData<_Schema, _EntityType, _Selection>>
+	& (<
+		const _NextSelection extends SubscribeSelection<_Schema, _EntityType> = {},
+	>(
+		selection?: _NextSelection & CheckedSubscribeSelection<
+			_Schema,
+			_EntityType,
+			_NextSelection
+		>
+	) => EntityProxyEntitiesResource<
+		_Schema,
+		_EntityType,
+		_NextSelection
+	>)
 	& {
 		entityType: EntityType<_Schema>
 		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>
 		fieldName: EntityFieldName<_Schema, EntityType<_Schema>>
 		sources?: readonly string[]
 	}
+	& EntityProxyEntitiesRelationshipProperties<_Schema, _EntityType>
 )
 
 type EntityProxyProjectionFieldSingleResult<
@@ -220,7 +318,6 @@ type EntityProxyProjectionFieldData<
 			fieldName: _FieldDefinition['name']
 			values: readonly EntityProxyProjectionFieldSingleResult<_Schema, _FieldDefinition, _FieldSelection>[]
 			entities: readonly EntityProxyProjectionFieldSingleResult<_Schema, _FieldDefinition, _FieldSelection>[]
-			totalCount?: number
 		}
 	: _FieldDefinition extends {
 		readonly cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.ZeroOrOne
@@ -278,6 +375,30 @@ type EntityProxyProjectionFieldResource<
 					selection?: _Selection & CheckedSubscribeSelection<_Schema, _ReferencedEntityType, _Selection>
 				) => SvelteKitResource<SubscribeEntityReferenceResult<_Schema, _ReferencedEntityType, _Selection> | undefined>
 			}
+		:
+			{}
+	)
+	& (
+		_FieldDefinition extends {
+			readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+		} ?
+			{
+				count: (
+					& SvelteKitResource<number>
+					& ((selection?: {
+						readonly sources?: readonly string[]
+					}) => SvelteKitResource<number>)
+				)
+			}
+		:
+			{}
+	)
+	& (
+		_FieldDefinition extends {
+			readonly type: EntityFieldType.EntitiesReference
+			readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+		} ?
+			EntityProxyEntitiesRelationshipProperties<_Schema, _ReferencedEntityType>
 		:
 			{}
 	)
@@ -365,11 +486,77 @@ export type EntityProxyProjectionResource<
 	}
 )
 
+export type EntityProxyEntitiesSelection<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = (
+	& {
+		sources?: readonly string[]
+	}
+	& (<
+			const _Selection extends SubscribeSelection<_Schema, _EntityType> = {},
+		>(
+			selection?: _Selection & CheckedSubscribeSelection<_Schema, _EntityType, _Selection>
+		) => SvelteKitResource<{
+			readonly values: readonly SubscribeEntityReferenceResult<_Schema, _EntityType, _Selection>[]
+		}>)
+)
+
 export type EntityProxyData<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_Selection extends SubscribeSelection<_Schema, _EntityType> = SubscribeSelection<_Schema, _EntityType>,
 > = EntityResourceData<_Schema, _EntityType, _Selection>
+
+type EntityProxyPrefetchedSingleFieldData<
+	_Schema extends Schema,
+	_FieldDefinition extends EntityFieldDefinition,
+> = (
+	_FieldDefinition extends {
+		readonly type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
+		readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+	} ?
+		EntityProxyPrefetchedData<_Schema, _ReferencedEntityType>
+	:
+		EntityFieldSingleResolvedValueFromDefinition<_Schema, _FieldDefinition>
+)
+
+type EntityProxyPrefetchedFieldData<
+	_Schema extends Schema,
+	_FieldDefinition extends EntityFieldDefinition,
+> = (
+	_FieldDefinition extends {
+		readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+	} ?
+		{
+			readonly values: readonly EntityProxyPrefetchedSingleFieldData<_Schema, _FieldDefinition>[]
+			readonly entities: readonly EntityProxyPrefetchedSingleFieldData<_Schema, _FieldDefinition>[]
+		}
+	:
+		_FieldDefinition extends {
+			readonly cardinality: EntityFieldCardinality.ZeroOrOne | EntityFieldCardinality.Zero
+		} ?
+			EntityProxyPrefetchedSingleFieldData<_Schema, _FieldDefinition> | undefined
+		:
+			EntityProxyPrefetchedSingleFieldData<_Schema, _FieldDefinition>
+)
+
+export type EntityProxyPrefetchedData<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = (
+	& Partial<{
+		readonly [
+			_FieldName in EntityFieldName<_Schema, _EntityType>
+		]: EntityProxyPrefetchedFieldData<
+			_Schema,
+			EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName>
+		>
+	}>
+	& {
+		readonly [EntityMetaKey.Selector]?: EntitySelector<_Schema, _EntityType>
+	}
+)
 
 type MergeSubscribeSelection<
 	_Schema extends Schema,
@@ -462,6 +649,13 @@ export type RegisteredEntityProxyData<
 	_EntityType
 >
 
+export type RegisteredEntityProxyPrefetchedData<
+	_EntityType extends RegisteredEntityType,
+> = EntityProxyPrefetchedData<
+	RegisteredSchema,
+	_EntityType
+>
+
 export type RegisteredEntityProxyResource<
 	_EntityType extends RegisteredEntityType,
 > = EntityProxyResource<
@@ -472,6 +666,13 @@ export type RegisteredEntityProxyResource<
 export type RegisteredEntityProxyEntitiesResource<
 	_EntityType extends RegisteredEntityType,
 > = EntityProxyEntitiesResource<
+	RegisteredSchema,
+	_EntityType
+>
+
+export type RegisteredEntityProxyEntitiesSelection<
+	_EntityType extends RegisteredEntityType,
+> = EntityProxyEntitiesSelection<
 	RegisteredSchema,
 	_EntityType
 >
@@ -691,7 +892,7 @@ const entityDataFieldValue = (
 const projectionConditionResolution = (
 	data: EntityResourceData<Schema, EntityType<Schema>>,
 	conditionPlan: EntityFacetConditionPlan,
-	value: Record<PropertyKey, never>,
+	value: Record<PropertyKey, never>
 ): ProjectionValue<Record<PropertyKey, never>> | undefined => {
 	const dependencyValues = conditionPlan.dependencies.map((dependency) => (
 		entityDataFieldValue(data, dependency.fieldName, dependency.facetPath)
@@ -762,8 +963,13 @@ export function createEntityFieldProxy(
 	selection: SubscribeSelection<Schema, EntityType<Schema>, object> = {},
 	fieldDefinition?: EntityFieldDefinition
 ): object {
-	let resource: SvelteKitResource<EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>> | undefined
-	const getResource = (): SvelteKitResource<EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>> => {
+	let resource: TanStackLiveQueryResource<EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>> | undefined
+	let countResource: SvelteKitResource<number> | undefined
+	const resolvedFieldDefinition = fieldDefinition ?? context.entityDefinitionByType[entityType].fields
+		.find((definition) => definition.name === fieldName)
+	if (resolvedFieldDefinition == null)
+		throw new Error(`${entityType}.${fieldName} does not exist`)
+	const getResource = () => {
 		if (resource === undefined)
 			resource = subscribeEntityField(
 				context,
@@ -771,72 +977,40 @@ export function createEntityFieldProxy(
 				entitySelector,
 				fieldName,
 				selection,
-				fieldDefinition
+				resolvedFieldDefinition
 			)
 
 		return resource
 	}
-	const resolvedFieldDefinition = fieldDefinition ?? context.entityDefinitionByType[entityType].fields
-		.find((definition) => definition.name === fieldName)
-	if (resolvedFieldDefinition == null)
-		throw new Error(`${entityType}.${fieldName} does not exist`)
-	const referenceResourceBySelector = new Map<string, SvelteKitResource<EntityResourceData<Schema, EntityType<Schema>>>>()
-	const getReferenceResource = (value: object) => {
+	const referenceSelector = (value: object) => {
 		if (
 			resolvedFieldDefinition.type !== EntityFieldType.EntityReference
 			&& resolvedFieldDefinition.type !== EntityFieldType.EntitiesReference
 		)
 			return undefined
-		const referenceSelector = Object.getOwnPropertyDescriptor(
-			value,
-			EntityMetaKey.Selector
-		)?.value
-		if (referenceSelector === undefined)
-			return undefined
-		const referenceSelectorKey = entitySelectorKey(
-			context.schema,
-			context.entityDefinitionByType[resolvedFieldDefinition.entityType],
-			referenceSelector
-		)
-		if (!referenceResourceBySelector.has(referenceSelectorKey))
-			referenceResourceBySelector.set(
-				referenceSelectorKey,
-				subscribeEntity(
-					context,
-					resolvedFieldDefinition.entityType,
-					referenceSelector,
-					selection
-				)
-			)
 
-		return referenceResourceBySelector.get(referenceSelectorKey)
+		return (
+			Object.getOwnPropertyDescriptor(value, EntityMetaKey.Selector)?.value
+			?? Object.getOwnPropertyDescriptor(value, 'entitySelector')?.value
+			?? value
+		)
+	}
+	const projectedReference = (value: object) => {
+		const selector = referenceSelector(value)
+		return {
+			...value,
+			...(selector === undefined ? {} : selector),
+			...(selector === undefined ? {} : {
+				[EntityMetaKey.Selector]: selector,
+				entitySelector: selector,
+			}),
+		}
 	}
 	const projectReference = (value: object | undefined) => {
 		if (value == null)
 			return undefined
 
-		const reference = getReferenceResource(value)?.current
-		return {
-			...value,
-			...(reference === undefined ? {} : projectEntityData(reference)),
-			...(EntityMetaKey.Selector in value ? {
-				entitySelector: value[EntityMetaKey.Selector],
-			} : {}),
-		}
-	}
-	const projectReferenceAsync = async (value: object | undefined) => {
-		if (value == null)
-			return undefined
-
-		const referenceResource = getReferenceResource(value)
-		const reference = referenceResource === undefined ? undefined : await referenceResource
-		return {
-			...value,
-			...(reference === undefined ? {} : projectEntityData(reference)),
-			...(EntityMetaKey.Selector in value ? {
-				entitySelector: value[EntityMetaKey.Selector],
-			} : {}),
-		}
+		return projectedReference(value)
 	}
 	const project = (
 		data: EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>
@@ -860,32 +1034,6 @@ export function createEntityFieldProxy(
 				&& data !== null
 				&& typeof data === 'object' ?
 					projectReference(data)
-				:
-					data === null ? undefined : data
-			)
-	)
-	const projectAsync = async (
-		data: EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>
-	): Promise<EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>> => (
-		(
-			resolvedFieldDefinition.type === EntityFieldType.EntityReference
-			|| resolvedFieldDefinition.type === EntityFieldType.EntitiesReference
-		)
-		&& data !== undefined
-		&& data !== null
-		&& typeof data === 'object'
-		&& 'values' in data
-		&& Array.isArray(data.values) ?
-			{
-				...data,
-				values: await Promise.all(data.values.map(projectReferenceAsync)),
-				entities: await Promise.all(data.values.map(projectReferenceAsync)),
-			}
-			: (
-				data !== undefined
-				&& data !== null
-				&& typeof data === 'object' ?
-					await projectReferenceAsync(data)
 				:
 					data === null ? undefined : data
 			)
@@ -925,6 +1073,66 @@ export function createEntityFieldProxy(
 				return fieldName
 			if (property === 'sources')
 				return selection.sources
+			if (property === 'count') {
+				if (!entityFieldCardinalityIsMultiple(resolvedFieldDefinition.cardinality))
+					return undefined
+
+				return new Proxy((
+					selectionOverride?: {
+						readonly sources?: readonly string[]
+					}
+				) => subscribeEntityFieldCount(
+					context,
+					entityType,
+					entitySelector,
+					fieldName,
+					{
+						sources: selectionOverride?.sources ?? selection.sources,
+					},
+					resolvedFieldDefinition
+				), {
+					apply(_countTarget, _countThisArgument, countArgumentsList) {
+						return subscribeEntityFieldCount(
+							context,
+							entityType,
+							entitySelector,
+							fieldName,
+							{
+								sources: countArgumentsList[0]?.sources ?? selection.sources,
+							},
+							resolvedFieldDefinition
+						)
+					},
+					get(_countTarget, countProperty) {
+						if (countResource === undefined)
+							countResource = subscribeEntityFieldCount(
+								context,
+								entityType,
+								entitySelector,
+								fieldName,
+								{
+									sources: selection.sources,
+								},
+								resolvedFieldDefinition
+							)
+
+						return resourceProperty(
+							() => countResource ??= subscribeEntityFieldCount(
+								context,
+								entityType,
+								entitySelector,
+								fieldName,
+								{
+									sources: selection.sources,
+								},
+								resolvedFieldDefinition
+							),
+							(count) => count,
+							countProperty
+						)
+					},
+				})
+			}
 			if (property === 'first')
 				return (
 					selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
@@ -960,12 +1168,45 @@ export function createEntityFieldProxy(
 						)
 					)
 				}
+			if (
+				resolvedFieldDefinition.type === EntityFieldType.EntitiesReference
+				&& !svelteKitResourceProperties.has(property)
+			)
+				return entityReferencePathProperty(
+					context,
+					projectResource(
+						getResource(),
+						(data) => {
+							const values = (
+								data != null
+								&& typeof data === 'object'
+								&& 'values' in data
+								&& Array.isArray(data.values) ?
+									data.values.filter((value): value is object => (
+										value !== null
+										&& typeof value === 'object'
+									))
+								:
+									[]
+							)
+							return {
+								values,
+								entities: values,
+							}
+						}
+					),
+					entitySelector,
+					resolvedFieldDefinition.entityType,
+					[],
+					[],
+					property
+				)
 
 			return resourceProperty(
 				getResource,
 				project,
 				property,
-				projectAsync
+				project
 			)
 		},
 	})
@@ -1128,6 +1369,416 @@ const createEntityProjectionProxy = (
 	return projectionProxy
 }
 
+const entityReferencePathProperty = (
+	context: ClientContext,
+	source: SvelteKitResource<EntityReferencePathData>,
+	sourceEntitySelector: EntitySelector<Schema, EntityType<Schema>>,
+	targetEntityType: EntityType<Schema>,
+	steps: readonly EntityReferencePathStep[],
+	facetPath: readonly string[],
+	property: PropertyKey
+) => {
+	if (typeof property !== 'string')
+		return undefined
+
+	const nestedFacetPath = [
+		...facetPath,
+		property,
+	]
+	if (
+		context.projectionDefinitionByEntityTypeAndPath[
+			entityFieldAddressKey(targetEntityType, nestedFacetPath, '')
+		] !== undefined
+	)
+		return createEntityReferencePathProxy(
+			context,
+			source,
+			sourceEntitySelector,
+			targetEntityType,
+			steps,
+			nestedFacetPath
+		)
+
+	const fieldDefinition = context.entityFieldDefinitionByEntityTypePathAndName[targetEntityType][
+		entityFieldAddressKey(targetEntityType, facetPath, property)
+	]
+	if (
+		fieldDefinition == null
+		|| (
+			fieldDefinition.type !== EntityFieldType.EntityReference
+			&& fieldDefinition.type !== EntityFieldType.EntitiesReference
+		)
+	)
+		return undefined
+
+	return createEntityReferencePathProxy(
+		context,
+		source,
+		sourceEntitySelector,
+		fieldDefinition.entityType,
+		[
+			...steps,
+			{
+				entityType: targetEntityType,
+				facetPath,
+				fieldName: fieldDefinition.name,
+			},
+		],
+		[]
+	)
+}
+
+const createEntityReferencePathProxy = (
+	context: ClientContext,
+	source: SvelteKitResource<EntityReferencePathData>,
+	sourceEntitySelector: EntitySelector<Schema, EntityType<Schema>>,
+	targetEntityType: EntityType<Schema>,
+	steps: readonly EntityReferencePathStep[],
+	facetPath: readonly string[]
+): object => {
+	const projectionResourceByStepAndSelector = new Map<string, SvelteKitResource<ProjectionValue<Record<PropertyKey, never>>>>()
+	const fieldResourceByStepAndSelector = new Map<string, SvelteKitResource<EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>>>()
+	const referenceValues = (
+		fieldDefinition: EntityFieldDefinition,
+		fieldValue: EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>
+	): object[] => {
+		if (fieldValue == null)
+			return []
+		if (entityFieldCardinalityIsMultiple(fieldDefinition.cardinality)) {
+			if (
+				typeof fieldValue !== 'object'
+				|| !('values' in fieldValue)
+				|| !Array.isArray(fieldValue.values)
+			)
+				return []
+
+			return fieldValue.values.filter((value): value is object => (
+				value !== null
+				&& typeof value === 'object'
+			))
+		}
+
+		return typeof fieldValue === 'object' ? [fieldValue] : []
+	}
+
+	const traverse = (
+		sourceData: EntityReferencePathData
+	): EntityReferencePathData | undefined => {
+		let references = [...sourceData.values]
+		for (const [
+			stepIndex,
+			step,
+		] of steps.entries()) {
+			const fieldDefinition = context.entityFieldDefinitionByEntityTypePathAndName[step.entityType][
+				entityFieldAddressKey(step.entityType, step.facetPath, step.fieldName)
+			]
+			if (fieldDefinition == null)
+				throw new Error(`${step.entityType}.${[...step.facetPath, step.fieldName].join('.')} does not exist`)
+			if (
+				fieldDefinition.type !== EntityFieldType.EntityReference
+				&& fieldDefinition.type !== EntityFieldType.EntitiesReference
+			)
+				throw new Error(`${step.entityType}.${[...step.facetPath, step.fieldName].join('.')} does not reference an entity`)
+			const referencedEntityType = fieldDefinition.entityType
+
+			const nextReferences: object[] = []
+			for (const reference of references) {
+				const selector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
+				?? Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
+				?? reference
+				const selectorKey = entitySelectorKey(
+					context.schema,
+					context.entityDefinitionByType[step.entityType],
+					selector
+				)
+				const resourceKey = `${stepIndex}:${selectorKey}`
+				if (step.facetPath.length > 0) {
+					if (!projectionResourceByStepAndSelector.has(resourceKey))
+						projectionResourceByStepAndSelector.set(
+							resourceKey,
+							projectResource(
+								subscribeEntity(
+									context,
+									step.entityType,
+									selector,
+									{
+										selectorSources: [],
+										fields: projectionDependencyFields(
+											context.projectionDefinitionByEntityTypeAndPath[
+												entityFieldAddressKey(step.entityType, step.facetPath, '')
+											]?.transitiveDependencies ?? []
+										),
+									}
+								),
+								(data) => projectionConditionResolution(
+									data,
+									context.projectionDefinitionByEntityTypeAndPath[
+										entityFieldAddressKey(step.entityType, step.facetPath, '')
+									]?.conditionPlan ?? {
+										dependencies: [],
+										predicates: [],
+									},
+									{}
+								) ?? {
+									resolution: ProjectionResolution.Unsupported,
+								}
+							)
+						)
+
+					const projectionResource = projectionResourceByStepAndSelector.get(resourceKey)!
+					if (projectionResource.error !== undefined)
+						continue
+					if (!projectionResource.ready)
+						return undefined
+					if (projectionResource.current?.resolution !== ProjectionResolution.Applicable)
+						continue
+				}
+				if (!fieldResourceByStepAndSelector.has(resourceKey))
+					fieldResourceByStepAndSelector.set(
+						resourceKey,
+						createEntityFieldProxy(
+							context,
+							step.entityType,
+							selector,
+							fieldDefinition.name,
+							step.selection ?? {},
+							fieldDefinition
+						)
+					)
+
+				const fieldResource = fieldResourceByStepAndSelector.get(resourceKey)!
+				if (fieldResource.error !== undefined)
+					continue
+				if (!fieldResource.ready)
+					return undefined
+
+				nextReferences.push(...referenceValues(
+					fieldDefinition,
+					fieldResource.current
+				))
+			}
+			references = [...new Map(nextReferences.map((reference) => {
+				const selector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
+					?? Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
+					?? reference
+				return [
+					entitySelectorKey(
+						context.schema,
+						context.entityDefinitionByType[referencedEntityType],
+						selector
+					),
+					reference,
+				]
+			})).values()]
+		}
+
+		return {
+			values: references,
+			entities: references,
+		}
+	}
+
+	const traverseAsync = async () => {
+		let references = [...(await source).values]
+		for (const [
+			stepIndex,
+			step,
+		] of steps.entries()) {
+			const fieldDefinition = context.entityFieldDefinitionByEntityTypePathAndName[step.entityType][
+				entityFieldAddressKey(step.entityType, step.facetPath, step.fieldName)
+			]
+			if (fieldDefinition == null)
+				throw new Error(`${step.entityType}.${[...step.facetPath, step.fieldName].join('.')} does not exist`)
+			if (
+				fieldDefinition.type !== EntityFieldType.EntityReference
+				&& fieldDefinition.type !== EntityFieldType.EntitiesReference
+			)
+				throw new Error(`${step.entityType}.${[...step.facetPath, step.fieldName].join('.')} does not reference an entity`)
+			const referencedEntityType = fieldDefinition.entityType
+
+			const nextReferences = (await Promise.all(references.map(async (reference) => {
+				const selector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
+					?? Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
+					?? reference
+				const selectorKey = entitySelectorKey(
+					context.schema,
+					context.entityDefinitionByType[step.entityType],
+					selector
+				)
+				const resourceKey = `${stepIndex}:${selectorKey}`
+				if (step.facetPath.length > 0) {
+					if (!projectionResourceByStepAndSelector.has(resourceKey))
+						projectionResourceByStepAndSelector.set(
+							resourceKey,
+							projectResource(
+								subscribeEntity(
+									context,
+									step.entityType,
+									selector,
+									{
+										selectorSources: [],
+										fields: projectionDependencyFields(
+											context.projectionDefinitionByEntityTypeAndPath[
+												entityFieldAddressKey(step.entityType, step.facetPath, '')
+											]?.transitiveDependencies ?? []
+										),
+									}
+								),
+								(data) => projectionConditionResolution(
+									data,
+									context.projectionDefinitionByEntityTypeAndPath[
+										entityFieldAddressKey(step.entityType, step.facetPath, '')
+									]?.conditionPlan ?? {
+										dependencies: [],
+										predicates: [],
+									},
+									{}
+								) ?? {
+									resolution: ProjectionResolution.Unsupported,
+								}
+							)
+						)
+
+					if ((await projectionResourceByStepAndSelector.get(resourceKey)!).resolution !== ProjectionResolution.Applicable)
+						return []
+				}
+				if (!fieldResourceByStepAndSelector.has(resourceKey))
+					fieldResourceByStepAndSelector.set(
+						resourceKey,
+						createEntityFieldProxy(
+							context,
+							step.entityType,
+							selector,
+							fieldDefinition.name,
+							step.selection ?? {},
+							fieldDefinition
+						)
+					)
+
+				return referenceValues(
+					fieldDefinition,
+					await fieldResourceByStepAndSelector.get(resourceKey)!
+				)
+			}))).flat()
+			references = [...new Map(nextReferences.map((reference) => {
+				const selector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
+					?? Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
+					?? reference
+				return [
+					entitySelectorKey(
+						context.schema,
+						context.entityDefinitionByType[referencedEntityType],
+						selector
+					),
+					reference,
+				]
+			})).values()]
+		}
+
+		return {
+			values: references,
+			entities: references,
+		}
+	}
+	const pathSnapshot = () => {
+		const sourceData = source.current
+		const data = sourceData === undefined ? undefined : traverse(sourceData)
+		const error = (
+			source.error
+			?? [...projectionResourceByStepAndSelector.values()]
+				.find((resource) => resource.error !== undefined)?.error
+			?? [...fieldResourceByStepAndSelector.values()]
+				.find((resource) => resource.error !== undefined)?.error
+		)
+		return {
+			data: data ?? {
+				values: [],
+				entities: [],
+			},
+			isLoading: error === undefined && data === undefined,
+			isReady: error === undefined && data !== undefined,
+			isError: error !== undefined,
+			status: error === undefined && data !== undefined ? 'ready' : 'loading',
+			error,
+		} as const
+	}
+	const pathResource = new TanStackLiveQueryResource(
+		pathSnapshot,
+		(update) => {
+			if (typeof window === 'undefined')
+				return () => {}
+
+			return $effect.root(() => {
+				$effect(() => {
+					pathSnapshot()
+					update()
+				})
+			})
+		},
+		async () => {
+			pathResource.set(await traverseAsync())
+		}
+	)
+	const withTerminalSelection = (
+		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
+	) => createEntityReferencePathProxy(
+		context,
+		source,
+		sourceEntitySelector,
+		targetEntityType,
+		steps.map((step, index) => (
+			index === steps.length - 1 ?
+				{
+					...step,
+					selection: mergeSelection(
+						step.selection ?? {},
+						selectionOverride
+					),
+				}
+			:
+				step
+		)),
+		facetPath
+	)
+
+	const proxy = new Proxy((
+		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
+	) => withTerminalSelection(selectionOverride), {
+		apply(_target, _thisArgument, argumentsList) {
+			return withTerminalSelection(argumentsList[0])
+		},
+		get(_target, property) {
+			if (property === 'entityType')
+				return targetEntityType
+			if (property === 'entitySelector')
+				return sourceEntitySelector
+			if (property === 'fieldName')
+				return steps.at(-1)?.fieldName
+			if (property === 'sources')
+				return steps.at(-1)?.selection?.sources
+
+			if (svelteKitResourceProperties.has(property))
+				return resourceProperty(
+					() => pathResource,
+					(data) => data,
+					property
+				)
+
+			return entityReferencePathProperty(
+				context,
+				source,
+				sourceEntitySelector,
+				targetEntityType,
+				steps,
+				facetPath,
+				property
+			)
+		},
+	})
+
+	return proxy
+}
+
 export function createEntityProxy<
 	const _Schema extends Schema,
 	const _EntityType extends EntityType<_Schema>,
@@ -1136,7 +1787,7 @@ export function createEntityProxy<
 	context: ClientContext<_Schema>,
 	entityType: _EntityType,
 	entitySelector: EntitySelector<_Schema, _EntityType>,
-	selection?: _Selection & CheckedSubscribeSelection<_Schema, _EntityType, _Selection>
+	selection?: _Selection
 ): EntityProxyResource<_Schema, _EntityType, _Selection>
 export function createEntityProxy(
 	context: ClientContext,

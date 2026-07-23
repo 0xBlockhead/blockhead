@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType._GlobalActivityPubNetwork, {
 				scope: '_GlobalActivityPubNetwork',
-			}).$$observedNotes({
-				sources: [
-					Source.Mastodon_Rest,
-				],
-				count: true,
 			})
+				.$$observedNotes({
+					sources: [
+						Source.Mastodon_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._GlobalActivityPubNetwork, {
+				scope: '_GlobalActivityPubNetwork',
+			})
+				.$$observedNotes({
+					sources: [
+						Source.Mastodon_Rest,
+					],
+				}).count
 		}
 		id='observed-notes'
 		data-column-item="flexible"

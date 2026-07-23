@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ICP ledger transactions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.IcpLedgerTransaction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.IcpLedgerTransaction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import IcpLedgerTransactionView from '$/views/IcpLedgerTransactionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(icpLedgerTransactions) => [...new Map(icpLedgerTransactions.values.map((icpLedgerTransaction) => [icpLedgerTransaction[EntityMetaKey.SelectorKey], icpLedgerTransaction])).values()]}
 	getKey={(icpLedgerTransaction) => icpLedgerTransaction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: icpLedgerTransaction })}
 		{@const icpLedgerTransactionFields = { ...icpLedgerTransaction[EntityMetaKey.Selector], ...icpLedgerTransaction }}
-		{@const selection = select(EntityType.IcpLedgerTransaction, icpLedgerTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<IcpLedgerTransactionView
-			selection={selection}
-			prefetched={icpLedgerTransactionFields}
+		<EntityView
+			entityType={EntityType.IcpLedgerTransaction}
+			entitySelector={icpLedgerTransaction[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'ICP ledger transaction'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.XmtpNetwork>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XmtpNetwork>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XmtpNetwork>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -38,7 +39,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xmtpNetwork = $derived(selection({
+	const xmtpNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			protocolName: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			protocolName: true,
@@ -49,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'XMTP')
-	const viewDomId = $derived('xmtp-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('xmtp-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -64,13 +70,20 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? (pendingEntity.scope === 'XmtpNetwork' ? resolve('/xmtp') : undefined)}
+	href={
+		href ?? (
+			selection.entitySelector.scope === 'XmtpNetwork' ?
+				resolve('/xmtp')
+		:
+				undefined
+		)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={xmtpNetwork}>
@@ -83,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName')}
 			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={xmtpNetwork}>
@@ -248,21 +261,26 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<XmtpConversationsView
-				selection={
-						selection.$$xmtpConversations({
-							sources: [
-								Source.Local_Internal,
-							],
-							count: true,
-						})
-					}
-				title='Conversations'
-				href={resolve('/xmtp/conversations')}
-				emptyText='No XMTP conversations here yet.'
-				id='XmtpConversationsView-xmtp-conversations'
-			/>
-		{/if}
+				{@const xmtpNetworkXmtpConversationsViewXmtpConversationsResource = selection
+		.$$xmtpConversations({
+			sources: [
+				Source.Local_Internal,
+			],
+		})}
+				<ResourceBoundary
+					resource={xmtpNetworkXmtpConversationsViewXmtpConversationsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<XmtpConversationsView
+							selection={xmtpNetworkXmtpConversationsViewXmtpConversationsResource}
+							countResource={xmtpNetworkXmtpConversationsViewXmtpConversationsResource.count}
+							title='Conversations'
+							href={resolve('/xmtp/conversations')}
+							id='XmtpConversationsView-xmtp-conversations'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

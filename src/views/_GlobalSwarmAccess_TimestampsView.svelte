@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Global Swarm access observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalSwarmAccess_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalSwarmAccess_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalSwarmAccess_TimestampView from '$/views/_GlobalSwarmAccess_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalSwarmAccessTimestamps) => [...new Map(globalSwarmAccessTimestamps.values.map((globalSwarmAccessTimestamp) => [globalSwarmAccessTimestamp[EntityMetaKey.SelectorKey], globalSwarmAccessTimestamp])).values()]}
 	getKey={(globalSwarmAccessTimestamp) => globalSwarmAccessTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,19 +88,34 @@
 
 	{#snippet Item({ item: globalSwarmAccessTimestamp })}
 		{@const globalSwarmAccessTimestampFields = { ...globalSwarmAccessTimestamp[EntityMetaKey.Selector], ...globalSwarmAccessTimestamp }}
-		{@const selection = select(EntityType._GlobalSwarmAccess_Timestamp, globalSwarmAccessTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const globalSwarmAccessTimestampHrefFields = { ...globalSwarmAccessTimestamp, ...globalSwarmAccessTimestamp[EntityMetaKey.Selector] }}
-		<GlobalSwarmAccess_TimestampView
-			selection={selection}
-			prefetched={globalSwarmAccessTimestampFields}
+		<EntityView
+			entityType={EntityType._GlobalSwarmAccess_Timestamp}
+			entitySelector={globalSwarmAccessTimestamp[EntityMetaKey.Selector]}
 			href={
-				(globalSwarmAccessTimestampHrefFields.timestampMs !== undefined && globalSwarmAccessTimestampHrefFields.source !== undefined ? resolve('/swarm/access/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(globalSwarmAccessTimestampHrefFields.timestampMs ?? ''),
-					source: String(globalSwarmAccessTimestampHrefFields.source ?? ''),
-				}) : undefined)
+				(
+					globalSwarmAccessTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in globalSwarmAccessTimestamp[EntityMetaKey.Selector]
+					&& globalSwarmAccessTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& globalSwarmAccessTimestamp[EntityMetaKey.Selector] != null && 'source' in globalSwarmAccessTimestamp[EntityMetaKey.Selector]
+					&& globalSwarmAccessTimestamp[EntityMetaKey.Selector].source != null ?
+						resolve('/swarm/access/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(globalSwarmAccessTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(globalSwarmAccessTimestamp[EntityMetaKey.Selector].source ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{['global Swarm access'].filter(Boolean).join(' ') || 'global Swarm access timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((globalSwarmAccessTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

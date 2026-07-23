@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hyperliquid spot pair observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HyperliquidSpotPair_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HyperliquidSpotPair_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HyperliquidSpotPair_TimestampView from '$/views/HyperliquidSpotPair_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(hyperliquidSpotPairTimestamps) => [...new Map(hyperliquidSpotPairTimestamps.values.map((hyperliquidSpotPairTimestamp) => [hyperliquidSpotPairTimestamp[EntityMetaKey.SelectorKey], hyperliquidSpotPairTimestamp])).values()]}
 	getKey={(hyperliquidSpotPairTimestamp) => hyperliquidSpotPairTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: hyperliquidSpotPairTimestamp })}
 		{@const hyperliquidSpotPairTimestampFields = { ...hyperliquidSpotPairTimestamp[EntityMetaKey.Selector], ...hyperliquidSpotPairTimestamp }}
-		{@const selection = select(EntityType.HyperliquidSpotPair_Timestamp, hyperliquidSpotPairTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HyperliquidSpotPair_TimestampView
-			selection={selection}
-			prefetched={hyperliquidSpotPairTimestampFields}
+		<EntityView
+			entityType={EntityType.HyperliquidSpotPair_Timestamp}
+			entitySelector={hyperliquidSpotPairTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'hyperliquid spot pair timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

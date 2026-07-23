@@ -6,6 +6,8 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum HederaAllowanceSelector {
+	OwnerSpenderAllowanceKind = 'OwnerSpenderAllowanceKind',
+	OwnerSpenderAllowanceKindTokenId = 'OwnerSpenderAllowanceKindTokenId',
 	OwnerSpenderAllowanceKindTokenIdSerialNumber = 'OwnerSpenderAllowanceKindTokenIdSerialNumber',
 }
 export const HederaAllowance = entity({
@@ -66,6 +68,17 @@ export const HederaAllowance = entity({
 	},
 })({
 	selectors: {
+		OwnerSpenderAllowanceKind: [
+			'$owner',
+			'$spender',
+			'allowanceKind',
+		],
+		OwnerSpenderAllowanceKindTokenId: [
+			'$owner',
+			'$spender',
+			'allowanceKind',
+			'tokenId',
+		],
 		OwnerSpenderAllowanceKindTokenIdSerialNumber: [
 			'$owner',
 			'$spender',

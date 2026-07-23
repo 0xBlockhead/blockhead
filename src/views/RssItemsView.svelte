@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'RSS items',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.RssItem>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.RssItem>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import RssItemView from '$/views/RssItemView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(rssItems) => [...new Map(rssItems.values.map((rssItem) => [rssItem[EntityMetaKey.SelectorKey], rssItem])).values()]}
 	getKey={(rssItem) => rssItem[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,20 +90,42 @@
 
 	{#snippet Item({ item: rssItem })}
 		{@const rssItemFields = { ...rssItem[EntityMetaKey.Selector], ...rssItem }}
-		{@const selection = select(EntityType.RssItem, rssItem[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const rssItemHrefFields = { ...rssItem, ...rssItem[EntityMetaKey.Selector] }}
-		<RssItemView
-			selection={selection}
-			prefetched={rssItemFields}
+		<EntityView
+			entityType={EntityType.RssItem}
+			entitySelector={rssItem[EntityMetaKey.Selector]}
 			href={
-				(rssItemHrefFields.itemIdentityKind !== undefined && rssItemHrefFields.itemIdentity !== undefined && rssItemHrefFields.$feed !== undefined && rssItemHrefFields.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', {
-					itemIdentityKind: String(rssItemHrefFields.itemIdentityKind ?? ''),
-					itemIdentity: encodeURIComponent(String(rssItemHrefFields.itemIdentity ?? '')),
-					feedUrl: encodeURIComponent(String(rssItemHrefFields.$feed.feedUrl ?? '')),
-				}) : undefined)
+				(
+					rssItem[EntityMetaKey.Selector] != null && 'itemIdentityKind' in rssItem[EntityMetaKey.Selector]
+					&& rssItem[EntityMetaKey.Selector].itemIdentityKind != null
+					&& rssItem[EntityMetaKey.Selector] != null && 'itemIdentity' in rssItem[EntityMetaKey.Selector]
+					&& rssItem[EntityMetaKey.Selector].itemIdentity != null
+					&& rssItem[EntityMetaKey.Selector] != null && '$feed' in rssItem[EntityMetaKey.Selector]
+					&& rssItem[EntityMetaKey.Selector].$feed != null && 'feedUrl' in rssItem[EntityMetaKey.Selector].$feed
+					&& rssItem[EntityMetaKey.Selector].$feed.feedUrl != null ?
+						resolve('/rss/feed/[feedUrl=absoluteUrl]/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', {
+					itemIdentityKind: String(rssItem[EntityMetaKey.Selector].itemIdentityKind ?? ''),
+					itemIdentity: encodeURIComponent(String(rssItem[EntityMetaKey.Selector].itemIdentity ?? '')),
+					feedUrl: encodeURIComponent(String(rssItem[EntityMetaKey.Selector].$feed.feedUrl ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((rssItemFields.title) ?? ''), String((rssItemFields.itemIdentity) ?? '')].filter(Boolean).join(' ') || 'RSS item'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((rssItemFields.itemIdentity) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((rssItemFields.publishedAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

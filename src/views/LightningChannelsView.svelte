@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Lightning channels',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LightningChannel>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LightningChannel>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LightningChannelView from '$/views/LightningChannelView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(lightningChannels) => [...new Map(lightningChannels.values.map((lightningChannel) => [lightningChannel[EntityMetaKey.SelectorKey], lightningChannel])).values()]}
 	getKey={(lightningChannel) => lightningChannel[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,22 +90,44 @@
 
 	{#snippet Item({ item: lightningChannel })}
 		{@const lightningChannelFields = { ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }}
-		{@const selection = select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const lightningChannelHrefFields = { ...lightningChannel, ...lightningChannel[EntityMetaKey.Selector] }}
-		<LightningChannelView
-			selection={selection}
-			prefetched={lightningChannelFields}
+		<EntityView
+			entityType={EntityType.LightningChannel}
+			entitySelector={lightningChannel[EntityMetaKey.Selector]}
 			href={
-				(lightningChannelHrefFields.channelId !== undefined && lightningChannelHrefFields.$network !== undefined && lightningChannelHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-					channelId: String(lightningChannelHrefFields.channelId ?? ''),
-					network: String(caip2StringFromValue(lightningChannelHrefFields.$network.caip2) ?? ''),
-				}) : lightningChannelHrefFields.channelId !== undefined && lightningChannelHrefFields.$network !== undefined && lightningChannelHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-					channelId: String(lightningChannelHrefFields.channelId ?? ''),
-					network: String(lightningChannelHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					lightningChannel[EntityMetaKey.Selector] != null && 'channelId' in lightningChannel[EntityMetaKey.Selector]
+					&& lightningChannel[EntityMetaKey.Selector].channelId != null
+					&& lightningChannel[EntityMetaKey.Selector] != null && '$network' in lightningChannel[EntityMetaKey.Selector] ?
+						lightningChannel[EntityMetaKey.Selector].$network != null && 'caip2' in lightningChannel[EntityMetaKey.Selector].$network
+						&& lightningChannel[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+						channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
+						network: String(caip2StringFromValue(lightningChannel[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							lightningChannel[EntityMetaKey.Selector].$network != null && 'slug' in lightningChannel[EntityMetaKey.Selector].$network
+							&& lightningChannel[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+							channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
+							network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((lightningChannelFields.shortChannelId) ?? '')].filter(Boolean).join(' ') || [String((lightningChannelFields.channelId) ?? '')].filter(Boolean).join(' ') || 'Lightning channel'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((lightningChannelFields.$node1.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

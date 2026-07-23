@@ -29,7 +29,6 @@
 			docsUrl: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.protocolName) ?? '')].filter(Boolean).join(' ') || 'EVM protocol' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'EVM protocol')))
 
 
 	// Components
@@ -39,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM protocol • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM protocol' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'EVM protocol'))} • EVM protocol • Blockhead</title>
 </svelte:head>
 
 

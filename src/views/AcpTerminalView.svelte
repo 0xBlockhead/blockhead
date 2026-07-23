@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AcpTerminal>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AcpTerminal>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpTerminal>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpTerminal = $derived(selection({
+	const acpTerminal = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			command: true,
+			cwd: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			command: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.terminalId) ?? '')].filter(Boolean).join(' ') || 'ACP terminal')
-	const viewDomId = $derived('acp-terminal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('acp-terminal-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,7 +77,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'cwd')}
 			{[String((pendingEntity.terminalId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={acpTerminal}>
@@ -83,7 +90,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'cwd')}
 			{[String((pendingEntity.command) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.terminalId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={acpTerminal}>
@@ -96,7 +103,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'cwd')}
 			{@const cwd0 = pendingEntity.cwd}
 			{#if cwd0 !== undefined && cwd0 !== null}
 				<span data-text="muted">
@@ -124,7 +131,7 @@
 				<dt>session</dt>
 				<dd>
 					<AcpSessionView
-						selection={select(EntityType.AcpSession, selection.entitySelector.$session, {})}
+						selection={select(EntityType.AcpSession, selection.entitySelector.$session)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -256,17 +263,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AcpTerminal_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No ACP terminal observations.'
-				id='AcpTerminal_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const acpTerminalAcpTerminalTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={acpTerminalAcpTerminalTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AcpTerminal_TimestampsView
+					selection={acpTerminalAcpTerminalTimestampsViewTimestampsResource}
+					countResource={acpTerminalAcpTerminalTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='AcpTerminal_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

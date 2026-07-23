@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Epochs',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BeaconEpoch>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BeaconEpoch>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(beaconEpochs) => [...new Map(beaconEpochs.values.map((beaconEpoch) => [beaconEpoch[EntityMetaKey.SelectorKey], beaconEpoch])).values()]}
 	getKey={(beaconEpoch) => beaconEpoch[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,22 +88,40 @@
 
 	{#snippet Item({ item: beaconEpoch })}
 		{@const beaconEpochFields = { ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }}
-		{@const selection = select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const beaconEpochHrefFields = { ...beaconEpoch, ...beaconEpoch[EntityMetaKey.Selector] }}
-		<BeaconEpochView
-			selection={selection}
-			prefetched={beaconEpochFields}
+		<EntityView
+			entityType={EntityType.BeaconEpoch}
+			entitySelector={beaconEpoch[EntityMetaKey.Selector]}
 			href={
-				(beaconEpochHrefFields.epoch !== undefined && beaconEpochHrefFields.$network !== undefined && beaconEpochHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-					epoch: String(beaconEpochHrefFields.epoch ?? ''),
-					network: String(caip2StringFromValue(beaconEpochHrefFields.$network.caip2) ?? ''),
-				}) : beaconEpochHrefFields.epoch !== undefined && beaconEpochHrefFields.$network !== undefined && beaconEpochHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-					epoch: String(beaconEpochHrefFields.epoch ?? ''),
-					network: String(beaconEpochHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					beaconEpoch[EntityMetaKey.Selector] != null && 'epoch' in beaconEpoch[EntityMetaKey.Selector]
+					&& beaconEpoch[EntityMetaKey.Selector].epoch != null
+					&& beaconEpoch[EntityMetaKey.Selector] != null && '$network' in beaconEpoch[EntityMetaKey.Selector] ?
+						beaconEpoch[EntityMetaKey.Selector].$network != null && 'caip2' in beaconEpoch[EntityMetaKey.Selector].$network
+						&& beaconEpoch[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+						epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+						network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							beaconEpoch[EntityMetaKey.Selector].$network != null && 'slug' in beaconEpoch[EntityMetaKey.Selector].$network
+							&& beaconEpoch[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+							epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+							network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((beaconEpochFields.epoch) ?? '') ? 'Epoch #' + String((beaconEpochFields.epoch) ?? '') : '') || 'beacon epoch'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -37,11 +37,8 @@
 			})
 		}
 		title='Channels'
-		selection={
-			select(EntityType.LightningNetwork, data.selector).$$channels({
-				count: true,
-			})
-		}
+		selection={select(EntityType.LightningNetwork, data.selector).$$channels}
+		countResource={select(EntityType.LightningNetwork, data.selector).$$channels.count}
 		id='channels'
 		data-column-item="flexible"
 		data-card

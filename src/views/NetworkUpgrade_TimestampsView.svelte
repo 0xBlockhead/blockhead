@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Network upgrade observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NetworkUpgrade_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NetworkUpgrade_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkUpgrade_TimestampView from '$/views/NetworkUpgrade_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(networkUpgradeTimestamps) => [...new Map(networkUpgradeTimestamps.values.map((networkUpgradeTimestamp) => [networkUpgradeTimestamp[EntityMetaKey.SelectorKey], networkUpgradeTimestamp])).values()]}
 	getKey={(networkUpgradeTimestamp) => networkUpgradeTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: networkUpgradeTimestamp })}
 		{@const networkUpgradeTimestampFields = { ...networkUpgradeTimestamp[EntityMetaKey.Selector], ...networkUpgradeTimestamp }}
-		{@const selection = select(EntityType.NetworkUpgrade_Timestamp, networkUpgradeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<NetworkUpgrade_TimestampView
-			selection={selection}
-			prefetched={networkUpgradeTimestampFields}
+		<EntityView
+			entityType={EntityType.NetworkUpgrade_Timestamp}
+			entitySelector={networkUpgradeTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((networkUpgradeTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'network upgrade observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((networkUpgradeTimestampFields.status) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((networkUpgradeTimestampFields.activationHeight) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

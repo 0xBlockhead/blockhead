@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.DogecoinAuxPowParentBlockHeader>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.DogecoinAuxPowParentBlockHeader>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.DogecoinAuxPowParentBlockHeader>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const dogecoinAuxPowParentBlockHeader = $derived(selection({
+	const dogecoinAuxPowParentBlockHeader = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			merkleRoot: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			merkleRoot: true,
 		},
 	}))
-	const titleFallback = $derived('dogecoin aux pow parent block header')
-	const viewDomId = $derived('dogecoin-aux-pow-parent-block-header-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'dogecoin aux pow parent block header'
+	const viewDomId = $derived('dogecoin-aux-pow-parent-block-header-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,37 +75,25 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<DogecoinBlockAuxPowView
-						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<DogecoinBlockAuxPowView
-						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
+			{#snippet children(entity)}
+				<DogecoinBlockAuxPowView
+					selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.merkleRoot) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.merkleRoot) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.merkleRoot) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -108,7 +102,7 @@
 				<dt>AuxPoW</dt>
 				<dd>
 					<DogecoinBlockAuxPowView
-						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow, {})}
+						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

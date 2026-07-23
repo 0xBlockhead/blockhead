@@ -32,19 +32,6 @@
 			documentBody: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [[
-			[(String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? (String((pageSelection.entitySelector.category) ?? ''))) ?? '') ? String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? (String((pageSelection.entitySelector.category) ?? ''))) ?? '') + '-' : ''), String((pageSelection.entitySelector.number) ?? '')].filter(Boolean).join(''),
-			String((pageSelection.entitySelector.documentTitle) ?? ''),
-		].filter(Boolean).join(': ')].filter(Boolean).join(' ') || [[
-			[String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? (String((pageSelection.entitySelector.category) ?? ''))) ?? '')].filter(Boolean).join(''),
-			String((pageSelection.entitySelector.number) ?? ''),
-		].filter(Boolean).join('-')].filter(Boolean).join(' ') || 'Specification proposal' : [[
-			[(String((proposalCategoryById[String(({ ...pageSelection.entitySelector, ...pageSelection.entity }).category)]?.label ?? (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).category) ?? ''))) ?? '') ? String((proposalCategoryById[String(({ ...pageSelection.entitySelector, ...pageSelection.entity }).category)]?.label ?? (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).category) ?? ''))) ?? '') + '-' : ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).number) ?? '')].filter(Boolean).join(''),
-			String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).documentTitle) ?? ''),
-		].filter(Boolean).join(': ')].filter(Boolean).join(' ') || [[
-			[String((proposalCategoryById[String(({ ...pageSelection.entitySelector, ...pageSelection.entity }).category)]?.label ?? (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).category) ?? ''))) ?? '')].filter(Boolean).join(''),
-			String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).number) ?? ''),
-		].filter(Boolean).join('-')].filter(Boolean).join(' ') || 'Specification proposal'))
 
 
 	// Components
@@ -54,7 +41,16 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Specification proposal • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [[
+			[String((proposalCategoryById[String(pageEntitySelector.category)]?.label ?? (String((pageEntitySelector.category) ?? ''))) ?? '')].filter(Boolean).join(''),
+			String((pageEntitySelector.number) ?? ''),
+		].filter(Boolean).join('-')].filter(Boolean).join(' ') || 'Specification proposal' : [[
+			[(String((proposalCategoryById[String(({ ...pageEntitySelector, ...pageSelection.entity }).category)]?.label ?? (String((({ ...pageEntitySelector, ...pageSelection.entity }).category) ?? ''))) ?? '') ? String((proposalCategoryById[String(({ ...pageEntitySelector, ...pageSelection.entity }).category)]?.label ?? (String((({ ...pageEntitySelector, ...pageSelection.entity }).category) ?? ''))) ?? '') + '-' : ''), String((({ ...pageEntitySelector, ...pageSelection.entity }).number) ?? '')].filter(Boolean).join(''),
+			String((({ ...pageEntitySelector, ...pageSelection.entity }).documentTitle) ?? ''),
+		].filter(Boolean).join(': ')].filter(Boolean).join(' ') || [[
+			[String((proposalCategoryById[String(({ ...pageEntitySelector, ...pageSelection.entity }).category)]?.label ?? (String((({ ...pageEntitySelector, ...pageSelection.entity }).category) ?? ''))) ?? '')].filter(Boolean).join(''),
+			String((({ ...pageEntitySelector, ...pageSelection.entity }).number) ?? ''),
+		].filter(Boolean).join('-')].filter(Boolean).join(' ') || 'Specification proposal')} • Specification proposal • Blockhead</title>
 </svelte:head>
 
 

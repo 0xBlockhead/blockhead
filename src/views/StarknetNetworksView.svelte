@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Starknet networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.StarknetNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.StarknetNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import StarknetNetworkView from '$/views/StarknetNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(starknetNetworks) => [...new Map(starknetNetworks.values.map((starknetNetwork) => [starknetNetwork[EntityMetaKey.SelectorKey], starknetNetwork])).values()]}
 	getKey={(starknetNetwork) => starknetNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: starknetNetwork })}
 		{@const starknetNetworkFields = { ...starknetNetwork[EntityMetaKey.Selector], ...starknetNetwork }}
-		{@const selection = select(EntityType.StarknetNetwork, starknetNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<StarknetNetworkView
-			selection={selection}
-			prefetched={starknetNetworkFields}
+		<EntityView
+			entityType={EntityType.StarknetNetwork}
+			entitySelector={starknetNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((starknetNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [starknetNetworkFields.$network.caip2 == null ? '' : String(`${(starknetNetworkFields.$network.caip2).namespace}:${(starknetNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'starknet network'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((starknetNetworkFields.chainId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

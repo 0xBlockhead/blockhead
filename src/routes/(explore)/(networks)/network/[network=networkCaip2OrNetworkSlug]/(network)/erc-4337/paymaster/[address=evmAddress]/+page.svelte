@@ -23,7 +23,6 @@
 			$contract: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster')))
 
 
 	// Components
@@ -33,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ERC-4337 paymaster • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster' : [String((({ ...data.selector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster'))} • ERC-4337 paymaster • Blockhead</title>
 </svelte:head>
 
 

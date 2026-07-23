@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.GitBlob>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.GitBlob>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitBlob>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitBlob = $derived(selection({
+	const gitBlob = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			mime: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			mime: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git blob')
-	const viewDomId = $derived('git-blob-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('git-blob-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,11 +77,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const objectId0 = pendingEntity.objectId}
-					{#if objectId0 !== undefined && objectId0 !== null}
-						<TruncatedValue value={String((objectId0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'mime')}
+			{@const objectId0 = pendingEntity.objectId}
+			{#if objectId0 !== undefined && objectId0 !== null}
+				<TruncatedValue value={String((objectId0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={gitBlob}>
 				{#snippet children(entity)}
@@ -90,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'mime')}
 			{[String((pendingEntity.mime) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={gitBlob}>
@@ -244,17 +250,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<GitTreeEntriesView
-				selection={
-						selection.$$paths({
-							count: true,
-						})
-					}
-				title='paths'
-				emptyText='No paths.'
-				id='GitTreeEntriesView-paths'
-			/>
-		{/if}
+		{@const gitBlobGitTreeEntriesViewPathsResource = selection.$$paths}
+		<ResourceBoundary
+			resource={gitBlobGitTreeEntriesViewPathsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<GitTreeEntriesView
+					selection={gitBlobGitTreeEntriesViewPathsResource}
+					countResource={gitBlobGitTreeEntriesViewPathsResource.count}
+					title='paths'
+					id='GitTreeEntriesView-paths'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

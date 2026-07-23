@@ -31,7 +31,6 @@
 			v4PoolId: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'liquidity pool' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'liquidity pool')))
 
 
 	// Components
@@ -41,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • liquidity pool • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.id) ?? '')].filter(Boolean).join(' ') || 'liquidity pool' : [String((({ ...data.selector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'liquidity pool'))} • liquidity pool • Blockhead</title>
 </svelte:head>
 
 

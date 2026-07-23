@@ -40,13 +40,24 @@
 		selection={
 			select(EntityType.EnsName, {
 				name: decodeURIComponent(params.ensName),
-			}).$$records({
-				sources: [
-					Source.TheGraph_Graphql,
-					Source.Voltaire_JsonRpc,
-				],
-				count: true,
 			})
+				.$$records({
+					sources: [
+						Source.TheGraph_Graphql,
+						Source.Voltaire_JsonRpc,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.EnsName, {
+				name: decodeURIComponent(params.ensName),
+			})
+				.$$records({
+					sources: [
+						Source.TheGraph_Graphql,
+						Source.Voltaire_JsonRpc,
+					],
+				}).count
 		}
 		id='records'
 		data-column-item="flexible"

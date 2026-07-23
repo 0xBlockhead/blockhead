@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EVM blocks',
 		typeAnnotationParagraphs = ['A block in an EVM-compatible execution chain.'],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmBlockView from '$/views/EvmBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmBlocks) => [...new Map(evmBlocks.values.map((evmBlock) => [evmBlock[EntityMetaKey.SelectorKey], evmBlock])).values()]}
 	getKey={(evmBlock) => evmBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,22 +89,40 @@
 
 	{#snippet Item({ item: evmBlock })}
 		{@const evmBlockFields = { ...evmBlock[EntityMetaKey.Selector], ...evmBlock }}
-		{@const selection = select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmBlockHrefFields = { ...evmBlock, ...evmBlock[EntityMetaKey.Selector] }}
-		<EvmBlockView
-			selection={selection}
-			prefetched={evmBlockFields}
+		<EntityView
+			entityType={EntityType.EvmBlock}
+			entitySelector={evmBlock[EntityMetaKey.Selector]}
 			href={
-				(evmBlockHrefFields.blockNumber !== undefined && evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-					blockNumber: String(evmBlockHrefFields.blockNumber ?? ''),
-					network: String(caip2StringFromValue(evmBlockHrefFields.$network.caip2) ?? ''),
-				}) : evmBlockHrefFields.blockNumber !== undefined && evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-					blockNumber: String(evmBlockHrefFields.blockNumber ?? ''),
-					network: String(evmBlockHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					evmBlock[EntityMetaKey.Selector] != null && 'blockNumber' in evmBlock[EntityMetaKey.Selector]
+					&& evmBlock[EntityMetaKey.Selector].blockNumber != null
+					&& evmBlock[EntityMetaKey.Selector] != null && '$network' in evmBlock[EntityMetaKey.Selector] ?
+						evmBlock[EntityMetaKey.Selector].$network != null && 'caip2' in evmBlock[EntityMetaKey.Selector].$network
+						&& evmBlock[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+						blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+						network: String(caip2StringFromValue(evmBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							evmBlock[EntityMetaKey.Selector].$network != null && 'slug' in evmBlock[EntityMetaKey.Selector].$network
+							&& evmBlock[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+							blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+							network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((evmBlockFields.blockNumber) ?? '') ? 'Block #' + String((evmBlockFields.blockNumber) ?? '') : '') || [String((evmBlockFields.hash) ?? '')].filter(Boolean).join(' ') || 'EVM block'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

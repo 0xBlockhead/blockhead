@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LitecoinMwebBlock>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LitecoinMwebBlock>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LitecoinMwebBlock>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,15 +43,21 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const litecoinMwebBlock = $derived(selection({
+	const litecoinMwebBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			hogExTransactionId: true,
+			kernelRoot: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			hogExTransactionId: true,
 			kernelRoot: true,
 		},
 	}))
-	const titleFallback = $derived('litecoin MWEB block')
-	const viewDomId = $derived('litecoin-mweb-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'litecoin MWEB block'
+	const viewDomId = $derived('litecoin-mweb-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,40 +78,23 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<UtxoBlockView
-						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
-						href={
-						(selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-							blockNumber: String(selection.entitySelector.$block.height ?? ''),
-							hash: String(selection.entitySelector.$block.hash ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-							blockNumber: String(selection.entitySelector.$block.height ?? ''),
-							hash: String(selection.entitySelector.$block.hash ?? ''),
-							network: String(selection.entitySelector.$block.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$block') && prefetched.$block != null && Object.hasOwn(prefetched.$block, 'hash') && Object.hasOwn(prefetched.$block, 'transactionCount') && Object.hasOwn(prefetched, 'hogExTransactionId') && Object.hasOwn(prefetched, 'kernelRoot')}
+			{@const utxoBlock0 = pendingEntity.$block}
+			{#if utxoBlock0 != null && selection.entitySelector.$block != null}
+				<UtxoBlockView
+					selection={select(EntityType.UtxoBlock, selection.entitySelector.$block, { sources: selection.sources })}
+					prefetched={utxoBlock0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={litecoinMwebBlock}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<UtxoBlockView
 						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
-						href={
-						(selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-							blockNumber: String(selection.entitySelector.$block.height ?? ''),
-							hash: String(selection.entitySelector.$block.hash ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-							blockNumber: String(selection.entitySelector.$block.height ?? ''),
-							hash: String(selection.entitySelector.$block.hash ?? ''),
-							network: String(selection.entitySelector.$block.$network.slug ?? ''),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -114,7 +104,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$block') && prefetched.$block != null && Object.hasOwn(prefetched.$block, 'hash') && Object.hasOwn(prefetched.$block, 'transactionCount') && Object.hasOwn(prefetched, 'hogExTransactionId') && Object.hasOwn(prefetched, 'kernelRoot')}
 			{[String((pendingEntity.hogExTransactionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={litecoinMwebBlock}>
@@ -127,7 +117,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$block') && prefetched.$block != null && Object.hasOwn(prefetched.$block, 'hash') && Object.hasOwn(prefetched.$block, 'transactionCount') && Object.hasOwn(prefetched, 'hogExTransactionId') && Object.hasOwn(prefetched, 'kernelRoot')}
 			{@const kernelRoot0 = pendingEntity.kernelRoot}
 			{#if kernelRoot0 !== undefined && kernelRoot0 !== null}
 				<span data-text="muted">
@@ -155,17 +145,34 @@
 				<dt>block</dt>
 				<dd>
 					<UtxoBlockView
-						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block, {})}
+						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
 						href={
-							(selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-								blockNumber: String(selection.entitySelector.$block.height ?? ''),
-								hash: String(selection.entitySelector.$block.hash ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-								blockNumber: String(selection.entitySelector.$block.height ?? ''),
-								hash: String(selection.entitySelector.$block.hash ?? ''),
-								network: String(selection.entitySelector.$block.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$block != null && 'height' in selection.entitySelector.$block
+								&& selection.entitySelector.$block.height != null
+								&& selection.entitySelector.$block != null && 'hash' in selection.entitySelector.$block
+								&& selection.entitySelector.$block.hash != null
+								&& selection.entitySelector.$block != null && '$network' in selection.entitySelector.$block ?
+									selection.entitySelector.$block.$network != null && 'caip2' in selection.entitySelector.$block.$network
+									&& selection.entitySelector.$block.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+									blockNumber: String(selection.entitySelector.$block.height ?? ''),
+									hash: String(selection.entitySelector.$block.hash ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$block.$network != null && 'slug' in selection.entitySelector.$block.$network
+										&& selection.entitySelector.$block.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+										blockNumber: String(selection.entitySelector.$block.height ?? ''),
+										hash: String(selection.entitySelector.$block.hash ?? ''),
+										network: String(selection.entitySelector.$block.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -224,17 +231,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<LitecoinMwebTransactionsView
-				selection={
-						selection.$$transactions({
-							count: true,
-						})
-					}
-				title='transactions'
-				emptyText='No Litecoin MWEB transactions.'
-				id='LitecoinMwebTransactionsView-transactions'
-			/>
-		{/if}
+		{@const litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource = selection.$$transactions}
+		<ResourceBoundary
+			resource={litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<LitecoinMwebTransactionsView
+					selection={litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource}
+					countResource={litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource.count}
+					title='transactions'
+					id='LitecoinMwebTransactionsView-transactions'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

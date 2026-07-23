@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Near account observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NearAccount_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NearAccount_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NearAccount_TimestampView from '$/views/NearAccount_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nearAccountTimestamps) => [...new Map(nearAccountTimestamps.values.map((nearAccountTimestamp) => [nearAccountTimestamp[EntityMetaKey.SelectorKey], nearAccountTimestamp])).values()]}
 	getKey={(nearAccountTimestamp) => nearAccountTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: nearAccountTimestamp })}
 		{@const nearAccountTimestampFields = { ...nearAccountTimestamp[EntityMetaKey.Selector], ...nearAccountTimestamp }}
-		{@const selection = select(EntityType.NearAccount_Timestamp, nearAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<NearAccount_TimestampView
-			selection={selection}
-			prefetched={nearAccountTimestampFields}
+		<EntityView
+			entityType={EntityType.NearAccount_Timestamp}
+			entitySelector={nearAccountTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nearAccountTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'near account timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((nearAccountTimestampFields.amountYoctoNear) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((nearAccountTimestampFields.blockHeight) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

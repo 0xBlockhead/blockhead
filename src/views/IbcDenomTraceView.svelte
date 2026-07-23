@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.IbcDenomTrace>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.IbcDenomTrace>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.IbcDenomTrace>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,15 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ibcDenomTrace = $derived(selection({
+	const ibcDenomTrace = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			displayDenom: true,
+			baseDenom: true,
+			denomHash: true,
+			sourceChannel: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			displayDenom: true,
@@ -52,7 +61,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.displayDenom) ?? ''), String((pendingEntity.baseDenom) ?? ''), String((pendingEntity.traceKey) ?? '')].filter(Boolean).join(' ') || 'IBC denom trace')
-	const viewDomId = $derived('ibc-denom-trace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('ibc-denom-trace-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,7 +82,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'displayDenom') && Object.hasOwn(prefetched, 'baseDenom') && Object.hasOwn(prefetched, 'denomHash') && Object.hasOwn(prefetched, 'sourceChannel')}
 			{[String((pendingEntity.displayDenom) ?? ''), String((pendingEntity.baseDenom) ?? ''), String((pendingEntity.traceKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={ibcDenomTrace}>
@@ -86,7 +95,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'displayDenom') && Object.hasOwn(prefetched, 'baseDenom') && Object.hasOwn(prefetched, 'denomHash') && Object.hasOwn(prefetched, 'sourceChannel')}
 			{[String((pendingEntity.denomHash) ?? ''), String((pendingEntity.traceKey) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayDenom) ?? ''), String((pendingEntity.baseDenom) ?? ''), String((pendingEntity.traceKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={ibcDenomTrace}>
@@ -99,7 +108,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'displayDenom') && Object.hasOwn(prefetched, 'baseDenom') && Object.hasOwn(prefetched, 'denomHash') && Object.hasOwn(prefetched, 'sourceChannel')}
 			{@const sourceChannel0 = pendingEntity.sourceChannel}
 			{#if sourceChannel0 !== undefined && sourceChannel0 !== null}
 				<span data-text="muted">
@@ -297,13 +306,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

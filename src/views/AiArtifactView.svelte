@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AiArtifact>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AiArtifact>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiArtifact>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiArtifact = $derived(selection({
+	const aiArtifact = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			artifactType: true,
+			mediaType: true,
+			size: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			artifactType: true,
@@ -51,7 +59,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerArtifactId) ?? ''), String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact')
-	const viewDomId = $derived('ai-artifact-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('ai-artifact-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -75,7 +83,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'artifactType') && Object.hasOwn(prefetched, 'mediaType') && Object.hasOwn(prefetched, 'providerArtifactId') && Object.hasOwn(prefetched, 'ociDigest') && Object.hasOwn(prefetched, 'ipfsCid') && Object.hasOwn(prefetched, 'arweaveId') && Object.hasOwn(prefetched, 'gitObject') && Object.hasOwn(prefetched, 'digest') && Object.hasOwn(prefetched, 'size')}
 			{[String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={aiArtifact}>
@@ -88,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'artifactType') && Object.hasOwn(prefetched, 'mediaType') && Object.hasOwn(prefetched, 'providerArtifactId') && Object.hasOwn(prefetched, 'ociDigest') && Object.hasOwn(prefetched, 'ipfsCid') && Object.hasOwn(prefetched, 'arweaveId') && Object.hasOwn(prefetched, 'gitObject') && Object.hasOwn(prefetched, 'digest') && Object.hasOwn(prefetched, 'size')}
 			{[String((pendingEntity.mediaType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={aiArtifact}>
@@ -101,7 +109,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'artifactType') && Object.hasOwn(prefetched, 'mediaType') && Object.hasOwn(prefetched, 'providerArtifactId') && Object.hasOwn(prefetched, 'ociDigest') && Object.hasOwn(prefetched, 'ipfsCid') && Object.hasOwn(prefetched, 'arweaveId') && Object.hasOwn(prefetched, 'gitObject') && Object.hasOwn(prefetched, 'digest') && Object.hasOwn(prefetched, 'size')}
 			{@const size0 = pendingEntity.size}
 			{#if size0 !== undefined && size0 !== null}
 				<span data-text="muted">
@@ -427,28 +435,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AiDocumentsView
-				selection={
-						selection.$$documents({
-							count: true,
-						})
-					}
-				title='documents'
-				emptyText='No linked documents.'
-				id='AiDocumentsView-documents'
-			/>
-
-			<AiArtifactAttestationsView
-				selection={
-						selection.$$attestations({
-							count: true,
-						})
-					}
-				title='attestations'
-				emptyText='No AI artifact attestations.'
-				id='AiArtifactAttestationsView-attestations'
-			/>
-		{/if}
+		{@const aiArtifactAiDocumentsViewDocumentsResource = selection.$$documents}
+		<ResourceBoundary
+			resource={aiArtifactAiDocumentsViewDocumentsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AiDocumentsView
+					selection={aiArtifactAiDocumentsViewDocumentsResource}
+					countResource={aiArtifactAiDocumentsViewDocumentsResource.count}
+					title='documents'
+					id='AiDocumentsView-documents'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const aiArtifactAiArtifactAttestationsViewAttestationsResource = selection.$$attestations}
+		<ResourceBoundary
+			resource={aiArtifactAiArtifactAttestationsViewAttestationsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AiArtifactAttestationsView
+					selection={aiArtifactAiArtifactAttestationsViewAttestationsResource}
+					countResource={aiArtifactAiArtifactAttestationsViewAttestationsResource.count}
+					title='attestations'
+					id='AiArtifactAttestationsView-attestations'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

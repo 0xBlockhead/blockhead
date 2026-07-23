@@ -23,7 +23,6 @@
 			docsUrl: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.protocolName) ?? '')].filter(Boolean).join(' ') || 'YouTube Data API' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'YouTube Data API'))
 
 
 	// Components
@@ -33,7 +32,9 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • YouTube Data API • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'YouTube Data API' : [String((({ ...{
+		scope: 'YoutubeNetwork',
+	}, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'YouTube Data API')} • YouTube Data API • Blockhead</title>
 </svelte:head>
 
 

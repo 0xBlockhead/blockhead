@@ -39,7 +39,6 @@
 			},
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset'))
 
 
 	// Components
@@ -49,7 +48,13 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Market asset • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		kind: params.kind,
+		assetKey: params.assetKey,
+	}.assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset' : [String((({ ...{
+		kind: params.kind,
+		assetKey: params.assetKey,
+	}, ...pageSelection.entity }).assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset')} • Market asset • Blockhead</title>
 </svelte:head>
 
 

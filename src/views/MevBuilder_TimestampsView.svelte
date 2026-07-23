@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'MEV builder observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.MevBuilder_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MevBuilder_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MevBuilder_TimestampView from '$/views/MevBuilder_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(mevBuilderTimestamps) => [...new Map(mevBuilderTimestamps.values.map((mevBuilderTimestamp) => [mevBuilderTimestamp[EntityMetaKey.SelectorKey], mevBuilderTimestamp])).values()]}
 	getKey={(mevBuilderTimestamp) => mevBuilderTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,26 +91,57 @@
 
 	{#snippet Item({ item: mevBuilderTimestamp })}
 		{@const mevBuilderTimestampFields = { ...mevBuilderTimestamp[EntityMetaKey.Selector], ...mevBuilderTimestamp }}
-		{@const selection = select(EntityType.MevBuilder_Timestamp, mevBuilderTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const mevBuilderTimestampHrefFields = { ...mevBuilderTimestamp, ...mevBuilderTimestamp[EntityMetaKey.Selector] }}
-		<MevBuilder_TimestampView
-			selection={selection}
-			prefetched={mevBuilderTimestampFields}
+		<EntityView
+			entityType={EntityType.MevBuilder_Timestamp}
+			entitySelector={mevBuilderTimestamp[EntityMetaKey.Selector]}
 			href={
-				(mevBuilderTimestampHrefFields.timestampMs !== undefined && mevBuilderTimestampHrefFields.source !== undefined && mevBuilderTimestampHrefFields.$builder !== undefined && mevBuilderTimestampHrefFields.$builder.builderPubkey !== undefined && mevBuilderTimestampHrefFields.$builder.$network !== undefined && mevBuilderTimestampHrefFields.$builder.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(mevBuilderTimestampHrefFields.timestampMs ?? ''),
-					source: String(mevBuilderTimestampHrefFields.source ?? ''),
-					builderPubkey: String(mevBuilderTimestampHrefFields.$builder.builderPubkey ?? ''),
-					network: String(caip2StringFromValue(mevBuilderTimestampHrefFields.$builder.$network.caip2) ?? ''),
-				}) : mevBuilderTimestampHrefFields.timestampMs !== undefined && mevBuilderTimestampHrefFields.source !== undefined && mevBuilderTimestampHrefFields.$builder !== undefined && mevBuilderTimestampHrefFields.$builder.builderPubkey !== undefined && mevBuilderTimestampHrefFields.$builder.$network !== undefined && mevBuilderTimestampHrefFields.$builder.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(mevBuilderTimestampHrefFields.timestampMs ?? ''),
-					source: String(mevBuilderTimestampHrefFields.source ?? ''),
-					builderPubkey: String(mevBuilderTimestampHrefFields.$builder.builderPubkey ?? ''),
-					network: String(mevBuilderTimestampHrefFields.$builder.$network.slug ?? ''),
-				}) : undefined)
+				(
+					mevBuilderTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in mevBuilderTimestamp[EntityMetaKey.Selector]
+					&& mevBuilderTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& mevBuilderTimestamp[EntityMetaKey.Selector] != null && 'source' in mevBuilderTimestamp[EntityMetaKey.Selector]
+					&& mevBuilderTimestamp[EntityMetaKey.Selector].source != null
+					&& mevBuilderTimestamp[EntityMetaKey.Selector] != null && '$builder' in mevBuilderTimestamp[EntityMetaKey.Selector]
+					&& mevBuilderTimestamp[EntityMetaKey.Selector].$builder != null && 'builderPubkey' in mevBuilderTimestamp[EntityMetaKey.Selector].$builder
+					&& mevBuilderTimestamp[EntityMetaKey.Selector].$builder.builderPubkey != null
+					&& mevBuilderTimestamp[EntityMetaKey.Selector].$builder != null && '$network' in mevBuilderTimestamp[EntityMetaKey.Selector].$builder ?
+						mevBuilderTimestamp[EntityMetaKey.Selector].$builder.$network != null && 'caip2' in mevBuilderTimestamp[EntityMetaKey.Selector].$builder.$network
+						&& mevBuilderTimestamp[EntityMetaKey.Selector].$builder.$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+						timestampMs: String(mevBuilderTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+						source: String(mevBuilderTimestamp[EntityMetaKey.Selector].source ?? ''),
+						builderPubkey: String(mevBuilderTimestamp[EntityMetaKey.Selector].$builder.builderPubkey ?? ''),
+						network: String(caip2StringFromValue(mevBuilderTimestamp[EntityMetaKey.Selector].$builder.$network.caip2) ?? ''),
+					})
+					:
+							mevBuilderTimestamp[EntityMetaKey.Selector].$builder.$network != null && 'slug' in mevBuilderTimestamp[EntityMetaKey.Selector].$builder.$network
+							&& mevBuilderTimestamp[EntityMetaKey.Selector].$builder.$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+							timestampMs: String(mevBuilderTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+							source: String(mevBuilderTimestamp[EntityMetaKey.Selector].source ?? ''),
+							builderPubkey: String(mevBuilderTimestamp[EntityMetaKey.Selector].$builder.builderPubkey ?? ''),
+							network: String(mevBuilderTimestamp[EntityMetaKey.Selector].$builder.$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[(String((mevBuilderTimestampFields.deliveredPayloadCount) ?? '') ? String((mevBuilderTimestampFields.deliveredPayloadCount) ?? '') + ' payloads' : ''), (String((mevBuilderTimestampFields.deliveredValueWei) ?? '') ? String((mevBuilderTimestampFields.deliveredValueWei) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[(String((mevBuilderTimestampFields.deliveredPayloadCount) ?? '') ? String((mevBuilderTimestampFields.deliveredPayloadCount) ?? '') + ' payloads' : '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((mevBuilderTimestampFields.$builder.builderPubkey) ?? '')].filter(Boolean).join(' ') || 'MEV builder'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

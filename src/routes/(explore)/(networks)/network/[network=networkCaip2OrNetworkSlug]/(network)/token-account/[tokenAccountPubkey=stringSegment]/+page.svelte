@@ -26,7 +26,6 @@
 			$closeAuthority: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.tokenAccountPubkey) ?? '')].filter(Boolean).join(' ') || 'solana token account' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).tokenAccountPubkey) ?? '')].filter(Boolean).join(' ') || 'solana token account')))
 
 
 	// Components
@@ -36,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • solana token account • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.tokenAccountPubkey) ?? '')].filter(Boolean).join(' ') || 'solana token account' : [String((({ ...data.selector, ...pageSelection.entity }).tokenAccountPubkey) ?? '')].filter(Boolean).join(' ') || 'solana token account'))} • solana token account • Blockhead</title>
 </svelte:head>
 
 

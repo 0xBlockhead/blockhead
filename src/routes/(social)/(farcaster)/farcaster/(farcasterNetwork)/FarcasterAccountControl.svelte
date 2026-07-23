@@ -6,7 +6,7 @@
 		writeLocalBlockheadFarcasterAccountConnection,
 	} from '$/collections/localMutations.ts'
 	import { BlockheadFarcasterConnectionAuthMethod } from '$/schema/BlockheadFarcasterAccountConnection.ts'
-	import { appClient } from '$/routes/+layout.svelte'
+	import { getAppClient } from '$/routes/+layout.svelte'
 
 	let {
 		connectionId,
@@ -37,7 +37,7 @@
 
 	const persist = (connections: ReturnType<typeof persisted>) => {
 		localStorage.setItem(storageKey, JSON.stringify(connections))
-		connections.forEach((connection) => writeLocalBlockheadFarcasterAccountConnection(appClient, connection))
+		connections.forEach((connection) => writeLocalBlockheadFarcasterAccountConnection(getAppClient(), connection))
 	}
 
 	const connect = () => {
@@ -53,7 +53,7 @@
 		if (connectionId == null) return
 		const connections = persisted()
 		if (action === 'disconnect') {
-			deleteLocalBlockheadFarcasterAccountConnection(appClient, connectionId)
+			deleteLocalBlockheadFarcasterAccountConnection(getAppClient(), connectionId)
 			persist(connections.filter((connection) => connection.connectionId !== connectionId))
 			status = 'Farcaster connection disconnected.'
 			void goto(resolve('/farcaster/accounts'))

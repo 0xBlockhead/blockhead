@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Nostr',
 		typeAnnotationParagraphs = ['Nostr is a relay-based social protocol for signed events. Profiles, notes, reposts, and articles are event kinds; relays are transport endpoints and are not global proof that an event exists everywhere.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalNostrNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalNostrNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalNostrNetworkView from '$/views/_GlobalNostrNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalNostrNetworks) => [...new Map(globalNostrNetworks.values.map((globalNostrNetwork) => [globalNostrNetwork[EntityMetaKey.SelectorKey], globalNostrNetwork])).values()]}
 	getKey={(globalNostrNetwork) => globalNostrNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,14 +86,24 @@
 
 	{#snippet Item({ item: globalNostrNetwork })}
 		{@const globalNostrNetworkFields = { ...globalNostrNetwork[EntityMetaKey.Selector], ...globalNostrNetwork }}
-		{@const selection = select(EntityType._GlobalNostrNetwork, globalNostrNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const globalNostrNetworkHrefFields = { ...globalNostrNetwork, ...globalNostrNetwork[EntityMetaKey.Selector] }}
-		<GlobalNostrNetworkView
-			selection={selection}
-			prefetched={globalNostrNetworkFields}
-			href={(globalNostrNetwork[EntityMetaKey.Selector].scope === '_GlobalNostrNetwork' ? resolve('/nostr') : undefined)}
+		<EntityView
+			entityType={EntityType._GlobalNostrNetwork}
+			entitySelector={globalNostrNetwork[EntityMetaKey.Selector]}
+			href={
+				(
+					globalNostrNetwork[EntityMetaKey.Selector].scope === '_GlobalNostrNetwork' ?
+						resolve('/nostr')
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{['Nostr'].filter(Boolean).join(' ') || 'Nostr'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

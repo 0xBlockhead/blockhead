@@ -38,11 +38,8 @@
 			})
 		}
 		title='Block transactions'
-		selection={
-			select(EntityType.EvmBlock, data.selector).$$transactions({
-				count: true,
-			})
-		}
+		selection={select(EntityType.EvmBlock, data.selector).$$transactions}
+		countResource={select(EntityType.EvmBlock, data.selector).$$transactions.count}
 		id='transactions'
 		data-column-item="flexible"
 		data-card

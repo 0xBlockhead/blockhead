@@ -12,8 +12,11 @@ import { Source } from '$/sources/Source.ts'
 
 const youtubeQueries = vi.hoisted(() => ({
 	getChannel: vi.fn(),
+	getComment: vi.fn(),
+	listCompleteCommentReplies: vi.fn(),
 	listChannelPlaylists: vi.fn(),
 	listCommentThreads: vi.fn(),
+	listPlaylistItems: vi.fn(),
 	listPopularVideos: vi.fn(),
 	searchChannelVideos: vi.fn(),
 }))
@@ -101,6 +104,7 @@ describe.each([
 						description: 'Video description',
 						publishedAt: '2026-01-02T03:04:05Z',
 						channelId: 'channel-1',
+						channelTitle: 'Useful channel',
 						thumbnails: {
 							high: { url: 'https://i.ytimg.com/video-1.jpg' },
 						},
@@ -113,6 +117,7 @@ describe.each([
 					snippet: {
 						title: 'Useful playlist',
 						channelId: 'channel-1',
+						channelTitle: 'Useful channel',
 						thumbnails: {
 							high: { url: 'https://i.ytimg.com/playlist-1.jpg' },
 						},
@@ -127,7 +132,8 @@ describe.each([
 							id: 'comment-1',
 							snippet: {
 								authorDisplayName: 'Useful author',
-								textDisplay: 'Useful comment',
+								textDisplay: '<b>Useful comment</b>',
+								textOriginal: 'Useful comment',
 								publishedAt: '2026-01-02T03:04:05Z',
 								authorChannelId: { value: 'channel-1' },
 							},
@@ -260,6 +266,9 @@ describe.each([
 			},
 			[entityFieldAddressKey(EntityType.YoutubeVideo, [], '$author')]: {
 				[EntityMetaKey.Selector]: { channelId: 'channel-1' },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.YoutubeChannel, [], 'title')]: 'Useful channel',
+				},
 			},
 		})
 		expect(playlist[EntityMetaKey.Fields]).toMatchObject({
@@ -267,6 +276,12 @@ describe.each([
 			[entityFieldAddressKey(EntityType.YoutubePlaylist, [], '$thumbnail')]: {
 				[EntityMetaKey.Selector]: {
 					url: 'https://i.ytimg.com/playlist-1.jpg',
+				},
+			},
+			[entityFieldAddressKey(EntityType.YoutubePlaylist, [], '$channel')]: {
+				[EntityMetaKey.Selector]: { channelId: 'channel-1' },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.YoutubeChannel, [], 'title')]: 'Useful channel',
 				},
 			},
 		})
@@ -354,5 +369,185 @@ describe('YouTube observation provenance', () => {
 			EntityType.YoutubeVideo_Timestamp,
 		])
 			expect(historicalResolverEntityTypes).not.toContain(entityType)
+	})
+})
+
+describe('YouTube reading-card continuation and identity', () => {
+	it.each([
+		{
+			resolverIndex: 5,
+			projection: '$$videos' as const,
+			operation: 'search.list:channel-videos',
+			target: { channelId: 'channel-1' },
+			request: youtubeQueries.searchChannelVideos,
+		},
+		{
+			resolverIndex: 7,
+			projection: '$$playlists' as const,
+			operation: 'playlists.list:channel',
+			target: { channelId: 'channel-1' },
+			request: youtubeQueries.listChannelPlaylists,
+		},
+		{
+			resolverIndex: 9,
+			projection: '$$videos' as const,
+			operation: 'playlistItems.list',
+			target: { playlistId: 'playlist-1' },
+			request: youtubeQueries.listPlaylistItems,
+		},
+	])('carries opaque provider tokens through $operation', async ({
+		resolverIndex,
+		projection,
+		operation,
+		target,
+		request,
+	}) => {
+		request.mockResolvedValueOnce({
+			items: [],
+			nextPageToken: 'opaque/+ % token',
+		})
+		const resolver = youtubeResolvers.resolvers[resolverIndex]
+		const page = await resolver.resolve[Object.keys(resolver.resolve)[0]].resolve(
+			target,
+			{
+				...resolverContext,
+				providerContinuationToken: 'previous opaque token',
+			}
+		)
+
+		expect(request).toHaveBeenLastCalledWith(
+			resolverContext.publicEnv,
+			Object.values(target)[0],
+			64,
+			'previous opaque token'
+		)
+		expect(resolver.projections[projection].continuation(
+			page,
+			target,
+			resolverContext
+		)).toEqual({
+			operation,
+			target: Object.values(target)[0],
+			terminal: false,
+			token: 'opaque/+ % token',
+		})
+	})
+
+	it('rejects a comment detail returned for another video subject', async () => {
+		youtubeQueries.getComment.mockResolvedValueOnce({
+			items: [{
+				id: 'comment-1',
+				snippet: {
+					videoId: 'video-2',
+					textOriginal: 'Wrong subject',
+				},
+			}],
+		})
+
+		await expect(
+			youtubeResolvers.resolvers[3].resolve.VideoIdCommentId.resolve(
+				{
+					videoId: 'video-1',
+					commentId: 'comment-1',
+				},
+				resolverContext
+			)
+		).rejects.toThrow('comment does not belong to requested video')
+	})
+
+	it('materializes completed official replies with exact video, parent, author, order, and continuation', async () => {
+		youtubeQueries.getComment.mockResolvedValueOnce({
+			items: [{
+				id: 'parent-1',
+				snippet: {
+					videoId: 'video-1',
+				},
+			}],
+		})
+		youtubeQueries.listCompleteCommentReplies.mockResolvedValueOnce({
+			items: [
+				{
+					id: 'reply-1',
+					snippet: {
+						videoId: 'video-1',
+						parentId: 'parent-1',
+						authorChannelId: { value: 'channel-1' },
+						textOriginal: 'First reply',
+						publishedAt: '2026-01-02T03:04:05Z',
+					},
+				},
+				{
+					id: 'reply-2',
+					snippet: {
+						videoId: 'video-1',
+						parentId: 'parent-1',
+						authorChannelId: { value: 'channel-2' },
+						textOriginal: 'Second reply',
+						publishedAt: '2026-01-03T03:04:05Z',
+					},
+				},
+			],
+			nextPageToken: 'opaque/+ % token',
+		})
+		const resolver = youtubeResolvers.resolvers[15]
+		const selector = {
+			videoId: 'video-1',
+			commentId: 'parent-1',
+		}
+		const page = await resolver.resolve.VideoIdCommentId.resolve(
+			selector,
+			resolverContext
+		)
+
+		expect(youtubeQueries.listCompleteCommentReplies).toHaveBeenCalledWith(
+			resolverContext.publicEnv,
+			'video-1',
+			'parent-1',
+			64,
+			undefined
+		)
+		expect(resolver.projections.$$replies.select(
+			page,
+			selector,
+			resolverContext
+		)).toMatchObject([
+			{
+				[EntityMetaKey.Selector]: {
+					videoId: 'video-1',
+					commentId: 'reply-1',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.YoutubeComment, [], 'text')]: 'First reply',
+					[entityFieldAddressKey(EntityType.YoutubeComment, [], '$author')]: {
+						[EntityMetaKey.Selector]: { channelId: 'channel-1' },
+					},
+					[entityFieldAddressKey(EntityType.YoutubeComment, [], '$video')]: {
+						[EntityMetaKey.Selector]: { videoId: 'video-1' },
+					},
+					[entityFieldAddressKey(EntityType.YoutubeComment, [], '$parentComment')]: {
+						[EntityMetaKey.Selector]: {
+							videoId: 'video-1',
+							commentId: 'parent-1',
+						},
+					},
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					videoId: 'video-1',
+					commentId: 'reply-2',
+				},
+			},
+		])
+		expect(resolver.projections.$$replies.continuation(
+			page,
+			selector,
+			resolverContext
+		)).toEqual({
+			operation: 'comments.list:replies',
+			target: 'parent-1',
+			terminal: false,
+			token: 'opaque/+ % token',
+		})
 	})
 })

@@ -1,0 +1,437 @@
+import { spawn } from 'node:child_process'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import process from 'node:process'
+import { fileURLToPath } from 'node:url'
+
+import ts from 'typescript'
+import { parse } from 'svelte/compiler'
+
+
+export const fatalCompilerWarnings = 'await_reactivity_loss:error,derived_inert:error,state_referenced_locally:error'
+
+const extraFileExtensions = [{
+	extension: '.svelte',
+	isMixedContent: true,
+	scriptKind: ts.ScriptKind.Deferred,
+}]
+
+const positiveInteger = (value, fallback) => {
+	const parsed = Number(value)
+	return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
+}
+
+const terminateProcessGroup = (child) => {
+	if (child.exitCode != null || child.signalCode != null)
+		return
+
+	try {
+		process.kill(-child.pid, 'SIGTERM')
+	} catch (error) {
+		if (error.code !== 'ESRCH')
+			throw error
+	}
+
+	setTimeout(() => {
+		if (child.exitCode != null || child.signalCode != null)
+			return
+
+		try {
+			process.kill(-child.pid, 'SIGKILL')
+		} catch (error) {
+			if (error.code !== 'ESRCH')
+				throw error
+		}
+	}, 1_000).unref()
+}
+
+export const runProcess = ({
+	command,
+	args,
+	cwd,
+	timeoutMs,
+	label,
+	environment = process.env,
+}) => new Promise((resolve) => {
+	const child = spawn(command, args, {
+		cwd,
+		detached: true,
+		env: environment,
+		stdio: [
+			'ignore',
+			'pipe',
+			'pipe',
+		],
+	})
+	let output = ''
+	let timedOut = false
+	const timer = setTimeout(() => {
+		timedOut = true
+		terminateProcessGroup(child)
+	}, timeoutMs)
+
+	child.stdout.on('data', (chunk) => {
+		output += chunk
+	})
+	child.stderr.on('data', (chunk) => {
+		output += chunk
+	})
+	child.on('error', (error) => {
+		output += `${error.stack ?? error.message}\n`
+	})
+	child.on('close', (code, signal) => {
+		clearTimeout(timer)
+		resolve({
+			label,
+			code: code ?? 1,
+			signal,
+			timedOut,
+			output,
+		})
+	})
+})
+
+export const readCanonicalFileManifest = (projectRoot, tsconfigPath) => {
+	const configFile = ts.readConfigFile(tsconfigPath, ts.sys.readFile)
+	if (configFile.error != null)
+		throw new Error(ts.formatDiagnostic(configFile.error, {
+			getCanonicalFileName: (fileName) => fileName,
+			getCurrentDirectory: () => projectRoot,
+			getNewLine: () => '\n',
+		}))
+
+	const parsed = ts.parseJsonConfigFileContent(
+		configFile.config,
+		ts.sys,
+		path.dirname(tsconfigPath),
+		undefined,
+		tsconfigPath,
+		undefined,
+		extraFileExtensions
+	)
+	if (parsed.errors.length > 0)
+		throw new Error(ts.formatDiagnostics(parsed.errors, {
+			getCanonicalFileName: (fileName) => fileName,
+			getCurrentDirectory: () => projectRoot,
+			getNewLine: () => '\n',
+		}))
+
+	const canonicalFiles = [...new Set(parsed.fileNames.map((fileName) => path.resolve(fileName)))].sort()
+	return {
+		declarationFiles: canonicalFiles.filter((fileName) => fileName.endsWith('.d.ts')),
+		svelteRoots: canonicalFiles.filter((fileName) => fileName.endsWith('.svelte')),
+	}
+}
+
+export const readCanonicalSvelteRoots = (projectRoot, tsconfigPath) => (
+	readCanonicalFileManifest(projectRoot, tsconfigPath).svelteRoots
+)
+
+const svelteScriptSources = (source) => {
+	const ast = parse(source, { modern: true })
+	return [
+		ast.module,
+		ast.instance,
+	]
+		.filter((script) => script != null)
+		.map((script) => source.slice(script.content.start, script.content.end))
+}
+
+const resolveSvelteImport = (projectRoot, importerPath, specifier) => {
+	if (!specifier.endsWith('.svelte'))
+		return undefined
+	if (specifier.startsWith('$/'))
+		return path.resolve(projectRoot, 'src', specifier.slice(2))
+	if (specifier.startsWith('.'))
+		return path.resolve(path.dirname(importerPath), specifier)
+	return undefined
+}
+
+export const readSvelteGraph = async (projectRoot, roots) => {
+	const rootSet = new Set(roots)
+	const entries = await Promise.all(roots.map(async (filePath) => {
+		const source = await fs.readFile(filePath, 'utf8')
+		const imports = new Set()
+		let scriptSources
+		try {
+			scriptSources = svelteScriptSources(source)
+		} catch (error) {
+			throw new Error(`Failed to parse canonical Svelte root ${filePath}`, {
+				cause: error,
+			})
+		}
+		for (const scriptSource of scriptSources) {
+			for (const importedFile of ts.preProcessFile(scriptSource).importedFiles) {
+				const resolved = resolveSvelteImport(projectRoot, filePath, importedFile.fileName)
+				if (resolved != null && rootSet.has(resolved))
+					imports.add(resolved)
+			}
+		}
+
+		return [
+			filePath,
+			{
+				bytes: Buffer.byteLength(source),
+				imports: [...imports].sort(),
+			},
+		]
+	}))
+
+	return new Map(entries)
+}
+
+const transitiveClosure = (root, graph) => {
+	const closure = new Set()
+	const pending = [root]
+	while (pending.length > 0) {
+		const filePath = pending.pop()
+		if (filePath == null || closure.has(filePath))
+			continue
+		closure.add(filePath)
+		for (const importedPath of graph.get(filePath)?.imports ?? [])
+			pending.push(importedPath)
+	}
+	return closure
+}
+
+export const partitionSvelteRoots = (roots, graph, requestedShardCount) => {
+	const shardCount = Math.min(requestedShardCount, roots.length)
+	if (shardCount === 0)
+		throw new Error('canonical Svelte root manifest is empty')
+
+	const closures = new Map(roots.map((root) => [root, transitiveClosure(root, graph)]))
+	const maximumRootsPerShard = Math.ceil(roots.length / shardCount * 1.5)
+	const closureWeight = (closure) => [...closure].reduce(
+		(total, filePath) => total + (graph.get(filePath)?.bytes ?? 0),
+		0
+	)
+	const shards = Array.from({ length: shardCount }, (_, index) => ({
+		id: `shard-${String(index + 1).padStart(2, '0')}`,
+		roots: [],
+		closure: new Set(),
+		weight: 0,
+	}))
+	const orderedRoots = [...roots].sort((left, right) => (
+		closureWeight(closures.get(right)) - closureWeight(closures.get(left))
+		|| left.localeCompare(right)
+	))
+
+	for (const root of orderedRoots) {
+		const closure = closures.get(root)
+		const shard = shards
+			.filter((candidate) => candidate.roots.length < maximumRootsPerShard)
+			.map((candidate) => ({
+				candidate,
+				projectedWeight: closureWeight(new Set([
+					...candidate.closure,
+					...closure,
+				])),
+			}))
+			.sort((left, right) => (
+				left.projectedWeight - right.projectedWeight
+				|| left.candidate.roots.length - right.candidate.roots.length
+				|| left.candidate.id.localeCompare(right.candidate.id)
+			))[0].candidate
+		shard.roots.push(root)
+		for (const filePath of closure)
+			shard.closure.add(filePath)
+		shard.weight = closureWeight(shard.closure)
+	}
+
+	for (const shard of shards)
+		shard.roots.sort()
+
+	const assignedRoots = shards.flatMap((shard) => shard.roots)
+	if (
+		assignedRoots.length !== roots.length
+		|| new Set(assignedRoots).size !== roots.length
+		|| roots.some((root) => !assignedRoots.includes(root))
+	)
+		throw new Error('Svelte shard partition is not an exhaustive one-to-one root assignment')
+
+	return shards.filter((shard) => shard.roots.length > 0).map(({
+		closure: _closure,
+		...shard
+	}) => shard)
+}
+
+export const writeShardConfigs = async (
+	tsconfigPath,
+	shardDirectory,
+	shards,
+	declarationFiles = []
+) => {
+	await fs.rm(shardDirectory, {
+		force: true,
+		recursive: true,
+	})
+	await fs.mkdir(shardDirectory, { recursive: true })
+
+	return Promise.all(shards.map(async (shard) => {
+		const configPath = path.join(shardDirectory, `${shard.id}.json`)
+		await fs.writeFile(configPath, `${JSON.stringify({
+			extends: path.resolve(tsconfigPath),
+			...(declarationFiles.length > 0 && {
+				files: declarationFiles,
+			}),
+			include: shard.roots,
+		}, null, '\t')}\n`)
+		return {
+			...shard,
+			configPath,
+		}
+	}))
+}
+
+export const svelteCheckArgs = (projectRoot, configPath) => [
+	'--workspace',
+	projectRoot,
+	'--tsconfig',
+	configPath,
+	'--output',
+	'machine',
+	'--compiler-warnings',
+	fatalCompilerWarnings,
+]
+
+export const runShardQueue = async ({
+	shards,
+	command,
+	projectRoot,
+	concurrency,
+	shardTimeoutMs,
+	deadline,
+	environment,
+}) => {
+	let nextIndex = 0
+	let failed = false
+	const results = []
+	const worker = async () => {
+		while (!failed && nextIndex < shards.length) {
+			const shard = shards[nextIndex]
+			nextIndex += 1
+			const remainingMs = deadline - Date.now()
+			if (remainingMs <= 0) {
+				results.push({
+					label: shard.id,
+					code: 1,
+					timedOut: true,
+					output: 'global Svelte-check deadline expired before shard start\n',
+					roots: shard.roots,
+					configPath: shard.configPath,
+				})
+				continue
+			}
+
+			const result = {
+				...await runProcess({
+					command,
+					args: svelteCheckArgs(projectRoot, shard.configPath),
+					cwd: projectRoot,
+					timeoutMs: Math.min(shardTimeoutMs, remainingMs),
+					label: shard.id,
+					environment,
+				}),
+				roots: shard.roots,
+				configPath: shard.configPath,
+			}
+			results.push(result)
+			if (result.code !== 0 || result.timedOut)
+				failed = true
+		}
+	}
+
+	await Promise.all(Array.from(
+		{ length: Math.min(concurrency, shards.length) },
+		worker
+	))
+	return results.sort((left, right) => left.label.localeCompare(right.label))
+}
+
+const printResult = (result) => {
+	const state = result.timedOut ? 'TIMEOUT' : result.code === 0 ? 'PASS' : 'FAIL'
+	process.stdout.write(`${result.label}: ${state}\n`)
+	if (result.roots != null) {
+		process.stdout.write(`  roots: ${result.roots.length}\n`)
+		if (result.code !== 0 || result.timedOut)
+			process.stdout.write(`  manifest: ${result.configPath}\n`)
+	}
+	if (result.output !== '')
+		process.stdout.write(result.output.endsWith('\n') ? result.output : `${result.output}\n`)
+}
+
+export const runCanonicalSvelteCheck = async ({
+	projectRoot = process.cwd(),
+	tsconfigPath = path.resolve(projectRoot, 'tsconfig.svelte-check.json'),
+	tscCommand = process.env.SVELTE_CHECK_TSC_COMMAND ?? path.resolve(projectRoot, 'node_modules/.bin/tsc'),
+	svelteCheckCommand = process.env.SVELTE_CHECK_COMMAND ?? path.resolve(projectRoot, 'node_modules/.bin/svelte-check'),
+	shardCount = positiveInteger(process.env.SVELTE_CHECK_SHARD_COUNT, 64),
+	concurrency = Math.min(2, positiveInteger(process.env.SVELTE_CHECK_CONCURRENCY, 2)),
+	shardTimeoutMs = positiveInteger(process.env.SVELTE_CHECK_SHARD_TIMEOUT_MS, 420_000),
+	globalTimeoutMs = positiveInteger(process.env.SVELTE_CHECK_GLOBAL_TIMEOUT_MS, 720_000),
+	environment = process.env,
+} = {}) => {
+	const deadline = Date.now() + globalTimeoutMs
+	const typeScriptResult = await runProcess({
+		command: tscCommand,
+		args: [
+			'--project',
+			tsconfigPath,
+			'--noEmit',
+			'--pretty',
+			'false',
+			'--incremental',
+			'false',
+		],
+		cwd: projectRoot,
+		timeoutMs: Math.max(1, deadline - Date.now()),
+		label: 'plain-typescript',
+		environment,
+	})
+	printResult(typeScriptResult)
+	if (typeScriptResult.code !== 0 || typeScriptResult.timedOut)
+		return 1
+
+	const {
+		declarationFiles,
+		svelteRoots: roots,
+	} = readCanonicalFileManifest(projectRoot, tsconfigPath)
+	const graph = await readSvelteGraph(projectRoot, roots)
+	const shards = await writeShardConfigs(
+		tsconfigPath,
+		path.resolve(projectRoot, '.svelte-kit/svelte-check-shards'),
+		partitionSvelteRoots(roots, graph, shardCount)
+	)
+	process.stdout.write(`svelte roots: ${roots.length}; declarations covered by plain TypeScript: ${declarationFiles.length}; shards: ${shards.length}; concurrency: ${concurrency}\n`)
+	const results = await runShardQueue({
+		shards,
+		command: svelteCheckCommand,
+		projectRoot,
+		concurrency,
+		shardTimeoutMs,
+		deadline,
+		environment: {
+			...environment,
+			NODE_OPTIONS: (
+				environment.NODE_OPTIONS?.includes('--max-old-space-size') ?
+					environment.NODE_OPTIONS
+				:
+					[
+						environment.NODE_OPTIONS,
+						'--max-old-space-size=8192',
+					].filter(Boolean).join(' ')
+			),
+		},
+	})
+	for (const result of results)
+		printResult(result)
+
+	return results.every((result) => result.code === 0 && !result.timedOut) ? 0 : 1
+}
+
+const isMain = process.argv[1] != null
+	&& path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+
+if (isMain)
+	process.exitCode = await runCanonicalSvelteCheck()

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Logos blockchain wallet key states',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadLogosBlockchainWalletKeyState>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadLogosBlockchainWalletKeyState>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadLogosBlockchainWalletKeyStateView from '$/views/BlockheadLogosBlockchainWalletKeyStateView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,10 +67,15 @@
 			sources: selection.sources,
 			fields: {
 				publicKey: true,
-				$nodeState: true,
+				$nodeState: {
+					fields: {
+						endpoint: true,
+					},
+				},
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadLogosBlockchainWalletKeyStates) => [...new Map(blockheadLogosBlockchainWalletKeyStates.values.map((blockheadLogosBlockchainWalletKeyState) => [blockheadLogosBlockchainWalletKeyState[EntityMetaKey.SelectorKey], blockheadLogosBlockchainWalletKeyState])).values()]}
 	getKey={(blockheadLogosBlockchainWalletKeyState) => blockheadLogosBlockchainWalletKeyState[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +90,20 @@
 
 	{#snippet Item({ item: blockheadLogosBlockchainWalletKeyState })}
 		{@const blockheadLogosBlockchainWalletKeyStateFields = { ...blockheadLogosBlockchainWalletKeyState[EntityMetaKey.Selector], ...blockheadLogosBlockchainWalletKeyState }}
-		{@const selection = select(EntityType.BlockheadLogosBlockchainWalletKeyState, blockheadLogosBlockchainWalletKeyState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadLogosBlockchainWalletKeyStateView
-			selection={selection}
-			prefetched={blockheadLogosBlockchainWalletKeyStateFields}
+		<EntityView
+			entityType={EntityType.BlockheadLogosBlockchainWalletKeyState}
+			entitySelector={blockheadLogosBlockchainWalletKeyState[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadLogosBlockchainWalletKeyStateFields.publicKey) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain wallet key state'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((blockheadLogosBlockchainWalletKeyStateFields.$nodeState.peerId) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain node state'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

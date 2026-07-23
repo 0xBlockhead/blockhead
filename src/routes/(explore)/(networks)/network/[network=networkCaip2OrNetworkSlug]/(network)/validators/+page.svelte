@@ -19,6 +19,7 @@
 	}: PageProps = $props()
 
 
+
 	// Components
 	import Page from '$/components/Page.svelte'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
@@ -34,7 +35,14 @@
 
 <Page>
 	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
+		resource={
+			select(EntityType.Network, data.selector).Evm
+				.$$beaconValidators({
+					sources: [
+						Source.Beacon_Rest,
+					],
+				}).Evm
+		}
 	>
 		{#snippet Applicable(projection)}
 			<BeaconValidatorsView
@@ -45,14 +53,14 @@
 				}
 				title='Beacon validators'
 				selection={
-					projection.$$beaconValidators({
-						sources: [
-							Source.Beacon_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$beaconValidators({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
 				}
-				id='beacon-validators'
+				id='account-beacon-validator'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container
@@ -61,7 +69,14 @@
 	</ProjectionBoundary>
 
 	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Solana}
+		resource={
+			select(EntityType.Network, data.selector).Solana
+				.$$validators({
+					sources: [
+						Source.Solana_JsonRpc,
+					],
+				}).Solana
+		}
 	>
 		{#snippet Applicable(projection)}
 			<SolanaValidatorsView
@@ -72,14 +87,14 @@
 				}
 				title='Solana validators'
 				selection={
-					projection.$$validators({
-						sources: [
-							Source.Solana_JsonRpc,
-						],
-						count: true,
-					})
+					projection
+						.$$validators({
+							sources: [
+								Source.Solana_JsonRpc,
+							],
+						})
 				}
-				id='validators'
+				id='account-solana-validator'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

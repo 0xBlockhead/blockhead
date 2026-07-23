@@ -16,14 +16,17 @@ export const mastodonInstances = [
 	{
 		key: 'mastodon_social',
 		origin: 'https://mastodon.social',
+		publicTimelineAvailable: false,
 	},
 	{
 		key: 'fosstodon',
 		origin: 'https://fosstodon.org',
+		publicTimelineAvailable: true,
 	},
 ] as const satisfies readonly {
 	key: MastodonInstanceKey
 	origin: `https://${string}`
+	publicTimelineAvailable: boolean
 }[]
 
 

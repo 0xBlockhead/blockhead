@@ -43,7 +43,6 @@
 			tokenDecimals: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInLog) ?? '') ? 'Transfer #' + String((pageSelection.entitySelector.indexInLog) ?? '') : '') || 'Token transfer' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInLog) ?? '') ? 'Transfer #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInLog) ?? '') : '') || 'Token transfer')))
 
 
 	// Components
@@ -53,7 +52,19 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Token transfer • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
+		$log: data.selector,
+		indexInLog: Number(params.transferIndex),
+	}.indexInLog) ?? '') ? 'Transfer #' + String(({
+		$log: data.selector,
+		indexInLog: Number(params.transferIndex),
+	}.indexInLog) ?? '') : '') || 'Token transfer' : (String((({ ...{
+		$log: data.selector,
+		indexInLog: Number(params.transferIndex),
+	}, ...pageSelection.entity }).indexInLog) ?? '') ? 'Transfer #' + String((({ ...{
+		$log: data.selector,
+		indexInLog: Number(params.transferIndex),
+	}, ...pageSelection.entity }).indexInLog) ?? '') : '') || 'Token transfer'))} • Token transfer • Blockhead</title>
 </svelte:head>
 
 

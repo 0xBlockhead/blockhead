@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Committees',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BeaconCommittee>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BeaconCommittee>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BeaconCommitteeView from '$/views/BeaconCommitteeView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(beaconCommittees) => [...new Map(beaconCommittees.values.map((beaconCommittee) => [beaconCommittee[EntityMetaKey.SelectorKey], beaconCommittee])).values()]}
 	getKey={(beaconCommittee) => beaconCommittee[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,24 +89,48 @@
 
 	{#snippet Item({ item: beaconCommittee })}
 		{@const beaconCommitteeFields = { ...beaconCommittee[EntityMetaKey.Selector], ...beaconCommittee }}
-		{@const selection = select(EntityType.BeaconCommittee, beaconCommittee[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const beaconCommitteeHrefFields = { ...beaconCommittee, ...beaconCommittee[EntityMetaKey.Selector] }}
-		<BeaconCommitteeView
-			selection={selection}
-			prefetched={beaconCommitteeFields}
+		<EntityView
+			entityType={EntityType.BeaconCommittee}
+			entitySelector={beaconCommittee[EntityMetaKey.Selector]}
 			href={
-				(beaconCommitteeHrefFields.slot !== undefined && beaconCommitteeHrefFields.indexInSlot !== undefined && beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
-					slot: String(beaconCommitteeHrefFields.slot ?? ''),
-					index: String(beaconCommitteeHrefFields.indexInSlot ?? ''),
-					network: String(caip2StringFromValue(beaconCommitteeHrefFields.$network.caip2) ?? ''),
-				}) : beaconCommitteeHrefFields.slot !== undefined && beaconCommitteeHrefFields.indexInSlot !== undefined && beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
-					slot: String(beaconCommitteeHrefFields.slot ?? ''),
-					index: String(beaconCommitteeHrefFields.indexInSlot ?? ''),
-					network: String(beaconCommitteeHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					beaconCommittee[EntityMetaKey.Selector] != null && 'slot' in beaconCommittee[EntityMetaKey.Selector]
+					&& beaconCommittee[EntityMetaKey.Selector].slot != null
+					&& beaconCommittee[EntityMetaKey.Selector] != null && 'indexInSlot' in beaconCommittee[EntityMetaKey.Selector]
+					&& beaconCommittee[EntityMetaKey.Selector].indexInSlot != null
+					&& beaconCommittee[EntityMetaKey.Selector] != null && '$network' in beaconCommittee[EntityMetaKey.Selector] ?
+						beaconCommittee[EntityMetaKey.Selector].$network != null && 'caip2' in beaconCommittee[EntityMetaKey.Selector].$network
+						&& beaconCommittee[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
+						slot: String(beaconCommittee[EntityMetaKey.Selector].slot ?? ''),
+						index: String(beaconCommittee[EntityMetaKey.Selector].indexInSlot ?? ''),
+						network: String(caip2StringFromValue(beaconCommittee[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							beaconCommittee[EntityMetaKey.Selector].$network != null && 'slug' in beaconCommittee[EntityMetaKey.Selector].$network
+							&& beaconCommittee[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
+							slot: String(beaconCommittee[EntityMetaKey.Selector].slot ?? ''),
+							index: String(beaconCommittee[EntityMetaKey.Selector].indexInSlot ?? ''),
+							network: String(beaconCommittee[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((beaconCommitteeFields.indexInSlot) ?? '') ? 'Committee #' + String((beaconCommitteeFields.indexInSlot) ?? '') : '') || 'beacon committee'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[(String((beaconCommitteeFields.slot) ?? '') ? 'Slot ' + String((beaconCommitteeFields.slot) ?? '') : '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

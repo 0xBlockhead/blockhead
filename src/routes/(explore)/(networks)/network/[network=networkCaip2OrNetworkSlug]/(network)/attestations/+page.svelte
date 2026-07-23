@@ -44,14 +44,14 @@
 				}
 				title='Beacon attestations'
 				selection={
-					projection.$$beaconAttestations({
-						sources: [
-							Source.Beacon_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$beaconAttestations({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
 				}
-				id='beacon-attestations'
+				id='account-beacon-attestation'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

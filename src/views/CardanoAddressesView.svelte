@@ -2,20 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Cardano addresses',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CardanoAddress>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CardanoAddress>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CardanoAddressView from '$/views/CardanoAddressView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,8 +67,14 @@
 	resource={
 		selection({
 			sources: selection.sources,
+			fields: {
+				address: true,
+				addressKind: true,
+				$network: true,
+			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cardanoAddresses) => [...new Map(cardanoAddresses.values.map((cardanoAddress) => [cardanoAddress[EntityMetaKey.SelectorKey], cardanoAddress])).values()]}
 	getKey={(cardanoAddress) => cardanoAddress[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +89,44 @@
 
 	{#snippet Item({ item: cardanoAddress })}
 		{@const cardanoAddressFields = { ...cardanoAddress[EntityMetaKey.Selector], ...cardanoAddress }}
-		{@const selection = select(EntityType.CardanoAddress, cardanoAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CardanoAddressView
-			selection={selection}
-			prefetched={cardanoAddressFields}
+		<EntityView
+			entityType={EntityType.CardanoAddress}
+			entitySelector={cardanoAddress[EntityMetaKey.Selector]}
+			href={
+				(
+					cardanoAddress[EntityMetaKey.Selector] != null && 'address' in cardanoAddress[EntityMetaKey.Selector]
+					&& cardanoAddress[EntityMetaKey.Selector].address != null
+					&& cardanoAddress[EntityMetaKey.Selector] != null && '$network' in cardanoAddress[EntityMetaKey.Selector] ?
+						cardanoAddress[EntityMetaKey.Selector].$network != null && 'caip2' in cardanoAddress[EntityMetaKey.Selector].$network
+						&& cardanoAddress[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+						accountId: String(cardanoAddress[EntityMetaKey.Selector].address ?? ''),
+						network: String(caip2StringFromValue(cardanoAddress[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							cardanoAddress[EntityMetaKey.Selector].$network != null && 'slug' in cardanoAddress[EntityMetaKey.Selector].$network
+							&& cardanoAddress[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(cardanoAddress[EntityMetaKey.Selector].address ?? ''),
+							network: String(cardanoAddress[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cardanoAddressFields.address) ?? '')].filter(Boolean).join(' ') || 'Cardano address'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((cardanoAddressFields.addressKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

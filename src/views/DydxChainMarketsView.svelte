@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'dYdX chain markets',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.DydxChainMarket>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.DydxChainMarket>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import DydxChainMarketView from '$/views/DydxChainMarketView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(dydxChainMarkets) => [...new Map(dydxChainMarkets.values.map((dydxChainMarket) => [dydxChainMarket[EntityMetaKey.SelectorKey], dydxChainMarket])).values()]}
 	getKey={(dydxChainMarket) => dydxChainMarket[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: dydxChainMarket })}
 		{@const dydxChainMarketFields = { ...dydxChainMarket[EntityMetaKey.Selector], ...dydxChainMarket }}
-		{@const selection = select(EntityType.DydxChainMarket, dydxChainMarket[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<DydxChainMarketView
-			selection={selection}
-			prefetched={dydxChainMarketFields}
+		<EntityView
+			entityType={EntityType.DydxChainMarket}
+			entitySelector={dydxChainMarket[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((dydxChainMarketFields.ticker) ?? '')].filter(Boolean).join(' ') || 'dydx chain market'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((dydxChainMarketFields.marketKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((dydxChainMarketFields.baseAsset) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -39,8 +39,11 @@ export type TronScanTransaction = {
 	block?: number
 	blockNumber?: number
 	timestamp?: number
+	confirmed?: boolean
+	revert?: boolean
 	contractType?: number | string
 	contractRet?: string
+	result?: string
 	contractData?: {
 		owner_address?: string
 		to_address?: string
@@ -50,6 +53,7 @@ export type TronScanTransaction = {
 	}
 	ownerAddress?: string
 	toAddress?: string
+	toAddressList?: string[]
 	contractAddress?: string
 	amount?: number | string
 	cost?: {
@@ -57,6 +61,17 @@ export type TronScanTransaction = {
 		net_fee?: number
 		energy_fee?: number
 	}
+}
+
+export type TronScanListTransaction = TronScanTransaction & {
+	hash: string
+}
+
+export type TronScanTransactions = {
+	total: number
+	rangeTotal?: number
+	wholeChainTxCount?: number
+	data: TronScanListTransaction[]
 }
 
 export type TronScanTransactionDetail = TronScanTransaction & {

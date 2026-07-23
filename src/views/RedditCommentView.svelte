@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.RedditComment>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.RedditComment>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.RedditComment>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const redditComment = $derived(selection({
+	const redditComment = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			body: true,
+			createdAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			body: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.body) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment')
-	const viewDomId = $derived('reddit-comment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('reddit-comment-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,20 +77,26 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]', {
-			fullname: encodeURIComponent(String(pendingEntity.fullname ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'fullname' in selection.entitySelector
+			&& selection.entitySelector.fullname != null ?
+				resolve('/reddit/comment/[fullname=stringSegment]', {
+			fullname: encodeURIComponent(String(selection.entitySelector.fullname ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const body0 = pendingEntity.body}
-					{#if body0 !== undefined && body0 !== null}
-						<span data-text="long-text">{String((body0) ?? '')}</span>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'body') && Object.hasOwn(prefetched, 'createdAt')}
+			{@const body0 = pendingEntity.body}
+			{#if body0 !== undefined && body0 !== null}
+				<span data-text="long-text">{String((body0) ?? '')}</span>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={redditComment}>
 				{#snippet children(entity)}
@@ -98,7 +111,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'body') && Object.hasOwn(prefetched, 'createdAt')}
 			{@const createdAt0 = pendingEntity.createdAt}
 			{#if createdAt0 !== undefined && createdAt0 !== null}
 				<span data-text="muted">
@@ -235,9 +248,15 @@
 										selection={select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector])}
 										prefetched={redditLink}
 										href={
-											(redditLink[EntityMetaKey.Selector].fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]', {
+											(
+												redditLink[EntityMetaKey.Selector] != null && 'fullname' in redditLink[EntityMetaKey.Selector]
+												&& redditLink[EntityMetaKey.Selector].fullname != null ?
+													resolve('/reddit/link/[fullname=stringSegment]', {
 												fullname: encodeURIComponent(String(redditLink[EntityMetaKey.Selector].fullname ?? '')),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -262,9 +281,15 @@
 										selection={select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector])}
 										prefetched={redditComment}
 										href={
-											(redditComment[EntityMetaKey.Selector].fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]', {
+											(
+												redditComment[EntityMetaKey.Selector] != null && 'fullname' in redditComment[EntityMetaKey.Selector]
+												&& redditComment[EntityMetaKey.Selector].fullname != null ?
+													resolve('/reddit/comment/[fullname=stringSegment]', {
 												fullname: encodeURIComponent(String(redditComment[EntityMetaKey.Selector].fullname ?? '')),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -298,43 +323,55 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<RedditCommentsView
-				selection={
-						selection.$$replies({
-							sources: [
-								Source.Constants_Internal,
-								Source.Reddit_PublicJson,
-							],
-							count: true,
-						})
-					}
-				title='Replies'
-				href={
-						(selection.entitySelector.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]/replies', {
-							fullname: encodeURIComponent(String(selection.entitySelector.fullname ?? '')),
-						}) : undefined)
-					}
-				id='RedditCommentsView-replies'
-			/>
-
-			<RedditComment_TimestampsView
-				selection={
-						selection.$$timestamps({
-							sources: [
-								Source.Reddit_PublicJson,
-							],
-							count: true,
-						})
-					}
-				title='Observations'
-				href={
-						(selection.entitySelector.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]/observations', {
-							fullname: encodeURIComponent(String(selection.entitySelector.fullname ?? '')),
-						}) : undefined)
-					}
-				id='RedditComment_TimestampsView-timestamps'
-			/>
-		{/if}
+				{@const redditCommentRedditCommentsViewRepliesResource = selection
+		.$$replies({
+			sources: [
+				Source.Reddit_PublicJson,
+			],
+		})}
+				<ResourceBoundary
+					resource={redditCommentRedditCommentsViewRepliesResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<RedditCommentsView
+							selection={redditCommentRedditCommentsViewRepliesResource}
+							countResource={redditCommentRedditCommentsViewRepliesResource.count}
+							title='Replies'
+							href={
+									(selection.entitySelector != null && 'fullname' in selection.entitySelector && selection.entitySelector.fullname != null ? resolve('/reddit/comment/[fullname=stringSegment]/replies', {
+										fullname: encodeURIComponent(String(selection.entitySelector.fullname ?? '')),
+									}) : undefined)
+								}
+							id='RedditCommentsView-replies'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const redditCommentRedditCommentTimestampsViewTimestampsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.Reddit_PublicJson,
+			],
+		})}
+				<ResourceBoundary
+					resource={redditCommentRedditCommentTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<RedditComment_TimestampsView
+							selection={redditCommentRedditCommentTimestampsViewTimestampsResource}
+							countResource={redditCommentRedditCommentTimestampsViewTimestampsResource.count}
+							title='Observations'
+							href={
+									(selection.entitySelector != null && 'fullname' in selection.entitySelector && selection.entitySelector.fullname != null ? resolve('/reddit/comment/[fullname=stringSegment]/observations', {
+										fullname: encodeURIComponent(String(selection.entitySelector.fullname ?? '')),
+									}) : undefined)
+								}
+							id='RedditComment_TimestampsView-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

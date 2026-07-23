@@ -11,7 +11,10 @@ vi.mock('$/sources/Neynar/Rest/client.ts', () => ({
 	neynarFetch,
 }))
 
-const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
+const {
+	getCastConversation,
+	getFeed,
+} = await import('$/sources/Neynar/Rest/queries.ts')
 
 describe('Neynar feed request identity', () => {
 	it.each([
@@ -58,6 +61,35 @@ describe('Neynar feed request identity', () => {
 		expect(neynarFetch).toHaveBeenLastCalledWith(
 			{},
 			`/v2/farcaster/feed/?${expected}`
+		)
+	})
+})
+
+describe('Neynar cast conversation request identity', () => {
+	it.each([
+		{
+			query: {
+				identifier: '0xabcdef' as const,
+				type: 'hash' as const,
+			},
+			expected: 'identifier=0xabcdef&type=hash&reply_depth=1&include_chronological_parent_casts=false',
+		},
+		{
+			query: {
+				identifier: 'https://warpcast.com/alice/0xab+c/d',
+				type: 'url' as const,
+			},
+			expected: 'identifier=https%3A%2F%2Fwarpcast.com%2Falice%2F0xab%2Bc%2Fd&type=url&reply_depth=1&include_chronological_parent_casts=false',
+		},
+	])('requests only direct replies for $query.type identity', async ({
+		query,
+		expected,
+	}) => {
+		await getCastConversation({}, query)
+
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			`/v2/farcaster/cast/conversation/?${expected}`
 		)
 	})
 })

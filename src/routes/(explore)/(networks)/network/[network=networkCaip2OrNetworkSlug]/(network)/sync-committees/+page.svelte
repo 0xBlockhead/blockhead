@@ -44,14 +44,14 @@
 				}
 				title='Beacon sync committees'
 				selection={
-					projection.$$beaconSyncCommittees({
-						sources: [
-							Source.Beacon_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$beaconSyncCommittees({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
 				}
-				id='beacon-sync-committees'
+				id='account-beacon-sync-committee'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

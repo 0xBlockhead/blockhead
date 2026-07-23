@@ -23,7 +23,6 @@
 			$issuerAccount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'XRPL trustline' : 'XRPL trustline')))
 
 
 	// Components
@@ -33,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • XRPL trustline • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'XRPL trustline' : 'XRPL trustline'))} • XRPL trustline • Blockhead</title>
 </svelte:head>
 
 

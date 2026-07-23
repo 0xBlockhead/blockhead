@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -30,7 +31,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmUserOperation>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmUserOperation>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmUserOperation>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -44,7 +45,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmUserOperation = $derived(selection({
+	const evmUserOperation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			successful: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			successful: true,
@@ -54,7 +60,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'User operation')
-	const viewDomId = $derived('evm-user-operation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('evm-user-operation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -79,24 +85,39 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.hash !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
-			userOperationHash: String(pendingEntity.hash ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
-		}) : pendingEntity.hash !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
-			userOperationHash: String(pendingEntity.hash ?? ''),
-			network: String(pendingEntity.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'hash' in selection.entitySelector
+			&& selection.entitySelector.hash != null
+			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
+				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+				&& selection.entitySelector.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
+				userOperationHash: String(selection.entitySelector.hash ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+					&& selection.entitySelector.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
+					userOperationHash: String(selection.entitySelector.hash ?? ''),
+					network: String(selection.entitySelector.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const hash0 = pendingEntity.hash}
-					{#if hash0 !== undefined && hash0 !== null}
-						<TruncatedValue value={String((hash0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'successful')}
+			{@const hash0 = pendingEntity.hash}
+			{#if hash0 !== undefined && hash0 !== null}
+				<TruncatedValue value={String((hash0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={evmUserOperation}>
 				{#snippet children(entity)}
@@ -111,11 +132,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const hash0 = pendingEntity.hash}
-					{#if hash0 !== undefined && hash0 !== null}
-						<TruncatedValue value={String((hash0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'successful')}
+			{@const hash0 = pendingEntity.hash}
+			{#if hash0 !== undefined && hash0 !== null}
+				<TruncatedValue value={String((hash0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={evmUserOperation}>
 				{#snippet children(entity)}
@@ -130,7 +151,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'successful')}
 			{@const successful0 = pendingEntity.successful}
 			{#if successful0 !== undefined && successful0 !== null}
 				<span data-text="muted">
@@ -158,13 +179,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -352,11 +383,12 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection.$bundledTransaction({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-					})
+					selection
+						.$bundledTransaction({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(evmTransaction)}
@@ -368,13 +400,28 @@
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									prefetched={evmTransaction}
 									href={
-										(evmTransaction[EntityMetaKey.Selector].txHash !== undefined && evmTransaction[EntityMetaKey.Selector].$network !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-											transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
-											network: String(caip2StringFromValue(evmTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : evmTransaction[EntityMetaKey.Selector].txHash !== undefined && evmTransaction[EntityMetaKey.Selector].$network !== undefined && evmTransaction[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-											transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
-											network: String(evmTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											evmTransaction[EntityMetaKey.Selector] != null && 'txHash' in evmTransaction[EntityMetaKey.Selector]
+											&& evmTransaction[EntityMetaKey.Selector].txHash != null
+											&& evmTransaction[EntityMetaKey.Selector] != null && '$network' in evmTransaction[EntityMetaKey.Selector] ?
+												evmTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in evmTransaction[EntityMetaKey.Selector].$network
+												&& evmTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+												transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
+												network: String(caip2StringFromValue(evmTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													evmTransaction[EntityMetaKey.Selector].$network != null && 'slug' in evmTransaction[EntityMetaKey.Selector].$network
+													&& evmTransaction[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+													transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
+													network: String(evmTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -387,11 +434,12 @@
 
 			<ResourceBoundary
 				resource={
-					selection.$block({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-					})
+					selection
+						.$block({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(evmBlock)}
@@ -403,13 +451,28 @@
 									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 									prefetched={evmBlock}
 									href={
-										(evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-											blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
-											network: String(caip2StringFromValue(evmBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-											blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
-											network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											evmBlock[EntityMetaKey.Selector] != null && 'blockNumber' in evmBlock[EntityMetaKey.Selector]
+											&& evmBlock[EntityMetaKey.Selector].blockNumber != null
+											&& evmBlock[EntityMetaKey.Selector] != null && '$network' in evmBlock[EntityMetaKey.Selector] ?
+												evmBlock[EntityMetaKey.Selector].$network != null && 'caip2' in evmBlock[EntityMetaKey.Selector].$network
+												&& evmBlock[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+												blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+												network: String(caip2StringFromValue(evmBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													evmBlock[EntityMetaKey.Selector].$network != null && 'slug' in evmBlock[EntityMetaKey.Selector].$network
+													&& evmBlock[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+													blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+													network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -423,38 +486,38 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-details-tabs'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'participants',
-							label: 'Participants',
-						},
-						{
-							id: 'gas-fees',
-							label: 'Gas & fees',
-						},
-						{
-							id: 'payloads',
-							label: 'Payloads',
-						},
-					]
-				}
-				data-card
-			>
-				{#snippet SectionParticipants({ id, label })}
-					<article id={`${id}-participants-fields`} data-column-item="flexible" data-card data-scroll-container>
+		<CollapsibleTabs
+			id={viewDomId + '-details-tabs'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'participants',
+						label: 'Participants',
+					},
+					{
+						id: 'gas-fees',
+						label: 'Gas & fees',
+					},
+					{
+						id: 'payloads',
+						label: 'Payloads',
+					},
+				]
+			}
+			data-card
+		>
+			{#snippet SectionParticipants({ id, label })}
+				<article id={`${id}-participants-fields`} data-column-item="flexible" data-card data-scroll-container>
 					<dl data-column-item="center">
 						<ResourceBoundary
 							resource={
-								selection.$sender({
-									sources: [
-										Source.Blockscout_Rest,
-									],
-								})
+								selection
+									.$sender({
+										sources: [
+											Source.Blockscout_Rest,
+										],
+									})
 							}
 						>
 							{#snippet children(erc4337SmartAccount)}
@@ -466,13 +529,28 @@
 												selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount[EntityMetaKey.Selector])}
 												prefetched={erc4337SmartAccount}
 												href={
-													(erc4337SmartAccount[EntityMetaKey.Selector].address !== undefined && erc4337SmartAccount[EntityMetaKey.Selector].$network !== undefined && erc4337SmartAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
-														address: String(erc4337SmartAccount[EntityMetaKey.Selector].address ?? ''),
-														network: String(caip2StringFromValue(erc4337SmartAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-													}) : erc4337SmartAccount[EntityMetaKey.Selector].address !== undefined && erc4337SmartAccount[EntityMetaKey.Selector].$network !== undefined && erc4337SmartAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
-														address: String(erc4337SmartAccount[EntityMetaKey.Selector].address ?? ''),
-														network: String(erc4337SmartAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-													}) : undefined)
+													(
+														erc4337SmartAccount[EntityMetaKey.Selector] != null && 'address' in erc4337SmartAccount[EntityMetaKey.Selector]
+														&& erc4337SmartAccount[EntityMetaKey.Selector].address != null
+														&& erc4337SmartAccount[EntityMetaKey.Selector] != null && '$network' in erc4337SmartAccount[EntityMetaKey.Selector] ?
+															erc4337SmartAccount[EntityMetaKey.Selector].$network != null && 'caip2' in erc4337SmartAccount[EntityMetaKey.Selector].$network
+															&& erc4337SmartAccount[EntityMetaKey.Selector].$network.caip2 != null ?
+																resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
+															address: String(erc4337SmartAccount[EntityMetaKey.Selector].address ?? ''),
+															network: String(caip2StringFromValue(erc4337SmartAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+														})
+														:
+																erc4337SmartAccount[EntityMetaKey.Selector].$network != null && 'slug' in erc4337SmartAccount[EntityMetaKey.Selector].$network
+																&& erc4337SmartAccount[EntityMetaKey.Selector].$network.slug != null ?
+																	resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
+																address: String(erc4337SmartAccount[EntityMetaKey.Selector].address ?? ''),
+																network: String(erc4337SmartAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+															})
+															:
+																undefined
+													:
+															undefined
+													)
 												}
 												layout={EntityLayout.Value}
 												open={false}
@@ -485,11 +563,12 @@
 
 						<ResourceBoundary
 							resource={
-								selection.$paymaster({
-									sources: [
-										Source.Blockscout_Rest,
-									],
-								})
+								selection
+									.$paymaster({
+										sources: [
+											Source.Blockscout_Rest,
+										],
+									})
 							}
 						>
 							{#snippet children(erc4337Paymaster)}
@@ -501,13 +580,28 @@
 												selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster[EntityMetaKey.Selector])}
 												prefetched={erc4337Paymaster}
 												href={
-													(erc4337Paymaster[EntityMetaKey.Selector].address !== undefined && erc4337Paymaster[EntityMetaKey.Selector].$network !== undefined && erc4337Paymaster[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
-														address: String(erc4337Paymaster[EntityMetaKey.Selector].address ?? ''),
-														network: String(caip2StringFromValue(erc4337Paymaster[EntityMetaKey.Selector].$network.caip2) ?? ''),
-													}) : erc4337Paymaster[EntityMetaKey.Selector].address !== undefined && erc4337Paymaster[EntityMetaKey.Selector].$network !== undefined && erc4337Paymaster[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
-														address: String(erc4337Paymaster[EntityMetaKey.Selector].address ?? ''),
-														network: String(erc4337Paymaster[EntityMetaKey.Selector].$network.slug ?? ''),
-													}) : undefined)
+													(
+														erc4337Paymaster[EntityMetaKey.Selector] != null && 'address' in erc4337Paymaster[EntityMetaKey.Selector]
+														&& erc4337Paymaster[EntityMetaKey.Selector].address != null
+														&& erc4337Paymaster[EntityMetaKey.Selector] != null && '$network' in erc4337Paymaster[EntityMetaKey.Selector] ?
+															erc4337Paymaster[EntityMetaKey.Selector].$network != null && 'caip2' in erc4337Paymaster[EntityMetaKey.Selector].$network
+															&& erc4337Paymaster[EntityMetaKey.Selector].$network.caip2 != null ?
+																resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
+															address: String(erc4337Paymaster[EntityMetaKey.Selector].address ?? ''),
+															network: String(caip2StringFromValue(erc4337Paymaster[EntityMetaKey.Selector].$network.caip2) ?? ''),
+														})
+														:
+																erc4337Paymaster[EntityMetaKey.Selector].$network != null && 'slug' in erc4337Paymaster[EntityMetaKey.Selector].$network
+																&& erc4337Paymaster[EntityMetaKey.Selector].$network.slug != null ?
+																	resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
+																address: String(erc4337Paymaster[EntityMetaKey.Selector].address ?? ''),
+																network: String(erc4337Paymaster[EntityMetaKey.Selector].$network.slug ?? ''),
+															})
+															:
+																undefined
+													:
+															undefined
+													)
 												}
 												layout={EntityLayout.Value}
 												open={false}
@@ -520,11 +614,12 @@
 
 						<ResourceBoundary
 							resource={
-								selection.$bundler({
-									sources: [
-										Source.Blockscout_Rest,
-									],
-								})
+								selection
+									.$bundler({
+										sources: [
+											Source.Blockscout_Rest,
+										],
+									})
 							}
 						>
 							{#snippet children(erc4337Bundler)}
@@ -536,13 +631,28 @@
 												selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector])}
 												prefetched={erc4337Bundler}
 												href={
-													(erc4337Bundler[EntityMetaKey.Selector].address !== undefined && erc4337Bundler[EntityMetaKey.Selector].$network !== undefined && erc4337Bundler[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-														address: String(erc4337Bundler[EntityMetaKey.Selector].address ?? ''),
-														network: String(caip2StringFromValue(erc4337Bundler[EntityMetaKey.Selector].$network.caip2) ?? ''),
-													}) : erc4337Bundler[EntityMetaKey.Selector].address !== undefined && erc4337Bundler[EntityMetaKey.Selector].$network !== undefined && erc4337Bundler[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-														address: String(erc4337Bundler[EntityMetaKey.Selector].address ?? ''),
-														network: String(erc4337Bundler[EntityMetaKey.Selector].$network.slug ?? ''),
-													}) : undefined)
+													(
+														erc4337Bundler[EntityMetaKey.Selector] != null && 'address' in erc4337Bundler[EntityMetaKey.Selector]
+														&& erc4337Bundler[EntityMetaKey.Selector].address != null
+														&& erc4337Bundler[EntityMetaKey.Selector] != null && '$network' in erc4337Bundler[EntityMetaKey.Selector] ?
+															erc4337Bundler[EntityMetaKey.Selector].$network != null && 'caip2' in erc4337Bundler[EntityMetaKey.Selector].$network
+															&& erc4337Bundler[EntityMetaKey.Selector].$network.caip2 != null ?
+																resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
+															address: String(erc4337Bundler[EntityMetaKey.Selector].address ?? ''),
+															network: String(caip2StringFromValue(erc4337Bundler[EntityMetaKey.Selector].$network.caip2) ?? ''),
+														})
+														:
+																erc4337Bundler[EntityMetaKey.Selector].$network != null && 'slug' in erc4337Bundler[EntityMetaKey.Selector].$network
+																&& erc4337Bundler[EntityMetaKey.Selector].$network.slug != null ?
+																	resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
+																address: String(erc4337Bundler[EntityMetaKey.Selector].address ?? ''),
+																network: String(erc4337Bundler[EntityMetaKey.Selector].$network.slug ?? ''),
+															})
+															:
+																undefined
+													:
+															undefined
+													)
 												}
 												layout={EntityLayout.Value}
 												open={false}
@@ -555,11 +665,12 @@
 
 						<ResourceBoundary
 							resource={
-								selection.$entryPoint({
-									sources: [
-										Source.Blockscout_Rest,
-									],
-								})
+								selection
+									.$entryPoint({
+										sources: [
+											Source.Blockscout_Rest,
+										],
+									})
 							}
 						>
 							{#snippet children(evmContract)}
@@ -571,13 +682,28 @@
 												selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 												prefetched={evmContract}
 												href={
-													(evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-														address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-														network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-													}) : evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-														address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-														network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-													}) : undefined)
+													(
+														evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
+														&& evmContract[EntityMetaKey.Selector].address != null
+														&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
+															evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
+															&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
+																resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+															address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+															network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
+														})
+														:
+																evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
+																&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
+																	resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+																address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+																network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
+															})
+															:
+																undefined
+													:
+															undefined
+													)
 												}
 												layout={EntityLayout.Value}
 												open={false}
@@ -588,12 +714,11 @@
 							{/snippet}
 						</ResourceBoundary>
 					</dl>
+				</article>
+			{/snippet}
 
-					</article>
-				{/snippet}
-
-				{#snippet SectionGasFees({ id, label })}
-					<article id={`${id}-gas-fees-fields`} data-column-item="flexible" data-card data-scroll-container>
+			{#snippet SectionGasFees({ id, label })}
+				<article id={`${id}-gas-fees-fields`} data-column-item="flexible" data-card data-scroll-container>
 					<dl data-column-item="center">
 						<ResourceBoundary
 							resource={
@@ -819,12 +944,11 @@
 							{/snippet}
 						</ResourceBoundary>
 					</dl>
+				</article>
+			{/snippet}
 
-					</article>
-				{/snippet}
-
-				{#snippet SectionPayloads({ id, label })}
-					<article id={`${id}-payloads-fields`} data-column-item="flexible" data-card data-scroll-container>
+			{#snippet SectionPayloads({ id, label })}
+				<article id={`${id}-payloads-fields`} data-column-item="flexible" data-card data-scroll-container>
 					<dl data-column-item="center">
 						<ResourceBoundary
 							resource={
@@ -930,10 +1054,8 @@
 							{/snippet}
 						</ResourceBoundary>
 					</dl>
-
-					</article>
-				{/snippet}
-			</CollapsibleTabs>
-		{/if}
+				</article>
+			{/snippet}
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

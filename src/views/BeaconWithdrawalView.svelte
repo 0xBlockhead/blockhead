@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BeaconWithdrawal>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BeaconWithdrawal>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BeaconWithdrawal>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const beaconWithdrawal = $derived(selection({
+	const beaconWithdrawal = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			amountGwei: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			amountGwei: true,
 		},
 	}))
 	const titleFallback = $derived((String((pendingEntity.indexInSlot) ?? '') ? 'Withdrawal #' + String((pendingEntity.indexInSlot) ?? '') : '') || 'beacon withdrawal')
-	const viewDomId = $derived('beacon-withdrawal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('beacon-withdrawal-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,15 +75,32 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.indexInSlot ?? '')}
 	href={
-		href ?? (pendingEntity.slot !== undefined && pendingEntity.indexInSlot !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
-			slot: String(pendingEntity.slot ?? ''),
-			index: String(pendingEntity.indexInSlot ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
-		}) : pendingEntity.slot !== undefined && pendingEntity.indexInSlot !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
-			slot: String(pendingEntity.slot ?? ''),
-			index: String(pendingEntity.indexInSlot ?? ''),
-			network: String(pendingEntity.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'slot' in selection.entitySelector
+			&& selection.entitySelector.slot != null
+			&& selection.entitySelector != null && 'indexInSlot' in selection.entitySelector
+			&& selection.entitySelector.indexInSlot != null
+			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
+				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+				&& selection.entitySelector.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
+				slot: String(selection.entitySelector.slot ?? ''),
+				index: String(selection.entitySelector.indexInSlot ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+					&& selection.entitySelector.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
+					slot: String(selection.entitySelector.slot ?? ''),
+					index: String(selection.entitySelector.indexInSlot ?? ''),
+					network: String(selection.entitySelector.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -96,15 +119,15 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const amountGwei0 = pendingEntity.amountGwei}
-					{#if amountGwei0 !== undefined && amountGwei0 !== null}
-						<NumberValue
-							value={amountGwei0}
-						/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountGwei')}
+			{@const amountGwei0 = pendingEntity.amountGwei}
+			{#if amountGwei0 !== undefined && amountGwei0 !== null}
+				<NumberValue
+					value={amountGwei0}
+				/>
 
-						<span> gwei</span>
-					{/if}
+				<span> gwei</span>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={beaconWithdrawal}>
 				{#snippet children(entity)}
@@ -123,7 +146,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountGwei')}
 			{@const slot0 = pendingEntity.slot}
 			{#if slot0 !== undefined && slot0 !== null}
 				<span data-text="muted">
@@ -273,13 +296,28 @@
 									selection={select(EntityType.BeaconValidator, beaconValidator[EntityMetaKey.Selector])}
 									prefetched={beaconValidator}
 									href={
-										(beaconValidator[EntityMetaKey.Selector].indexInNetwork !== undefined && beaconValidator[EntityMetaKey.Selector].$network !== undefined && beaconValidator[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-											validatorId: String(beaconValidator[EntityMetaKey.Selector].indexInNetwork ?? ''),
-											network: String(caip2StringFromValue(beaconValidator[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : beaconValidator[EntityMetaKey.Selector].indexInNetwork !== undefined && beaconValidator[EntityMetaKey.Selector].$network !== undefined && beaconValidator[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-											validatorId: String(beaconValidator[EntityMetaKey.Selector].indexInNetwork ?? ''),
-											network: String(beaconValidator[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											beaconValidator[EntityMetaKey.Selector] != null && 'indexInNetwork' in beaconValidator[EntityMetaKey.Selector]
+											&& beaconValidator[EntityMetaKey.Selector].indexInNetwork != null
+											&& beaconValidator[EntityMetaKey.Selector] != null && '$network' in beaconValidator[EntityMetaKey.Selector] ?
+												beaconValidator[EntityMetaKey.Selector].$network != null && 'caip2' in beaconValidator[EntityMetaKey.Selector].$network
+												&& beaconValidator[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+												validatorId: String(beaconValidator[EntityMetaKey.Selector].indexInNetwork ?? ''),
+												network: String(caip2StringFromValue(beaconValidator[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													beaconValidator[EntityMetaKey.Selector].$network != null && 'slug' in beaconValidator[EntityMetaKey.Selector].$network
+													&& beaconValidator[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+													validatorId: String(beaconValidator[EntityMetaKey.Selector].indexInNetwork ?? ''),
+													network: String(beaconValidator[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -302,9 +340,15 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+										(
+											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
+											&& evmAccount[EntityMetaKey.Selector].address != null ?
+												resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -319,13 +363,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

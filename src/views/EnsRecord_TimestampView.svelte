@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EnsRecord_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EnsRecord_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EnsRecord_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ensRecordTimestamp = $derived(selection({
+	const ensRecordTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('ENS record observation')
-	const viewDomId = $derived('ens-record-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'ENS record observation'
+	const viewDomId = $derived('ens-record-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,42 +66,49 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$record !== undefined && pendingEntity.$record.$name !== undefined && pendingEntity.$record.$name.name !== undefined && pendingEntity.$record.recordKey !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			ensName: encodeURIComponent(String(pendingEntity.$record.$name.name ?? '')),
-			recordId: encodeURIComponent(String(pendingEntity.$record.recordKey ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$record' in selection.entitySelector
+			&& selection.entitySelector.$record != null && '$name' in selection.entitySelector.$record
+			&& selection.entitySelector.$record.$name != null && 'name' in selection.entitySelector.$record.$name
+			&& selection.entitySelector.$record.$name.name != null
+			&& selection.entitySelector.$record != null && 'recordKey' in selection.entitySelector.$record
+			&& selection.entitySelector.$record.recordKey != null ?
+				resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			ensName: encodeURIComponent(String(selection.entitySelector.$record.$name.name ?? '')),
+			recordId: encodeURIComponent(String(selection.entitySelector.$record.recordKey ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EnsRecordView
-						selection={select(EntityType.EnsRecord, selection.entitySelector.$record)}
-						href={
-						(selection.entitySelector.$record.recordKey !== undefined && selection.entitySelector.$record.$name !== undefined && selection.entitySelector.$record.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
-							recordId: encodeURIComponent(String(selection.entitySelector.$record.recordKey ?? '')),
-							ensName: encodeURIComponent(String(selection.entitySelector.$record.$name.name ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$record') && prefetched.$record != null && Object.hasOwn(prefetched.$record, '$name') && prefetched.$record.$name != null}
+			{@const ensRecord0 = pendingEntity.$record}
+			{#if ensRecord0 != null && selection.entitySelector.$record != null}
+				<EnsRecordView
+					selection={select(EntityType.EnsRecord, selection.entitySelector.$record, { sources: selection.sources })}
+					prefetched={ensRecord0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={ensRecordTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<EnsRecordView
 						selection={select(EntityType.EnsRecord, selection.entitySelector.$record)}
-						href={
-						(selection.entitySelector.$record.recordKey !== undefined && selection.entitySelector.$record.$name !== undefined && selection.entitySelector.$record.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
-							recordId: encodeURIComponent(String(selection.entitySelector.$record.recordKey ?? '')),
-							ensName: encodeURIComponent(String(selection.entitySelector.$record.$name.name ?? '')),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -107,11 +118,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$record') && prefetched.$record != null && Object.hasOwn(prefetched.$record, '$name') && prefetched.$record.$name != null}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={ensRecordTimestamp}>
 				{#snippet children(entity)}
@@ -131,12 +142,21 @@
 				<dt>Record</dt>
 				<dd>
 					<EnsRecordView
-						selection={select(EntityType.EnsRecord, selection.entitySelector.$record, {})}
+						selection={select(EntityType.EnsRecord, selection.entitySelector.$record)}
 						href={
-							(selection.entitySelector.$record.recordKey !== undefined && selection.entitySelector.$record.$name !== undefined && selection.entitySelector.$record.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
+							(
+								selection.entitySelector.$record != null && 'recordKey' in selection.entitySelector.$record
+								&& selection.entitySelector.$record.recordKey != null
+								&& selection.entitySelector.$record != null && '$name' in selection.entitySelector.$record
+								&& selection.entitySelector.$record.$name != null && 'name' in selection.entitySelector.$record.$name
+								&& selection.entitySelector.$record.$name.name != null ?
+									resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
 								recordId: encodeURIComponent(String(selection.entitySelector.$record.recordKey ?? '')),
 								ensName: encodeURIComponent(String(selection.entitySelector.$record.$name.name ?? '')),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

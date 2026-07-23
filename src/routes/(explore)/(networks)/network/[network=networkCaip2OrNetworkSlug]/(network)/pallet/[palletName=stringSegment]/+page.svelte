@@ -22,7 +22,6 @@
 			index: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.palletName) ?? '')].filter(Boolean).join(' ') || 'Polkadot pallet' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).palletName) ?? '')].filter(Boolean).join(' ') || 'Polkadot pallet')))
 
 
 	// Components
@@ -32,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Polkadot pallet • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.palletName) ?? '')].filter(Boolean).join(' ') || 'Polkadot pallet' : [String((({ ...data.selector, ...pageSelection.entity }).palletName) ?? '')].filter(Boolean).join(' ') || 'Polkadot pallet'))} • Polkadot pallet • Blockhead</title>
 </svelte:head>
 
 

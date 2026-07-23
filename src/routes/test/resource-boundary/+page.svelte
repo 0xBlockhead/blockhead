@@ -14,7 +14,6 @@
 	} from '$/lib/db/queryResource.svelte.ts'
 	import { select } from '$/routes/+layout.svelte'
 
-
 	let cachedBoundaryOpen = $state(
 		true
 	)
@@ -530,23 +529,16 @@
 				{
 					realm: SpecificationRealm.Ethereum,
 				},
-				{
+			).$$proposalKinds.count({
 					sources: [
 						Source.Constants_Internal,
 					],
-					fields: {
-						$$proposalKinds: {
-							count: true,
-						},
-					},
 				}
 			)}
 			placeholderText="Loading real selection count"
 		>
-			{#snippet children(value)}
-				<p data-testid="real-resource-boundary-count">
-					{value.$$proposalKinds?.values.length ?? 0}:{value.$$proposalKinds?.totalCount ?? ''}
-				</p>
+			{#snippet children(count)}
+				<p data-testid="real-resource-boundary-count">{count}</p>
 			{/snippet}
 		</ResourceBoundary>
 	{/if}

@@ -34,7 +34,6 @@
 			$repostedArticle: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost'))
 
 
 	// Components
@@ -44,7 +43,9 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Nostr repost • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'Nostr repost' : [String((({ ...{
+		eventId: params.eventId,
+	}, ...pageSelection.entity }).repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost')} • Nostr repost • Blockhead</title>
 </svelte:head>
 
 

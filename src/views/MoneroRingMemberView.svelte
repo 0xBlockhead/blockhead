@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.MoneroRingMember>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MoneroRingMember>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MoneroRingMember>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const moneroRingMember = $derived(selection({
+	const moneroRingMember = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			globalOutputIndex: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			globalOutputIndex: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.memberIndex) ?? '')].filter(Boolean).join(' ') || 'monero ring member')
-	const viewDomId = $derived('monero-ring-member-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('monero-ring-member-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,13 +74,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const memberIndex0 = pendingEntity.memberIndex}
-					{#if memberIndex0 !== undefined && memberIndex0 !== null}
-						<NumberValue
-							value={memberIndex0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'globalOutputIndex')}
+			{@const memberIndex0 = pendingEntity.memberIndex}
+			{#if memberIndex0 !== undefined && memberIndex0 !== null}
+				<NumberValue
+					value={memberIndex0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={moneroRingMember}>
 				{#snippet children(entity)}
@@ -91,13 +97,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const globalOutputIndex0 = pendingEntity.globalOutputIndex}
-					{#if globalOutputIndex0 !== undefined && globalOutputIndex0 !== null}
-						<NumberValue
-							value={globalOutputIndex0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'globalOutputIndex')}
+			{@const globalOutputIndex0 = pendingEntity.globalOutputIndex}
+			{#if globalOutputIndex0 !== undefined && globalOutputIndex0 !== null}
+				<NumberValue
+					value={globalOutputIndex0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={moneroRingMember}>
 				{#snippet children(entity)}
@@ -119,7 +125,7 @@
 				<dt>Ring</dt>
 				<dd>
 					<MoneroRingView
-						selection={select(EntityType.MoneroRing, selection.entitySelector.$ring, {})}
+						selection={select(EntityType.MoneroRing, selection.entitySelector.$ring)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

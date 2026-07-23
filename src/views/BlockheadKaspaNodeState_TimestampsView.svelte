@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Kaspa node state observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadKaspaNodeState_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadKaspaNodeState_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadKaspaNodeState_TimestampView from '$/views/BlockheadKaspaNodeState_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadKaspaNodeStateTimestamps) => [...new Map(blockheadKaspaNodeStateTimestamps.values.map((blockheadKaspaNodeStateTimestamp) => [blockheadKaspaNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadKaspaNodeStateTimestamp])).values()]}
 	getKey={(blockheadKaspaNodeStateTimestamp) => blockheadKaspaNodeStateTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: blockheadKaspaNodeStateTimestamp })}
 		{@const blockheadKaspaNodeStateTimestampFields = { ...blockheadKaspaNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadKaspaNodeStateTimestamp }}
-		{@const selection = select(EntityType.BlockheadKaspaNodeState_Timestamp, blockheadKaspaNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadKaspaNodeState_TimestampView
-			selection={selection}
-			prefetched={blockheadKaspaNodeStateTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadKaspaNodeState_Timestamp}
+			entitySelector={blockheadKaspaNodeStateTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadKaspaNodeStateTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead kaspa node state timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadKaspaNodeStateTimestampFields.isSynced) ?? ''), String((blockheadKaspaNodeStateTimestampFields.hasUtxoIndex) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadKaspaNodeStateTimestampFields.peerCount) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

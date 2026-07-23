@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Currency_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Currency_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Currency_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const currencyTimestamp = $derived(selection({
+	const currencyTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			marketCap: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			marketCap: true,
 		},
 	}))
-	const titleFallback = $derived('currency timestamp')
-	const viewDomId = $derived('currency-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'currency timestamp'
+	const viewDomId = $derived('currency-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,38 +71,42 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$currency !== undefined && pendingEntity.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			iso4217: String(pendingEntity.$currency.iso4217 ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && '$currency' in selection.entitySelector
+			&& selection.entitySelector.$currency != null && 'iso4217' in selection.entitySelector.$currency
+			&& selection.entitySelector.$currency.iso4217 != null ?
+				resolve('/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			iso4217: String(selection.entitySelector.$currency.iso4217 ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<CurrencyView
-						selection={select(EntityType.Currency, selection.entitySelector.$currency)}
-						href={
-						(selection.entitySelector.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
-							iso4217: String(selection.entitySelector.$currency.iso4217 ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$currency') && prefetched.$currency != null && Object.hasOwn(prefetched.$currency, 'name') && Object.hasOwn(prefetched, 'marketCap')}
+			{@const currency0 = pendingEntity.$currency}
+			{#if currency0 != null && selection.entitySelector.$currency != null}
+				<CurrencyView
+					selection={select(EntityType.Currency, selection.entitySelector.$currency, { sources: selection.sources })}
+					prefetched={currency0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={currencyTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<CurrencyView
 						selection={select(EntityType.Currency, selection.entitySelector.$currency)}
-						href={
-						(selection.entitySelector.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
-							iso4217: String(selection.entitySelector.$currency.iso4217 ?? ''),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -106,14 +116,14 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const marketCap0 = pendingEntity.marketCap}
-					{#if marketCap0 !== undefined && marketCap0 !== null}
-						<NumberValue
-							value={Number(marketCap0)}
-							formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$currency') && prefetched.$currency != null && Object.hasOwn(prefetched.$currency, 'name') && Object.hasOwn(prefetched, 'marketCap')}
+			{@const marketCap0 = pendingEntity.marketCap}
+			{#if marketCap0 !== undefined && marketCap0 !== null}
+				<NumberValue
+					value={Number(marketCap0)}
+					formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={currencyTimestamp}>
 				{#snippet children(entity)}
@@ -131,7 +141,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$currency') && prefetched.$currency != null && Object.hasOwn(prefetched.$currency, 'name') && Object.hasOwn(prefetched, 'marketCap')}
 			{@const timestampMs0 = pendingEntity.timestampMs}
 			{#if timestampMs0 !== undefined && timestampMs0 !== null}
 				<span data-text="muted">
@@ -210,11 +220,17 @@
 				<dt>Currency</dt>
 				<dd>
 					<CurrencyView
-						selection={select(EntityType.Currency, selection.entitySelector.$currency, {})}
+						selection={select(EntityType.Currency, selection.entitySelector.$currency)}
 						href={
-							(selection.entitySelector.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
+							(
+								selection.entitySelector.$currency != null && 'iso4217' in selection.entitySelector.$currency
+								&& selection.entitySelector.$currency.iso4217 != null ?
+									resolve('/currency/[iso4217=iso4217]', {
 								iso4217: String(selection.entitySelector.$currency.iso4217 ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

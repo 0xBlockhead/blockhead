@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Reddit subreddits',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.RedditSubreddit>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.RedditSubreddit>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import RedditSubredditView from '$/views/RedditSubredditView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,8 +66,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
-				Source.Constants_Internal,
+			sources: selection.sources ?? [
 				Source.Reddit_PublicJson,
 			],
 			fields: {
@@ -83,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(redditSubreddits) => [...new Map(redditSubreddits.values.map((redditSubreddit) => [redditSubreddit[EntityMetaKey.SelectorKey], redditSubreddit])).values()]}
 	getKey={(redditSubreddit) => redditSubreddit[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,18 +90,27 @@
 
 	{#snippet Item({ item: redditSubreddit })}
 		{@const redditSubredditFields = { ...redditSubreddit[EntityMetaKey.Selector], ...redditSubreddit }}
-		{@const selection = select(EntityType.RedditSubreddit, redditSubreddit[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const redditSubredditHrefFields = { ...redditSubreddit, ...redditSubreddit[EntityMetaKey.Selector] }}
-		<RedditSubredditView
-			selection={selection}
-			prefetched={redditSubredditFields}
+		<EntityView
+			entityType={EntityType.RedditSubreddit}
+			entitySelector={redditSubreddit[EntityMetaKey.Selector]}
 			href={
-				(redditSubredditHrefFields.name !== undefined ? resolve('/reddit/r/[name=stringSegment]', {
-					name: encodeURIComponent(String(redditSubredditHrefFields.name ?? '')),
-				}) : undefined)
+				(
+					redditSubreddit[EntityMetaKey.Selector] != null && 'name' in redditSubreddit[EntityMetaKey.Selector]
+					&& redditSubreddit[EntityMetaKey.Selector].name != null ?
+						resolve('/reddit/r/[name=stringSegment]', {
+					name: encodeURIComponent(String(redditSubreddit[EntityMetaKey.Selector].name ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((redditSubredditFields.title) ?? '')].filter(Boolean).join(' ') || [(String((redditSubredditFields.name) ?? '') ? 'r/' + String((redditSubredditFields.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

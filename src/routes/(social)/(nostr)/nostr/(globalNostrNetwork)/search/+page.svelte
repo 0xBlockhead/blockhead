@@ -36,9 +36,7 @@
 																event.preventDefault()
 																const normalizedQuery = query.trim().replace(/\s+/g, ' ')
 																if (normalizedQuery !== '')
-												void goto(resolve('/nostr/search/[query=stringSegment]', {
-													query: normalizedQuery,
-												}))
+												void goto(resolve(`/nostr/search/${encodeURIComponent(normalizedQuery)}`))
 															}}
 														>
 															<label data-column="gap-2">

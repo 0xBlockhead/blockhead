@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ERC-8004 Registrations',
 		typeAnnotationParagraphs = ['A non-fungible token on an EVM contract, with ERC-8004 agent registration fields shown when the resolver supplies registry evidence.'],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmNft>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmNft>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmNftView from '$/views/EvmNftView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,7 +66,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.Eip8004Scan_Rest,
 			],
 			fields: {
@@ -84,6 +77,7 @@
 			limit: 100,
 		})
 	}
+	{countResource}
 	getResourceItems={(evmNfts) => [...new Map(evmNfts.values.map((evmNft) => [evmNft[EntityMetaKey.SelectorKey], evmNft])).values()]}
 	getKey={(evmNft) => evmNft[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -98,20 +92,40 @@
 
 	{#snippet Item({ item: evmNft })}
 		{@const evmNftFields = { ...evmNft[EntityMetaKey.Selector], ...evmNft }}
-		{@const selection = select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmNftHrefFields = { ...evmNft, ...evmNft[EntityMetaKey.Selector] }}
-		<EvmNftView
-			selection={selection}
-			prefetched={evmNftFields}
+		<EntityView
+			entityType={EntityType.EvmNft}
+			entitySelector={evmNft[EntityMetaKey.Selector]}
 			href={
-				(evmNftHrefFields.tokenId !== undefined && evmNftHrefFields.$contract !== undefined && evmNftHrefFields.$contract.$network !== undefined && evmNftHrefFields.$contract.$network.caip2 !== undefined && evmNftHrefFields.$contract.$network.caip2.reference !== undefined && evmNftHrefFields.$contract.address !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
-					tokenId: String(evmNftHrefFields.tokenId ?? ''),
-					chainId: String(evmNftHrefFields.$contract.$network.caip2.reference ?? ''),
-					contractAddress: String(evmNftHrefFields.$contract.address ?? ''),
-				}) : undefined)
+				(
+					evmNft[EntityMetaKey.Selector] != null && 'tokenId' in evmNft[EntityMetaKey.Selector]
+					&& evmNft[EntityMetaKey.Selector].tokenId != null
+					&& evmNft[EntityMetaKey.Selector] != null && '$contract' in evmNft[EntityMetaKey.Selector]
+					&& evmNft[EntityMetaKey.Selector].$contract != null && '$network' in evmNft[EntityMetaKey.Selector].$contract
+					&& evmNft[EntityMetaKey.Selector].$contract.$network != null && 'caip2' in evmNft[EntityMetaKey.Selector].$contract.$network
+					&& evmNft[EntityMetaKey.Selector].$contract.$network.caip2 != null && 'reference' in evmNft[EntityMetaKey.Selector].$contract.$network.caip2
+					&& evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference != null
+					&& evmNft[EntityMetaKey.Selector].$contract != null && 'address' in evmNft[EntityMetaKey.Selector].$contract
+					&& evmNft[EntityMetaKey.Selector].$contract.address != null ?
+						resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
+					tokenId: String(evmNft[EntityMetaKey.Selector].tokenId ?? ''),
+					chainId: String(evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference ?? ''),
+					contractAddress: String(evmNft[EntityMetaKey.Selector].$contract.address ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((evmNftFields.name) ?? '')].filter(Boolean).join(' ') || [String((evmNftFields.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((evmNftFields.tokenId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

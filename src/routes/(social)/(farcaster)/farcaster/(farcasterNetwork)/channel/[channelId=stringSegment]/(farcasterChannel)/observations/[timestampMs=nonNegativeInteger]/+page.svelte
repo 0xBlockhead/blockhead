@@ -32,7 +32,6 @@
 			memberCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'Farcaster channel observation' : 'Farcaster channel observation'))
 
 
 	// Components
@@ -42,7 +41,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Farcaster channel observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'Farcaster channel observation' : 'Farcaster channel observation')} • Farcaster channel observation • Blockhead</title>
 </svelte:head>
 
 

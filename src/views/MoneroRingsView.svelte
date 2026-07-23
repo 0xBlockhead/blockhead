@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Monero rings',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.MoneroRing>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MoneroRing>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MoneroRingView from '$/views/MoneroRingView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,6 +70,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(moneroRings) => [...new Map(moneroRings.values.map((moneroRing) => [moneroRing[EntityMetaKey.SelectorKey], moneroRing])).values()]}
 	getKey={(moneroRing) => moneroRing[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -91,12 +85,16 @@
 
 	{#snippet Item({ item: moneroRing })}
 		{@const moneroRingFields = { ...moneroRing[EntityMetaKey.Selector], ...moneroRing }}
-		{@const selection = select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<MoneroRingView
-			selection={selection}
-			prefetched={moneroRingFields}
+		<EntityView
+			entityType={EntityType.MoneroRing}
+			entitySelector={moneroRing[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((moneroRingFields.$keyImage.keyImage) ?? '')].filter(Boolean).join(' ') || 'monero key image'].filter(Boolean).join(' ') || 'monero ring'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

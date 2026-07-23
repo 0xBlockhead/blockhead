@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Algorand application observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AlgorandApplication_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AlgorandApplication_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AlgorandApplication_TimestampView from '$/views/AlgorandApplication_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(algorandApplicationTimestamps) => [...new Map(algorandApplicationTimestamps.values.map((algorandApplicationTimestamp) => [algorandApplicationTimestamp[EntityMetaKey.SelectorKey], algorandApplicationTimestamp])).values()]}
 	getKey={(algorandApplicationTimestamp) => algorandApplicationTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: algorandApplicationTimestamp })}
 		{@const algorandApplicationTimestampFields = { ...algorandApplicationTimestamp[EntityMetaKey.Selector], ...algorandApplicationTimestamp }}
-		{@const selection = select(EntityType.AlgorandApplication_Timestamp, algorandApplicationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AlgorandApplication_TimestampView
-			selection={selection}
-			prefetched={algorandApplicationTimestampFields}
+		<EntityView
+			entityType={EntityType.AlgorandApplication_Timestamp}
+			entitySelector={algorandApplicationTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'algorand application timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

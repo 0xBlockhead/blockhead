@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType._GlobalActivityPubNetwork, {
 				scope: '_GlobalActivityPubNetwork',
-			}).$$observedActors({
-				sources: [
-					Source.Mastodon_Rest,
-				],
-				count: true,
 			})
+				.$$observedActors({
+					sources: [
+						Source.Mastodon_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._GlobalActivityPubNetwork, {
+				scope: '_GlobalActivityPubNetwork',
+			})
+				.$$observedActors({
+					sources: [
+						Source.Mastodon_Rest,
+					],
+				}).count
 		}
 		id='observed-actors'
 		data-column-item="flexible"

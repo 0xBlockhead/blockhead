@@ -27,7 +27,6 @@
 			$workspace: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'dashboard' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'dashboard'))
 
 
 	// Components
@@ -37,7 +36,11 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • dashboard • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		id: params.dashboardId,
+	}.id) ?? '')].filter(Boolean).join(' ') || 'dashboard' : [String((({ ...{
+		id: params.dashboardId,
+	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'dashboard')} • dashboard • Blockhead</title>
 </svelte:head>
 
 

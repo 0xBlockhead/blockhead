@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType._GlobalAtprotoNetwork, {
 				scope: '_GlobalAtprotoNetwork',
-			}).$$observedPosts({
-				sources: [
-					Source.Constants_Internal,
-				],
-				count: true,
 			})
+				.$$observedPosts({
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._GlobalAtprotoNetwork, {
+				scope: '_GlobalAtprotoNetwork',
+			})
+				.$$observedPosts({
+					sources: [
+						Source.Constants_Internal,
+					],
+				}).count
 		}
 		id='observed-posts'
 		data-column-item="flexible"

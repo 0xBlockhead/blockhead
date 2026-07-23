@@ -38,7 +38,6 @@
 			mempoolTransactionCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'UTXO address timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'UTXO address timestamp')))
 
 
 	// Components
@@ -48,7 +47,15 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • UTXO address timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
+		$address: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'UTXO address timestamp' : [String((({ ...{
+		$address: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'UTXO address timestamp'))} • UTXO address timestamp • Blockhead</title>
 </svelte:head>
 
 

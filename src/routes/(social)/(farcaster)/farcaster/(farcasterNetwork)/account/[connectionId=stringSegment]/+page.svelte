@@ -33,7 +33,6 @@
 			selected: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'Blockhead Farcaster account connection' : 'Blockhead Farcaster account connection'))
 
 
 	// Components
@@ -43,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Blockhead Farcaster account connection • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'Blockhead Farcaster account connection' : 'Blockhead Farcaster account connection')} • Blockhead Farcaster account connection • Blockhead</title>
 </svelte:head>
 
 

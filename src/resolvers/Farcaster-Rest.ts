@@ -153,6 +153,8 @@ export default {
 						const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
 						const channel = await getChannel(id)
 						if (channel == null) throw new Error('Farcaster_Rest: channel not found')
+						if (channel.id !== id)
+							throw new Error('Farcaster_Rest: channel subject mismatch')
 						const name = optionalNonemptyString(channel.name) ?? channel.id
 						const url = optionalNonemptyString(channel.url)
 						const description = optionalNonemptyString(channel.description)
@@ -271,8 +273,8 @@ export default {
 			resolve: {
 				[FarcasterCastSelector.UsernameHashPrefix]: {
 					resolve: async ({ username, hashPrefix }) => {
-						const { getCastByUsernameAndHashPrefix } = await import('$/sources/Farcaster/Rest/queries.ts')
-						const cast = await getCastByUsernameAndHashPrefix({
+						const { getCastAndDirectRepliesByUsernameAndHashPrefix } = await import('$/sources/Farcaster/Rest/queries.ts')
+						const { cast, directReplies } = await getCastAndDirectRepliesByUsernameAndHashPrefix({
 							username,
 							castHashPrefix: hashPrefix,
 						})
@@ -287,6 +289,11 @@ export default {
 						const castHash = zeroXLowerHexCastHash(hash)
 						if (!castHash.startsWith(zeroXLowerHexCastHash(hashPrefix)))
 							throw new Error('Farcaster_Rest: cast hash prefix mismatch')
+						if (
+							cast.author.username != null
+							&& cast.author.username.toLowerCase() !== username.toLowerCase()
+						)
+							throw new Error('Farcaster_Rest: cast author username mismatch')
 						const timestamp = farcasterCastTimestampMs(cast.timestamp)
 						if (timestamp == null)
 							throw new Error('Farcaster_Rest: cast missing timestamp')
@@ -303,6 +310,11 @@ export default {
 								[EntityMetaKey.Selector]: {
 									fid: cast.author.fid,
 								},
+								...(optionalNonemptyString(cast.author.username) != null && {
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.FarcasterUser, [], 'username')]: optionalNonemptyString(cast.author.username),
+									},
+								}),
 							} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
 							text: optionalNonemptyString(cast.text) ?? '',
 							$parentCast: (
@@ -329,6 +341,51 @@ export default {
 									} satisfies Entity<typeof schema, EntityType.FarcasterChannel>)
 							),
 							timestamp,
+							$$directReplies: directReplies.flatMap((reply) => {
+								const replyHash = optionalNonemptyString(reply.hash)
+								if (replyHash == null || reply.author?.fid == null)
+									return []
+								const replyTimestamp = farcasterCastTimestampMs(reply.timestamp)
+								const replyUsername = optionalNonemptyString(reply.author.username)
+								const replyChannelId = optionalNonemptyString(reply.channel?.id)
+
+								return [{
+									[EntityMetaKey.Selector]: {
+										fid: reply.author.fid,
+										hash: zeroXLowerHexCastHash(replyHash),
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.FarcasterCast, [], 'fid')]: reply.author.fid,
+										[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: zeroXLowerHexCastHash(replyHash),
+										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
+											[EntityMetaKey.Selector]: { fid: reply.author.fid },
+											...(replyUsername != null && {
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.FarcasterUser, [], 'username')]: replyUsername,
+												},
+											}),
+										},
+										[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: optionalNonemptyString(reply.text),
+										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
+											[EntityMetaKey.Selector]: {
+												fid: cast.author.fid,
+												hash: castHash,
+											},
+										},
+										...(replyTimestamp != null && {
+											[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: replyTimestamp,
+										}),
+										...(replyUsername != null && {
+											[entityFieldAddressKey(EntityType.FarcasterCast, [], 'username')]: replyUsername,
+										}),
+										...(replyChannelId != null && {
+											[entityFieldAddressKey(EntityType.FarcasterCast, [], '$channel')]: {
+												[EntityMetaKey.Selector]: { id: replyChannelId },
+											},
+										}),
+									},
+								}]
+							}),
 							...(cast.threadHash != null && cast.threadHash !== '' && {
 								threadHash: zeroXLowerHexCastHash(cast.threadHash),
 							}),
@@ -348,6 +405,7 @@ export default {
 				parentUrl: (cast) => cast.parentUrl,
 				$channel: (cast) => cast.$channel,
 				timestamp: (cast) => cast.timestamp,
+				$$directReplies: (cast) => cast.$$directReplies,
 				threadHash: (cast) => cast.threadHash,
 			}),
 

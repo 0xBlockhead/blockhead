@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Global agent networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalAgentNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalAgentNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalAgentNetworkView from '$/views/_GlobalAgentNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(globalAgentNetworks) => [...new Map(globalAgentNetworks.values.map((globalAgentNetwork) => [globalAgentNetwork[EntityMetaKey.SelectorKey], globalAgentNetwork])).values()]}
 	getKey={(globalAgentNetwork) => globalAgentNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: globalAgentNetwork })}
 		{@const globalAgentNetworkFields = { ...globalAgentNetwork[EntityMetaKey.Selector], ...globalAgentNetwork }}
-		{@const selection = select(EntityType._GlobalAgentNetwork, globalAgentNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<GlobalAgentNetworkView
-			selection={selection}
-			prefetched={globalAgentNetworkFields}
+		<EntityView
+			entityType={EntityType._GlobalAgentNetwork}
+			entitySelector={globalAgentNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'global agent network'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NearContractStorageEntry>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NearContractStorageEntry>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NearContractStorageEntry>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nearContractStorageEntry = $derived(selection({
+	const nearContractStorageEntry = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			valueHash: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			valueHash: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.keyBase64) ?? '')].filter(Boolean).join(' ') || 'near contract storage entry')
-	const viewDomId = $derived('near-contract-storage-entry-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('near-contract-storage-entry-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,11 +75,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const keyBase640 = pendingEntity.keyBase64}
-					{#if keyBase640 !== undefined && keyBase640 !== null}
-						<TruncatedValue value={String((keyBase640) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'valueHash')}
+			{@const keyBase640 = pendingEntity.keyBase64}
+			{#if keyBase640 !== undefined && keyBase640 !== null}
+				<TruncatedValue value={String((keyBase640) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={nearContractStorageEntry}>
 				{#snippet children(entity)}
@@ -88,11 +94,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const valueHash0 = pendingEntity.valueHash}
-					{#if valueHash0 !== undefined && valueHash0 !== null}
-						<TruncatedValue value={String((valueHash0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'valueHash')}
+			{@const valueHash0 = pendingEntity.valueHash}
+			{#if valueHash0 !== undefined && valueHash0 !== null}
+				<TruncatedValue value={String((valueHash0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={nearContractStorageEntry}>
 				{#snippet children(entity)}
@@ -107,7 +113,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'valueHash')}
 			{@const blockHeight0 = pendingEntity.blockHeight}
 			{#if blockHeight0 !== undefined && blockHeight0 !== null}
 				<span data-text="muted">
@@ -139,7 +145,7 @@
 				<dt>Contract</dt>
 				<dd>
 					<NearContractView
-						selection={select(EntityType.NearContract, selection.entitySelector.$contract, {})}
+						selection={select(EntityType.NearContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -37,11 +37,8 @@
 			})
 		}
 		title='Native assets'
-		selection={
-			select(EntityType.Network, data.selector).$$nativeAssets({
-				count: true,
-			})
-		}
+		selection={select(EntityType.Network, data.selector).$$nativeAssets}
+		countResource={select(EntityType.Network, data.selector).$$nativeAssets.count}
 		id='native-assets'
 		data-column-item="flexible"
 		data-card

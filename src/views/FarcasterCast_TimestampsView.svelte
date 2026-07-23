@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Farcaster cast observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FarcasterCast_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FarcasterCast_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FarcasterCast_TimestampView from '$/views/FarcasterCast_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,11 +67,19 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				$cast: true,
+				$cast: {
+					fields: {
+						text: true,
+						hash: true,
+						fid: true,
+						timestamp: true,
+					},
+				},
 				timestampMs: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(farcasterCastTimestamps) => [...new Map(farcasterCastTimestamps.values.map((farcasterCastTimestamp) => [farcasterCastTimestamp[EntityMetaKey.SelectorKey], farcasterCastTimestamp])).values()]}
 	getKey={(farcasterCastTimestamp) => farcasterCastTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,20 +94,38 @@
 
 	{#snippet Item({ item: farcasterCastTimestamp })}
 		{@const farcasterCastTimestampFields = { ...farcasterCastTimestamp[EntityMetaKey.Selector], ...farcasterCastTimestamp }}
-		{@const selection = select(EntityType.FarcasterCast_Timestamp, farcasterCastTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const farcasterCastTimestampHrefFields = { ...farcasterCastTimestamp, ...farcasterCastTimestamp[EntityMetaKey.Selector] }}
-		<FarcasterCast_TimestampView
-			selection={selection}
-			prefetched={farcasterCastTimestampFields}
+		<EntityView
+			entityType={EntityType.FarcasterCast_Timestamp}
+			entitySelector={farcasterCastTimestamp[EntityMetaKey.Selector]}
 			href={
-				(farcasterCastTimestampHrefFields.timestampMs !== undefined && farcasterCastTimestampHrefFields.$cast !== undefined && farcasterCastTimestampHrefFields.$cast.fid !== undefined && farcasterCastTimestampHrefFields.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]', {
-					timestampMs: String(farcasterCastTimestampHrefFields.timestampMs ?? ''),
-					fid: String(farcasterCastTimestampHrefFields.$cast.fid ?? ''),
-					hash: String(farcasterCastTimestampHrefFields.$cast.hash ?? ''),
-				}) : undefined)
+				(
+					farcasterCastTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in farcasterCastTimestamp[EntityMetaKey.Selector]
+					&& farcasterCastTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& farcasterCastTimestamp[EntityMetaKey.Selector] != null && '$cast' in farcasterCastTimestamp[EntityMetaKey.Selector]
+					&& farcasterCastTimestamp[EntityMetaKey.Selector].$cast != null && 'fid' in farcasterCastTimestamp[EntityMetaKey.Selector].$cast
+					&& farcasterCastTimestamp[EntityMetaKey.Selector].$cast.fid != null
+					&& farcasterCastTimestamp[EntityMetaKey.Selector].$cast != null && 'hash' in farcasterCastTimestamp[EntityMetaKey.Selector].$cast
+					&& farcasterCastTimestamp[EntityMetaKey.Selector].$cast.hash != null ?
+						resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]', {
+					timestampMs: String(farcasterCastTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					fid: String(farcasterCastTimestamp[EntityMetaKey.Selector].$cast.fid ?? ''),
+					hash: String(farcasterCastTimestamp[EntityMetaKey.Selector].$cast.hash ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((farcasterCastTimestampFields.$cast.text) ?? ''), String((farcasterCastTimestampFields.$cast.hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast'].filter(Boolean).join(' ') || 'Farcaster cast observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((farcasterCastTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

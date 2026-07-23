@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.GitTag>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.GitTag>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitTag>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitTag = $derived(selection({
+	const gitTag = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			tagName: true,
+			targetKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			tagName: true,
@@ -49,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.tagName) ?? ''), String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git tag')
-	const viewDomId = $derived('git-tag-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('git-tag-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,7 +79,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'tagName') && Object.hasOwn(prefetched, 'targetKind')}
 			{[String((pendingEntity.tagName) ?? ''), String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={gitTag}>
@@ -85,7 +92,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'tagName') && Object.hasOwn(prefetched, 'targetKind')}
 			{[String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.tagName) ?? ''), String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={gitTag}>
@@ -285,17 +292,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<GitSignaturesView
-				selection={
-						selection.$$signatures({
-							count: true,
-						})
-					}
-				title='signatures'
-				emptyText='No signatures.'
-				id='GitSignaturesView-signatures'
-			/>
-		{/if}
+		{@const gitTagGitSignaturesViewSignaturesResource = selection.$$signatures}
+		<ResourceBoundary
+			resource={gitTagGitSignaturesViewSignaturesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<GitSignaturesView
+					selection={gitTagGitSignaturesViewSignaturesResource}
+					countResource={gitTagGitSignaturesViewSignaturesResource.count}
+					title='signatures'
+					id='GitSignaturesView-signatures'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Erc4626 vault observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.Erc4626Vault_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Erc4626Vault_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Erc4626Vault_TimestampView from '$/views/Erc4626Vault_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(erc4626VaultTimestamps) => [...new Map(erc4626VaultTimestamps.values.map((erc4626VaultTimestamp) => [erc4626VaultTimestamp[EntityMetaKey.SelectorKey], erc4626VaultTimestamp])).values()]}
 	getKey={(erc4626VaultTimestamp) => erc4626VaultTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: erc4626VaultTimestamp })}
 		{@const erc4626VaultTimestampFields = { ...erc4626VaultTimestamp[EntityMetaKey.Selector], ...erc4626VaultTimestamp }}
-		{@const selection = select(EntityType.Erc4626Vault_Timestamp, erc4626VaultTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<Erc4626Vault_TimestampView
-			selection={selection}
-			prefetched={erc4626VaultTimestampFields}
+		<EntityView
+			entityType={EntityType.Erc4626Vault_Timestamp}
+			entitySelector={erc4626VaultTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((erc4626VaultTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'erc4626 vault timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((erc4626VaultTimestampFields.apyTotal) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

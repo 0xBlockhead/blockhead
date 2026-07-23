@@ -28,7 +28,6 @@
 			$nameWrapper: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'ENS' : 'ENS')))
 
 
 	// Components
@@ -38,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ENS • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'ENS' : 'ENS'))} • ENS • Blockhead</title>
 </svelte:head>
 
 

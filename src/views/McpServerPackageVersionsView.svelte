@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'MCP server package versions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.McpServerPackageVersion>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.McpServerPackageVersion>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import McpServerPackageVersionView from '$/views/McpServerPackageVersionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(mcpServerPackageVersions) => [...new Map(mcpServerPackageVersions.values.map((mcpServerPackageVersion) => [mcpServerPackageVersion[EntityMetaKey.SelectorKey], mcpServerPackageVersion])).values()]}
 	getKey={(mcpServerPackageVersion) => mcpServerPackageVersion[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: mcpServerPackageVersion })}
 		{@const mcpServerPackageVersionFields = { ...mcpServerPackageVersion[EntityMetaKey.Selector], ...mcpServerPackageVersion }}
-		{@const selection = select(EntityType.McpServerPackageVersion, mcpServerPackageVersion[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<McpServerPackageVersionView
-			selection={selection}
-			prefetched={mcpServerPackageVersionFields}
+		<EntityView
+			entityType={EntityType.McpServerPackageVersion}
+			entitySelector={mcpServerPackageVersion[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((mcpServerPackageVersionFields.version) ?? '')].filter(Boolean).join(' ') || [[String((mcpServerPackageVersionFields.$artifact.artifactType) ?? '')].filter(Boolean).join(' ') || [String((mcpServerPackageVersionFields.$artifact.providerArtifactId) ?? ''), String((mcpServerPackageVersionFields.$artifact.ociDigest) ?? ''), String((mcpServerPackageVersionFields.$artifact.ipfsCid) ?? ''), String((mcpServerPackageVersionFields.$artifact.arweaveId) ?? ''), String((mcpServerPackageVersionFields.$artifact.gitObject) ?? ''), String((mcpServerPackageVersionFields.$artifact.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ') || 'mcp server package version'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((mcpServerPackageVersionFields.$package.label) ?? '')].filter(Boolean).join(' ') || [String((mcpServerPackageVersionFields.$package.registryServerName) ?? ''), String((mcpServerPackageVersionFields.$package.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'MCP server package'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((mcpServerPackageVersionFields.registryStatus) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

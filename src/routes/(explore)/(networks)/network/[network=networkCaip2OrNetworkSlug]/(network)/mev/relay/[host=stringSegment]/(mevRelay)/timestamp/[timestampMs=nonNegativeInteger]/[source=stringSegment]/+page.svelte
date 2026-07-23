@@ -38,7 +38,6 @@
 			windowEndSlot: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.reachable) ?? ''), String((pageSelection.entitySelector.statusCode) ?? ''), String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).reachable) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).statusCode) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp')))
 
 
 	// Components
@@ -48,7 +47,23 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • MEV relay timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
+		$relay: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp' : [String((({ ...{
+		$relay: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).reachable) ?? ''), String((({ ...{
+		$relay: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).statusCode) ?? ''), String((({ ...{
+		$relay: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp'))} • MEV relay timestamp • Blockhead</title>
 </svelte:head>
 
 

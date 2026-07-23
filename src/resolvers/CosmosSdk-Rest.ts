@@ -18,6 +18,7 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import type {
 	CosmosSdkAccount,
 	CosmosSdkTxResponse,
+	CosmosSdkTxsEventResponse,
 } from '$/sources/CosmosSdk/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { NetworkSelector } from '$/schema/Network.ts'
@@ -37,6 +38,23 @@ import { CosmosContractSelector } from '$/schema/CosmosContract.ts'
 import { schema } from '$/schema/index.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const assertCosmosHub = (network: NetworkId) => {
+	if (
+		(
+			'slug' in network
+			&& network.slug === cosmosNetworkBySlug.cosmos.slug
+		)
+		|| (
+			'caip2' in network
+			&& network.caip2.namespace === cosmosNetworkBySlug.cosmos.caip2.namespace
+			&& network.caip2.reference === cosmosNetworkBySlug.cosmos.caip2.reference
+		)
+	)
+		return
+
+	throw new Error('CosmosSdk_Rest: unsupported network')
+}
 
 const cosmosNetworkApplicability = [
 	{
@@ -123,6 +141,16 @@ const cosmosPaginationCount = (
 	return count
 }
 
+const cosmosUnsignedInteger = (
+	value: string,
+	label: string
+) => {
+	if (!/^(0|[1-9]\d*)$/.test(value))
+		throw new Error(`CosmosSdk_Rest: invalid ${label} ${value}`)
+
+	return BigInt(value)
+}
+
 const cosmosValidatorFields = (validator: {
 	operator_address?: string
 	consensus_pubkey?: JsonValue
@@ -167,13 +195,8 @@ const cosmosProposalRows = (
 	network: NetworkId,
 	proposals: {
 		id: string
-		title?: string
+		title: string
 		status: string
-		messages?: {
-			content?: {
-				title?: string
-			}
-		}[]
 	}[]
 ) => (
 	proposals.map((proposal) => ({
@@ -181,7 +204,7 @@ const cosmosProposalRows = (
 			$network: network,
 			proposalId: proposal.id,
 		},
-		title: proposal.title ?? proposal.messages?.[0]?.content?.title,
+		title: proposal.title,
 		$$timestamps: [
 			cosmosProposalTimestampReference({
 				$network: network,
@@ -212,9 +235,6 @@ const cosmosAccountRows = (
 		}
 		return [{
 			[EntityMetaKey.Selector]: accountId,
-			$$timestamps: [
-				cosmosAccountTimestampFields(accountId, account, Date.now()),
-			],
 		}]
 	})
 )
@@ -345,11 +365,11 @@ const cosmosMessageRows = (
 		},
 		[EntityMetaKey.Fields]: {
 			[entityFieldAddressKey(EntityType.CosmosMessage, [], 'typeUrl')]: message['@type'] ?? 'unknown',
-			...((message.signer ?? message.sender) != null && {
+			...((message.signer ?? message.sender ?? message.from_address) != null && {
 				[entityFieldAddressKey(EntityType.CosmosMessage, [], '$signer')]: {
 					[EntityMetaKey.Selector]: {
 						$network: entitySelector.$network,
-						address: (message.signer ?? message.sender) ?? '',
+						address: (message.signer ?? message.sender ?? message.from_address) ?? '',
 					},
 				},
 			}),
@@ -364,6 +384,77 @@ const cosmosMessageRows = (
 		},
 	}))
 )
+
+const cosmosTransactionFields = (
+	entitySelector: {
+		$network: NetworkId
+		txHash: string
+	},
+	wireTransaction: CosmosSdkTxResponse
+) => ({
+	$block: {
+		[EntityMetaKey.Selector]: {
+			$network: entitySelector.$network,
+			height: cosmosUnsignedInteger(wireTransaction.tx_response.height, 'transaction height'),
+		},
+	},
+	code: wireTransaction.tx_response.code,
+	...(wireTransaction.tx_response.codespace != null && {
+		codespace: wireTransaction.tx_response.codespace,
+	}),
+	gasWanted: cosmosUnsignedInteger(wireTransaction.tx_response.gas_wanted, 'gas wanted'),
+	gasUsed: cosmosUnsignedInteger(wireTransaction.tx_response.gas_used, 'gas used'),
+	feeAmount: (wireTransaction.tx?.auth_info?.fee?.amount ?? []).map((amount) => ({
+		denom: amount.denom,
+		amount: cosmosUnsignedInteger(amount.amount, 'fee amount'),
+	})),
+	...(wireTransaction.tx?.auth_info?.fee?.gas_limit != null && {
+		feeGasLimit: cosmosUnsignedInteger(wireTransaction.tx.auth_info.fee.gas_limit, 'fee gas limit'),
+	}),
+	...(wireTransaction.tx?.body?.memo != null && {
+		memo: wireTransaction.tx.body.memo,
+	}),
+	...(wireTransaction.tx?.body?.timeout_height != null && {
+		timeoutHeight: cosmosUnsignedInteger(wireTransaction.tx.body.timeout_height, 'timeout height'),
+	}),
+	signerAddresses: [...new Set(
+		(wireTransaction.tx?.body?.messages ?? []).flatMap((message) => (
+			(message.signer ?? message.sender ?? message.from_address) == null ?
+				[]
+			:
+				[(message.signer ?? message.sender ?? message.from_address) ?? '']
+		))
+	)],
+	signatures: wireTransaction.tx?.signatures ?? [],
+	rawLog: wireTransaction.tx_response.raw_log,
+	eventTypes: [...new Set(
+		(wireTransaction.tx_response.events ?? []).map((event) => event.type)
+	)],
+	$$messages: cosmosMessageRows(entitySelector, wireTransaction),
+})
+
+const cosmosTransactionSearchResults = (
+	response: CosmosSdkTxsEventResponse
+) => {
+	if (response.txs.length !== response.tx_responses.length)
+		throw new Error('CosmosSdk_Rest: transaction search response arrays do not align')
+
+	const total = Number(cosmosUnsignedInteger(response.total, 'transaction search total'))
+	if (!Number.isSafeInteger(total) || total < 0)
+		throw new Error(`CosmosSdk_Rest: invalid transaction search total ${response.total}`)
+
+	const transactionHashes = new Set(response.tx_responses.map((transaction) => transaction.txhash))
+	if (transactionHashes.size !== response.tx_responses.length || transactionHashes.has(''))
+		throw new Error('CosmosSdk_Rest: transaction search response contains invalid duplicate identities')
+
+	return {
+		total,
+		transactions: response.tx_responses.map((txResponse, index) => ({
+			tx: response.txs[index],
+			tx_response: txResponse,
+		})),
+	}
+}
 
 export default {
 	source: Source.CosmosSdk_Rest,
@@ -515,36 +606,34 @@ export default {
 				[CosmosTransactionSelector.NetworkTxHash]: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
+						assertCosmosHub(entitySelector.$network)
+
 						const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const wireTransaction = await getTx({
 							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
 							txHash: entitySelector.txHash,
 						})
-						return {
-							$block: {
-								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
-									height: BigInt(wireTransaction.tx_response.height),
-								},
-							},
-							code: wireTransaction.tx_response.code,
-							gasWanted: BigInt(wireTransaction.tx_response.gas_wanted),
-							gasUsed: BigInt(wireTransaction.tx_response.gas_used),
-							memo: wireTransaction.tx?.body?.memo,
-							$$messages: cosmosMessageRows(
-								entitySelector,
-								wireTransaction
-						),
-						}
+						if (wireTransaction.tx_response.txhash !== entitySelector.txHash)
+							throw new Error('CosmosSdk_Rest: transaction response does not match the subject')
+
+						return cosmosTransactionFields(entitySelector, wireTransaction)
 					},
 				}
 			},
 		})({
 				$block: (transaction) => transaction.$block,
 				code: (transaction) => transaction.code,
+				codespace: (transaction) => transaction.codespace,
 				gasWanted: (transaction) => transaction.gasWanted,
 				gasUsed: (transaction) => transaction.gasUsed,
+				feeAmount: (transaction) => transaction.feeAmount,
+				feeGasLimit: (transaction) => transaction.feeGasLimit,
 				memo: (transaction) => transaction.memo,
+				timeoutHeight: (transaction) => transaction.timeoutHeight,
+				signerAddresses: (transaction) => transaction.signerAddresses,
+				signatures: (transaction) => transaction.signatures,
+				rawLog: (transaction) => transaction.rawLog,
+				eventTypes: (transaction) => transaction.eventTypes,
 				$$messages: (transaction) => transaction.$$messages,
 			}),
 
@@ -555,15 +644,47 @@ export default {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const { $network, address } = entitySelector
-						const { getAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const account = (await getAccount({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
-							address: address,
-						})).account
+						assertCosmosHub($network)
+
+						const {
+							getAccount,
+							getLatestBlock,
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const [
+							{ account },
+							latestBlock,
+						] = await Promise.all([
+							getAccount({
+								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								address: address,
+							}),
+							getLatestBlock({
+								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							}),
+						])
+						if (account == null)
+							throw new Error('CosmosSdk_Rest: account response is missing')
+
+						if (cosmosAccountBaseFields(account).address !== address)
+							throw new Error('CosmosSdk_Rest: account response does not match the subject')
+
+						const timestampMs = Date.parse(latestBlock.block.header.time)
+						if (!Number.isFinite(timestampMs))
+							throw new Error('CosmosSdk_Rest: latest block has an invalid timestamp')
+
+						const timestamp = cosmosAccountTimestampFields(entitySelector, account, timestampMs)
 						return {
-							$$timestamps: [
-								cosmosAccountTimestampFields(entitySelector, account, Date.now()),
-							],
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+								[EntityMetaKey.Fields]: {
+									...(timestamp.accountNumber != null && {
+										[entityFieldAddressKey(EntityType.CosmosAccount_Timestamp, [], 'accountNumber')]: timestamp.accountNumber,
+									}),
+									...(timestamp.sequence != null && {
+										[entityFieldAddressKey(EntityType.CosmosAccount_Timestamp, [], 'sequence')]: timestamp.sequence,
+									}),
+								},
+							}],
 						}
 					},
 				}
@@ -582,13 +703,24 @@ export default {
 						timestampMs,
 						source,
 					}) => {
+						assertCosmosHub($account.$network)
+						if (source !== Source.CosmosSdk_Rest)
+							throw new Error(`CosmosSdk_Rest: unsupported account timestamp source ${source}`)
+
 						const { getAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const account = (await getAccount({
+							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							address: $account.address,
+						})).account
+						if (account == null)
+							throw new Error('CosmosSdk_Rest: account response is missing')
+
+						if (cosmosAccountBaseFields(account).address !== $account.address)
+							throw new Error('CosmosSdk_Rest: account response does not match the subject')
+
 						return cosmosAccountTimestampFields(
 							$account,
-							(await getAccount({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
-								address: $account.address,
-							})).account,
+							account,
 							timestampMs
 						)
 					},
@@ -697,9 +829,12 @@ export default {
 							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
 							proposalId: proposalId,
 						})).proposal
+						if (proposal.id !== proposalId)
+							throw new Error('CosmosSdk_Rest: governance proposal response does not match the subject')
+
 						return {
-							title: proposal.title ?? proposal.messages?.[0]?.content?.title,
-							summary: proposal.summary ?? proposal.messages?.[0]?.content?.description,
+							title: proposal.title,
+							summary: proposal.summary,
 							$$timestamps: [
 								cosmosProposalTimestampReference(entitySelector, proposal, Date.now()),
 							],
@@ -1155,6 +1290,127 @@ export default {
 			},
 		})({
 				$$messages: (messages) => messages,
+			}),
+
+		defineResolver(Source.CosmosSdk_Rest, {
+			entityType: EntityType.CosmosAccount,
+			resolve: {
+				[CosmosAccountSelector.NetworkAddress]: {
+					appliesTo: cosmosNetworkReferenceApplicability,
+					resolve: async (cosmosAccount, context) => {
+						assertCosmosHub(cosmosAccount.$network)
+						const limit = resolverContextRowLimit(context)
+						const offset = context.providerContinuationToken == null ?
+							context.pagination.offset ?? 0
+						:
+							Number(context.providerContinuationToken)
+						if (!Number.isSafeInteger(offset) || offset < 0)
+							throw new Error('CosmosSdk_Rest: invalid account transaction continuation')
+
+						const prefixLimit = offset + limit
+						if (!Number.isSafeInteger(prefixLimit) || prefixLimit < 1)
+							throw new Error('CosmosSdk_Rest: invalid account transaction limit')
+
+						const { getTransactionsByEvent } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const [senderPage, recipientPage] = await Promise.all([
+							getTransactionsByEvent({
+								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								event: `message.sender='${cosmosAccount.address}'`,
+								limit: prefixLimit,
+							}),
+							getTransactionsByEvent({
+								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								event: `transfer.recipient='${cosmosAccount.address}'`,
+								limit: prefixLimit,
+							}),
+						])
+						const senderResults = cosmosTransactionSearchResults(senderPage)
+						const recipientResults = cosmosTransactionSearchResults(recipientPage)
+						const transactionByHash = new Map<string, CosmosSdkTxResponse>()
+						for (const transaction of [
+							...senderResults.transactions,
+							...recipientResults.transactions,
+						])
+							if (!transactionByHash.has(transaction.tx_response.txhash))
+								transactionByHash.set(transaction.tx_response.txhash, transaction)
+
+						const transactions = [...transactionByHash.values()].toSorted((left, right) => {
+							const leftHeight = cosmosUnsignedInteger(left.tx_response.height, 'transaction height')
+							const rightHeight = cosmosUnsignedInteger(right.tx_response.height, 'transaction height')
+							if (leftHeight !== rightHeight)
+								return leftHeight < rightHeight ? 1 : -1
+
+							return left.tx_response.txhash.localeCompare(right.tx_response.txhash)
+						})
+						return {
+							limit,
+							offset,
+							terminal: (
+								senderResults.total <= senderResults.transactions.length
+								&& recipientResults.total <= recipientResults.transactions.length
+								&& transactions.length <= prefixLimit
+							),
+							transactions: transactions.slice(offset, prefixLimit),
+						}
+					},
+				},
+			},
+		})({
+				$$transactions: {
+					select: (page, cosmosAccount) => page.transactions.map((wireTransaction) => {
+						const transactionSelector = {
+							$network: cosmosAccount.$network,
+							txHash: wireTransaction.tx_response.txhash,
+						}
+						const transaction = cosmosTransactionFields(
+							transactionSelector,
+							wireTransaction
+						)
+						return {
+							[EntityMetaKey.Selector]: transactionSelector,
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'txHash')]: transactionSelector.txHash,
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], '$block')]: transaction.$block,
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'code')]: transaction.code,
+								...(transaction.codespace != null && {
+									[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'codespace')]: transaction.codespace,
+								}),
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'gasWanted')]: transaction.gasWanted,
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'gasUsed')]: transaction.gasUsed,
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'feeAmount')]: transaction.feeAmount,
+								...(transaction.feeGasLimit != null && {
+									[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'feeGasLimit')]: transaction.feeGasLimit,
+								}),
+								...(transaction.memo != null && {
+									[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'memo')]: transaction.memo,
+								}),
+								...(transaction.timeoutHeight != null && {
+									[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'timeoutHeight')]: transaction.timeoutHeight,
+								}),
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'signerAddresses')]: transaction.signerAddresses,
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'signatures')]: transaction.signatures,
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'rawLog')]: transaction.rawLog,
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], 'eventTypes')]: transaction.eventTypes,
+								[entityFieldAddressKey(EntityType.CosmosTransaction, [], '$$messages')]: transaction.$$messages,
+							},
+						}
+					}),
+					continuation: (page, cosmosAccount) => (
+						page.terminal ?
+							{
+								operation: 'account-transactions',
+								target: cosmosAccount.address,
+								terminal: true,
+							}
+						:
+							{
+								operation: 'account-transactions',
+								target: cosmosAccount.address,
+								terminal: false,
+								token: (page.offset + page.limit).toString(),
+							}
+					),
+				},
 			}),
 	],
 }

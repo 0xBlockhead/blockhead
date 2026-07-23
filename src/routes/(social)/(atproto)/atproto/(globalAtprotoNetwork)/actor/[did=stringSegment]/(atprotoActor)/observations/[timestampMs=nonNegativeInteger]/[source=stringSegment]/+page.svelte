@@ -42,7 +42,6 @@
 			description: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.displayName) ?? ''), String((pageSelection.entitySelector.handle) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).handle) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation'))
 
 
 	// Components
@@ -52,7 +51,31 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • AT Protocol account observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$actor: {
+			did: decodeURIComponent(params.did),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation' : [String((({ ...{
+		$actor: {
+			did: decodeURIComponent(params.did),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).displayName) ?? ''), String((({ ...{
+		$actor: {
+			did: decodeURIComponent(params.did),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).handle) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
+		$actor: {
+			did: decodeURIComponent(params.did),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation')} • AT Protocol account observation • Blockhead</title>
 </svelte:head>
 
 

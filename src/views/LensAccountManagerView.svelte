@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LensAccountManager>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensAccountManager>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LensAccountManager>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lensAccountManager = $derived(selection({
+	const lensAccountManager = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			isLensManager: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			isLensManager: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.manager) ?? '')].filter(Boolean).join(' ') || 'Lens account manager')
-	const viewDomId = $derived('lens-account-manager-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('lens-account-manager-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,11 +77,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const manager0 = pendingEntity.manager}
-					{#if manager0 !== undefined && manager0 !== null}
-						<TruncatedValue value={String((manager0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'isLensManager')}
+			{@const manager0 = pendingEntity.manager}
+			{#if manager0 !== undefined && manager0 !== null}
+				<TruncatedValue value={String((manager0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={lensAccountManager}>
 				{#snippet children(entity)}
@@ -90,11 +96,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const manager0 = pendingEntity.manager}
-					{#if manager0 !== undefined && manager0 !== null}
-						<TruncatedValue value={String((manager0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'isLensManager')}
+			{@const manager0 = pendingEntity.manager}
+			{#if manager0 !== undefined && manager0 !== null}
+				<TruncatedValue value={String((manager0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={lensAccountManager}>
 				{#snippet children(entity)}
@@ -109,7 +115,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'isLensManager')}
 			{@const isLensManager0 = pendingEntity.isLensManager}
 			{#if isLensManager0 !== undefined && isLensManager0 !== null}
 				<span data-text="muted">
@@ -307,11 +313,17 @@
 				<dt>Account</dt>
 				<dd>
 					<LensAccountView
-						selection={select(EntityType.LensAccount, selection.entitySelector.$account, {})}
+						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
 						href={
-							(selection.entitySelector.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
+							(
+								selection.entitySelector.$account != null && 'address' in selection.entitySelector.$account
+								&& selection.entitySelector.$account.address != null ?
+									resolve('/lens/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$account.address ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

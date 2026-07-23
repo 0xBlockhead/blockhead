@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType.EvmProtocol, {
 				scope: 'EvmProtocol',
-			}).$$evmSelectors({
-				sources: [
-					Source.Openchain_Rest,
-				],
-				count: true,
 			})
+				.$$evmSelectors({
+					sources: [
+						Source.Openchain_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.EvmProtocol, {
+				scope: 'EvmProtocol',
+			})
+				.$$evmSelectors({
+					sources: [
+						Source.Openchain_Rest,
+					],
+				}).count
 		}
 		id='evm-selectors'
 		data-column-item="flexible"

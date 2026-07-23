@@ -21,6 +21,12 @@ const decodeXmlEntities = (value: string) => (
 		.trim()
 )
 
+const redditListingLimit = (limit: number) => {
+	if (!Number.isSafeInteger(limit) || limit < 0)
+		throw new Error('Reddit_PublicJson: listing limit must be a nonnegative safe integer')
+	return Math.min(100, limit)
+}
+
 const tagText = (
 	block: string,
 	tagName: string
@@ -135,19 +141,25 @@ export const listSubredditHot = async (
 	limit: number,
 	after?: string
 ): Promise<RedditPublicApiListing> => (
+	limit === 0 ?
+		{
+			kind: 'Listing',
+			data: { children: [] },
+		}
+	:
 	redditJsonGet<RedditPublicApiListing>(
 		`/r/${encodeURIComponent(name)}/hot.json?${(
 			new URLSearchParams({
 				...(after !== undefined && {
 					after,
 				}),
-				limit: String(limit),
+				limit: String(redditListingLimit(limit)),
 				raw_json: '1',
 			}).toString()
 		)}` as const
 	).catch(
 		after === undefined ?
-			async () => listSubredditRss(name, limit)
+			async () => listSubredditRss(name, redditListingLimit(limit))
 		:
 			undefined
 	)
@@ -157,6 +169,12 @@ export const listSubredditLinks = async (
 	name: string,
 	request: RedditPublicApiListingRequest
 ): Promise<RedditPublicApiListing> => (
+	request.limit === 0 ?
+		{
+			kind: 'Listing',
+			data: { children: [] },
+		}
+	:
 	request.sort === 'hot' ?
 		listSubredditHot(
 			name,
@@ -170,7 +188,7 @@ export const listSubredditLinks = async (
 					...(request.after !== undefined && {
 						after: request.after,
 					}),
-					limit: String(request.limit),
+					limit: String(redditListingLimit(request.limit)),
 					raw_json: '1',
 				}).toString()
 			)}` as const
@@ -180,27 +198,41 @@ export const listSubredditLinks = async (
 export const getComments = async (
 	permalink: string,
 	limit: number
-) => (
-	redditJsonGet<RedditPublicApiListing[]>(
+) => {
+	const boundedLimit = redditListingLimit(limit)
+	if (boundedLimit === 0)
+		return [
+			{ kind: 'Listing', data: { children: [] } },
+			{ kind: 'Listing', data: { children: [] } },
+		] satisfies RedditPublicApiListing[]
+
+	return redditJsonGet<RedditPublicApiListing[]>(
 		`${permalink.startsWith('/') ? permalink : `/${permalink}`}.json?${(
 			new URLSearchParams({
-				limit: String(limit),
+				limit: String(boundedLimit),
 				raw_json: '1',
 			}).toString()
 		)}`
 	)
-)
+}
 
 export const getCommentsByArticleId = async (
 	articleId: string,
 	limit: number
-) => (
-	redditJsonGet<RedditPublicApiListing[]>(
+) => {
+	const boundedLimit = redditListingLimit(limit)
+	if (boundedLimit === 0)
+		return [
+			{ kind: 'Listing', data: { children: [] } },
+			{ kind: 'Listing', data: { children: [] } },
+		] satisfies RedditPublicApiListing[]
+
+	return redditJsonGet<RedditPublicApiListing[]>(
 		`/comments/${encodeURIComponent(articleId)}.json?${(
 			new URLSearchParams({
-				limit: String(limit),
+				limit: String(boundedLimit),
 				raw_json: '1',
 			}).toString()
 		)}` as const
 	)
-)
+}

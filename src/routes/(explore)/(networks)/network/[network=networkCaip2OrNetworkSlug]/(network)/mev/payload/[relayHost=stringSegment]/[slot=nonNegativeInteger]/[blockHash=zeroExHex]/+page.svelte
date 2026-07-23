@@ -27,7 +27,6 @@
 			$executionBlock: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [(String((pageSelection.entitySelector.slot) ?? '') ? 'Slot ' + String((pageSelection.entitySelector.slot) ?? '') : ''), (String((pageSelection.entitySelector.value) ?? '') ? String((pageSelection.entitySelector.value) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered' : [(String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).slot) ?? '') ? 'Slot ' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).slot) ?? '') : ''), (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).value) ?? '') ? String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).value) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered')))
 
 
 	// Components
@@ -37,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • MEV relay proposer payload delivered • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [(String((data.selector.slot) ?? '') ? 'Slot ' + String((data.selector.slot) ?? '') : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered' : [(String((({ ...data.selector, ...pageSelection.entity }).slot) ?? '') ? 'Slot ' + String((({ ...data.selector, ...pageSelection.entity }).slot) ?? '') : ''), (String((({ ...data.selector, ...pageSelection.entity }).value) ?? '') ? String((({ ...data.selector, ...pageSelection.entity }).value) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered'))} • MEV relay proposer payload delivered • Blockhead</title>
 </svelte:head>
 
 

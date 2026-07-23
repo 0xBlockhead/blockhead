@@ -52,10 +52,11 @@ export type WalletAdapter = {
 		accountAddress: string,
 		message: string
 	): Promise<string>
-	disconnect(walletId: string): void
+	disconnect(walletId: string, connectionKey?: string): void | Promise<void>
 	subscribeConnection(
 		walletId: string,
-		updateConnection: (connection: WalletConnection) => void
+		updateConnection: (connection: WalletConnection) => void,
+		connectionKey?: string
 	): () => void
 }
 

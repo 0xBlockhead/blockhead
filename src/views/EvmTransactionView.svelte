@@ -4,13 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import Projection from '$/components/Projection.svelte'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmTransactionEnvelopeType, EvmTransactionExecutionStatus, EvmTransactionKind } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
@@ -32,7 +32,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -46,7 +46,10 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmTransaction = $derived(selection({
+	const evmTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 		fields: {
 			kind: true,
@@ -56,12 +59,13 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'EVM transaction')
-	const viewDomId = $derived('evm-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('evm-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -72,8 +76,8 @@
 	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
 	import EvmLogsView from '$/views/EvmLogsView.svelte'
 	import EvmTracesView from '$/views/EvmTracesView.svelte'
-	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
 	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
+	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
 	import Eip7702AuthorizationsView from '$/views/Eip7702AuthorizationsView.svelte'
 </script>
 
@@ -84,24 +88,52 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.txHash !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-			transactionId: String(pendingEntity.txHash ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
-		}) : pendingEntity.txHash !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-			transactionId: String(pendingEntity.txHash ?? ''),
-			network: String(pendingEntity.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'txHash' in selection.entitySelector
+			&& selection.entitySelector.txHash != null
+			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
+				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+				&& selection.entitySelector.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+				transactionId: String(selection.entitySelector.txHash ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+					&& selection.entitySelector.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+					transactionId: String(selection.entitySelector.txHash ?? ''),
+					network: String(selection.entitySelector.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
+
+	{#snippet Icon()}
+		{#if layout !== EntityLayout.SummaryDetails}
+			<IconComponent />
+		{:else}
+			<ResourceBoundary resource={evmTransaction}>
+				{#snippet children(entity)}
+					<IconComponent />
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const txHash0 = pendingEntity.txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String((txHash0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails}
+			{@const txHash0 = pendingEntity.txHash}
+			{#if txHash0 !== undefined && txHash0 !== null}
+				<TruncatedValue value={String((txHash0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={evmTransaction}>
 				{#snippet children(entity)}
@@ -116,11 +148,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const txHash0 = pendingEntity.txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String((txHash0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails}
+			{@const txHash0 = pendingEntity.txHash}
+			{#if txHash0 !== undefined && txHash0 !== null}
+				<TruncatedValue value={String((txHash0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={evmTransaction}>
 				{#snippet children(entity)}
@@ -154,13 +186,28 @@
 									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 									prefetched={evmBlock}
 									href={
-										(evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-											blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
-											network: String(caip2StringFromValue(evmBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-											blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
-											network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											evmBlock[EntityMetaKey.Selector] != null && 'blockNumber' in evmBlock[EntityMetaKey.Selector]
+											&& evmBlock[EntityMetaKey.Selector].blockNumber != null
+											&& evmBlock[EntityMetaKey.Selector] != null && '$network' in evmBlock[EntityMetaKey.Selector] ?
+												evmBlock[EntityMetaKey.Selector].$network != null && 'caip2' in evmBlock[EntityMetaKey.Selector].$network
+												&& evmBlock[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+												blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+												network: String(caip2StringFromValue(evmBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													evmBlock[EntityMetaKey.Selector].$network != null && 'slug' in evmBlock[EntityMetaKey.Selector].$network
+													&& evmBlock[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+													blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+													network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -183,9 +230,15 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+										(
+											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
+											&& evmAccount[EntityMetaKey.Selector].address != null ?
+												resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -208,9 +261,15 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+										(
+											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
+											&& evmAccount[EntityMetaKey.Selector].address != null ?
+												resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -237,13 +296,28 @@
 											selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 											prefetched={evmContract}
 											href={
-												(evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-													network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-												}) : evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-													network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-												}) : undefined)
+												(
+													evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
+													&& evmContract[EntityMetaKey.Selector].address != null
+													&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
+														evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
+														&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
+															resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+														address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+														network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
+													})
+													:
+															evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
+															&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
+																resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+															address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+															network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
+														})
+														:
+															undefined
+												:
+														undefined
+												)
 											}
 											layout={EntityLayout.Value}
 											open={false}
@@ -745,213 +819,603 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-evm-tx-transfers'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'evm-tx-token-transfers',
-							label: 'Token transfers',
-						},
-						{
-							id: 'evm-tx-internal-transfers',
-							label: 'Internal transfers',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-transfers'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Transfers</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-evm-tx-transfers'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'evm-tx-token-transfers',
+						label: 'Token transfers',
+						ownsSection: true,
+					},
+					{
+						id: 'evm-tx-internal-transfers',
+						label: 'Internal transfers',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-transfers'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Transfers</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionEvmTxTokenTransfers({ id, label, open })}
-					<EvmTokenTransfersView
-						selection={selection.$$tokenTransfers}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No token transfers.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerEvmTxTokenTransfers(_context, Content)}
+				{@const evmTxTransfersEvmTxTokenTransfersResource = selection.$$tokenTransfers}
+				<ResourceBoundary
+					resource={evmTxTransfersEvmTxTokenTransfersResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionEvmTxInternalTransfers({ id, label, open })}
-					<EvmInternalTransfersView
-						selection={selection.$$internalTransfers}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No internal transfers.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-evm-tx-execution'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'evm-tx-logs',
-							label: 'Logs',
-						},
-						{
-							id: 'evm-tx-traces',
-							label: 'Traces',
-						},
-						{
-							id: 'evm-tx-blobs',
-							label: 'Blobs',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-execution'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Execution</HeadingComponent>
-					</header>
-				{/snippet}
+			{#snippet SectionEvmTxTokenTransfers({ id, label, open, active })}
+				{@const evmTxTransfersEvmTxTokenTransfersResource = selection.$$tokenTransfers}
+				<ResourceBoundary
+					resource={evmTxTransfersEvmTxTokenTransfersResource}
+				>
+					{#snippet children(evmTokenTransfer)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<EvmTokenTransfersView
+								selection={evmTxTransfersEvmTxTokenTransfersResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No token transfers.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-				{#snippet SectionEvmTxLogs({ id, label, open })}
-					<EvmLogsView
-						selection={selection.$$logs}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No logs.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-				{#snippet SectionEvmTxTraces({ id, label, open })}
-					<EvmTracesView
-						selection={selection.$$traces}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No traces.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionEvmTxBlobs({ id, label, open })}
-					<ResourceBoundary
-						resource={selection.Blob}
-					>
-						{#snippet children(projectionValue)}
-							<Projection projection={projectionValue}>
-								{#snippet Applicable(projection)}
+			{#snippet MarkerEvmTxInternalTransfers(_context, Content)}
+				{@const evmTxTransfersEvmTxInternalTransfersResource = selection.$$internalTransfers}
+				<ResourceBoundary
+					resource={evmTxTransfersEvmTxInternalTransfersResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionEvmTxInternalTransfers({ id, label, open, active })}
+				{@const evmTxTransfersEvmTxInternalTransfersResource = selection.$$internalTransfers}
+				<ResourceBoundary
+					resource={evmTxTransfersEvmTxInternalTransfersResource}
+				>
+					{#snippet children(evmInternalTransfer)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<EvmInternalTransfersView
+								selection={evmTxTransfersEvmTxInternalTransfersResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No internal transfers.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-evm-tx-execution'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'evm-tx-logs',
+						label: 'Logs',
+						ownsSection: true,
+					},
+					{
+						id: 'evm-tx-traces',
+						label: 'Traces',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-execution'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Execution</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerEvmTxLogs(_context, Content)}
+				{@const evmTxExecutionEvmTxLogsResource = selection.$$logs}
+				<ResourceBoundary
+					resource={evmTxExecutionEvmTxLogsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionEvmTxLogs({ id, label, open, active })}
+				{@const evmTxExecutionEvmTxLogsResource = selection.$$logs}
+				<ResourceBoundary
+					resource={evmTxExecutionEvmTxLogsResource}
+				>
+					{#snippet children(evmLog)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<EvmLogsView
+								selection={evmTxExecutionEvmTxLogsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No logs.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerEvmTxTraces(_context, Content)}
+				{@const evmTxExecutionEvmTxTracesResource = selection.$$traces}
+				<ResourceBoundary
+					resource={evmTxExecutionEvmTxTracesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionEvmTxTraces({ id, label, open, active })}
+				{@const evmTxExecutionEvmTxTracesResource = selection.$$traces}
+				<ResourceBoundary
+					resource={evmTxExecutionEvmTxTracesResource}
+				>
+					{#snippet children(evmTrace)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<EvmTracesView
+								selection={evmTxExecutionEvmTxTracesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No traces.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-evm-tx-account-abstraction'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'evm-tx-user-operations',
+						label: 'User operations',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-account-abstraction'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Account abstraction</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerEvmTxUserOperations(_context, Content)}
+				{@const evmTxAccountAbstractionEvmTxUserOperationsResource = selection.$$userOperations}
+				<ResourceBoundary
+					resource={evmTxAccountAbstractionEvmTxUserOperationsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionEvmTxUserOperations({ id, label, open, active })}
+				{@const evmTxAccountAbstractionEvmTxUserOperationsResource = selection.$$userOperations}
+				<ResourceBoundary
+					resource={evmTxAccountAbstractionEvmTxUserOperationsResource}
+				>
+					{#snippet children(evmUserOperation)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<EvmUserOperationsView
+								selection={evmTxAccountAbstractionEvmTxUserOperationsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No user operations.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<ProjectionBoundary
+			resource={selection.Blob}
+		>
+			{#snippet Applicable(projection)}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-evm-tx-blobs'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'evm-tx-blobs',
+								label: 'Blobs',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-execution'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Blobs</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet MarkerEvmTxBlobs(_context, Content)}
+						{@const evmTxBlobsEvmTxBlobsResource = projection.$$blobs}
+						<ResourceBoundary
+							resource={evmTxBlobsEvmTxBlobsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionEvmTxBlobs({ id, label, open, active })}
+						{@const evmTxBlobsEvmTxBlobsResource = projection.$$blobs}
+						<ResourceBoundary
+							resource={evmTxBlobsEvmTxBlobsResource}
+						>
+							{#snippet children(evmBlob)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
 									<EvmBlobsView
-										selection={projection.$$blobs}
+										selection={evmTxBlobsEvmTxBlobsResource}
 										CollapsibleProps={{ canToggle: false }}
 										collapsible={false}
 										data-column-item="flexible"
 										data-card
 										data-scroll-container
+										open={open}
+										title={label}
 										emptyText='No blobs.'
-										open={open}
-										title={label}
 										id={`${id}-list`}
 									/>
-								{/snippet}
-							</Projection>
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+								</section>
+							{/snippet}
 
-			</CollapsibleTabs>
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-evm-tx-account-abstraction'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'evm-tx-user-operations',
-							label: 'User operations',
-						},
-						{
-							id: 'evm-tx-authorizations',
-							label: 'Authorizations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-account-abstraction'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Account abstraction</HeadingComponent>
-					</header>
-				{/snippet}
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
 
-				{#snippet SectionEvmTxUserOperations({ id, label, open })}
-					<EvmUserOperationsView
-						selection={selection.$$userOperations}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No user operations.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+				</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
 
-				{#snippet SectionEvmTxAuthorizations({ id, label, open })}
-					<ResourceBoundary
-						resource={selection.SetCode}
-					>
-						{#snippet children(projectionValue)}
-							<Projection projection={projectionValue}>
-								{#snippet Applicable(projection)}
+		<ProjectionBoundary
+			resource={selection.SetCode}
+		>
+			{#snippet Applicable(projection)}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-evm-tx-authorizations'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'evm-tx-authorizations',
+								label: 'Authorizations',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-account-abstraction'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Authorizations</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet MarkerEvmTxAuthorizations(_context, Content)}
+						{@const evmTxAuthorizationsEvmTxAuthorizationsResource = projection.$$authorizations}
+						<ResourceBoundary
+							resource={evmTxAuthorizationsEvmTxAuthorizationsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionEvmTxAuthorizations({ id, label, open, active })}
+						{@const evmTxAuthorizationsEvmTxAuthorizationsResource = projection.$$authorizations}
+						<ResourceBoundary
+							resource={evmTxAuthorizationsEvmTxAuthorizationsResource}
+						>
+							{#snippet children(eip7702Authorization)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
 									<Eip7702AuthorizationsView
-										selection={projection.$$authorizations}
+										selection={evmTxAuthorizationsEvmTxAuthorizationsResource}
 										CollapsibleProps={{ canToggle: false }}
 										collapsible={false}
 										data-column-item="flexible"
 										data-card
 										data-scroll-container
-										emptyText='No authorizations.'
 										open={open}
 										title={label}
+										emptyText='No authorizations.'
 										id={`${id}-list`}
 									/>
-								{/snippet}
-							</Projection>
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+								</section>
+							{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
 	{/snippet}
 </EntityView>

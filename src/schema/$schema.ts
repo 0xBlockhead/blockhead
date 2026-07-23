@@ -836,6 +836,12 @@ const parseEntitySelectorFieldValue = (
 	fieldDefinition: EntityFieldDefinition,
 	value: unknown
 ) => {
+	if (
+		fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne
+		&& value === undefined
+	)
+		return value
+
 	if (fieldDefinition.type === EntityFieldType.Primitive)
 		return fieldDefinition.primitiveType(value)
 

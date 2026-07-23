@@ -33,7 +33,6 @@
 			nonce: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.source) ?? '')].filter(Boolean).join(' ') || 'Polkadot account timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'Polkadot account timestamp')))
 
 
 	// Components
@@ -43,7 +42,15 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Polkadot account timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
+		$account: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.source) ?? '')].filter(Boolean).join(' ') || 'Polkadot account timestamp' : [String((({ ...{
+		$account: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'Polkadot account timestamp'))} • Polkadot account timestamp • Blockhead</title>
 </svelte:head>
 
 

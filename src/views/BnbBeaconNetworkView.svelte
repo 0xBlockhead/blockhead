@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BnbBeaconNetwork>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BnbBeaconNetwork>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BnbBeaconNetwork>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bnbBeaconNetwork = $derived(selection({
+	const bnbBeaconNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			decommissionedAtMs: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			decommissionedAtMs: true,
 		},
 	}))
-	const titleFallback = $derived('bnb beacon network')
-	const viewDomId = $derived('bnb-beacon-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'bnb beacon network'
+	const viewDomId = $derived('bnb-beacon-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -78,57 +84,28 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={bnbBeaconNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconNetwork}>
+			{#snippet children(entity)}
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const decommissionedAtMs0 = pendingEntity.decommissionedAtMs}
-					{#if decommissionedAtMs0 !== undefined && decommissionedAtMs0 !== null}
-						<Timestamp timestamp={Number(decommissionedAtMs0)} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const decommissionedAtMs0 = resolvedEntity.decommissionedAtMs}
-					{#if decommissionedAtMs0 !== undefined && decommissionedAtMs0 !== null}
-						<Timestamp timestamp={Number(decommissionedAtMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconNetwork}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const decommissionedAtMs0 = resolvedEntity.decommissionedAtMs}
+				{#if decommissionedAtMs0 !== undefined && decommissionedAtMs0 !== null}
+					<Timestamp timestamp={Number(decommissionedAtMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -137,13 +114,23 @@
 				<dt>network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -202,174 +189,484 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-bnb-beacon-chain-activity'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'bnb-beacon-chain-observations',
-							label: 'Observations',
-						},
-						{
-							id: 'bnb-beacon-chain-blocks',
-							label: 'Blocks',
-						},
-						{
-							id: 'bnb-beacon-chain-transactions',
-							label: 'Transactions',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-chain-activity'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Chain activity</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-bnb-beacon-chain-activity'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'bnb-beacon-chain-observations',
+						label: 'Observations',
+						ownsSection: true,
+					},
+					{
+						id: 'bnb-beacon-chain-blocks',
+						label: 'Blocks',
+						ownsSection: true,
+					},
+					{
+						id: 'bnb-beacon-chain-transactions',
+						label: 'Transactions',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-chain-activity'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Chain activity</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionBnbBeaconChainObservations({ id, label, open })}
-					<BnbBeaconNetwork_TimestampsView
-						selection={selection.$$timestamps}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No observations yet.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerBnbBeaconChainObservations(_context, Content)}
+				{@const bnbBeaconChainActivityBnbBeaconChainObservationsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={bnbBeaconChainActivityBnbBeaconChainObservationsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionBnbBeaconChainBlocks({ id, label, open })}
-					<BnbBeaconBlocksView
-						selection={selection.$$blocks}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No blocks found.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionBnbBeaconChainTransactions({ id, label, open })}
-					<BnbBeaconTransactionsView
-						selection={selection.$$transactions}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No transactions found.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			</CollapsibleTabs>
+			{#snippet SectionBnbBeaconChainObservations({ id, label, open, active })}
+				{@const bnbBeaconChainActivityBnbBeaconChainObservationsResource = selection.$$timestamps}
+				<ResourceBoundary
+					resource={bnbBeaconChainActivityBnbBeaconChainObservationsResource}
+				>
+					{#snippet children(bnbBeaconNetworkTimestamp)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BnbBeaconNetwork_TimestampsView
+								selection={bnbBeaconChainActivityBnbBeaconChainObservationsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No observations yet.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-bnb-beacon-validators'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'bnb-beacon-validator-list',
-							label: 'Validators',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-validators'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Validators</HeadingComponent>
-					</header>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-				{#snippet SectionBnbBeaconValidatorList({ id, label, open })}
-					<BnbValidatorsView
-						selection={selection.$$validators}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No validators found.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			</CollapsibleTabs>
+			{#snippet MarkerBnbBeaconChainBlocks(_context, Content)}
+				{@const bnbBeaconChainActivityBnbBeaconChainBlocksResource = selection.$$blocks}
+				<ResourceBoundary
+					resource={bnbBeaconChainActivityBnbBeaconChainBlocksResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-bnb-beacon-tokens-migration'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'bnb-beacon-tokens',
-							label: 'Tokens',
-						},
-						{
-							id: 'bnb-beacon-migrations',
-							label: 'Migration records',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-tokens-migration'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Tokens and migration</HeadingComponent>
-					</header>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionBnbBeaconTokens({ id, label, open })}
-					<BnbBeaconTokensView
-						selection={selection.$$tokens}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No tokens found.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionBnbBeaconMigrations({ id, label, open })}
-					<BnbBeaconTokenMigrationsView
-						selection={selection.$$migrationRecords}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No migration records found.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet SectionBnbBeaconChainBlocks({ id, label, open, active })}
+				{@const bnbBeaconChainActivityBnbBeaconChainBlocksResource = selection.$$blocks}
+				<ResourceBoundary
+					resource={bnbBeaconChainActivityBnbBeaconChainBlocksResource}
+				>
+					{#snippet children(bnbBeaconBlock)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BnbBeaconBlocksView
+								selection={bnbBeaconChainActivityBnbBeaconChainBlocksResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No blocks found.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerBnbBeaconChainTransactions(_context, Content)}
+				{@const bnbBeaconChainActivityBnbBeaconChainTransactionsResource = selection.$$transactions}
+				<ResourceBoundary
+					resource={bnbBeaconChainActivityBnbBeaconChainTransactionsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionBnbBeaconChainTransactions({ id, label, open, active })}
+				{@const bnbBeaconChainActivityBnbBeaconChainTransactionsResource = selection.$$transactions}
+				<ResourceBoundary
+					resource={bnbBeaconChainActivityBnbBeaconChainTransactionsResource}
+				>
+					{#snippet children(bnbBeaconTransaction)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BnbBeaconTransactionsView
+								selection={bnbBeaconChainActivityBnbBeaconChainTransactionsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No transactions found.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-bnb-beacon-validators'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'bnb-beacon-validator-list',
+						label: 'Validators',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-validators'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Validators</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerBnbBeaconValidatorList(_context, Content)}
+				{@const bnbBeaconValidatorsBnbBeaconValidatorListResource = selection.$$validators}
+				<ResourceBoundary
+					resource={bnbBeaconValidatorsBnbBeaconValidatorListResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionBnbBeaconValidatorList({ id, label, open, active })}
+				{@const bnbBeaconValidatorsBnbBeaconValidatorListResource = selection.$$validators}
+				<ResourceBoundary
+					resource={bnbBeaconValidatorsBnbBeaconValidatorListResource}
+				>
+					{#snippet children(bnbValidator)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BnbValidatorsView
+								selection={bnbBeaconValidatorsBnbBeaconValidatorListResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No validators found.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-bnb-beacon-tokens-migration'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'bnb-beacon-tokens',
+						label: 'Tokens',
+						ownsSection: true,
+					},
+					{
+						id: 'bnb-beacon-migrations',
+						label: 'Migration records',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-tokens-migration'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Tokens and migration</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerBnbBeaconTokens(_context, Content)}
+				{@const bnbBeaconTokensMigrationBnbBeaconTokensResource = selection.$$tokens}
+				<ResourceBoundary
+					resource={bnbBeaconTokensMigrationBnbBeaconTokensResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionBnbBeaconTokens({ id, label, open, active })}
+				{@const bnbBeaconTokensMigrationBnbBeaconTokensResource = selection.$$tokens}
+				<ResourceBoundary
+					resource={bnbBeaconTokensMigrationBnbBeaconTokensResource}
+				>
+					{#snippet children(bnbBeaconToken)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BnbBeaconTokensView
+								selection={bnbBeaconTokensMigrationBnbBeaconTokensResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No tokens found.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerBnbBeaconMigrations(_context, Content)}
+				{@const bnbBeaconTokensMigrationBnbBeaconMigrationsResource = selection.$$migrationRecords}
+				<ResourceBoundary
+					resource={bnbBeaconTokensMigrationBnbBeaconMigrationsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionBnbBeaconMigrations({ id, label, open, active })}
+				{@const bnbBeaconTokensMigrationBnbBeaconMigrationsResource = selection.$$migrationRecords}
+				<ResourceBoundary
+					resource={bnbBeaconTokensMigrationBnbBeaconMigrationsResource}
+				>
+					{#snippet children(bnbBeaconTokenMigration)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BnbBeaconTokenMigrationsView
+								selection={bnbBeaconTokensMigrationBnbBeaconMigrationsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No migration records found.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

@@ -29,7 +29,6 @@
 			createdBy: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'room' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'room'))
 
 
 	// Components
@@ -39,7 +38,13 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • room • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		id: params.roomId,
+	}.id) ?? '')].filter(Boolean).join(' ') || 'room' : [String((({ ...{
+		id: params.roomId,
+	}, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
+		id: params.roomId,
+	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'room')} • room • Blockhead</title>
 </svelte:head>
 
 

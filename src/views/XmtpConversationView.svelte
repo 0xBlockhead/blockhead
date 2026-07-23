@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.XmtpConversation>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XmtpConversation>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XmtpConversation>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,7 +38,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xmtpConversation = $derived(selection({
+	const xmtpConversation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			peerInboxId: true,
+			topic: true,
+			createdAtMs: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			peerInboxId: true,
@@ -47,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.topic) ?? ''), String((pendingEntity.peerInboxId) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation')
-	const viewDomId = $derived('xmtp-conversation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('xmtp-conversation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -63,16 +71,22 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.id !== undefined ? resolve('/xmtp/conversation/[conversationId=stringSegment]', {
-			conversationId: String(pendingEntity.id ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'id' in selection.entitySelector
+			&& selection.entitySelector.id != null ?
+				resolve('/xmtp/conversation/[conversationId=stringSegment]', {
+			conversationId: String(selection.entitySelector.id ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'topic') && Object.hasOwn(prefetched, 'peerInboxId') && Object.hasOwn(prefetched, 'createdAtMs')}
 			{[String((pendingEntity.topic) ?? ''), String((pendingEntity.peerInboxId) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={xmtpConversation}>
@@ -85,11 +99,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const id0 = pendingEntity.id}
-					{#if id0 !== undefined && id0 !== null}
-						<TruncatedValue value={String((id0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'topic') && Object.hasOwn(prefetched, 'peerInboxId') && Object.hasOwn(prefetched, 'createdAtMs')}
+			{@const id0 = pendingEntity.id}
+			{#if id0 !== undefined && id0 !== null}
+				<TruncatedValue value={String((id0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={xmtpConversation}>
 				{#snippet children(entity)}
@@ -104,7 +118,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'topic') && Object.hasOwn(prefetched, 'peerInboxId') && Object.hasOwn(prefetched, 'createdAtMs')}
 			{@const createdAtMs0 = pendingEntity.createdAtMs}
 			{#if createdAtMs0 !== undefined && createdAtMs0 !== null}
 				<span data-text="muted">

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hedera schedule signatures',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HederaScheduleSignature>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HederaScheduleSignature>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HederaScheduleSignatureView from '$/views/HederaScheduleSignatureView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(hederaScheduleSignatures) => [...new Map(hederaScheduleSignatures.values.map((hederaScheduleSignature) => [hederaScheduleSignature[EntityMetaKey.SelectorKey], hederaScheduleSignature])).values()]}
 	getKey={(hederaScheduleSignature) => hederaScheduleSignature[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: hederaScheduleSignature })}
 		{@const hederaScheduleSignatureFields = { ...hederaScheduleSignature[EntityMetaKey.Selector], ...hederaScheduleSignature }}
-		{@const selection = select(EntityType.HederaScheduleSignature, hederaScheduleSignature[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HederaScheduleSignatureView
-			selection={selection}
-			prefetched={hederaScheduleSignatureFields}
+		<EntityView
+			entityType={EntityType.HederaScheduleSignature}
+			entitySelector={hederaScheduleSignature[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'hedera schedule signature'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

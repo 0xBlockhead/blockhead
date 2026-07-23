@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ICP subnet observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.IcpSubnet_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.IcpSubnet_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import IcpSubnet_TimestampView from '$/views/IcpSubnet_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(icpSubnetTimestamps) => [...new Map(icpSubnetTimestamps.values.map((icpSubnetTimestamp) => [icpSubnetTimestamp[EntityMetaKey.SelectorKey], icpSubnetTimestamp])).values()]}
 	getKey={(icpSubnetTimestamp) => icpSubnetTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: icpSubnetTimestamp })}
 		{@const icpSubnetTimestampFields = { ...icpSubnetTimestamp[EntityMetaKey.Selector], ...icpSubnetTimestamp }}
-		{@const selection = select(EntityType.IcpSubnet_Timestamp, icpSubnetTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<IcpSubnet_TimestampView
-			selection={selection}
-			prefetched={icpSubnetTimestampFields}
+		<EntityView
+			entityType={EntityType.IcpSubnet_Timestamp}
+			entitySelector={icpSubnetTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'ICP subnet timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

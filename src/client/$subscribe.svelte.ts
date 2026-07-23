@@ -88,12 +88,78 @@ export type EntityFieldResourceData<
 			values: readonly SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName, _FieldSelection>[]
 			entities: readonly SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName, _FieldSelection>[]
 			continuation?: PersistedCollectionContinuation
-			totalCount?: number
 		}
 	:
 		SubscribeFieldResult<_Schema, _EntityType, _FieldName, _FieldSelection>
-	| undefined
 )
+
+type SharedEntityFieldResource = SvelteKitResource<EntityFieldResourceData<
+	Schema,
+	EntityType<Schema>,
+	EntityFieldName<Schema, EntityType<Schema>>
+>>
+type SharedEntityResource = TanStackLiveQueryResource<EntityResourceData<
+	Schema,
+	EntityType<Schema>
+>>
+
+const sharedEntityFieldResourceByContext = new WeakMap<object, Map<string, SharedEntityFieldResource>>()
+const sharedEntityResourceByContext = new WeakMap<object, Map<string, SharedEntityResource>>()
+
+const serializableEntityFieldResourceKey = <
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+>(
+	context: ClientContext<_Schema>,
+	entityType: _EntityType,
+	entitySelector: EntitySelector<_Schema, _EntityType>,
+	fieldName: string,
+	definition: EntityFieldDefinition,
+	selection: object
+) => {
+	try {
+		return stringify([
+			entityType,
+			entitySelectorKey(
+				context.schema,
+				context.entityDefinitionByType[entityType],
+				entitySelector
+			),
+			entityFieldAddressKey(
+				entityType,
+				entityFieldFacetPath(definition),
+				fieldName
+			),
+			selection,
+		])
+	} catch {
+		return undefined
+	}
+}
+
+const serializableEntityResourceKey = <
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+>(
+	context: ClientContext<_Schema>,
+	entityType: _EntityType,
+	entitySelector: EntitySelector<_Schema, _EntityType>,
+	selection: object
+) => {
+	try {
+		return stringify([
+			entityType,
+			entitySelectorKey(
+				context.schema,
+				context.entityDefinitionByType[entityType],
+				entitySelector
+			),
+			selection,
+		])
+	} catch {
+		return undefined
+	}
+}
 
 const asQuerySnapshot = <Data>(
 	queries: readonly {
@@ -164,6 +230,7 @@ const subscribeToLiveQueryCollections = (
 						onStatusChange: () => void
 					}
 					| {
+						includeInitialState: false
 						onStatusChange: () => void
 					}
 			): {
@@ -177,13 +244,17 @@ const subscribeToLiveQueryCollections = (
 	const subscriptions = [
 		subscribeToFailures(update),
 	]
-
 	for (const query of queries) {
 		query.collection.onFirstReady(update)
 		const subscription = (
 			query.initialSnapshot === false ?
-				query.collection.subscribeChanges(update, {
-					onStatusChange: update,
+				query.collection.subscribeChanges(() => {
+					queueMicrotask(update)
+				}, {
+					includeInitialState: false,
+					onStatusChange: () => {
+						queueMicrotask(update)
+					},
 				})
 			:
 				query.collection.subscribeChanges(update, {
@@ -279,14 +350,13 @@ const liveQuerySnapshot = <Data>(
 		): {
 			unsubscribe(): void
 		}
-	},
-	data = () => collection.toArray
+	}
 ) => {
 	const isReady = () => collection.status === 'ready'
 	return {
 		collection,
 		get data() {
-			return data()
+			return collection.toArray
 		},
 		get isError() {
 			return collection.status === 'error'
@@ -443,12 +513,14 @@ const fieldRowsComplete = <
 	rowsUpdated: boolean,
 	sourceDisabled: boolean
 ) => (
-	rows.length > 0
-	|| selectorFieldValue(entitySelector, definition.name) !== undefined
+	selectorFieldValue(entitySelector, definition.name) !== undefined
 	|| sourceDisabled
 	|| (
 		rowsUpdated
-		&& fieldCanCompleteEmpty(definition)
+		&& (
+			rows.length > 0
+			|| fieldCanCompleteEmpty(definition)
+		)
 	)
 )
 
@@ -460,8 +532,6 @@ const fieldDataFromRows = <
 	entitySelector: EntitySelector<_Schema, _EntityType>,
 	definition: EntityFieldDefinition,
 	rows: readonly EntityFieldCollectionItem<_Schema>[],
-	countRows: readonly EntityFieldCountCollectionItem<_Schema>[],
-	countSourcePriority: readonly string[],
 	continuation?: PersistedCollectionContinuation
 ) => {
 	const values = (
@@ -494,9 +564,6 @@ const fieldDataFromRows = <
 			),
 		}
 	})
-	const countRow = countSourcePriority
-		.map((source) => countRows.find((row) => row[EntityMetaKey.Source] === source))
-		.find((row) => row !== undefined)
 	if (entityFieldCardinalityIsMultiple(definition.cardinality))
 		return {
 			entityType,
@@ -506,9 +573,6 @@ const fieldDataFromRows = <
 			entities: values,
 			...(continuation !== undefined && {
 				continuation,
-			}),
-			...(countRow != null && {
-				totalCount: countRow[EntityMetaKey.Value],
 			}),
 		}
 
@@ -553,12 +617,6 @@ const fieldResourceQueries = <
 			fieldName
 		)
 	] ?? []
-	const countSourcePriority = enabledSelectionSources(
-		context,
-		selection.sources ?? definition.defaultSources
-	) ?? (context.resolverIndexes.resolverCountPartsByEntityTypeAndFieldName[fieldAddressKey] ?? [])
-		.map((resolverPart) => String(resolverPart.source))
-		.filter((source) => context.enabledSources.has(source))
 	const parentSelectorKey = entitySelectorKey(
 		context.schema,
 		context.entityDefinitionByType[entityType],
@@ -616,55 +674,6 @@ const fieldResourceQueries = <
 			return built
 		},
 	})
-	const countCollection = (
-		selection.count === true ?
-			context.entityFieldCountCollections[entityType][fieldAddressKey]
-		:
-			undefined
-	)
-	const counts = (
-		countCollection === undefined ?
-			undefined
-		:
-			createLiveQueryCollection({
-				startSync: true,
-				query: (query) => {
-					let built = query
-						.from({
-							row: countCollection,
-						})
-						.where(({ row }) => (
-							querySources == null ?
-								eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
-							:
-								and(
-									eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-									inArray(row[EntityMetaKey.Source], [...querySources])
-								)
-						))
-						.where(({ row }) => eq(row.facetPathKey, facetPathKey))
-						.where(({ row }) => eq(row.filterKey, stringify({})))
-					return built
-				},
-			})
-	)
-	const localFieldAuthorityKey = localMutationAuthorityKey({
-		source: Source.Local_Internal,
-		entityType,
-		selectorKey: parentSelectorKey,
-		fieldName,
-		fieldAddressKey,
-		facetPathKey,
-	})
-	const localCountAuthorityKey = localMutationAuthorityKey({
-		source: Source.Local_Internal,
-		entityType,
-		selectorKey: parentSelectorKey,
-		fieldName,
-		fieldAddressKey,
-		facetPathKey,
-		filterKey: stringify({}),
-	})
 	return {
 		rows: liveQuerySnapshot(rowsCollection),
 		rowsFailure: () => collectionLoadFailure(
@@ -680,53 +689,60 @@ const fieldResourceQueries = <
 		),
 		rowsCollection,
 		sourceCollection: fieldCollection,
-		counts: counts === undefined ? undefined : liveQuerySnapshot(counts),
-		countsFailure: () => collectionLoadFailure(
-			context,
-			stringify([
-				'client.counts',
-				entityType,
-				entityFieldFacetPath(definition),
-				fieldName,
-			]),
-			parentSelectorKey,
-			querySources
-		),
-		countCollection,
-		localFieldAuthorityResolved: () => (
-			(querySources == null || querySources.includes(Source.Local_Internal))
-			&& fieldCollection.utils.hasLocalMutationAuthority(
-				parentSelectorKey,
-				localFieldAuthorityKey
-			)
-		),
-		localCountAuthorityResolved: () => (
-			countCollection !== undefined
-			&& (querySources == null || querySources.includes(Source.Local_Internal))
-			&& (
-				(
-					selection.where == null
-					&& countCollection.utils.hasLocalMutationAuthority(
-						parentSelectorKey,
-						localCountAuthorityKey
+		sourceHasUnsyncedMatches: () => (
+			(
+				selection.where == null
+				&& selection.limit == null
+				&& selection.offset == null
+				&& selection.cursor == null
+			) ?
+				fieldCollection.toArray.filter((row) => (
+					row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+					&& row.facetPathKey === facetPathKey
+					&& (
+						querySources == null
+						|| querySources.includes(row[EntityMetaKey.Source])
 					)
+				)).length !== rowsCollection.toArray.length
+			:
+				(
+					rowsCollection.toArray.length === 0
+					&& fieldCollection.toArray.some((row) => (
+						row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+						&& row.facetPathKey === facetPathKey
+						&& (
+							querySources == null
+							|| querySources.includes(row[EntityMetaKey.Source])
+						)
+					))
 				)
-				|| fieldCollection.utils.hasLocalMutationAuthority(
-					parentSelectorKey,
-					localFieldAuthorityKey
-				)
-			)
 		),
 		sourceDisabled: selectedSourcesDisabled(context, selection.sources),
-		sourceUnsupported: !valueResolverParts.some((resolverPart) => (
-			(
-				querySources == null
-				|| querySources.includes(String(resolverPart.source))
-			)
-			&& resolverPart.resolver.appliesTo(selectorName, entitySelector)
-		)),
+		sourceUnsupported: (
+			querySources?.includes(Source.Local_Internal) !== true
+			&& !valueResolverParts.some((resolverPart) => (
+				(
+					querySources == null
+					|| querySources.includes(String(resolverPart.source))
+				)
+				&& resolverPart.resolver.appliesTo(selectorName, entitySelector)
+			))
+		),
+		localAuthorityResolvedEmpty: () => (
+			selection.sources?.includes(Source.Local_Internal) === true
+			&& fieldCollection.utils.localMutationAuthorityRowCount(
+				parentSelectorKey,
+				localMutationAuthorityKey({
+					source: Source.Local_Internal,
+					entityType,
+					selectorKey: parentSelectorKey,
+					fieldName,
+					fieldAddressKey,
+					facetPathKey,
+				})
+			) === 0
+		),
 		sources: querySources,
-		countSourcePriority,
 	}
 }
 
@@ -756,8 +772,8 @@ export function subscribeEntityField<
 				_Selection
 			>
 	),
-	fieldDefinition?: EntityFieldDefinition
-): SvelteKitResource<EntityFieldResourceData<_Schema, _EntityType, _FieldName, _Selection>>
+	fieldDefinition?: EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName>
+): TanStackLiveQueryResource<EntityFieldResourceData<_Schema, _EntityType, _FieldName, _Selection>>
 export function subscribeEntityField<
 	const _Schema extends Schema,
 	const _EntityType extends EntityType<_Schema>,
@@ -772,12 +788,29 @@ export function subscribeEntityField<
 		_EntityType,
 		Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema>>>
 	> = {},
-	fieldDefinition?: EntityFieldDefinition
+	fieldDefinition?: EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName>
 ) {
 	const definition = fieldDefinition ?? context.entityDefinitionByType[entityType].fields
 		.find((candidate) => candidate.name === fieldName)
 	if (definition == null)
 		throw new Error(`${entityType}.${fieldName} does not exist`)
+
+	const sharedResourceKey = serializableEntityFieldResourceKey(
+		context,
+		entityType,
+		entitySelector,
+		fieldName,
+		definition,
+		selection
+	)
+	const sharedResource = (
+		sharedResourceKey === undefined ?
+			undefined
+		:
+			sharedEntityFieldResourceByContext.get(context)?.get(sharedResourceKey)
+	)
+	if (sharedResource !== undefined)
+		return sharedResource
 
 	const queries = fieldResourceQueries(
 		context,
@@ -788,86 +821,30 @@ export function subscribeEntityField<
 		selection
 	)
 
-	const liveQueries = (
-		queries.counts === undefined ?
-			[queries.rows]
-		:
-			[
-				queries.rows,
-				queries.counts,
-			]
-	)
 	const observedQueries: Parameters<typeof subscribeToLiveQueryCollections>[0][number][] = [
-		...liveQueries,
+		queries.rows,
 		{
 			collection: queries.rowsCollection,
 			initialSnapshot: false,
 		},
-		...(queries.countCollection === undefined ? [] : [{
-			collection: queries.countCollection,
-			initialSnapshot: false,
-		}]),
 	]
 	const parentSelectorKey = entitySelectorKey(
 		context.schema,
 		context.entityDefinitionByType[entityType],
 		entitySelector
 	)
-	const facetPathKey = stringify(entityFieldFacetPath(definition))
-
-	const sourceHasUnsyncedMatches = () => {
-		if (queries.rows.data.length > 0)
-			return false
-
-		return queries.sourceCollection.toArray.some((row) => (
-			row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
-			&& row.facetPathKey === facetPathKey
-			&& (
-				queries.sources == null
-				|| queries.sources.includes(row[EntityMetaKey.Source])
-			)
-		))
-	}
-
-	return new TanStackLiveQueryResource(() => asQuerySnapshot(
-		[
-			{
-				...queries.rows,
-				isComplete: (
-					queries.rowsFailure() !== undefined
-					|| (
-						!queries.sourceCollection.isLoadingSubset
-						&& !sourceHasUnsyncedMatches()
-						&& fieldRowsComplete(
-							entitySelector,
-							definition,
-							queries.rows.data,
-							queries.rows.isReady,
-							queries.sourceDisabled || queries.sourceUnsupported
-						)
-					)
-					|| queries.localFieldAuthorityResolved()
-					|| queries.localCountAuthorityResolved()
-				),
-			},
-			...(queries.counts === undefined ? [] : [
-				{
-					...queries.counts,
-					isComplete: (
-						queries.countsFailure() !== undefined
-						|| queries.counts.isReady
-						|| queries.localCountAuthorityResolved()
-					),
-				},
-			]),
-		],
-		fieldDataFromRows(
+	const nestedResourceBySelectorKey = new Map<string, SharedEntityResource>()
+	const unsubscribeByNestedResource = new Map<SharedEntityResource, () => void>()
+	const pendingNestedResourceSubscriptions = new Set<SharedEntityResource>()
+	let nestedResourceUpdate: (() => void) | undefined
+	const resource = new TanStackLiveQueryResource(() => {
+		const rowsFailure = queries.rowsFailure()
+		const rowsFailed = rowsFailure !== undefined && queries.rows.data.length === 0
+		let fieldData = fieldDataFromRows(
 			entityType,
 			entitySelector,
 			definition,
 			queries.rows.data,
-			queries.counts?.data ?? [],
-			queries.countSourcePriority,
 			queries.sourceCollection.utils.continuationForRows(
 				parentSelectorKey,
 				Object.fromEntries(Object.keys(Object.groupBy(
@@ -888,7 +865,134 @@ export function subscribeEntityField<
 				queries.sources
 			).find((continuation) => !continuation.metadata.terminal)
 		)
-	), (update) => {
+		const nestedResources: SharedEntityResource[] = []
+		if (
+			(
+				definition.type === EntityFieldType.EntityReference
+				|| definition.type === EntityFieldType.EntitiesReference
+			)
+			&& selection.fields !== undefined
+		) {
+			const selectedReference = (reference: object) => {
+				const referencedEntitySelector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
+				if (referencedEntitySelector === undefined)
+					return reference
+
+				const nestedResourceKey = entitySelectorKey(
+					context.schema,
+					context.entityDefinitionByType[definition.entityType],
+					referencedEntitySelector
+				)
+				if (!nestedResourceBySelectorKey.has(nestedResourceKey))
+					nestedResourceBySelectorKey.set(
+						nestedResourceKey,
+						subscribeEntitySelection(
+							context,
+							definition.entityType,
+							referencedEntitySelector,
+							{
+								fields: selection.fields,
+								sources: selection.sources,
+								selectorSources: selection.selectorSources,
+							}
+						)
+					)
+
+				const nestedResource = nestedResourceBySelectorKey.get(nestedResourceKey)
+				if (nestedResource === undefined)
+					return reference
+				if (
+					nestedResourceUpdate !== undefined
+					&& !unsubscribeByNestedResource.has(nestedResource)
+					&& !pendingNestedResourceSubscriptions.has(nestedResource)
+				) {
+					pendingNestedResourceSubscriptions.add(nestedResource)
+					queueMicrotask(() => {
+						pendingNestedResourceSubscriptions.delete(nestedResource)
+						if (
+							nestedResourceUpdate === undefined
+							|| unsubscribeByNestedResource.has(nestedResource)
+						)
+							return
+
+						unsubscribeByNestedResource.set(
+							nestedResource,
+							nestedResource.subscribe(nestedResourceUpdate)
+						)
+						nestedResourceUpdate()
+					})
+				}
+
+				nestedResources.push(nestedResource)
+				return {
+					...reference,
+					...nestedResource.current?.fields,
+				}
+			}
+
+			if (
+				fieldData !== undefined
+				&& fieldData !== null
+				&& typeof fieldData === 'object'
+				&& 'values' in fieldData
+				&& Array.isArray(fieldData.values)
+			)
+				fieldData = {
+					...fieldData,
+					values: fieldData.values.map(selectedReference),
+					entities: fieldData.values.map(selectedReference),
+				}
+			else if (fieldData !== undefined && fieldData !== null && typeof fieldData === 'object')
+				fieldData = selectedReference(fieldData)
+		}
+		return asQuerySnapshot(
+			[{
+				...queries.rows,
+				isError: rowsFailed,
+				error: rowsFailure === undefined ? undefined : new Error(rowsFailure.error),
+				isComplete: (
+					rowsFailed
+					|| (
+						!queries.sourceHasUnsyncedMatches()
+						&& (
+							queries.localAuthorityResolvedEmpty()
+							|| (
+								(
+									queries.rows.data.length > 0
+									|| !queries.sourceCollection.isLoadingSubset
+								)
+								&& !queries.sourceCollection.utils.isResolverSubsetLoading(
+									parentSelectorKey,
+									queries.sources
+								)
+								&& fieldRowsComplete(
+									entitySelector,
+									definition,
+									queries.rows.data,
+									queries.rows.isReady,
+									queries.sourceDisabled || queries.sourceUnsupported
+								)
+							)
+						)
+					)
+				),
+			}, ...nestedResources.map((nestedResource) => ({
+				isError: nestedResource.error !== undefined,
+				isLoading: nestedResource.loading,
+				isReady: nestedResource.ready,
+				status: (nestedResource.ready ? 'ready' : 'loading') satisfies CollectionStatus,
+				error: nestedResource.error,
+			} satisfies {
+				isError: boolean
+				isLoading: boolean
+				isReady: boolean
+				status: CollectionStatus
+				error?: object | string
+			}))],
+			fieldData
+		)
+	}, (update) => {
+		nestedResourceUpdate = update
 		const unsubscribeLive = subscribeToLiveQueryCollections(
 			observedQueries,
 			update,
@@ -898,14 +1002,163 @@ export function subscribeEntityField<
 		const unsubscribeContinuationChanges = queries.sourceCollection.utils.subscribeContinuationChanges(update)
 		const unsubscribeLocalMutationAuthorityChanges =
 			queries.sourceCollection.utils.subscribeLocalMutationAuthorityChanges(update)
-		const unsubscribeLocalCountMutationAuthorityChanges =
-			queries.countCollection?.utils.subscribeLocalMutationAuthorityChanges(update)
+		const unsubscribeResolverSubsetLoadingChanges =
+			queries.sourceCollection.utils.subscribeResolverSubsetLoadingChanges(update)
 		return () => {
+			nestedResourceUpdate = undefined
+			pendingNestedResourceSubscriptions.clear()
+			for (const unsubscribe of unsubscribeByNestedResource.values())
+				unsubscribe()
+			unsubscribeByNestedResource.clear()
 			unsubscribeLive()
 			unsubscribeSourceLoading()
 			unsubscribeContinuationChanges()
 			unsubscribeLocalMutationAuthorityChanges()
-			unsubscribeLocalCountMutationAuthorityChanges?.()
+			unsubscribeResolverSubsetLoadingChanges()
+		}
+	}, () => waitForLiveQueryCollections(observedQueries))
+	if (sharedResourceKey !== undefined) {
+		const resources = (
+			sharedEntityFieldResourceByContext.get(context)
+			?? new Map<string, SharedEntityFieldResource>()
+		)
+		resources.set(sharedResourceKey, resource)
+		sharedEntityFieldResourceByContext.set(context, resources)
+	}
+	return resource
+}
+
+export const subscribeEntityFieldCount = <
+	const _Schema extends Schema,
+	const _EntityType extends EntityType<_Schema>,
+	const _FieldName extends EntityFieldName<_Schema, _EntityType>,
+>(
+	context: ClientContext<_Schema>,
+	entityType: _EntityType,
+	entitySelector: EntitySelector<_Schema, _EntityType>,
+	fieldName: _FieldName,
+	selection: {
+		readonly sources?: readonly string[]
+	} = {},
+	fieldDefinition?: EntityFieldDefinition
+): SvelteKitResource<number> => {
+	const definition = fieldDefinition ?? context.entityDefinitionByType[entityType].fields
+		.find((candidate) => candidate.name === fieldName)
+	if (definition == null)
+		throw new Error(`${entityType}.${fieldName} does not exist`)
+	if (!entityFieldCardinalityIsMultiple(definition.cardinality))
+		throw new Error(`${entityType}.${fieldName} does not have an independent count`)
+
+	const facetPath = entityFieldFacetPath(definition)
+	const facetPathKey = stringify(facetPath)
+	const fieldAddressKey = entityFieldAddressKey(entityType, facetPath, fieldName)
+	const countCollection = context.entityFieldCountCollections[entityType][fieldAddressKey]
+	if (countCollection === undefined)
+		throw new Error(`${entityType}.${fieldName} count collection does not exist`)
+
+	const querySources = enabledSelectionSources(
+		context,
+		selection.sources ?? definition.defaultSources
+	)
+	const parentSelectorKey = entitySelectorKey(
+		context.schema,
+		context.entityDefinitionByType[entityType],
+		entitySelector
+	)
+	const countSourcePriority = querySources ?? (
+		context.resolverIndexes.resolverCountPartsByEntityTypeAndFieldName[fieldAddressKey] ?? []
+	)
+		.map((resolverPart) => String(resolverPart.source))
+		.filter((source) => context.enabledSources.has(source))
+	const countsCollection = createLiveQueryCollection({
+		gcTime: 1,
+		startSync: true,
+		query: (query) => (
+			query
+				.from({
+					row: countCollection,
+				})
+				.where(({ row }) => (
+					querySources == null ?
+						eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+					:
+						and(
+							eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+							inArray(row[EntityMetaKey.Source], [...querySources])
+						)
+				))
+				.where(({ row }) => eq(row.facetPathKey, facetPathKey))
+				.where(({ row }) => eq(row.filterKey, stringify({})))
+		),
+	})
+	const counts = liveQuerySnapshot(countsCollection)
+	const observedQueries: Parameters<typeof subscribeToLiveQueryCollections>[0][number][] = [
+		counts,
+		{
+			collection: countCollection,
+			initialSnapshot: false,
+		},
+	]
+	const localCountAuthorityKey = localMutationAuthorityKey({
+		source: Source.Local_Internal,
+		entityType,
+		selectorKey: parentSelectorKey,
+		fieldName,
+		fieldAddressKey,
+		facetPathKey,
+		filterKey: stringify({}),
+	})
+
+	return new TanStackLiveQueryResource(() => asQuerySnapshot(
+		[{
+			...counts,
+			isComplete: (
+				collectionLoadFailure(
+					context,
+					stringify([
+						'client.counts',
+						entityType,
+						facetPath,
+						fieldName,
+					]),
+					parentSelectorKey,
+					querySources
+				) !== undefined
+				|| (
+					!countCollection.utils.isResolverSubsetLoading(
+						parentSelectorKey,
+						querySources
+					)
+					&& (
+						counts.isReady
+						|| (
+							(querySources == null || querySources.includes(Source.Local_Internal))
+							&& countCollection.utils.hasLocalMutationAuthority(
+								parentSelectorKey,
+								localCountAuthorityKey
+							)
+						)
+					)
+				)
+			),
+		}],
+		countSourcePriority
+			.map((source) => counts.data.find((row) => row[EntityMetaKey.Source] === source))
+			.find((row) => row !== undefined)?.[EntityMetaKey.Value] ?? 0
+	), (update) => {
+		const unsubscribeLive = subscribeToLiveQueryCollections(
+			observedQueries,
+			update,
+			context.collectionLoadFailures.subscribe
+		)
+		const unsubscribeLocalMutationAuthority =
+			countCollection.utils.subscribeLocalMutationAuthorityChanges(update)
+		const unsubscribeResolverSubsetLoading =
+			countCollection.utils.subscribeResolverSubsetLoadingChanges(update)
+		return () => {
+			unsubscribeLive()
+			unsubscribeLocalMutationAuthority()
+			unsubscribeResolverSubsetLoading()
 		}
 	}, () => waitForLiveQueryCollections(observedQueries))
 }
@@ -924,7 +1177,7 @@ export function subscribeEntity<
 		:
 			CheckedSubscribeSelection<_Schema, _EntityType, _Selection>
 	)
-): SvelteKitResource<EntityResourceData<_Schema, _EntityType, _Selection>>
+): TanStackLiveQueryResource<EntityResourceData<_Schema, _EntityType, _Selection>>
 export function subscribeEntity<
 	const _Schema extends Schema,
 	const _EntityType extends EntityType<_Schema>
@@ -934,11 +1187,42 @@ export function subscribeEntity<
 	entitySelector: EntitySelector<_Schema, _EntityType>,
 	selection: SubscribeSelection<_Schema, _EntityType> = {}
 ) {
+	return subscribeEntitySelection(
+		context,
+		entityType,
+		entitySelector,
+		selection
+	)
+}
+
+const subscribeEntitySelection = <
+	const _Schema extends Schema,
+	const _EntityType extends EntityType<_Schema>
+>(
+	context: ClientContext<_Schema>,
+	entityType: _EntityType,
+	entitySelector: EntitySelector<_Schema, _EntityType>,
+	selection: SubscribeSelection<_Schema, _EntityType> = {}
+) => {
 	validateSubscribeSelection(
 		context,
 		entityType,
 		selection
 	)
+	const sharedResourceKey = serializableEntityResourceKey(
+		context,
+		entityType,
+		entitySelector,
+		selection
+	)
+	const sharedResource = (
+		sharedResourceKey === undefined ?
+			undefined
+		:
+			sharedEntityResourceByContext.get(context)?.get(sharedResourceKey)
+	)
+	if (sharedResource !== undefined)
+		return sharedResource
 
 	const selectorSources = selection.selectorSources ?? selection.sources
 	const querySources = enabledSelectionSources(context, selectorSources)
@@ -954,6 +1238,7 @@ export function subscribeEntity<
 		selectorKey,
 	})
 	const entityRowsCollection = createLiveQueryCollection({
+		gcTime: 1,
 		startSync: true,
 		query: (query) => (
 			query
@@ -1044,15 +1329,7 @@ export function subscribeEntity<
 
 	const liveQueries = [
 		entityRows,
-		...fields.flatMap(({ queries }) => (
-			queries.counts === undefined ?
-				[queries.rows]
-			:
-				[
-					queries.rows,
-					queries.counts,
-				]
-		)),
+		...fields.map(({ queries }) => queries.rows),
 	]
 	const observedQueries: Parameters<typeof subscribeToLiveQueryCollections>[0][number][] = [
 		...liveQueries,
@@ -1060,16 +1337,12 @@ export function subscribeEntity<
 			collection: context.entityCollections[entityType],
 			initialSnapshot: false,
 		},
-		...fields.flatMap(({ queries }) => [
-			{
-				collection: queries.rowsCollection,
-				initialSnapshot: false,
-			},
-			...(queries.countCollection === undefined ? [] : [{
-				collection: queries.countCollection,
-				initialSnapshot: false,
-			}]),
-		]),
+		...fields.map(({
+			queries,
+		}): Parameters<typeof subscribeToLiveQueryCollections>[0][number] => ({
+			collection: queries.rowsCollection,
+			initialSnapshot: false,
+		})),
 	]
 	const observedNestedCollections = new Set<object>()
 	const nestedSelections: {
@@ -1156,9 +1429,14 @@ export function subscribeEntity<
 				})
 		}
 	}
-	const nestedResourceBySelectorKey = new Map<string, SvelteKitResource<EntityResourceData<Schema, EntityType<Schema>>>>()
+	const nestedResourceBySelection = new Map<object, Map<string, TanStackLiveQueryResource<EntityResourceData<Schema, EntityType<Schema>>>>>()
+	const unsubscribeByNestedResource = new Map<SharedEntityResource, () => void>()
+	const pendingNestedResourceSubscriptions = new Set<SharedEntityResource>()
+	let nestedResourceUpdate: (() => void) | undefined
 
-	return new TanStackLiveQueryResource(() => {
+	const resource = new TanStackLiveQueryResource(() => {
+		const rowsFailure = entityRowsFailure()
+		const rowsFailed = rowsFailure !== undefined && entityRows.data.length === 0
 		const fieldValues: SubscribeMaterializedFields = {}
 		const fieldValuesByAddress: Record<
 			string,
@@ -1175,9 +1453,7 @@ export function subscribeEntity<
 				entityType,
 				entitySelector,
 				definition,
-				queries.rows.data,
-				queries.counts?.data ?? [],
-				queries.countSourcePriority
+				queries.rows.data
 			)
 			if (
 				(
@@ -1193,30 +1469,60 @@ export function subscribeEntity<
 							return reference
 
 						const nestedResourceKey = stringify([
-						definition.entityType,
-						referencedEntitySelector,
-						fieldSelection,
-					])
-					if (!nestedResourceBySelectorKey.has(nestedResourceKey))
-						nestedResourceBySelectorKey.set(
-							nestedResourceKey,
-							subscribeEntity(
-								context,
-								definition.entityType,
-								referencedEntitySelector,
-								fieldSelection
+							definition.entityType,
+							entitySelectorKey(
+								context.schema,
+								context.entityDefinitionByType[definition.entityType],
+								referencedEntitySelector
+							),
+						])
+						if (!nestedResourceBySelection.has(fieldSelection))
+							nestedResourceBySelection.set(fieldSelection, new Map())
+
+						const nestedResourceBySelectorKey = nestedResourceBySelection.get(fieldSelection)
+						if (nestedResourceBySelectorKey === undefined)
+							return reference
+						if (!nestedResourceBySelectorKey.has(nestedResourceKey))
+							nestedResourceBySelectorKey.set(
+								nestedResourceKey,
+								subscribeEntity(
+									context,
+									definition.entityType,
+									referencedEntitySelector,
+									fieldSelection
+								)
 							)
-						)
 
-					const nestedResource = nestedResourceBySelectorKey.get(nestedResourceKey)
-					if (nestedResource === undefined)
-						return reference
+						const nestedResource = nestedResourceBySelectorKey.get(nestedResourceKey)
+						if (nestedResource === undefined)
+							return reference
+						if (
+							nestedResourceUpdate !== undefined
+							&& !unsubscribeByNestedResource.has(nestedResource)
+							&& !pendingNestedResourceSubscriptions.has(nestedResource)
+						) {
+							pendingNestedResourceSubscriptions.add(nestedResource)
+							queueMicrotask(() => {
+								pendingNestedResourceSubscriptions.delete(nestedResource)
+								if (
+									nestedResourceUpdate === undefined
+									|| unsubscribeByNestedResource.has(nestedResource)
+								)
+									return
 
-					nestedResources.push(nestedResource)
-					return {
-						...reference,
-						...nestedResource.current?.fields,
-					}
+								unsubscribeByNestedResource.set(
+									nestedResource,
+									nestedResource.subscribe(nestedResourceUpdate)
+								)
+								nestedResourceUpdate()
+							})
+						}
+
+						nestedResources.push(nestedResource)
+						return {
+							...reference,
+							...nestedResource.current?.fields,
+						}
 				}
 				if (
 					fieldData !== undefined
@@ -1261,69 +1567,72 @@ export function subscribeEntity<
 			[
 				{
 					...entityRows,
+					isError: rowsFailed,
+					error: rowsFailure === undefined ? undefined : new Error(rowsFailure.error),
 					isComplete: (
-						entityRowsFailure() !== undefined
-						|| selection.fields !== undefined
-						|| fields.length === 0
-						|| entityRows.data.length > 0
-						|| sourceDisabled
+						rowsFailed
+						|| fields.length > 0
 						|| (
-							(querySources == null || querySources.includes(Source.Local_Internal))
-							&& context.entityCollections[entityType].utils.hasLocalMutationAuthority(
+							!context.entityCollections[entityType].utils.isResolverSubsetLoading(
 								selectorKey,
-								localEntityAuthorityKey
+								querySources
+							)
+							&& (
+								entityRows.data.length > 0
+								|| sourceDisabled
+								|| (
+									(querySources == null || querySources.includes(Source.Local_Internal))
+									&& context.entityCollections[entityType].utils.hasLocalMutationAuthority(
+										selectorKey,
+										localEntityAuthorityKey
+									)
+								)
+								|| context.entityCollections[entityType].utils.isResolverSubsetResolved(
+									selectorKey,
+									querySources
+								)
 							)
 						)
-						|| context.entityCollections[entityType].utils.dataUpdatedAt > 0
 					),
 				},
-				...fields.flatMap(({
+				...fields.map(({
 					definition,
 					queries,
-				}) => (
-					queries.counts === undefined ?
-						[{
-							...queries.rows,
-							isComplete: (
-								queries.rowsFailure() !== undefined
-								|| fieldRowsComplete(
-									entitySelector,
-									definition,
-									queries.rows.data,
-									queries.rows.isReady,
-									queries.sourceDisabled || queries.sourceUnsupported
-								)
-								|| queries.localFieldAuthorityResolved()
-								|| queries.localCountAuthorityResolved()
-							),
-						}]
-					:
-						[
-							{
-								...queries.rows,
-								isComplete: (
-									queries.rowsFailure() !== undefined
-									|| fieldRowsComplete(
-										entitySelector,
-										definition,
-										queries.rows.data,
-										queries.rows.isReady,
-										queries.sourceDisabled || queries.sourceUnsupported
+				}) => {
+					const fieldRowsFailure = queries.rowsFailure()
+					const fieldRowsFailed = fieldRowsFailure !== undefined && queries.rows.data.length === 0
+					return {
+						...queries.rows,
+						isError: fieldRowsFailed,
+						error: fieldRowsFailure === undefined ? undefined : new Error(fieldRowsFailure.error),
+						isComplete: (
+							fieldRowsFailed
+							|| (
+								!queries.sourceHasUnsyncedMatches()
+								&& (
+									queries.localAuthorityResolvedEmpty()
+									|| (
+										(
+											queries.rows.data.length > 0
+											|| !queries.sourceCollection.isLoadingSubset
+										)
+										&& !queries.sourceCollection.utils.isResolverSubsetLoading(
+											selectorKey,
+											queries.sources
+										)
+										&& fieldRowsComplete(
+											entitySelector,
+											definition,
+											queries.rows.data,
+											queries.rows.isReady,
+											queries.sourceDisabled || queries.sourceUnsupported
+										)
 									)
-									|| queries.localFieldAuthorityResolved()
-									|| queries.localCountAuthorityResolved()
-								),
-							},
-							{
-								...queries.counts,
-								isComplete: (
-									queries.countsFailure() !== undefined
-									|| queries.counts.isReady
-									|| queries.localCountAuthorityResolved()
-								),
-							},
-						]
-				)),
+								)
+							)
+						),
+					}
+				}),
 				...nestedResources.map((nestedResource): {
 					isError: boolean
 					isLoading: boolean
@@ -1348,22 +1657,45 @@ export function subscribeEntity<
 			}
 		)
 	}, (update) => {
+		nestedResourceUpdate = update
 		const unsubscribeLive = subscribeToLiveQueryCollections(
 			observedQueries,
 			update,
 			context.collectionLoadFailures.subscribe
 		)
+		const unsubscribeResolverSubsetLoadingChanges = [
+			context.entityCollections[entityType],
+			...fields.map(({ queries }) => queries.sourceCollection),
+		].map((collection) => collection.utils.subscribeResolverSubsetLoadingChanges(update))
+		const unsubscribeSourceLoadingChanges = fields.map(({ queries }) => (
+			queries.sourceCollection.on('loadingSubset:change', update)
+		))
 		const unsubscribeLocalMutationAuthorities = [
 			context.entityCollections[entityType],
-			...fields.flatMap(({ queries }) => [
-				queries.sourceCollection,
-				...(queries.countCollection === undefined ? [] : [queries.countCollection]),
-			]),
+			...fields.map(({ queries }) => queries.sourceCollection),
 		].map((collection) => collection.utils.subscribeLocalMutationAuthorityChanges(update))
 		return () => {
+			nestedResourceUpdate = undefined
+			pendingNestedResourceSubscriptions.clear()
+			for (const unsubscribe of unsubscribeByNestedResource.values())
+				unsubscribe()
+			unsubscribeByNestedResource.clear()
 			unsubscribeLive()
 			for (const unsubscribe of unsubscribeLocalMutationAuthorities)
 				unsubscribe()
+			for (const unsubscribe of unsubscribeResolverSubsetLoadingChanges)
+				unsubscribe()
+			for (const unsubscribe of unsubscribeSourceLoadingChanges)
+				unsubscribe()
 		}
 	}, () => waitForLiveQueryCollections(observedQueries))
+	if (sharedResourceKey !== undefined) {
+		const resources = (
+			sharedEntityResourceByContext.get(context)
+			?? new Map<string, SharedEntityResource>()
+		)
+		resources.set(sharedResourceKey, resource)
+		sharedEntityResourceByContext.set(context, resources)
+	}
+	return resource
 }

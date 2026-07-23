@@ -9,7 +9,6 @@ import { _GlobalAiArtifactCatalog_Timestamp as _GlobalAiArtifactCatalog_Timestam
 import { _GlobalAiArtifactCatalog as _GlobalAiArtifactCatalogSchema } from '$/schema/_GlobalAiArtifactCatalog.ts'
 import { _GlobalAiModelCatalog_Timestamp as _GlobalAiModelCatalog_TimestampSchema } from '$/schema/_GlobalAiModelCatalog_Timestamp.ts'
 import { _GlobalAiModelCatalog as _GlobalAiModelCatalogSchema } from '$/schema/_GlobalAiModelCatalog.ts'
-import { _GlobalArweaveNetwork_Timestamp as _GlobalArweaveNetwork_TimestampSchema } from '$/schema/_GlobalArweaveNetwork_Timestamp.ts'
 import { _GlobalArweaveNetwork as _GlobalArweaveNetworkSchema } from '$/schema/_GlobalArweaveNetwork.ts'
 import { _GlobalAtprotoNetwork_Timestamp as _GlobalAtprotoNetwork_TimestampSchema } from '$/schema/_GlobalAtprotoNetwork_Timestamp.ts'
 import { _GlobalAtprotoNetwork as _GlobalAtprotoNetworkSchema } from '$/schema/_GlobalAtprotoNetwork.ts'
@@ -17,7 +16,6 @@ import { _GlobalEnsNetwork_Timestamp as _GlobalEnsNetwork_TimestampSchema } from
 import { _GlobalEnsNetwork as _GlobalEnsNetworkSchema } from '$/schema/_GlobalEnsNetwork.ts'
 import { _GlobalEvmAbiCatalog_Timestamp as _GlobalEvmAbiCatalog_TimestampSchema } from '$/schema/_GlobalEvmAbiCatalog_Timestamp.ts'
 import { _GlobalEvmAbiCatalog as _GlobalEvmAbiCatalogSchema } from '$/schema/_GlobalEvmAbiCatalog.ts'
-import { _GlobalIpfsAccess_Timestamp as _GlobalIpfsAccess_TimestampSchema } from '$/schema/_GlobalIpfsAccess_Timestamp.ts'
 import { _GlobalIpfsAccess as _GlobalIpfsAccessSchema } from '$/schema/_GlobalIpfsAccess.ts'
 import { _GlobalNostrNetwork_Timestamp as _GlobalNostrNetwork_TimestampSchema } from '$/schema/_GlobalNostrNetwork_Timestamp.ts'
 import { _GlobalNostrNetwork as _GlobalNostrNetworkSchema } from '$/schema/_GlobalNostrNetwork.ts'
@@ -182,6 +180,7 @@ import { BitTorrentPiece as BitTorrentPieceSchema } from '$/schema/BitTorrentPie
 import { BitTorrentSwarmObservation_Timestamp as BitTorrentSwarmObservation_TimestampSchema } from '$/schema/BitTorrentSwarmObservation_Timestamp.ts'
 import { BitTorrentTracker as BitTorrentTrackerSchema } from '$/schema/BitTorrentTracker.ts'
 import { BitTorrentTrackerScrape_Timestamp as BitTorrentTrackerScrape_TimestampSchema } from '$/schema/BitTorrentTrackerScrape_Timestamp.ts'
+import { BlockheadAccount as BlockheadAccountSchema } from '$/schema/BlockheadAccount.ts'
 import { BlockheadActionOutcome_Timestamp as BlockheadActionOutcome_TimestampSchema } from '$/schema/BlockheadActionOutcome_Timestamp.ts'
 import { BlockheadActionOutcome as BlockheadActionOutcomeSchema } from '$/schema/BlockheadActionOutcome.ts'
 import { BlockheadActionReadinessCheck_Timestamp as BlockheadActionReadinessCheck_TimestampSchema } from '$/schema/BlockheadActionReadinessCheck_Timestamp.ts'
@@ -296,7 +295,6 @@ import { BlockheadWakuMessageObservation_Timestamp as BlockheadWakuMessageObserv
 import { BlockheadWakuNodeState_Timestamp as BlockheadWakuNodeState_TimestampSchema } from '$/schema/BlockheadWakuNodeState_Timestamp.ts'
 import { BlockheadWakuNodeState as BlockheadWakuNodeStateSchema } from '$/schema/BlockheadWakuNodeState.ts'
 import { BlockheadWallet as BlockheadWalletSchema } from '$/schema/BlockheadWallet.ts'
-import { BlockheadWalletAccount as BlockheadWalletAccountSchema } from '$/schema/BlockheadWalletAccount.ts'
 import { BlockheadWalletAuthentication as BlockheadWalletAuthenticationSchema } from '$/schema/BlockheadWalletAuthentication.ts'
 import { BlockheadWalletCapabilityGrant as BlockheadWalletCapabilityGrantSchema } from '$/schema/BlockheadWalletCapabilityGrant.ts'
 import { BlockheadWalletConnection as BlockheadWalletConnectionSchema } from '$/schema/BlockheadWalletConnection.ts'
@@ -731,9 +729,11 @@ import { NetworkUpgrade as NetworkUpgradeSchema } from '$/schema/NetworkUpgrade.
 import { NftCollection as NftCollectionSchema } from '$/schema/NftCollection.ts'
 import { NftToken as NftTokenSchema } from '$/schema/NftToken.ts'
 import { NostrArticle as NostrArticleSchema } from '$/schema/NostrArticle.ts'
+import { NostrArticleEvent as NostrArticleEventSchema } from '$/schema/NostrArticleEvent.ts'
 import { NostrNetwork as NostrNetworkSchema } from '$/schema/NostrNetwork.ts'
 import { NostrNote as NostrNoteSchema } from '$/schema/NostrNote.ts'
 import { NostrProfile as NostrProfileSchema } from '$/schema/NostrProfile.ts'
+import { NostrProfileMetadataEvent as NostrProfileMetadataEventSchema } from '$/schema/NostrProfileMetadataEvent.ts'
 import { NostrReaction as NostrReactionSchema } from '$/schema/NostrReaction.ts'
 import { NostrRelay_Timestamp as NostrRelay_TimestampSchema } from '$/schema/NostrRelay_Timestamp.ts'
 import { NostrRelay as NostrRelaySchema } from '$/schema/NostrRelay.ts'
@@ -1009,7 +1009,6 @@ const schemaChunk0 = [
 	_GlobalAiModelCatalogSchema,
 	_GlobalAiModelCatalog_TimestampSchema,
 	_GlobalArweaveNetworkSchema,
-	_GlobalArweaveNetwork_TimestampSchema,
 	_GlobalAtprotoNetworkSchema,
 	_GlobalAtprotoNetwork_TimestampSchema,
 	_GlobalEnsNetworkSchema,
@@ -1017,7 +1016,6 @@ const schemaChunk0 = [
 	_GlobalEvmAbiCatalogSchema,
 	_GlobalEvmAbiCatalog_TimestampSchema,
 	_GlobalIpfsAccessSchema,
-	_GlobalIpfsAccess_TimestampSchema,
 	_GlobalNostrNetworkSchema,
 	_GlobalNostrNetwork_TimestampSchema,
 	_GlobalRedditNetworkSchema,
@@ -1049,11 +1047,11 @@ const schemaChunk0 = [
 	AcpMessageSchema,
 	AcpMessagePartSchema,
 	AcpPermissionRequestSchema,
+	AcpPromptTurnSchema,
+	AcpSessionSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk1 = [
-	AcpPromptTurnSchema,
-	AcpSessionSchema,
 	AcpSessionUpdateSchema,
 	AcpTerminalSchema,
 	AcpTerminal_TimestampSchema,
@@ -1102,11 +1100,11 @@ const schemaChunk1 = [
 	AlgorandTealProgramSchema,
 	AlgorandTealProgram_TimestampSchema,
 	AlgorandTransactionSchema,
+	AlgorandTransactionGroupSchema,
+	AlgorandTransactionProofSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk2 = [
-	AlgorandTransactionGroupSchema,
-	AlgorandTransactionProofSchema,
 	AptosAccountSchema,
 	AptosAccount_TimestampSchema,
 	AptosAccountResourceSchema,
@@ -1155,11 +1153,11 @@ const schemaChunk2 = [
 	AvalancheSubnet_TimestampSchema,
 	AvalancheValidatorSchema,
 	AvalancheValidator_TimestampSchema,
+	BeaconAttestationSchema,
+	BeaconCommitteeSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk3 = [
-	BeaconAttestationSchema,
-	BeaconCommitteeSchema,
 	BeaconEpochSchema,
 	BeaconSlashingSchema,
 	BeaconSlotSchema,
@@ -1189,6 +1187,7 @@ const schemaChunk3 = [
 	BitTorrentSwarmObservation_TimestampSchema,
 	BitTorrentTrackerSchema,
 	BitTorrentTrackerScrape_TimestampSchema,
+	BlockheadAccountSchema,
 	BlockheadActionOutcomeSchema,
 	BlockheadActionOutcome_TimestampSchema,
 	BlockheadActionReadinessCheckSchema,
@@ -1208,10 +1207,10 @@ const schemaChunk3 = [
 	BlockheadAvalancheNodeStateSchema,
 	BlockheadAvalancheNodeState_TimestampSchema,
 	BlockheadBitTorrentClientStateSchema,
+	BlockheadBitTorrentClientState_TimestampSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk4 = [
-	BlockheadBitTorrentClientState_TimestampSchema,
 	BlockheadBitTorrentTransfer_TimestampSchema,
 	BlockheadBridgeIntentSchema,
 	BlockheadBridgeTransactionSchema,
@@ -1261,10 +1260,10 @@ const schemaChunk4 = [
 	BlockheadLogosBlockchainWalletKeyState_TimestampSchema,
 	BlockheadMoneroOutputStateSchema,
 	BlockheadMoneroOutputState_TimestampSchema,
+	BlockheadMoneroSubaddressStateSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk5 = [
-	BlockheadMoneroSubaddressStateSchema,
 	BlockheadMoneroSubaddressState_TimestampSchema,
 	BlockheadMoneroTransferStateSchema,
 	BlockheadMoneroTransferState_TimestampSchema,
@@ -1309,16 +1308,15 @@ const schemaChunk5 = [
 	BlockheadWakuNodeStateSchema,
 	BlockheadWakuNodeState_TimestampSchema,
 	BlockheadWalletSchema,
-	BlockheadWalletAccountSchema,
 	BlockheadWalletAuthenticationSchema,
 	BlockheadWalletCapabilityGrantSchema,
 	BlockheadWalletConnectionSchema,
 	BlockheadWalletRequestSchema,
+	BlockheadWalletRequest_TimestampSchema,
+	BlockheadWalletRequestCallSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk6 = [
-	BlockheadWalletRequest_TimestampSchema,
-	BlockheadWalletRequestCallSchema,
 	BlockheadWalletTransportSessionSchema,
 	BlockheadWorkspaceSchema,
 	BlockheadZcashNoteStateSchema,
@@ -1367,11 +1365,11 @@ const schemaChunk6 = [
 	CardanoStakeCredentialSchema,
 	CardanoStakeDelegation_EpochSchema,
 	CardanoStakePoolSchema,
+	CardanoStakePool_TimestampSchema,
+	CardanoTransactionSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk7 = [
-	CardanoStakePool_TimestampSchema,
-	CardanoTransactionSchema,
 	CardanoTxInputSchema,
 	CardanoTxOutputSchema,
 	CardanoTxOutputAssetSchema,
@@ -1420,11 +1418,11 @@ const schemaChunk7 = [
 	DydxChainMarketSchema,
 	DydxChainMarket_TimestampSchema,
 	DydxChainNetworkSchema,
+	DydxChainNetwork_TimestampSchema,
+	DydxChainOrderSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk8 = [
-	DydxChainNetwork_TimestampSchema,
-	DydxChainOrderSchema,
 	DydxChainOrder_TimestampSchema,
 	DydxChainPerpetualPosition_TimestampSchema,
 	DydxChainSubaccountSchema,
@@ -1473,11 +1471,11 @@ const schemaChunk8 = [
 	Erc4337SmartAccount_TimestampSchema,
 	Erc4626VaultSchema,
 	Erc4626Vault_BlockSchema,
+	Erc4626Vault_TimestampSchema,
+	EthereumBeaconFinality_TimestampSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk9 = [
-	Erc4626Vault_TimestampSchema,
-	EthereumBeaconFinality_TimestampSchema,
 	EthereumConsensusUpgradeSchema,
 	EthereumExecutionUpgradeSchema,
 	EthereumNetworkUpgradeSchema,
@@ -1526,11 +1524,11 @@ const schemaChunk9 = [
 	FarcasterChannel_TimestampSchema,
 	FarcasterFeedSchema,
 	FarcasterNetworkSchema,
+	FarcasterUserSchema,
+	FarcasterUser_TimestampSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk10 = [
-	FarcasterUserSchema,
-	FarcasterUser_TimestampSchema,
 	FarcasterVerifiedAddressSchema,
 	FedimintFederationSchema,
 	FedimintFederation_TimestampSchema,
@@ -1579,11 +1577,11 @@ const schemaChunk10 = [
 	HederaBlockSchema,
 	HederaContractSchema,
 	HederaContract_TimestampSchema,
+	HederaContractActionSchema,
+	HederaContractLogSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk11 = [
-	HederaContractActionSchema,
-	HederaContractLogSchema,
 	HederaContractResultSchema,
 	HederaContractState_TimestampSchema,
 	HederaHbarTransferSchema,
@@ -1632,11 +1630,11 @@ const schemaChunk11 = [
 	HyperliquidVault_TimestampSchema,
 	HyperliquidVaultEquity_TimestampSchema,
 	IbcChannelSchema,
+	IbcClientSchema,
+	IbcConnectionSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk12 = [
-	IbcClientSchema,
-	IbcConnectionSchema,
 	IbcDenomTraceSchema,
 	IbcPacketSchema,
 	IcpCanisterSchema,
@@ -1685,11 +1683,11 @@ const schemaChunk12 = [
 	LightningChannelSchema,
 	LightningChannel_TimestampSchema,
 	LightningNetworkSchema,
+	LightningNetwork_TimestampSchema,
+	LightningNodeSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk13 = [
-	LightningNetwork_TimestampSchema,
-	LightningNodeSchema,
 	LightningNode_TimestampSchema,
 	LiquidityPoolSchema,
 	LiquidityPool_BlockSchema,
@@ -1738,11 +1736,11 @@ const schemaChunk13 = [
 	MoneroTransactionSchema,
 	MoveFunctionSchema,
 	MoveModuleSchema,
+	MoveModule_TimestampSchema,
+	MoveStructSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk14 = [
-	MoveModule_TimestampSchema,
-	MoveStructSchema,
 	NearAccessKeySchema,
 	NearAccessKey_TimestampSchema,
 	NearAccountSchema,
@@ -1770,9 +1768,11 @@ const schemaChunk14 = [
 	NftCollectionSchema,
 	NftTokenSchema,
 	NostrArticleSchema,
+	NostrArticleEventSchema,
 	NostrNetworkSchema,
 	NostrNoteSchema,
 	NostrProfileSchema,
+	NostrProfileMetadataEventSchema,
 	NostrReactionSchema,
 	NostrRelaySchema,
 	NostrRelay_TimestampSchema,
@@ -2076,6 +2076,186 @@ export const schema = [
 	...schemaChunk19,
 ] as const satisfies Schema
 const projectionConditionPlanByEntityTypeAndPath = {
+	'Account\u001EEvm\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'eip155',
+			},
+		],
+	},
+	'Account\u001EAptos\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'aptos',
+			},
+		],
+	},
+	'Account\u001ECardano\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'cip34',
+			},
+		],
+	},
+	'Account\u001ECosmos\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'cosmos',
+			},
+		],
+	},
+	'Account\u001EHedera\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'hedera',
+			},
+		],
+	},
+	'Account\u001EPolkadot\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'polkadot',
+			},
+		],
+	},
+	'Account\u001ESolana\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'solana',
+			},
+		],
+	},
+	'Account\u001EStarknet\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'starknet',
+			},
+		],
+	},
+	'Account\u001ETron\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'tron',
+			},
+		],
+	},
+	'Account\u001ETon\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'ton',
+			},
+		],
+	},
+	'Account\u001EXrpl\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'xrpl',
+			},
+		],
+	},
+	'Account\u001EUtxo\u001E': {
+		dependencies: [
+			{
+				entityType: 'Account',
+				facetPath: [],
+				fieldName: 'namespace',
+			},
+		],
+		predicates: [
+			{
+				dependencyIndex: 0,
+				is: 'bip122',
+			},
+		],
+	},
 	'EvmCoinInstance\u001ENativeCurrency\u001E': {
 		dependencies: [
 			{
@@ -2720,7 +2900,6 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType._GlobalAiModelCatalog]: typeof _GlobalAiModelCatalogSchema
 	readonly [EntityType._GlobalAiModelCatalog_Timestamp]: typeof _GlobalAiModelCatalog_TimestampSchema
 	readonly [EntityType._GlobalArweaveNetwork]: typeof _GlobalArweaveNetworkSchema
-	readonly [EntityType._GlobalArweaveNetwork_Timestamp]: typeof _GlobalArweaveNetwork_TimestampSchema
 	readonly [EntityType._GlobalAtprotoNetwork]: typeof _GlobalAtprotoNetworkSchema
 	readonly [EntityType._GlobalAtprotoNetwork_Timestamp]: typeof _GlobalAtprotoNetwork_TimestampSchema
 	readonly [EntityType._GlobalEnsNetwork]: typeof _GlobalEnsNetworkSchema
@@ -2728,7 +2907,6 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType._GlobalEvmAbiCatalog]: typeof _GlobalEvmAbiCatalogSchema
 	readonly [EntityType._GlobalEvmAbiCatalog_Timestamp]: typeof _GlobalEvmAbiCatalog_TimestampSchema
 	readonly [EntityType._GlobalIpfsAccess]: typeof _GlobalIpfsAccessSchema
-	readonly [EntityType._GlobalIpfsAccess_Timestamp]: typeof _GlobalIpfsAccess_TimestampSchema
 	readonly [EntityType._GlobalNostrNetwork]: typeof _GlobalNostrNetworkSchema
 	readonly [EntityType._GlobalNostrNetwork_Timestamp]: typeof _GlobalNostrNetwork_TimestampSchema
 	readonly [EntityType._GlobalRedditNetwork]: typeof _GlobalRedditNetworkSchema
@@ -2891,6 +3069,7 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType.BitTorrentSwarmObservation_Timestamp]: typeof BitTorrentSwarmObservation_TimestampSchema
 	readonly [EntityType.BitTorrentTracker]: typeof BitTorrentTrackerSchema
 	readonly [EntityType.BitTorrentTrackerScrape_Timestamp]: typeof BitTorrentTrackerScrape_TimestampSchema
+	readonly [EntityType.BlockheadAccount]: typeof BlockheadAccountSchema
 	readonly [EntityType.BlockheadActionOutcome]: typeof BlockheadActionOutcomeSchema
 	readonly [EntityType.BlockheadActionOutcome_Timestamp]: typeof BlockheadActionOutcome_TimestampSchema
 	readonly [EntityType.BlockheadActionReadinessCheck]: typeof BlockheadActionReadinessCheckSchema
@@ -3005,7 +3184,6 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType.BlockheadWakuNodeState]: typeof BlockheadWakuNodeStateSchema
 	readonly [EntityType.BlockheadWakuNodeState_Timestamp]: typeof BlockheadWakuNodeState_TimestampSchema
 	readonly [EntityType.BlockheadWallet]: typeof BlockheadWalletSchema
-	readonly [EntityType.BlockheadWalletAccount]: typeof BlockheadWalletAccountSchema
 	readonly [EntityType.BlockheadWalletAuthentication]: typeof BlockheadWalletAuthenticationSchema
 	readonly [EntityType.BlockheadWalletCapabilityGrant]: typeof BlockheadWalletCapabilityGrantSchema
 	readonly [EntityType.BlockheadWalletConnection]: typeof BlockheadWalletConnectionSchema
@@ -3439,9 +3617,11 @@ export interface RegisteredEntityDefinitionByType {
 	readonly [EntityType.NftCollection]: typeof NftCollectionSchema
 	readonly [EntityType.NftToken]: typeof NftTokenSchema
 	readonly [EntityType.NostrArticle]: typeof NostrArticleSchema
+	readonly [EntityType.NostrArticleEvent]: typeof NostrArticleEventSchema
 	readonly [EntityType.NostrNetwork]: typeof NostrNetworkSchema
 	readonly [EntityType.NostrNote]: typeof NostrNoteSchema
 	readonly [EntityType.NostrProfile]: typeof NostrProfileSchema
+	readonly [EntityType.NostrProfileMetadataEvent]: typeof NostrProfileMetadataEventSchema
 	readonly [EntityType.NostrReaction]: typeof NostrReactionSchema
 	readonly [EntityType.NostrRelay]: typeof NostrRelaySchema
 	readonly [EntityType.NostrRelay_Timestamp]: typeof NostrRelay_TimestampSchema

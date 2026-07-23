@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.SolanaInstruction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SolanaInstruction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SolanaInstruction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,11 +44,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaInstruction = $derived(selection({
+	const solanaInstruction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('solana instruction')
-	const viewDomId = $derived('solana-instruction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'solana instruction'
+	const viewDomId = $derived('solana-instruction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,65 +69,100 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.instructionKind === 'Instruction' && pendingEntity.instructionKind !== undefined && pendingEntity.indexInTransaction !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.signature !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]', {
-			instructionKind: String(pendingEntity.instructionKind ?? ''),
-			indexInTransaction: String(pendingEntity.indexInTransaction ?? ''),
-			transactionId: String(pendingEntity.$transaction.signature ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$transaction.$network.caip2) ?? ''),
-		}) : pendingEntity.instructionKind === 'Instruction' && pendingEntity.instructionKind !== undefined && pendingEntity.indexInTransaction !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.signature !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]', {
-			instructionKind: String(pendingEntity.instructionKind ?? ''),
-			indexInTransaction: String(pendingEntity.indexInTransaction ?? ''),
-			transactionId: String(pendingEntity.$transaction.signature ?? ''),
-			network: String(pendingEntity.$transaction.$network.slug ?? ''),
-		}) : pendingEntity.instructionKind === 'InnerInstruction' && pendingEntity.instructionKind !== undefined && pendingEntity.indexInTransaction !== undefined && pendingEntity.indexInInstruction !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.signature !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/inner/[indexInInstruction=nonNegativeInteger]', {
-			instructionKind: String(pendingEntity.instructionKind ?? ''),
-			indexInTransaction: String(pendingEntity.indexInTransaction ?? ''),
-			indexInInstruction: String(pendingEntity.indexInInstruction ?? ''),
-			transactionId: String(pendingEntity.$transaction.signature ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$transaction.$network.caip2) ?? ''),
-		}) : pendingEntity.instructionKind === 'InnerInstruction' && pendingEntity.instructionKind !== undefined && pendingEntity.indexInTransaction !== undefined && pendingEntity.indexInInstruction !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.signature !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/inner/[indexInInstruction=nonNegativeInteger]', {
-			instructionKind: String(pendingEntity.instructionKind ?? ''),
-			indexInTransaction: String(pendingEntity.indexInTransaction ?? ''),
-			indexInInstruction: String(pendingEntity.indexInInstruction ?? ''),
-			transactionId: String(pendingEntity.$transaction.signature ?? ''),
-			network: String(pendingEntity.$transaction.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'instructionKind' in selection.entitySelector
+			&& selection.entitySelector.instructionKind != null
+			&& selection.entitySelector != null && 'indexInTransaction' in selection.entitySelector
+			&& selection.entitySelector.indexInTransaction != null ?
+				selection.entitySelector.indexInTransaction != null
+				&& selection.entitySelector != null && '$transaction' in selection.entitySelector
+				&& selection.entitySelector.$transaction != null && 'signature' in selection.entitySelector.$transaction
+				&& selection.entitySelector.$transaction.signature != null
+				&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction
+				&& selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+				&& selection.entitySelector.$transaction.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]', {
+				instructionKind: String(selection.entitySelector.instructionKind ?? ''),
+				indexInTransaction: String(selection.entitySelector.indexInTransaction ?? ''),
+				transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.indexInTransaction != null
+					&& selection.entitySelector != null && '$transaction' in selection.entitySelector
+					&& selection.entitySelector.$transaction != null && 'signature' in selection.entitySelector.$transaction
+					&& selection.entitySelector.$transaction.signature != null
+					&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction
+					&& selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+					&& selection.entitySelector.$transaction.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]', {
+					instructionKind: String(selection.entitySelector.instructionKind ?? ''),
+					indexInTransaction: String(selection.entitySelector.indexInTransaction ?? ''),
+					transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
+					network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+				})
+				:
+						selection.entitySelector.indexInTransaction != null
+						&& selection.entitySelector != null && 'indexInInstruction' in selection.entitySelector
+						&& selection.entitySelector.indexInInstruction != null
+						&& selection.entitySelector != null && '$transaction' in selection.entitySelector
+						&& selection.entitySelector.$transaction != null && 'signature' in selection.entitySelector.$transaction
+						&& selection.entitySelector.$transaction.signature != null
+						&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction
+						&& selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+						&& selection.entitySelector.$transaction.$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/inner/[indexInInstruction=nonNegativeInteger]', {
+						instructionKind: String(selection.entitySelector.instructionKind ?? ''),
+						indexInTransaction: String(selection.entitySelector.indexInTransaction ?? ''),
+						indexInInstruction: String(selection.entitySelector.indexInInstruction ?? ''),
+						transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
+						network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+					})
+					:
+							selection.entitySelector.indexInTransaction != null
+							&& selection.entitySelector != null && 'indexInInstruction' in selection.entitySelector
+							&& selection.entitySelector.indexInInstruction != null
+							&& selection.entitySelector != null && '$transaction' in selection.entitySelector
+							&& selection.entitySelector.$transaction != null && 'signature' in selection.entitySelector.$transaction
+							&& selection.entitySelector.$transaction.signature != null
+							&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction
+							&& selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+							&& selection.entitySelector.$transaction.$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/inner/[indexInInstruction=nonNegativeInteger]', {
+							instructionKind: String(selection.entitySelector.instructionKind ?? ''),
+							indexInTransaction: String(selection.entitySelector.indexInTransaction ?? ''),
+							indexInInstruction: String(selection.entitySelector.indexInInstruction ?? ''),
+							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
+							network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+						})
+						:
+							undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<SolanaTransactionView
-						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
-						href={
-						(selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
-							network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$transaction') && prefetched.$transaction != null && Object.hasOwn(prefetched.$transaction, 'status')}
+			{@const solanaTransaction0 = pendingEntity.$transaction}
+			{#if solanaTransaction0 != null && selection.entitySelector.$transaction != null}
+				<SolanaTransactionView
+					selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction, { sources: selection.sources })}
+					prefetched={solanaTransaction0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={solanaInstruction}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<SolanaTransactionView
 						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
-						href={
-						(selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
-							network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -133,36 +172,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<SolanaTransactionView
-						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
-						href={
-						(selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
-							network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$transaction') && prefetched.$transaction != null && Object.hasOwn(prefetched.$transaction, 'status')}
+			{@const solanaTransaction0 = pendingEntity.$transaction}
+			{#if solanaTransaction0 != null && selection.entitySelector.$transaction != null}
+				<SolanaTransactionView
+					selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction, { sources: selection.sources })}
+					prefetched={solanaTransaction0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={solanaInstruction}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<SolanaTransactionView
 						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
-						href={
-						(selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-							transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
-							network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -172,7 +198,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$transaction') && prefetched.$transaction != null && Object.hasOwn(prefetched.$transaction, 'status')}
 			{@const instructionKind0 = pendingEntity.instructionKind}
 			{#if instructionKind0 !== undefined && instructionKind0 !== null}
 				<span data-text="muted">
@@ -346,13 +372,28 @@
 									selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector])}
 									prefetched={solanaProgram}
 									href={
-										(solanaProgram[EntityMetaKey.Selector].programId !== undefined && solanaProgram[EntityMetaKey.Selector].$network !== undefined && solanaProgram[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
-											programId: String(solanaProgram[EntityMetaKey.Selector].programId ?? ''),
-											network: String(caip2StringFromValue(solanaProgram[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : solanaProgram[EntityMetaKey.Selector].programId !== undefined && solanaProgram[EntityMetaKey.Selector].$network !== undefined && solanaProgram[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
-											programId: String(solanaProgram[EntityMetaKey.Selector].programId ?? ''),
-											network: String(solanaProgram[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											solanaProgram[EntityMetaKey.Selector] != null && 'programId' in solanaProgram[EntityMetaKey.Selector]
+											&& solanaProgram[EntityMetaKey.Selector].programId != null
+											&& solanaProgram[EntityMetaKey.Selector] != null && '$network' in solanaProgram[EntityMetaKey.Selector] ?
+												solanaProgram[EntityMetaKey.Selector].$network != null && 'caip2' in solanaProgram[EntityMetaKey.Selector].$network
+												&& solanaProgram[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
+												programId: String(solanaProgram[EntityMetaKey.Selector].programId ?? ''),
+												network: String(caip2StringFromValue(solanaProgram[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													solanaProgram[EntityMetaKey.Selector].$network != null && 'slug' in solanaProgram[EntityMetaKey.Selector].$network
+													&& solanaProgram[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
+													programId: String(solanaProgram[EntityMetaKey.Selector].programId ?? ''),
+													network: String(solanaProgram[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -367,15 +408,30 @@
 				<dt>Transaction</dt>
 				<dd>
 					<SolanaTransactionView
-						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
 						href={
-							(selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$transaction.signature !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
-								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$transaction != null && 'signature' in selection.entitySelector.$transaction
+								&& selection.entitySelector.$transaction.signature != null
+								&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
+									selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+									&& selection.entitySelector.$transaction.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+									transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+										&& selection.entitySelector.$transaction.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+										transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
+										network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -407,20 +463,25 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<SolanaAccountsView
-				selection={
-						selection.$$accounts({
-							sources: [
-								Source.Solana_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Accounts'
-				emptyText='No instruction accounts.'
-				id='SolanaAccountsView-accounts'
-			/>
-		{/if}
+				{@const solanaInstructionSolanaAccountsViewAccountsResource = selection
+		.$$accounts({
+			sources: [
+				Source.Solana_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={solanaInstructionSolanaAccountsViewAccountsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<SolanaAccountsView
+							selection={solanaInstructionSolanaAccountsViewAccountsResource}
+							countResource={solanaInstructionSolanaAccountsViewAccountsResource.count}
+							title='Accounts'
+							id='SolanaAccountsView-accounts'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

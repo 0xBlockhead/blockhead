@@ -1032,36 +1032,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/', requiredE2eRouteParam(params, '/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]', 'namespace'), '/', requiredE2eRouteParam(params, '/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]', 'target'), '/path/', requiredE2eRouteParam(params, '/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]', 'contentPath')].join(''),
 	},
-	'/(explore)/(ipfs)/ipfs/access/observations/[timestampMs]/[source]': {
-		nodeId: '/(explore)/(ipfs)/ipfs/access/observations/[timestampMs]/[source]',
-		probeOwnerNodeId: '/(explore)/(ipfs)/ipfs/access/observations/[timestampMs]/[source]',
-		routeId: '/(explore)/(ipfs)/ipfs/(ipfsProtocol)/access/(globalIpfsAccess)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		publicPath: '/ipfs/access/observations/[timestampMs]/[source]',
-		parameterMatchers: {
-			timestampMs: [
-				'nonNegativeInteger',
-			],
-			source: [
-				'stringSegment',
-			],
-		},
-		mappings: [
-			{
-				id: '_GlobalIpfsAccess_Timestamp.HubTimestampMsSource',
-				routeKind: 'detail',
-				probeCases: [
-					{
-						id: 'default',
-						params: {
-							timestampMs: '/ipfs/access/observations/[timestampMs]/[source]:_GlobalIpfsAccess_Timestamp.HubTimestampMsSource.1.timestampMs',
-							source: '/ipfs/access/observations/[timestampMs]/[source]:_GlobalIpfsAccess_Timestamp.HubTimestampMsSource.1.source',
-						},
-					},
-				],
-			},
-		],
-		resolve: (params) => ['/ipfs/access/observations/', requiredE2eRouteParam(params, '/(explore)/(ipfs)/ipfs/(ipfsProtocol)/access/(globalIpfsAccess)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(explore)/(ipfs)/ipfs/(ipfsProtocol)/access/(globalIpfsAccess)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
-	},
 	'/(explore)/(networks)/network/[network]': {
 		nodeId: '/(explore)/(networks)/network/[network]',
 		probeOwnerNodeId: '/(explore)/(networks)/network/[network]',
@@ -1235,6 +1205,40 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 				projectionPath: [
 					'Cosmos',
+				],
+			},
+			{
+				id: 'HederaAccount.NetworkAccountId',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/account/[accountId]:HederaAccount.NetworkAccountId.1.network',
+							accountId: '/network/[network]/account/[accountId]:HederaAccount.NetworkAccountId.1.accountId',
+						},
+					},
+				],
+				projectionPath: [
+					'Hedera',
+				],
+			},
+			{
+				id: 'CardanoAddress.NetworkAddress',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/account/[accountId]:CardanoAddress.NetworkAddress.1.network',
+							accountId: '/network/[network]/account/[accountId]:CardanoAddress.NetworkAddress.1.accountId',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
 				],
 			},
 			{
@@ -1830,6 +1834,23 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 			{
+				id: 'CardanoTransaction.NetworkHash',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.network',
+							transactionId: '/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.transactionId',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
+				],
+			},
+			{
 				id: 'UtxoTransaction.NetworkTxId',
 				routeKind: 'projection',
 				projectionEntity: 'Network',
@@ -1869,6 +1890,24 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			],
 		},
 		mappings: [
+			{
+				id: 'CardanoTxInput.TransactionInputIndex',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.network',
+							transactionId: '/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.transactionId',
+							inputIndex: '/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.inputIndex',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
+				],
+			},
 			{
 				id: 'UtxoInput.TransactionIndexInTransaction',
 				routeKind: 'projection',
@@ -1939,6 +1978,23 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 				projectionPath: [
 					'Solana',
+				],
+			},
+			{
+				id: 'CardanoTransaction.NetworkHash',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.network',
+							transactionId: '/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.transactionId',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
 				],
 			},
 			{
@@ -2203,6 +2259,24 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		},
 		mappings: [
 			{
+				id: 'CardanoTxOutput.TransactionOutputIndex',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.network',
+							transactionId: '/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.transactionId',
+							outputIndex: '/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.outputIndex',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
+				],
+			},
+			{
 				id: 'UtxoOutput.TransactionIndexInTransaction',
 				routeKind: 'projection',
 				projectionEntity: 'Network',
@@ -2272,6 +2346,23 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 				projectionPath: [
 					'Solana',
+				],
+			},
+			{
+				id: 'CardanoTransaction.NetworkHash',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.network',
+							transactionId: '/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.transactionId',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
 				],
 			},
 			{
@@ -2392,6 +2483,23 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 				projectionPath: [
 					'Solana',
+				],
+			},
+			{
+				id: 'CardanoTransaction.NetworkHash',
+				routeKind: 'projection',
+				projectionEntity: 'Network',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							network: '/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.network',
+							transactionId: '/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.transactionId',
+						},
+					},
+				],
+				projectionPath: [
+					'Cardano',
 				],
 			},
 			{
@@ -11729,6 +11837,32 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/lens/post/', requiredE2eRouteParam(params, '/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]/(lensPost)/observations/[timestampMs=nonNegativeInteger]', 'postId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]/(lensPost)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
 	},
+	'/(social)/(nostr)/nostr/article-version/[eventId]': {
+		nodeId: '/(social)/(nostr)/nostr/article-version/[eventId]',
+		probeOwnerNodeId: '/(social)/(nostr)/nostr/article-version/[eventId]',
+		routeId: '/(social)/(nostr)/nostr/(globalNostrNetwork)/article-version/[eventId=stringSegment]',
+		publicPath: '/nostr/article-version/[eventId]',
+		parameterMatchers: {
+			eventId: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'NostrArticleEvent.CanonicalEventId',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							eventId: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/nostr/article-version/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/article-version/[eventId=stringSegment]', 'eventId')].join(''),
+	},
 	'/(social)/(nostr)/nostr/article/[pubkey]/[identifier]': {
 		nodeId: '/(social)/(nostr)/nostr/article/[pubkey]/[identifier]',
 		probeOwnerNodeId: '/(social)/(nostr)/nostr/article/[pubkey]/[identifier]',
@@ -11836,6 +11970,32 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 		resolve: (params) => ['/nostr/note/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]/(nostrNote)/replies', 'eventId'), '/replies'].join(''),
+	},
+	'/(social)/(nostr)/nostr/profile-metadata-version/[eventId]': {
+		nodeId: '/(social)/(nostr)/nostr/profile-metadata-version/[eventId]',
+		probeOwnerNodeId: '/(social)/(nostr)/nostr/profile-metadata-version/[eventId]',
+		routeId: '/(social)/(nostr)/nostr/(globalNostrNetwork)/profile-metadata-version/[eventId=stringSegment]',
+		publicPath: '/nostr/profile-metadata-version/[eventId]',
+		parameterMatchers: {
+			eventId: [
+				'stringSegment',
+			],
+		},
+		mappings: [
+			{
+				id: 'NostrProfileMetadataEvent.CanonicalEventId',
+				routeKind: 'detail',
+				probeCases: [
+					{
+						id: 'default',
+						params: {
+							eventId: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+						},
+					},
+				],
+			},
+		],
+		resolve: (params) => ['/nostr/profile-metadata-version/', requiredE2eRouteParam(params, '/(social)/(nostr)/nostr/(globalNostrNetwork)/profile-metadata-version/[eventId=stringSegment]', 'eventId')].join(''),
 	},
 	'/(social)/(nostr)/nostr/profile/[pubkey]': {
 		nodeId: '/(social)/(nostr)/nostr/profile/[pubkey]',
@@ -12603,11 +12763,11 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/x/post/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]', 'postId')].join(''),
 	},
-	'/(social)/(x)/x/post/[postId]/observations/[timestampMs]': {
-		nodeId: '/(social)/(x)/x/post/[postId]/observations/[timestampMs]',
-		probeOwnerNodeId: '/(social)/(x)/x/post/[postId]/observations/[timestampMs]',
-		routeId: '/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/(xPost)/observations/[timestampMs=nonNegativeInteger]',
-		publicPath: '/x/post/[postId]/observations/[timestampMs]',
+	'/(social)/(x)/x/post/[postId]/observations/[timestampMs]/[source]': {
+		nodeId: '/(social)/(x)/x/post/[postId]/observations/[timestampMs]/[source]',
+		probeOwnerNodeId: '/(social)/(x)/x/post/[postId]/observations/[timestampMs]/[source]',
+		routeId: '/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/(xPost)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		publicPath: '/x/post/[postId]/observations/[timestampMs]/[source]',
 		parameterMatchers: {
 			postId: [
 				'stringSegment',
@@ -12615,23 +12775,27 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			timestampMs: [
 				'nonNegativeInteger',
 			],
+			source: [
+				'stringSegment',
+			],
 		},
 		mappings: [
 			{
-				id: 'XPost_Timestamp.XPostTimestampMs',
+				id: 'XPost_Timestamp.XPostTimestampMsSource',
 				routeKind: 'detail',
 				probeCases: [
 					{
 						id: 'default',
 						params: {
-							postId: '/x/post/[postId]/observations/[timestampMs]:XPost_Timestamp.XPostTimestampMs.1.postId',
-							timestampMs: '/x/post/[postId]/observations/[timestampMs]:XPost_Timestamp.XPostTimestampMs.1.timestampMs',
+							postId: '/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.postId',
+							timestampMs: '/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.timestampMs',
+							source: '/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.source',
 						},
 					},
 				],
 			},
 		],
-		resolve: (params) => ['/x/post/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/(xPost)/observations/[timestampMs=nonNegativeInteger]', 'postId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/(xPost)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/x/post/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/(xPost)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'postId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/(xPost)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/(xPost)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(x)/x/user/[userId]': {
 		nodeId: '/(social)/(x)/x/user/[userId]',
@@ -12659,11 +12823,11 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 		resolve: (params) => ['/x/user/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]', 'userId')].join(''),
 	},
-	'/(social)/(x)/x/user/[userId]/observations/[timestampMs]': {
-		nodeId: '/(social)/(x)/x/user/[userId]/observations/[timestampMs]',
-		probeOwnerNodeId: '/(social)/(x)/x/user/[userId]/observations/[timestampMs]',
-		routeId: '/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]',
-		publicPath: '/x/user/[userId]/observations/[timestampMs]',
+	'/(social)/(x)/x/user/[userId]/observations/[timestampMs]/[source]': {
+		nodeId: '/(social)/(x)/x/user/[userId]/observations/[timestampMs]/[source]',
+		probeOwnerNodeId: '/(social)/(x)/x/user/[userId]/observations/[timestampMs]/[source]',
+		routeId: '/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		publicPath: '/x/user/[userId]/observations/[timestampMs]/[source]',
 		parameterMatchers: {
 			userId: [
 				'stringSegment',
@@ -12671,23 +12835,27 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			timestampMs: [
 				'nonNegativeInteger',
 			],
+			source: [
+				'stringSegment',
+			],
 		},
 		mappings: [
 			{
-				id: 'XUser_Timestamp.XUserTimestampMs',
+				id: 'XUser_Timestamp.XUserTimestampMsSource',
 				routeKind: 'detail',
 				probeCases: [
 					{
 						id: 'default',
 						params: {
-							userId: '/x/user/[userId]/observations/[timestampMs]:XUser_Timestamp.XUserTimestampMs.1.userId',
-							timestampMs: '/x/user/[userId]/observations/[timestampMs]:XUser_Timestamp.XUserTimestampMs.1.timestampMs',
+							userId: '/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.userId',
+							timestampMs: '/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.timestampMs',
+							source: '/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.source',
 						},
 					},
 				],
 			},
 		],
-		resolve: (params) => ['/x/user/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]', 'userId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]', 'timestampMs')].join(''),
+		resolve: (params) => ['/x/user/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'userId'), '/observations/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'timestampMs'), '/', requiredE2eRouteParam(params, '/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', 'source')].join(''),
 	},
 	'/(social)/(xmtp)/xmtp/conversation/[conversationId]': {
 		nodeId: '/(social)/(xmtp)/xmtp/conversation/[conversationId]',

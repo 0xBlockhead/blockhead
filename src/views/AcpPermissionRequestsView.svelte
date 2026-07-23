@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ACP permission requests',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AcpPermissionRequest>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AcpPermissionRequest>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AcpPermissionRequestView from '$/views/AcpPermissionRequestView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(acpPermissionRequests) => [...new Map(acpPermissionRequests.values.map((acpPermissionRequest) => [acpPermissionRequest[EntityMetaKey.SelectorKey], acpPermissionRequest])).values()]}
 	getKey={(acpPermissionRequest) => acpPermissionRequest[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: acpPermissionRequest })}
 		{@const acpPermissionRequestFields = { ...acpPermissionRequest[EntityMetaKey.Selector], ...acpPermissionRequest }}
-		{@const selection = select(EntityType.AcpPermissionRequest, acpPermissionRequest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AcpPermissionRequestView
-			selection={selection}
-			prefetched={acpPermissionRequestFields}
+		<EntityView
+			entityType={EntityType.AcpPermissionRequest}
+			entitySelector={acpPermissionRequest[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((acpPermissionRequestFields.requestId) ?? '')].filter(Boolean).join(' ') || 'ACP permission request'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((acpPermissionRequestFields.requestKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((acpPermissionRequestFields.decision) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

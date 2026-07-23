@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FilecoinSector>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FilecoinSector>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FilecoinSector>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const filecoinSector = $derived(selection({
+	const filecoinSector = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			sealedCid: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			sealedCid: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.sectorNumber) ?? '')].filter(Boolean).join(' ') || 'filecoin sector')
-	const viewDomId = $derived('filecoin-sector-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('filecoin-sector-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,13 +76,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const sectorNumber0 = pendingEntity.sectorNumber}
-					{#if sectorNumber0 !== undefined && sectorNumber0 !== null}
-						<NumberValue
-							value={sectorNumber0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$miner') && prefetched.$miner != null && Object.hasOwn(prefetched, 'sealedCid')}
+			{@const sectorNumber0 = pendingEntity.sectorNumber}
+			{#if sectorNumber0 !== undefined && sectorNumber0 !== null}
+				<NumberValue
+					value={sectorNumber0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={filecoinSector}>
 				{#snippet children(entity)}
@@ -93,36 +99,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<FilecoinMinerView
-						selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner)}
-						href={
-						(selection.entitySelector.$miner.minerAddress !== undefined && selection.entitySelector.$miner.$network !== undefined && selection.entitySelector.$miner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-							minerAddress: String(selection.entitySelector.$miner.minerAddress ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$miner.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$miner.minerAddress !== undefined && selection.entitySelector.$miner.$network !== undefined && selection.entitySelector.$miner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-							minerAddress: String(selection.entitySelector.$miner.minerAddress ?? ''),
-							network: String(selection.entitySelector.$miner.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$miner') && prefetched.$miner != null && Object.hasOwn(prefetched, 'sealedCid')}
+			{@const filecoinMiner0 = pendingEntity.$miner}
+			{#if filecoinMiner0 != null && selection.entitySelector.$miner != null}
+				<FilecoinMinerView
+					selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner, { sources: selection.sources })}
+					prefetched={filecoinMiner0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={filecoinSector}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<FilecoinMinerView
 						selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner)}
-						href={
-						(selection.entitySelector.$miner.minerAddress !== undefined && selection.entitySelector.$miner.$network !== undefined && selection.entitySelector.$miner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-							minerAddress: String(selection.entitySelector.$miner.minerAddress ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$miner.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$miner.minerAddress !== undefined && selection.entitySelector.$miner.$network !== undefined && selection.entitySelector.$miner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-							minerAddress: String(selection.entitySelector.$miner.minerAddress ?? ''),
-							network: String(selection.entitySelector.$miner.$network.slug ?? ''),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -132,7 +125,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$miner') && prefetched.$miner != null && Object.hasOwn(prefetched, 'sealedCid')}
 			{@const sealedCid0 = pendingEntity.sealedCid}
 			{#if sealedCid0 !== undefined && sealedCid0 !== null}
 				<span data-text="muted">
@@ -160,15 +153,30 @@
 				<dt>Miner</dt>
 				<dd>
 					<FilecoinMinerView
-						selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner, {})}
+						selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner)}
 						href={
-							(selection.entitySelector.$miner.minerAddress !== undefined && selection.entitySelector.$miner.$network !== undefined && selection.entitySelector.$miner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-								minerAddress: String(selection.entitySelector.$miner.minerAddress ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$miner.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$miner.minerAddress !== undefined && selection.entitySelector.$miner.$network !== undefined && selection.entitySelector.$miner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-								minerAddress: String(selection.entitySelector.$miner.minerAddress ?? ''),
-								network: String(selection.entitySelector.$miner.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$miner != null && 'minerAddress' in selection.entitySelector.$miner
+								&& selection.entitySelector.$miner.minerAddress != null
+								&& selection.entitySelector.$miner != null && '$network' in selection.entitySelector.$miner ?
+									selection.entitySelector.$miner.$network != null && 'caip2' in selection.entitySelector.$miner.$network
+									&& selection.entitySelector.$miner.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+									minerAddress: String(selection.entitySelector.$miner.minerAddress ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$miner.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$miner.$network != null && 'slug' in selection.entitySelector.$miner.$network
+										&& selection.entitySelector.$miner.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
+										minerAddress: String(selection.entitySelector.$miner.minerAddress ?? ''),
+										network: String(selection.entitySelector.$miner.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

@@ -109,6 +109,7 @@ const resolverLoaderEntries = [
 	[Source.Solana_JsonRpc, () => import('./Solana-JsonRpc.ts')],
 	[Source.SolanaSimds_Github, () => import('./SolanaSimds-Github.ts')],
 	[Source.SqdPortal_RawHttp, () => import('./Sqd-Portal.ts')],
+	[Source.Starknet_JsonRpc, () => import('./Starknet-JsonRpc.ts')],
 	[Source.Reddit_Rest, () => import('./Reddit-Rest.ts')],
 	[Source.Rss_Rest, () => import('./Rss-Rest.ts')],
 	[Source.Rss2Json_Rest, () => import('./Rss2Json-Rest.ts')],

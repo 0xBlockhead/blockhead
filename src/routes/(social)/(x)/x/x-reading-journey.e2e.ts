@@ -123,12 +123,9 @@ test('X post renders readable content and follows its author identity', async ({
 })
 
 
-test('X post exposes provider failure without hanging or dumping wire data', async ({ page }, testInfo) => {
-	const {
-		diagnostics,
-		flushArtifacts,
-		step,
-	} = setupRouteViewSmokePage(page)
+test('X post exposes provider failure without hanging or dumping wire data', async ({ page }) => {
+	const pageErrors: Error[] = []
+	page.on('pageerror', (error) => pageErrors.push(error))
 
 	await page.route('**/api-proxy/X_FxEmbed_Rest-*/0/**', async (route) => {
 		await route.fulfill({
@@ -140,23 +137,20 @@ test('X post exposes provider failure without hanging or dumping wire data', asy
 		})
 	})
 
-	try {
-		await step(page.goto(postPath, {
-			waitUntil: 'load',
-			timeout: routeViewSmokeTimeoutsMs.goto,
-		}))
-		await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
-		const main = page.locator('#main')
-		await step(expect(main.locator('[data-error]').first()).toContainText(
-			'Fixture X provider unavailable',
-			{ timeout: routeViewSmokeTimeoutsMs.mainSelector }
-		))
-		await step(expect(main.getByText(/Loading\b/)).toHaveCount(0))
-		await step(expect(main).not.toContainText('[object Object]'))
-		await step(expect(main).not.toContainText('{"message"'))
-	}
-	catch (error) {
-		await flushArtifacts(testInfo)
-		throw error
-	}
+	await page.goto(postPath, {
+		waitUntil: 'load',
+		timeout: routeViewSmokeTimeoutsMs.goto,
+	})
+	const main = page.locator('#main')
+	await expect(main).toBeVisible({
+		timeout: routeViewSmokeTimeoutsMs.mainSelector,
+	})
+	await expect(main.locator('[data-error]').first()).toContainText(
+		'Fixture X provider unavailable',
+		{ timeout: routeViewSmokeTimeoutsMs.mainSelector }
+	)
+	await expect(main.getByText(/Loading\b/)).toHaveCount(0)
+	await expect(main).not.toContainText('[object Object]')
+	await expect(main).not.toContainText('{"message"')
+	expect(pageErrors).toEqual([])
 })

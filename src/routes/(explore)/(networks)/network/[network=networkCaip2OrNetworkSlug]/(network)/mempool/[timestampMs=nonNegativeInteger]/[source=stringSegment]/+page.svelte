@@ -24,7 +24,6 @@
 			queuedCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [(String((pageSelection.entitySelector.pendingCount) ?? '') ? String((pageSelection.entitySelector.pendingCount) ?? '') + ' pending' : ''), (String((pageSelection.entitySelector.queuedCount) ?? '') ? String((pageSelection.entitySelector.queuedCount) ?? '') + ' queued' : '')].filter(Boolean).join(' ') || 'EVM network txpool timestamp' : [(String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).pendingCount) ?? '') ? String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).pendingCount) ?? '') + ' pending' : ''), (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).queuedCount) ?? '') ? String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).queuedCount) ?? '') + ' queued' : '')].filter(Boolean).join(' ') || 'EVM network txpool timestamp')))
 
 
 	// Components
@@ -34,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM network txpool timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM network txpool timestamp' : [(String((({ ...data.selector, ...pageSelection.entity }).pendingCount) ?? '') ? String((({ ...data.selector, ...pageSelection.entity }).pendingCount) ?? '') + ' pending' : ''), (String((({ ...data.selector, ...pageSelection.entity }).queuedCount) ?? '') ? String((({ ...data.selector, ...pageSelection.entity }).queuedCount) ?? '') + ' queued' : '')].filter(Boolean).join(' ') || 'EVM network txpool timestamp'))} • EVM network txpool timestamp • Blockhead</title>
 </svelte:head>
 
 

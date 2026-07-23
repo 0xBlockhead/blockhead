@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.TronTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TronTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TronTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,21 +44,30 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tronTransaction = $derived(selection({
+	const tronTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
 		sources: selection.sources,
+		fields: {
+			result: true,
+		},
+	} : {
+		sources: selection.sources,
+		fields: {
+			result: true,
+		},
 	}))
-	const titleFallback = $derived('tron transaction')
-	const viewDomId = $derived('tron-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.transactionId) ?? '')].filter(Boolean).join(' ') || 'tron transaction')
+	const viewDomId = $derived('tron-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import TronBlockView from '$/views/TronBlockView.svelte'
-	import TronAccountView from '$/views/TronAccountView.svelte'
 	import TronContractView from '$/views/TronContractView.svelte'
 	import TronTransactionReceiptView from '$/views/TronTransactionReceiptView.svelte'
+	import TronAccountView from '$/views/TronAccountView.svelte'
 </script>
 
 
@@ -72,16 +82,85 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tronTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={tronTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const transactionId0 = resolvedEntity.transactionId}
+				{#if transactionId0 !== undefined && transactionId0 !== null}
+					<TruncatedValue value={String((transactionId0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={tronTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.result) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.transactionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={tronTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<ResourceBoundary
+					resource={
+						selection
+							.$owner({
+								sources: [
+									Source.TronGrid_Rest,
+									Source.TronFullNode_Rest,
+									Source.TronSolidityNode_Rest,
+									Source.TronScan_Rest,
+								],
+							})
+					}
+				>
+					{#snippet children(tronAccount)}
+						{#if tronAccount != null && tronAccount[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<TronAccountView
+									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
+									prefetched={tronAccount}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary
+					resource={
+						selection
+							.$to({
+								sources: [
+									Source.TronGrid_Rest,
+									Source.TronFullNode_Rest,
+									Source.TronSolidityNode_Rest,
+									Source.TronScan_Rest,
+								],
+							})
+					}
+				>
+					{#snippet children(tronAccount)}
+						{#if tronAccount != null && tronAccount[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<TronAccountView
+									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
+									prefetched={tronAccount}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -90,13 +169,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -104,41 +193,18 @@
 				</dd>
 			</div>
 
-			<div>
-				<dt>Transaction ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transactionId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transactionId = resolvedEntity.transactionId}
-							{#if transactionId !== undefined && transactionId !== null}
-								{String((transactionId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
 			<ResourceBoundary
 				resource={
-					selection.$block({
-						sources: [
-							Source.TronGrid_Rest,
-							Source.TronFullNode_Rest,
-							Source.TronSolidityNode_Rest,
-							Source.TronScan_Rest,
-							Source.ThreeXpl_Rest,
-						],
-					})
+					selection
+						.$block({
+							sources: [
+								Source.TronGrid_Rest,
+								Source.TronFullNode_Rest,
+								Source.TronSolidityNode_Rest,
+								Source.TronScan_Rest,
+								Source.ThreeXpl_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(tronBlock)}
@@ -259,30 +325,6 @@
 					selection({
 						sources: selection.sources,
 						fields: {
-							result: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const result = resolvedEntity.result}
-					{#if result !== undefined && result !== null}
-						<div>
-							<dt>Result</dt>
-							<dd>
-								{String((result) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
 							feeSun: true,
 						},
 					})
@@ -304,72 +346,15 @@
 
 			<ResourceBoundary
 				resource={
-					selection.$owner({
-						sources: [
-							Source.TronGrid_Rest,
-							Source.TronFullNode_Rest,
-							Source.TronSolidityNode_Rest,
-							Source.TronScan_Rest,
-						],
-					})
-				}
-			>
-				{#snippet children(tronAccount)}
-					{#if tronAccount != null && tronAccount[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>Owner</dt>
-							<dd>
-								<TronAccountView
-									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
-									prefetched={tronAccount}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection.$to({
-						sources: [
-							Source.TronGrid_Rest,
-							Source.TronFullNode_Rest,
-							Source.TronSolidityNode_Rest,
-							Source.TronScan_Rest,
-						],
-					})
-				}
-			>
-				{#snippet children(tronAccount)}
-					{#if tronAccount != null && tronAccount[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>To</dt>
-							<dd>
-								<TronAccountView
-									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
-									prefetched={tronAccount}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection.$contract({
-						sources: [
-							Source.TronGrid_Rest,
-							Source.TronFullNode_Rest,
-							Source.TronSolidityNode_Rest,
-							Source.TronScan_Rest,
-						],
-					})
+					selection
+						.$contract({
+							sources: [
+								Source.TronGrid_Rest,
+								Source.TronFullNode_Rest,
+								Source.TronSolidityNode_Rest,
+								Source.TronScan_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(tronContract)}
@@ -487,14 +472,15 @@
 
 			<ResourceBoundary
 				resource={
-					selection.$receipt({
-						sources: [
-							Source.TronGrid_Rest,
-							Source.TronFullNode_Rest,
-							Source.TronSolidityNode_Rest,
-							Source.TronScan_Rest,
-						],
-					})
+					selection
+						.$receipt({
+							sources: [
+								Source.TronGrid_Rest,
+								Source.TronFullNode_Rest,
+								Source.TronSolidityNode_Rest,
+								Source.TronScan_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(tronTransactionReceipt)}

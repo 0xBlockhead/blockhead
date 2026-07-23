@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Eip8004AgentServiceEndpoint>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Eip8004AgentServiceEndpoint>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Eip8004AgentServiceEndpoint>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eip8004AgentServiceEndpoint = $derived(selection({
+	const eip8004AgentServiceEndpoint = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			protocolKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			protocolKind: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent service endpoint')
-	const viewDomId = $derived('eip8004agent-service-endpoint-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('eip8004agent-service-endpoint-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,18 +77,18 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const endpointUrl0 = pendingEntity.endpointUrl}
-					{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
-						<svelte:element
-							this={'a'}
-							href={String(endpointUrl0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(endpointUrl0)} />
-						</svelte:element>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolKind')}
+			{@const endpointUrl0 = pendingEntity.endpointUrl}
+			{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
+				<svelte:element
+					this={'a'}
+					href={String(endpointUrl0)}
+					target="_blank"
+					rel="noreferrer noopener"
+				>
+					<TruncatedValue value={String(endpointUrl0)} />
+				</svelte:element>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
 				{#snippet children(entity)}
@@ -104,7 +110,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolKind')}
 			{[String((pendingEntity.endpointKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
@@ -117,7 +123,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolKind')}
 			{@const protocolKind0 = pendingEntity.protocolKind}
 			{#if protocolKind0 !== undefined && protocolKind0 !== null}
 				<span data-text="muted">
@@ -145,7 +151,7 @@
 				<dt>Registration file</dt>
 				<dd>
 					<Eip8004AgentRegistrationFileView
-						selection={select(EntityType.Eip8004AgentRegistrationFile, selection.entitySelector.$registrationFile, {})}
+						selection={select(EntityType.Eip8004AgentRegistrationFile, selection.entitySelector.$registrationFile)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -328,17 +334,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AgentPaymentRequirement_TimestampsView
-				selection={
-						selection.$$paymentRequirements({
-							count: true,
-						})
-					}
-				title='Payment requirements'
-				emptyText='No payment requirement observations.'
-				id='AgentPaymentRequirement_TimestampsView-payment-requirements'
-			/>
-		{/if}
+		{@const eip8004AgentServiceEndpointAgentPaymentRequirementTimestampsViewPaymentRequirementsResource = selection.$$paymentRequirements}
+		<ResourceBoundary
+			resource={eip8004AgentServiceEndpointAgentPaymentRequirementTimestampsViewPaymentRequirementsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AgentPaymentRequirement_TimestampsView
+					selection={eip8004AgentServiceEndpointAgentPaymentRequirementTimestampsViewPaymentRequirementsResource}
+					countResource={eip8004AgentServiceEndpointAgentPaymentRequirementTimestampsViewPaymentRequirementsResource.count}
+					title='Payment requirements'
+					id='AgentPaymentRequirement_TimestampsView-payment-requirements'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

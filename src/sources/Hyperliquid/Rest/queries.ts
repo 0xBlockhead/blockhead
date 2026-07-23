@@ -3,9 +3,13 @@ import { TransportType } from '$/constants/TransportType.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	HyperliquidClearinghouseState,
+	HyperliquidFill,
+	HyperliquidHistoricalOrder,
 	HyperliquidMeta,
+	HyperliquidSpotClearinghouseState,
 	HyperliquidSpotMeta,
 	HyperliquidUserRole,
+	HyperliquidUserVaultEquity,
 	HyperliquidValidatorSummary,
 } from '$/sources/Hyperliquid/Rest/types.ts'
 
@@ -77,6 +81,83 @@ export const getClearinghouseState = ({
 		restBaseUrl,
 		body: {
 			type: 'clearinghouseState',
+			user,
+		},
+	})
+)
+
+export const getSpotClearinghouseState = ({
+	restBaseUrl,
+	user,
+}: {
+	restBaseUrl: string
+	user: string
+}) => (
+	info<HyperliquidSpotClearinghouseState>({
+		restBaseUrl,
+		body: {
+			type: 'spotClearinghouseState',
+			user,
+		},
+	})
+)
+
+export const getHistoricalOrders = ({
+	restBaseUrl,
+	user,
+}: {
+	restBaseUrl: string
+	user: string
+}) => (
+	info<HyperliquidHistoricalOrder[]>({
+		restBaseUrl,
+		body: {
+			type: 'historicalOrders',
+			user,
+		},
+	})
+)
+
+export const getUserFillsByTime = ({
+	restBaseUrl,
+	user,
+	startTime,
+	endTime,
+}: {
+	restBaseUrl: string
+	user: string
+	startTime: number
+	endTime?: number
+}) => {
+	if (!Number.isSafeInteger(startTime) || startTime < 0)
+		throw new Error(`Hyperliquid_Rest: invalid fill start time ${startTime}`)
+
+	if (endTime != null && (!Number.isSafeInteger(endTime) || endTime < startTime))
+		throw new Error(`Hyperliquid_Rest: invalid fill end time ${endTime}`)
+
+	return info<HyperliquidFill[]>({
+		restBaseUrl,
+		body: {
+			type: 'userFillsByTime',
+			user,
+			startTime,
+			...(endTime != null && { endTime }),
+			aggregateByTime: false,
+		},
+	})
+}
+
+export const getUserVaultEquities = ({
+	restBaseUrl,
+	user,
+}: {
+	restBaseUrl: string
+	user: string
+}) => (
+	info<HyperliquidUserVaultEquity[]>({
+		restBaseUrl,
+		body: {
+			type: 'userVaultEquities',
 			user,
 		},
 	})

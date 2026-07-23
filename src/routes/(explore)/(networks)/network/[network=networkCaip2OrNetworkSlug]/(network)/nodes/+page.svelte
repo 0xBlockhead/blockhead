@@ -37,11 +37,8 @@
 			})
 		}
 		title='Nodes'
-		selection={
-			select(EntityType.LightningNetwork, data.selector).$$nodes({
-				count: true,
-			})
-		}
+		selection={select(EntityType.LightningNetwork, data.selector).$$nodes}
+		countResource={select(EntityType.LightningNetwork, data.selector).$$nodes.count}
 		id='nodes'
 		data-column-item="flexible"
 		data-card

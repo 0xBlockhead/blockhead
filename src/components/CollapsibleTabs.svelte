@@ -7,10 +7,15 @@
 		id: string
 		label: string
 		open?: boolean
+		active?: boolean
 	}
 
 	export type CollapsibleTabsSectionSnippet = Snippet<[
 		CollapsibleTabsSectionContentProps,
+	]>
+	export type CollapsibleTabsMarkerSnippet = Snippet<[
+		CollapsibleTabsSectionContentProps,
+		Content: Snippet,
 	]>
 
 
@@ -18,6 +23,7 @@
 		id: SectionId
 		label: string
 		description?: string
+		ownsSection?: boolean
 	}
 
 
@@ -27,6 +33,8 @@
 
 	export type CollapsibleTabsSectionSnippets = {
 		[SectionSnippetKey in `Section${string}`]?: CollapsibleTabsSectionSnippet
+	} & {
+		[MarkerSnippetKey in `Marker${string}`]?: CollapsibleTabsMarkerSnippet
 	}
 
 	export type CollapsibleTabsOwnProps<
@@ -111,8 +119,8 @@
 	}: CollapsibleTabsOwnProps<Sections> & CollapsibleTabsForwardedProps = $props()
 
 	let selectedSectionId = $state<CollapsibleTabsSectionIds<Sections>>()
-	let activeSectionId = $derived<CollapsibleTabsSectionIds<Sections> | string>(
-		selectedSectionId ?? initialSection ?? sections[0].id,
+	let activeSectionId = $derived<CollapsibleTabsSectionIds<Sections> | string | undefined>(
+		selectedSectionId ?? initialSection ?? (sections[0].ownsSection ? undefined : sections[0].id),
 	)
 
 
@@ -125,8 +133,18 @@
 
 	const sectionSnippetForSection = (
 		section: Sections[number],
-	): CollapsibleTabsSectionSnippet | undefined => (
-		collapsibleTabsSectionSnippets[sectionSnippetName(section.id)]
+	): CollapsibleTabsSectionSnippet => {
+		const Section = collapsibleTabsSectionSnippets[sectionSnippetName(section.id)]
+		if (Section === undefined)
+			throw new Error(`CollapsibleTabs section ${section.id} has no content snippet`)
+
+		return Section
+	}
+
+	const markerSnippetForSection = (
+		section: Sections[number],
+	): CollapsibleTabsMarkerSnippet | undefined => (
+		collapsibleTabsSectionSnippets[`Marker${sectionSnippetName(section.id).slice('Section'.length)}`]
 	)
 
 
@@ -149,6 +167,8 @@
 >
 	{#snippet Markers(_markersContext)}
 		{#each sections as section (section.id)}
+			{@const Marker = markerSnippetForSection(section)}
+			{#snippet MarkerContent()}
 			{#if section.description}
 				<Tooltip contentProps={{ side: 'top' }}>
 					{#snippet Content()}
@@ -180,12 +200,34 @@
 					}}
 				>{section.label}</a>
 			{/if}
+			{/snippet}
+			{#if Marker}
+				{@render Marker(
+					{
+						id: sectionAnchorId(section.id),
+						label: section.label,
+						open: true,
+						active: section.id === activeSectionId,
+					},
+					MarkerContent,
+				)}
+			{:else}
+				{@render MarkerContent()}
+			{/if}
 		{/each}
 	{/snippet}
 
 	{#snippet body(_bodyContext)}
 		{#each sections as section (section.id)}
 			{@const Section = sectionSnippetForSection(section)}
+			{#if section.ownsSection}
+				{@render Section({
+					id: sectionAnchorId(section.id),
+					label: section.label,
+					open: true,
+					active: section.id === activeSectionId,
+				})}
+			{:else}
 			<section
 				id={sectionAnchorId(section.id)}
 				aria-labelledby={`${sectionAnchorId(section.id)}:marker`}
@@ -194,16 +236,15 @@
 				data-column
 				data-active={section.id === activeSectionId}
 			>
-				{#if Section}
-					{@render Section(
-						{
-							id: sectionAnchorId(section.id),
-							label: section.label,
-							open: true,
-						},
-					)}
-				{/if}
+				{@render Section(
+					{
+						id: sectionAnchorId(section.id),
+						label: section.label,
+						open: true,
+					},
+				)}
 			</section>
+			{/if}
 		{/each}
 	{/snippet}
 </CollapsibleTabs1>

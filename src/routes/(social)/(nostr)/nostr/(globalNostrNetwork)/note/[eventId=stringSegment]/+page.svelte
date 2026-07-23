@@ -34,7 +34,6 @@
 			$rootNote: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.content) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).content) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note')))
 
 
 	// Components
@@ -44,7 +43,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Nostr note • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note' : [String((({ ...data.selector, ...pageSelection.entity }).content) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note'))} • Nostr note • Blockhead</title>
 </svelte:head>
 
 

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.SolanaTokenMint_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SolanaTokenMint_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SolanaTokenMint_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaTokenMintTimestamp = $derived(selection({
+	const solanaTokenMintTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			supply: true,
+			timestampMs: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			supply: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'solana token mint timestamp')
-	const viewDomId = $derived('solana-token-mint-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('solana-token-mint-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,13 +79,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const slot0 = pendingEntity.slot}
-					{#if slot0 !== undefined && slot0 !== null}
-						<NumberValue
-							value={slot0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'supply') && Object.hasOwn(prefetched, 'timestampMs')}
+			{@const slot0 = pendingEntity.slot}
+			{#if slot0 !== undefined && slot0 !== null}
+				<NumberValue
+					value={slot0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={solanaTokenMintTimestamp}>
 				{#snippet children(entity)}
@@ -95,13 +102,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const supply0 = pendingEntity.supply}
-					{#if supply0 !== undefined && supply0 !== null}
-						<NumberValue
-							value={supply0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'supply') && Object.hasOwn(prefetched, 'timestampMs')}
+			{@const supply0 = pendingEntity.supply}
+			{#if supply0 !== undefined && supply0 !== null}
+				<NumberValue
+					value={supply0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={solanaTokenMintTimestamp}>
 				{#snippet children(entity)}
@@ -118,7 +125,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'supply') && Object.hasOwn(prefetched, 'timestampMs')}
 			{@const timestampMs0 = pendingEntity.timestampMs}
 			{#if timestampMs0 !== undefined && timestampMs0 !== null}
 				<span data-text="muted">
@@ -146,15 +153,30 @@
 				<dt>Mint</dt>
 				<dd>
 					<SolanaTokenMintView
-						selection={select(EntityType.SolanaTokenMint, selection.entitySelector.$mint, {})}
+						selection={select(EntityType.SolanaTokenMint, selection.entitySelector.$mint)}
 						href={
-							(selection.entitySelector.$mint.mintAddress !== undefined && selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-								mintAddress: String(selection.entitySelector.$mint.mintAddress ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$mint.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$mint.mintAddress !== undefined && selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-								mintAddress: String(selection.entitySelector.$mint.mintAddress ?? ''),
-								network: String(selection.entitySelector.$mint.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$mint != null && 'mintAddress' in selection.entitySelector.$mint
+								&& selection.entitySelector.$mint.mintAddress != null
+								&& selection.entitySelector.$mint != null && '$network' in selection.entitySelector.$mint ?
+									selection.entitySelector.$mint.$network != null && 'caip2' in selection.entitySelector.$mint.$network
+									&& selection.entitySelector.$mint.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+									mintAddress: String(selection.entitySelector.$mint.mintAddress ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$mint.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$mint.$network != null && 'slug' in selection.entitySelector.$mint.$network
+										&& selection.entitySelector.$mint.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+										mintAddress: String(selection.entitySelector.$mint.mintAddress ?? ''),
+										network: String(selection.entitySelector.$mint.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

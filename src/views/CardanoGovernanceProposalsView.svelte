@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Cardano governance proposals',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CardanoGovernanceProposal>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CardanoGovernanceProposal>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CardanoGovernanceProposalView from '$/views/CardanoGovernanceProposalView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -76,12 +69,14 @@
 			sources: selection.sources,
 			fields: {
 				proposalKind: true,
+				governanceActionId: true,
 				proposalTxHash: true,
 				proposalIndex: true,
 				$network: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cardanoGovernanceProposals) => [...new Map(cardanoGovernanceProposals.values.map((cardanoGovernanceProposal) => [cardanoGovernanceProposal[EntityMetaKey.SelectorKey], cardanoGovernanceProposal])).values()]}
 	getKey={(cardanoGovernanceProposal) => cardanoGovernanceProposal[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,24 +91,48 @@
 
 	{#snippet Item({ item: cardanoGovernanceProposal })}
 		{@const cardanoGovernanceProposalFields = { ...cardanoGovernanceProposal[EntityMetaKey.Selector], ...cardanoGovernanceProposal }}
-		{@const selection = select(EntityType.CardanoGovernanceProposal, cardanoGovernanceProposal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const cardanoGovernanceProposalHrefFields = { ...cardanoGovernanceProposal, ...cardanoGovernanceProposal[EntityMetaKey.Selector] }}
-		<CardanoGovernanceProposalView
-			selection={selection}
-			prefetched={cardanoGovernanceProposalFields}
+		<EntityView
+			entityType={EntityType.CardanoGovernanceProposal}
+			entitySelector={cardanoGovernanceProposal[EntityMetaKey.Selector]}
 			href={
-				(cardanoGovernanceProposalHrefFields.proposalTxHash !== undefined && cardanoGovernanceProposalHrefFields.proposalIndex !== undefined && cardanoGovernanceProposalHrefFields.$network !== undefined && cardanoGovernanceProposalHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
-					proposalTxHash: String(cardanoGovernanceProposalHrefFields.proposalTxHash ?? ''),
-					proposalIndex: String(cardanoGovernanceProposalHrefFields.proposalIndex ?? ''),
-					network: String(caip2StringFromValue(cardanoGovernanceProposalHrefFields.$network.caip2) ?? ''),
-				}) : cardanoGovernanceProposalHrefFields.proposalTxHash !== undefined && cardanoGovernanceProposalHrefFields.proposalIndex !== undefined && cardanoGovernanceProposalHrefFields.$network !== undefined && cardanoGovernanceProposalHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
-					proposalTxHash: String(cardanoGovernanceProposalHrefFields.proposalTxHash ?? ''),
-					proposalIndex: String(cardanoGovernanceProposalHrefFields.proposalIndex ?? ''),
-					network: String(cardanoGovernanceProposalHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					cardanoGovernanceProposal[EntityMetaKey.Selector] != null && 'proposalTxHash' in cardanoGovernanceProposal[EntityMetaKey.Selector]
+					&& cardanoGovernanceProposal[EntityMetaKey.Selector].proposalTxHash != null
+					&& cardanoGovernanceProposal[EntityMetaKey.Selector] != null && 'proposalIndex' in cardanoGovernanceProposal[EntityMetaKey.Selector]
+					&& cardanoGovernanceProposal[EntityMetaKey.Selector].proposalIndex != null
+					&& cardanoGovernanceProposal[EntityMetaKey.Selector] != null && '$network' in cardanoGovernanceProposal[EntityMetaKey.Selector] ?
+						cardanoGovernanceProposal[EntityMetaKey.Selector].$network != null && 'caip2' in cardanoGovernanceProposal[EntityMetaKey.Selector].$network
+						&& cardanoGovernanceProposal[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
+						proposalTxHash: String(cardanoGovernanceProposal[EntityMetaKey.Selector].proposalTxHash ?? ''),
+						proposalIndex: String(cardanoGovernanceProposal[EntityMetaKey.Selector].proposalIndex ?? ''),
+						network: String(caip2StringFromValue(cardanoGovernanceProposal[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							cardanoGovernanceProposal[EntityMetaKey.Selector].$network != null && 'slug' in cardanoGovernanceProposal[EntityMetaKey.Selector].$network
+							&& cardanoGovernanceProposal[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
+							proposalTxHash: String(cardanoGovernanceProposal[EntityMetaKey.Selector].proposalTxHash ?? ''),
+							proposalIndex: String(cardanoGovernanceProposal[EntityMetaKey.Selector].proposalIndex ?? ''),
+							network: String(cardanoGovernanceProposal[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cardanoGovernanceProposalFields.proposalKind) ?? ''), String((cardanoGovernanceProposalFields.governanceActionId) ?? '')].filter(Boolean).join(' ') || 'Cardano governance proposal'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[(String((cardanoGovernanceProposalFields.proposalTxHash) ?? '') ? 'Proposal ' + String((cardanoGovernanceProposalFields.proposalTxHash) ?? '') : ''), (String((cardanoGovernanceProposalFields.proposalIndex) ?? '') ? '#' + String((cardanoGovernanceProposalFields.proposalIndex) ?? '') : '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

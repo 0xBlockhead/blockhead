@@ -6,7 +6,8 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchEvmTxHash } from '$/params/evmTxHash.ts'
 import { match as matchSolanaSignature } from '$/params/solanaSignature.ts'
 import { match as matchUtxoTxId } from '$/params/utxoTxId.ts'
-import { parseEntitySelector, type EntitySelector } from '$/schema/$schema.ts'
+import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import { CardanoTransaction as CardanoTransactionSchema } from '$/schema/CardanoTransaction.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmTransaction as EvmTransactionSchema } from '$/schema/EvmTransaction.ts'
 import { schema } from '$/schema/index.ts'
@@ -20,13 +21,46 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	const projectionNetwork = (Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value ?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value)
 	if (projectionNetwork == null) error(404, 'Network projection context not found')
 
-	const selectorMappings: {
-		entityType: EntityType
-		selectorName: string
-		selector: EntitySelector<typeof schema, EntityType>
-	}[] = []
+	const routeCandidates: (
+		| {
+			readonly entityType: EntityType.EvmTransaction
+			readonly selectorName: 'EvmNetworkTxHash'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.EvmTransaction,
+				'EvmNetworkTxHash'
+			>
+		}
+		| {
+			readonly entityType: EntityType.SolanaTransaction
+			readonly selectorName: 'NetworkSignature'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.SolanaTransaction,
+				'NetworkSignature'
+			>
+		}
+		| {
+			readonly entityType: EntityType.CardanoTransaction
+			readonly selectorName: 'NetworkHash'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.CardanoTransaction,
+				'NetworkHash'
+			>
+		}
+		| {
+			readonly entityType: EntityType.UtxoTransaction
+			readonly selectorName: 'NetworkTxId'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.UtxoTransaction,
+				'NetworkTxId'
+			>
+		}
+	)[] = []
 
-	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')) && matchEvmTxHash(params.transactionId)) {
+	if (((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')) && projectionNetwork.namespace === 'Evm') && matchEvmTxHash(params.transactionId)) {
 		const evmTransactionEvmNetworkTxHashSelector = parseEntitySelector(
 			schema,
 			EvmTransactionSchema,
@@ -35,8 +69,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				txHash: params.transactionId,
 			}
 		)
-		if (!(evmTransactionEvmNetworkTxHashSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.EvmTransaction, selectorName: 'EvmNetworkTxHash', selector: evmTransactionEvmNetworkTxHashSelector })
+		if (!(evmTransactionEvmNetworkTxHashSelector instanceof arktype.errors) && '$network' in evmTransactionEvmNetworkTxHashSelector && 'txHash' in evmTransactionEvmNetworkTxHashSelector)
+			routeCandidates.push({ entityType: EntityType.EvmTransaction, selectorName: 'EvmNetworkTxHash', selector: evmTransactionEvmNetworkTxHashSelector })
 	}
 
 	if (((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')) && projectionNetwork.namespace === 'Solana') && matchSolanaSignature(params.transactionId)) {
@@ -48,14 +82,26 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				signature: params.transactionId,
 			}
 		)
-		if (!(solanaTransactionNetworkSignatureSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.SolanaTransaction, selectorName: 'NetworkSignature', selector: solanaTransactionNetworkSignatureSelector })
+		if (!(solanaTransactionNetworkSignatureSelector instanceof arktype.errors) && '$network' in solanaTransactionNetworkSignatureSelector && 'signature' in solanaTransactionNetworkSignatureSelector)
+			routeCandidates.push({ entityType: EntityType.SolanaTransaction, selectorName: 'NetworkSignature', selector: solanaTransactionNetworkSignatureSelector })
+	}
+
+	if (projectionNetwork.namespace === 'Cardano' && matchUtxoTxId(params.transactionId)) {
+		const cardanoTransactionNetworkHashSelector = parseEntitySelector(
+			schema,
+			CardanoTransactionSchema,
+			{
+				$network: parentData.selector,
+				hash: params.transactionId,
+			}
+		)
+		if (!(cardanoTransactionNetworkHashSelector instanceof arktype.errors) && '$network' in cardanoTransactionNetworkHashSelector && 'hash' in cardanoTransactionNetworkHashSelector)
+			routeCandidates.push({ entityType: EntityType.CardanoTransaction, selectorName: 'NetworkHash', selector: cardanoTransactionNetworkHashSelector })
 	}
 
 	if (((projectionNetwork.ledgerModels !== undefined && projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && [
 	'Bitcoin',
 	'BitcoinCash',
-	'Cardano',
 	'Dogecoin',
 	'Elements',
 	'Litecoin',
@@ -69,13 +115,12 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				txId: params.transactionId,
 			}
 		)
-		if (!(utxoTransactionNetworkTxIdSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.UtxoTransaction, selectorName: 'NetworkTxId', selector: utxoTransactionNetworkTxIdSelector })
+		if (!(utxoTransactionNetworkTxIdSelector instanceof arktype.errors) && '$network' in utxoTransactionNetworkTxIdSelector && 'txId' in utxoTransactionNetworkTxIdSelector)
+			routeCandidates.push({ entityType: EntityType.UtxoTransaction, selectorName: 'NetworkTxId', selector: utxoTransactionNetworkTxIdSelector })
 	}
 
-	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')
-	if (selectorMappings.length > 1) error(500, 'Route selector is ambiguous')
-	const selectorMapping = selectorMappings[0]
+	if (routeCandidates.length === 0) error(404, 'Route selector not applicable')
+	if (routeCandidates.length > 1) error(500, 'Route selector is ambiguous')
 
-	return { selector: selectorMapping.selector, selectorMapping, selectorMappings }
+	return routeCandidates[0]
 }

@@ -38,6 +38,15 @@ export const CosmosAccount = entity({
 			Source.CosmosSdk_Rest,
 		],
 	},
+	$$transactions: {
+		label: 'Transactions',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.CosmosTransaction,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.CosmosSdk_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkAddress: [

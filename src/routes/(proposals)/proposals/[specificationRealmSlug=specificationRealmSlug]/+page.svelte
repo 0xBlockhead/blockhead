@@ -28,7 +28,6 @@
 			slug: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.label) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).label) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm')))
 
 
 	// Components
@@ -38,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Specification realm • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm' : [String((({ ...data.selector, ...pageSelection.entity }).label) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm'))} • Specification realm • Blockhead</title>
 </svelte:head>
 
 

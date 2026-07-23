@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadAgentProgramInstall>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadAgentProgramInstall>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAgentProgramInstall>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAgentProgramInstall = $derived(selection({
+	const blockheadAgentProgramInstall = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			command: true,
+			updatedAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			command: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent program install')
-	const viewDomId = $derived('blockhead-agent-program-install-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-agent-program-install-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,7 +80,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'updatedAt')}
 			{[String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadAgentProgramInstall}>
@@ -86,7 +93,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'updatedAt')}
 			{[String((pendingEntity.command) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadAgentProgramInstall}>
@@ -99,7 +106,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'updatedAt')}
 			{@const updatedAt0 = pendingEntity.updatedAt}
 			{#if updatedAt0 !== undefined && updatedAt0 !== null}
 				<span data-text="muted">
@@ -159,9 +166,15 @@
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
 									href={
-										(blockheadSource[EntityMetaKey.Selector].id !== undefined ? resolve('/~/manage/source/[sourceId=stringSegment]', {
+										(
+											blockheadSource[EntityMetaKey.Selector] != null && 'id' in blockheadSource[EntityMetaKey.Selector]
+											&& blockheadSource[EntityMetaKey.Selector].id != null ?
+												resolve('/~/manage/source/[sourceId=stringSegment]', {
 											sourceId: String(blockheadSource[EntityMetaKey.Selector].id ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -347,17 +360,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadAgentProgramInstall_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No install observations.'
-				id='BlockheadAgentProgramInstall_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadAgentProgramInstall_TimestampsView
+					selection={blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource}
+					countResource={blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadAgentProgramInstall_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

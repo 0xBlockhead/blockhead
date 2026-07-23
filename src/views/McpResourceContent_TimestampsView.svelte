@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'MCP resource content observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.McpResourceContent_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.McpResourceContent_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import McpResourceContent_TimestampView from '$/views/McpResourceContent_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(mcpResourceContentTimestamps) => [...new Map(mcpResourceContentTimestamps.values.map((mcpResourceContentTimestamp) => [mcpResourceContentTimestamp[EntityMetaKey.SelectorKey], mcpResourceContentTimestamp])).values()]}
 	getKey={(mcpResourceContentTimestamp) => mcpResourceContentTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: mcpResourceContentTimestamp })}
 		{@const mcpResourceContentTimestampFields = { ...mcpResourceContentTimestamp[EntityMetaKey.Selector], ...mcpResourceContentTimestamp }}
-		{@const selection = select(EntityType.McpResourceContent_Timestamp, mcpResourceContentTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<McpResourceContent_TimestampView
-			selection={selection}
-			prefetched={mcpResourceContentTimestampFields}
+		<EntityView
+			entityType={EntityType.McpResourceContent_Timestamp}
+			entitySelector={mcpResourceContentTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((mcpResourceContentTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp resource content timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((mcpResourceContentTimestampFields.contentKind) ?? ''), String((mcpResourceContentTimestampFields.mimeType) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((mcpResourceContentTimestampFields.error) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

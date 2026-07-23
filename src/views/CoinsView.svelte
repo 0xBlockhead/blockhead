@@ -2,9 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -18,13 +19,12 @@
 	import MarketsView from '$/views/MarketsView.svelte'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Coins',
 		typeAnnotationParagraphs = ['A market-facing coin or crypto asset identity used across price, market, and network contexts.'],
 		placeholderText = undefined,
@@ -36,7 +36,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.Coin>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Coin>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,20 +47,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CoinView from '$/views/CoinView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -89,6 +82,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(coins) => [...new Map(coins.values.map((coin) => [coin[EntityMetaKey.SelectorKey], coin])).values()]}
 	getKey={(coin) => coin[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -103,18 +97,31 @@
 
 	{#snippet Item({ item: coin })}
 		{@const coinFields = { ...coin[EntityMetaKey.Selector], ...coin }}
-		{@const selection = select(EntityType.Coin, coin[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const coinHrefFields = { ...coin, ...coin[EntityMetaKey.Selector] }}
-		<CoinView
-			selection={selection}
-			prefetched={coinFields}
+		<EntityView
+			entityType={EntityType.Coin}
+			entitySelector={coin[EntityMetaKey.Selector]}
 			href={
-				(coinHrefFields.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
-					coinId: String(coinHrefFields.coinId ?? ''),
-				}) : undefined)
+				(
+					coin[EntityMetaKey.Selector] != null && 'coinId' in coin[EntityMetaKey.Selector]
+					&& coin[EntityMetaKey.Selector].coinId != null ?
+						resolve('/coin/[coinId=stringSegment]', {
+					coinId: String(coin[EntityMetaKey.Selector].coinId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((coinFields.symbol) ?? ''), String((coinFields.name) ?? '')].filter(Boolean).join(' ') || 'Coin'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((coinFields.symbol) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

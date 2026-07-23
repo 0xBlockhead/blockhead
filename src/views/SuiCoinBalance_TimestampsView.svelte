@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Sui coin balance observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.SuiCoinBalance_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SuiCoinBalance_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import SuiCoinBalance_TimestampView from '$/views/SuiCoinBalance_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(suiCoinBalanceTimestamps) => [...new Map(suiCoinBalanceTimestamps.values.map((suiCoinBalanceTimestamp) => [suiCoinBalanceTimestamp[EntityMetaKey.SelectorKey], suiCoinBalanceTimestamp])).values()]}
 	getKey={(suiCoinBalanceTimestamp) => suiCoinBalanceTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: suiCoinBalanceTimestamp })}
 		{@const suiCoinBalanceTimestampFields = { ...suiCoinBalanceTimestamp[EntityMetaKey.Selector], ...suiCoinBalanceTimestamp }}
-		{@const selection = select(EntityType.SuiCoinBalance_Timestamp, suiCoinBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<SuiCoinBalance_TimestampView
-			selection={selection}
-			prefetched={suiCoinBalanceTimestampFields}
+		<EntityView
+			entityType={EntityType.SuiCoinBalance_Timestamp}
+			entitySelector={suiCoinBalanceTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'Sui coin balance timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Slashings',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BeaconSlashing>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BeaconSlashing>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BeaconSlashingView from '$/views/BeaconSlashingView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(beaconSlashings) => [...new Map(beaconSlashings.values.map((beaconSlashing) => [beaconSlashing[EntityMetaKey.SelectorKey], beaconSlashing])).values()]}
 	getKey={(beaconSlashing) => beaconSlashing[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,26 +90,56 @@
 
 	{#snippet Item({ item: beaconSlashing })}
 		{@const beaconSlashingFields = { ...beaconSlashing[EntityMetaKey.Selector], ...beaconSlashing }}
-		{@const selection = select(EntityType.BeaconSlashing, beaconSlashing[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const beaconSlashingHrefFields = { ...beaconSlashing, ...beaconSlashing[EntityMetaKey.Selector] }}
-		<BeaconSlashingView
-			selection={selection}
-			prefetched={beaconSlashingFields}
+		<EntityView
+			entityType={EntityType.BeaconSlashing}
+			entitySelector={beaconSlashing[EntityMetaKey.Selector]}
 			href={
-				(beaconSlashingHrefFields.slot !== undefined && beaconSlashingHrefFields.kind !== undefined && beaconSlashingHrefFields.indexInSlot !== undefined && beaconSlashingHrefFields.$network !== undefined && beaconSlashingHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/slashing/[kind=stringSegment]/[index=nonNegativeInteger]', {
-					slot: String(beaconSlashingHrefFields.slot ?? ''),
-					kind: String(beaconSlashingHrefFields.kind ?? ''),
-					index: String(beaconSlashingHrefFields.indexInSlot ?? ''),
-					network: String(caip2StringFromValue(beaconSlashingHrefFields.$network.caip2) ?? ''),
-				}) : beaconSlashingHrefFields.slot !== undefined && beaconSlashingHrefFields.kind !== undefined && beaconSlashingHrefFields.indexInSlot !== undefined && beaconSlashingHrefFields.$network !== undefined && beaconSlashingHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/slashing/[kind=stringSegment]/[index=nonNegativeInteger]', {
-					slot: String(beaconSlashingHrefFields.slot ?? ''),
-					kind: String(beaconSlashingHrefFields.kind ?? ''),
-					index: String(beaconSlashingHrefFields.indexInSlot ?? ''),
-					network: String(beaconSlashingHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					beaconSlashing[EntityMetaKey.Selector] != null && 'slot' in beaconSlashing[EntityMetaKey.Selector]
+					&& beaconSlashing[EntityMetaKey.Selector].slot != null
+					&& beaconSlashing[EntityMetaKey.Selector] != null && 'kind' in beaconSlashing[EntityMetaKey.Selector]
+					&& beaconSlashing[EntityMetaKey.Selector].kind != null
+					&& beaconSlashing[EntityMetaKey.Selector] != null && 'indexInSlot' in beaconSlashing[EntityMetaKey.Selector]
+					&& beaconSlashing[EntityMetaKey.Selector].indexInSlot != null
+					&& beaconSlashing[EntityMetaKey.Selector] != null && '$network' in beaconSlashing[EntityMetaKey.Selector] ?
+						beaconSlashing[EntityMetaKey.Selector].$network != null && 'caip2' in beaconSlashing[EntityMetaKey.Selector].$network
+						&& beaconSlashing[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/slashing/[kind=stringSegment]/[index=nonNegativeInteger]', {
+						slot: String(beaconSlashing[EntityMetaKey.Selector].slot ?? ''),
+						kind: String(beaconSlashing[EntityMetaKey.Selector].kind ?? ''),
+						index: String(beaconSlashing[EntityMetaKey.Selector].indexInSlot ?? ''),
+						network: String(caip2StringFromValue(beaconSlashing[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							beaconSlashing[EntityMetaKey.Selector].$network != null && 'slug' in beaconSlashing[EntityMetaKey.Selector].$network
+							&& beaconSlashing[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/slashing/[kind=stringSegment]/[index=nonNegativeInteger]', {
+							slot: String(beaconSlashing[EntityMetaKey.Selector].slot ?? ''),
+							kind: String(beaconSlashing[EntityMetaKey.Selector].kind ?? ''),
+							index: String(beaconSlashing[EntityMetaKey.Selector].indexInSlot ?? ''),
+							network: String(beaconSlashing[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((beaconSlashingFields.indexInSlot) ?? '') ? 'Slashing #' + String((beaconSlashingFields.indexInSlot) ?? '') : '') || [String((beaconSlashingFields.kind) ?? ''), (String((beaconSlashingFields.indexInSlot) ?? '') ? ' #' + String((beaconSlashingFields.indexInSlot) ?? '') : '')].filter(Boolean).join(' ') || 'beacon slashing'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((beaconSlashingFields.kind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[(String((beaconSlashingFields.slot) ?? '') ? 'Slot ' + String((beaconSlashingFields.slot) ?? '') : '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

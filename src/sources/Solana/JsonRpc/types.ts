@@ -119,6 +119,21 @@ export type SolanaRpcSignatureStatus = {
 	confirmationStatus?: string
 }
 
+export type SolanaRpcCommitment = 'confirmed' | 'finalized'
+
+export type SolanaRpcAddressSignature = {
+	signature: string
+	slot: number
+	err: JsonValue
+	memo: string | null
+	blockTime: number | null
+	confirmationStatus: SolanaRpcCommitment | null
+}
+
+export type SolanaRpcAddressTransaction = SolanaRpcAddressSignature & {
+	transaction: SolanaRpcTransaction
+}
+
 export type SolanaRpcVoteAccounts = {
 	current: SolanaRpcVoteAccount[]
 	delinquent: SolanaRpcVoteAccount[]

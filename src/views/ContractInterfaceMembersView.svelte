@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Contract interface members',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ContractInterfaceMember>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ContractInterfaceMember>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ContractInterfaceMemberView from '$/views/ContractInterfaceMemberView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(contractInterfaceMembers) => [...new Map(contractInterfaceMembers.values.map((contractInterfaceMember) => [contractInterfaceMember[EntityMetaKey.SelectorKey], contractInterfaceMember])).values()]}
 	getKey={(contractInterfaceMember) => contractInterfaceMember[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,12 +89,24 @@
 
 	{#snippet Item({ item: contractInterfaceMember })}
 		{@const contractInterfaceMemberFields = { ...contractInterfaceMember[EntityMetaKey.Selector], ...contractInterfaceMember }}
-		{@const selection = select(EntityType.ContractInterfaceMember, contractInterfaceMember[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ContractInterfaceMemberView
-			selection={selection}
-			prefetched={contractInterfaceMemberFields}
+		<EntityView
+			entityType={EntityType.ContractInterfaceMember}
+			entitySelector={contractInterfaceMember[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((contractInterfaceMemberFields.name) ?? ''), String((contractInterfaceMemberFields.canonicalSignature) ?? ''), String((contractInterfaceMemberFields.memberKey) ?? '')].filter(Boolean).join(' ') || 'contract interface member'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((contractInterfaceMemberFields.memberKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((contractInterfaceMemberFields.interfaceId) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

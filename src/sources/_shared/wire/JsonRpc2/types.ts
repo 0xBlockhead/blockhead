@@ -2,7 +2,7 @@ export type JsonRpc2Request = {
 	jsonrpc: '2.0'
 	id: number
 	method: string
-	params?: readonly unknown[]
+	params?: readonly unknown[] | Readonly<Record<string, unknown>>
 }
 
 export type JsonRpc2Error = {

@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'YouTube comments',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.YoutubeComment>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.YoutubeComment>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import YoutubeCommentView from '$/views/YoutubeCommentView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(youtubeComments) => [...new Map(youtubeComments.values.map((youtubeComment) => [youtubeComment[EntityMetaKey.SelectorKey], youtubeComment])).values()]}
 	getKey={(youtubeComment) => youtubeComment[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,19 +90,34 @@
 
 	{#snippet Item({ item: youtubeComment })}
 		{@const youtubeCommentFields = { ...youtubeComment[EntityMetaKey.Selector], ...youtubeComment }}
-		{@const selection = select(EntityType.YoutubeComment, youtubeComment[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const youtubeCommentHrefFields = { ...youtubeComment, ...youtubeComment[EntityMetaKey.Selector] }}
-		<YoutubeCommentView
-			selection={selection}
-			prefetched={youtubeCommentFields}
+		<EntityView
+			entityType={EntityType.YoutubeComment}
+			entitySelector={youtubeComment[EntityMetaKey.Selector]}
 			href={
-				(youtubeCommentHrefFields.videoId !== undefined && youtubeCommentHrefFields.commentId !== undefined ? resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]', {
-					videoId: encodeURIComponent(String(youtubeCommentHrefFields.videoId ?? '')),
-					commentId: encodeURIComponent(String(youtubeCommentHrefFields.commentId ?? '')),
-				}) : undefined)
+				(
+					youtubeComment[EntityMetaKey.Selector] != null && 'videoId' in youtubeComment[EntityMetaKey.Selector]
+					&& youtubeComment[EntityMetaKey.Selector].videoId != null
+					&& youtubeComment[EntityMetaKey.Selector] != null && 'commentId' in youtubeComment[EntityMetaKey.Selector]
+					&& youtubeComment[EntityMetaKey.Selector].commentId != null ?
+						resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]', {
+					videoId: encodeURIComponent(String(youtubeComment[EntityMetaKey.Selector].videoId ?? '')),
+					commentId: encodeURIComponent(String(youtubeComment[EntityMetaKey.Selector].commentId ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((youtubeCommentFields.text) ?? '')].filter(Boolean).join(' ') || 'YouTube comment'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((youtubeCommentFields.publishedAtMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

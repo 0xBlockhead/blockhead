@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Relay observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrRelay_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NostrRelay_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrRelay_TimestampView from '$/views/NostrRelay_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nostrRelayTimestamps) => [...new Map(nostrRelayTimestamps.values.map((nostrRelayTimestamp) => [nostrRelayTimestamp[EntityMetaKey.SelectorKey], nostrRelayTimestamp])).values()]}
 	getKey={(nostrRelayTimestamp) => nostrRelayTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,20 +91,42 @@
 
 	{#snippet Item({ item: nostrRelayTimestamp })}
 		{@const nostrRelayTimestampFields = { ...nostrRelayTimestamp[EntityMetaKey.Selector], ...nostrRelayTimestamp }}
-		{@const selection = select(EntityType.NostrRelay_Timestamp, nostrRelayTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const nostrRelayTimestampHrefFields = { ...nostrRelayTimestamp, ...nostrRelayTimestamp[EntityMetaKey.Selector] }}
-		<NostrRelay_TimestampView
-			selection={selection}
-			prefetched={nostrRelayTimestampFields}
+		<EntityView
+			entityType={EntityType.NostrRelay_Timestamp}
+			entitySelector={nostrRelayTimestamp[EntityMetaKey.Selector]}
 			href={
-				(nostrRelayTimestampHrefFields.timestampMs !== undefined && nostrRelayTimestampHrefFields.source !== undefined && nostrRelayTimestampHrefFields.$relay !== undefined && nostrRelayTimestampHrefFields.$relay.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(nostrRelayTimestampHrefFields.timestampMs ?? ''),
-					source: String(nostrRelayTimestampHrefFields.source ?? ''),
-					relayKey: encodeURIComponent(String(nostrRelayTimestampHrefFields.$relay.relayUrl ?? '')),
-				}) : undefined)
+				(
+					nostrRelayTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in nostrRelayTimestamp[EntityMetaKey.Selector]
+					&& nostrRelayTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& nostrRelayTimestamp[EntityMetaKey.Selector] != null && 'source' in nostrRelayTimestamp[EntityMetaKey.Selector]
+					&& nostrRelayTimestamp[EntityMetaKey.Selector].source != null
+					&& nostrRelayTimestamp[EntityMetaKey.Selector] != null && '$relay' in nostrRelayTimestamp[EntityMetaKey.Selector]
+					&& nostrRelayTimestamp[EntityMetaKey.Selector].$relay != null && 'relayUrl' in nostrRelayTimestamp[EntityMetaKey.Selector].$relay
+					&& nostrRelayTimestamp[EntityMetaKey.Selector].$relay.relayUrl != null ?
+						resolve('/nostr/relay/[relayKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(nostrRelayTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(nostrRelayTimestamp[EntityMetaKey.Selector].source ?? ''),
+					relayKey: encodeURIComponent(String(nostrRelayTimestamp[EntityMetaKey.Selector].$relay.relayUrl ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nostrRelayTimestampFields.name) ?? ''), String((nostrRelayTimestampFields.source) ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((nostrRelayTimestampFields.reachable) ?? ''), String((nostrRelayTimestampFields.software) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((nostrRelayTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

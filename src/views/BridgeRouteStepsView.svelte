@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Steps',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BridgeRouteStep>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BridgeRouteStep>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BridgeRouteStepView from '$/views/BridgeRouteStepView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(bridgeRouteSteps) => [...new Map(bridgeRouteSteps.values.map((bridgeRouteStep) => [bridgeRouteStep[EntityMetaKey.SelectorKey], bridgeRouteStep])).values()]}
 	getKey={(bridgeRouteStep) => bridgeRouteStep[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,26 +89,56 @@
 
 	{#snippet Item({ item: bridgeRouteStep })}
 		{@const bridgeRouteStepFields = { ...bridgeRouteStep[EntityMetaKey.Selector], ...bridgeRouteStep }}
-		{@const selection = select(EntityType.BridgeRouteStep, bridgeRouteStep[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const bridgeRouteStepHrefFields = { ...bridgeRouteStep, ...bridgeRouteStep[EntityMetaKey.Selector] }}
-		<BridgeRouteStepView
-			selection={selection}
-			prefetched={bridgeRouteStepFields}
+		<EntityView
+			entityType={EntityType.BridgeRouteStep}
+			entitySelector={bridgeRouteStep[EntityMetaKey.Selector]}
 			href={
-				(bridgeRouteStepHrefFields.indexInRoute !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromChainId !== undefined && bridgeRouteStepHrefFields.$route.toChainId !== undefined && bridgeRouteStepHrefFields.$route.fromToken !== undefined && bridgeRouteStepHrefFields.$route.toToken !== undefined && bridgeRouteStepHrefFields.$route.fromAmount !== undefined && bridgeRouteStepHrefFields.$route.fromAddress !== undefined && bridgeRouteStepHrefFields.$route.slippage !== undefined && bridgeRouteStepHrefFields.$route.toAddress !== undefined ? resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/step/[stepIndex=bridgeRouteStepIndex]', {
-					stepIndex: String(bridgeRouteStepHrefFields.indexInRoute ?? ''),
-					fromChainId: String(bridgeRouteStepHrefFields.$route.fromChainId ?? ''),
-					toChainId: String(bridgeRouteStepHrefFields.$route.toChainId ?? ''),
-					fromToken: String(bridgeRouteStepHrefFields.$route.fromToken ?? ''),
-					toToken: String(bridgeRouteStepHrefFields.$route.toToken ?? ''),
-					fromAmount: String(bridgeRouteStepHrefFields.$route.fromAmount ?? ''),
-					fromAddress: String(bridgeRouteStepHrefFields.$route.fromAddress ?? ''),
-					slippage: String(bridgeRouteStepHrefFields.$route.slippage ?? ''),
-					toAddress: String(bridgeRouteStepHrefFields.$route.toAddress ?? ''),
-				}) : undefined)
+				(
+					bridgeRouteStep[EntityMetaKey.Selector] != null && 'indexInRoute' in bridgeRouteStep[EntityMetaKey.Selector]
+					&& bridgeRouteStep[EntityMetaKey.Selector].indexInRoute != null
+					&& bridgeRouteStep[EntityMetaKey.Selector] != null && '$route' in bridgeRouteStep[EntityMetaKey.Selector]
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route != null && 'fromChainId' in bridgeRouteStep[EntityMetaKey.Selector].$route
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route.fromChainId != null
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route != null && 'toChainId' in bridgeRouteStep[EntityMetaKey.Selector].$route
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route.toChainId != null
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route != null && 'fromToken' in bridgeRouteStep[EntityMetaKey.Selector].$route
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route.fromToken != null
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route != null && 'toToken' in bridgeRouteStep[EntityMetaKey.Selector].$route
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route.toToken != null
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route != null && 'fromAmount' in bridgeRouteStep[EntityMetaKey.Selector].$route
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route.fromAmount != null
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route != null && 'fromAddress' in bridgeRouteStep[EntityMetaKey.Selector].$route
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route.fromAddress != null
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route != null && 'slippage' in bridgeRouteStep[EntityMetaKey.Selector].$route
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route.slippage != null
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route != null && 'toAddress' in bridgeRouteStep[EntityMetaKey.Selector].$route
+					&& bridgeRouteStep[EntityMetaKey.Selector].$route.toAddress != null ?
+						resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/step/[stepIndex=bridgeRouteStepIndex]', {
+					stepIndex: String(bridgeRouteStep[EntityMetaKey.Selector].indexInRoute ?? ''),
+					fromChainId: String(bridgeRouteStep[EntityMetaKey.Selector].$route.fromChainId ?? ''),
+					toChainId: String(bridgeRouteStep[EntityMetaKey.Selector].$route.toChainId ?? ''),
+					fromToken: String(bridgeRouteStep[EntityMetaKey.Selector].$route.fromToken ?? ''),
+					toToken: String(bridgeRouteStep[EntityMetaKey.Selector].$route.toToken ?? ''),
+					fromAmount: String(bridgeRouteStep[EntityMetaKey.Selector].$route.fromAmount ?? ''),
+					fromAddress: String(bridgeRouteStep[EntityMetaKey.Selector].$route.fromAddress ?? ''),
+					slippage: String(bridgeRouteStep[EntityMetaKey.Selector].$route.slippage ?? ''),
+					toAddress: String(bridgeRouteStep[EntityMetaKey.Selector].$route.toAddress ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((bridgeRouteStepFields.indexInRoute) ?? '') ? 'Step #' + String((bridgeRouteStepFields.indexInRoute) ?? '') : '') || 'bridge route step'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((bridgeRouteStepFields.tool) ?? ''), String((bridgeRouteStepFields.stepType) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -32,7 +32,6 @@
 			smartAccountsCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 account factory timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 account factory timestamp')))
 
 
 	// Components
@@ -42,7 +41,15 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ERC-4337 account factory timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
+		$factory: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 account factory timestamp' : [String((({ ...{
+		$factory: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 account factory timestamp'))} • ERC-4337 account factory timestamp • Blockhead</title>
 </svelte:head>
 
 

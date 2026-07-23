@@ -11,40 +11,14 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
 import { Source } from '$/sources/Source.ts'
 import type { NostrRelayEvent } from '$/sources/NostrRelay/WebSocket/types.ts'
-import {
-	isJsonArray,
-	isJsonNumber,
-	isJsonString,
-} from '$/typescript/JsonValue.ts'
+import { validateNostrEvent } from '$/sources/NostrRelay/Nip01/event.ts'
 
 const noteFromRelayEvent = (event: NostrRelayEvent) => {
-	if (
-		!isJsonString(event.id)
-		|| !/^[0-9a-f]{64}$/i.test(event.id)
-		|| !isJsonString(event.pubkey)
-		|| !/^[0-9a-f]{64}$/i.test(event.pubkey)
-		|| !isJsonNumber(event.kind)
-		|| event.kind !== 1
-		|| !isJsonNumber(event.created_at)
-		|| !isJsonString(event.content)
-		|| !isJsonString(event.sig)
-		|| !/^[0-9a-f]{128}$/i.test(event.sig)
-		|| !isJsonArray(event.tags)
-		|| !event.tags.every((tag) => (
-			isJsonArray(tag)
-			&& tag.every(isJsonString)
-		))
-	) return undefined
-
-	return nostrNoteFieldValuesFromEvent({
-		id: event.id,
-		pubkey: event.pubkey,
-		kind: event.kind,
-		created_at: event.created_at,
-		content: event.content,
-		sig: event.sig,
-		tags: event.tags,
-	})
+	try {
+		return nostrNoteFieldValuesFromEvent(validateNostrEvent(event, { kinds: [1] }))
+	} catch {
+		return undefined
+	}
 }
 
 export default {

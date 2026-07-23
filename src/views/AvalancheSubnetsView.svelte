@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Avalanche subnets',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AvalancheSubnet>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AvalancheSubnet>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AvalancheSubnetView from '$/views/AvalancheSubnetView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(avalancheSubnets) => [...new Map(avalancheSubnets.values.map((avalancheSubnet) => [avalancheSubnet[EntityMetaKey.SelectorKey], avalancheSubnet])).values()]}
 	getKey={(avalancheSubnet) => avalancheSubnet[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: avalancheSubnet })}
 		{@const avalancheSubnetFields = { ...avalancheSubnet[EntityMetaKey.Selector], ...avalancheSubnet }}
-		{@const selection = select(EntityType.AvalancheSubnet, avalancheSubnet[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AvalancheSubnetView
-			selection={selection}
-			prefetched={avalancheSubnetFields}
+		<EntityView
+			entityType={EntityType.AvalancheSubnet}
+			entitySelector={avalancheSubnet[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((avalancheSubnetFields.label) ?? '')].filter(Boolean).join(' ') || [String((avalancheSubnetFields.subnetId) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((avalancheSubnetFields.threshold) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

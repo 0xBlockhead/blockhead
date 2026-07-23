@@ -27,7 +27,6 @@
 			$solanaAccount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.address) ?? '')].filter(Boolean).join(' ') || 'Farcaster verified address' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'Farcaster verified address'))
 
 
 	// Components
@@ -37,7 +36,15 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Farcaster verified address • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		fid: Number(params.userId),
+		protocol: params.protocol,
+		address: params.address,
+	}.address) ?? '')].filter(Boolean).join(' ') || 'Farcaster verified address' : [String((({ ...{
+		fid: Number(params.userId),
+		protocol: params.protocol,
+		address: params.address,
+	}, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'Farcaster verified address')} • Farcaster verified address • Blockhead</title>
 </svelte:head>
 
 

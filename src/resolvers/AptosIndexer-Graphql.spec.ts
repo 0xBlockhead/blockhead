@@ -13,6 +13,11 @@ import { AptosTableItemSelector } from '$/schema/AptosTableItem.ts'
 import { AptosTableItem_TimestampSelector } from '$/schema/AptosTableItem_Timestamp.ts'
 import { AptosTransactionSelector } from '$/schema/AptosTransaction.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import {
+	SourceDelivery,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 
 const sourceFetch = vi.fn()
 
@@ -31,9 +36,21 @@ const {
 	aptosTransactionResolver,
 } = await import('$/resolvers/AptosIndexer-Graphql.ts')
 
+const aptosIndexerBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.AptosIndexer_Graphql
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === 'aptos:1'
+	))
+const aptosIndexerBinding = aptosIndexerBindings[0]
+
 const aptosNetwork = {
 	$network: {
-		slug: 'aptos-mainnet',
+		caip2: {
+			namespace: 'aptos',
+			reference: '1',
+		},
 	},
 }
 
@@ -142,6 +159,9 @@ describe('Aptos Indexer typed operations', () => {
 		await queries.getTableItem('0xhandle', '0xkeyhash', 42n)
 
 		expect(sourceFetch).toHaveBeenCalledTimes(6)
+		expect(aptosIndexerBindings).toHaveLength(1)
+		expect(aptosIndexerBinding.delivery).toBe(SourceDelivery.HttpProxy)
+		expect(sourceFetch.mock.calls.every((call) => call[0] === aptosIndexerBinding)).toBe(true)
 		expect(sourceFetch.mock.calls.every((call) => call[1] === 'https://api.mainnet.aptoslabs.com/v1/graphql')).toBe(true)
 		expect(sourceFetch.mock.calls.every((call) => !call[1].includes('{'))).toBe(true)
 		expect(sourceFetch.mock.calls.map((call) => JSON.parse(call[2].body).variables)).toEqual([
@@ -234,6 +254,61 @@ describe('Aptos Indexer resolver materialization', () => {
 			transactionKind: 'user_transaction',
 			sender: aptosAccount.address,
 		})
+	})
+
+	it('accepts canonical Aptos identities and rejects unsupported networks before transport', async () => {
+		const resolveAccountTransactions = aptosAccountTransactionsResolver.resolve[
+			AptosAccountSelector.NetworkAddress
+		]
+		expect([
+			aptosAccountTransactionsResolver,
+			aptosAccountBalancesResolver,
+			aptosCoinBalanceResolver,
+			aptosTransactionResolver,
+			aptosTableItemResolver,
+			aptosTableItemTimestampResolver,
+		].flatMap((resolver) => Object.values(resolver.resolve))
+			.every((operation) => operation.appliesTo != null)).toBe(true)
+		expect(resolveAccountTransactions.appliesTo).toEqual([
+			{
+				$network: {
+					$network: aptosNetwork.$network,
+				},
+			},
+			{
+				$network: {
+					$network: {
+						slug: 'aptos',
+					},
+				},
+			},
+		])
+
+		const getAccountTransactions = vi.spyOn(queries, 'getAccountTransactions').mockResolvedValue([])
+		for (const network of [
+			aptosNetwork.$network,
+			{ slug: 'aptos' } as const,
+		])
+			await expect(resolveAccountTransactions.resolve({
+				...aptosAccount,
+				$network: {
+					$network: network,
+				},
+			}, resolverContext)).resolves.toEqual([])
+		expect(getAccountTransactions).toHaveBeenCalledTimes(2)
+
+		await expect(resolveAccountTransactions.resolve({
+			...aptosAccount,
+			$network: {
+				$network: {
+					caip2: {
+						namespace: 'aptos',
+						reference: '2',
+					},
+				},
+			},
+		}, resolverContext)).rejects.toThrow('unsupported network')
+		expect(getAccountTransactions).toHaveBeenCalledTimes(2)
 	})
 
 	it('keeps same-asset current rows distinct by official storage identity', async () => {

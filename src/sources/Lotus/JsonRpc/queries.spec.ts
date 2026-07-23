@@ -9,6 +9,7 @@ import {
 
 import {
 	getActor,
+	getIdAddress,
 	getMinerActiveSectors,
 	getMinerInfo,
 	getMinerPower,
@@ -52,6 +53,11 @@ describe('Lotus JSON-RPC state queries', () => {
 			address: 'f01234',
 			tipsetKey,
 		})
+		await getIdAddress({
+			rpcUrl: 'https://api.node.glif.io/rpc/v1',
+			address: 'f1robust',
+			tipsetKey,
+		})
 		await getMinerInfo({
 			rpcUrl: 'https://api.node.glif.io/rpc/v1',
 			minerAddress: 'f01234',
@@ -84,6 +90,12 @@ describe('Lotus JSON-RPC state queries', () => {
 				id: 1,
 				method: 'Filecoin.StateGetActor',
 				params: ['f01234', tipsetKey],
+			},
+			{
+				jsonrpc: '2.0',
+				id: 1,
+				method: 'Filecoin.StateLookupID',
+				params: ['f1robust', tipsetKey],
 			},
 			{
 				jsonrpc: '2.0',

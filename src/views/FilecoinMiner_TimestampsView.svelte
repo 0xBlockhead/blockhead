@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Filecoin miner observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FilecoinMiner_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FilecoinMiner_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FilecoinMiner_TimestampView from '$/views/FilecoinMiner_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -84,6 +77,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(filecoinMinerTimestamps) => [...new Map(filecoinMinerTimestamps.values.map((filecoinMinerTimestamp) => [filecoinMinerTimestamp[EntityMetaKey.SelectorKey], filecoinMinerTimestamp])).values()]}
 	getKey={(filecoinMinerTimestamp) => filecoinMinerTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -98,28 +92,61 @@
 
 	{#snippet Item({ item: filecoinMinerTimestamp })}
 		{@const filecoinMinerTimestampFields = { ...filecoinMinerTimestamp[EntityMetaKey.Selector], ...filecoinMinerTimestamp }}
-		{@const selection = select(EntityType.FilecoinMiner_Timestamp, filecoinMinerTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const filecoinMinerTimestampHrefFields = { ...filecoinMinerTimestamp, ...filecoinMinerTimestamp[EntityMetaKey.Selector] }}
-		<FilecoinMiner_TimestampView
-			selection={selection}
-			prefetched={filecoinMinerTimestampFields}
+		<EntityView
+			entityType={EntityType.FilecoinMiner_Timestamp}
+			entitySelector={filecoinMinerTimestamp[EntityMetaKey.Selector]}
 			href={
-				(filecoinMinerTimestampHrefFields.height !== undefined && filecoinMinerTimestampHrefFields.tipsetKey !== undefined && filecoinMinerTimestampHrefFields.source !== undefined && filecoinMinerTimestampHrefFields.$miner !== undefined && filecoinMinerTimestampHrefFields.$miner.minerAddress !== undefined && filecoinMinerTimestampHrefFields.$miner.$network !== undefined && filecoinMinerTimestampHrefFields.$miner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
-					height: String(filecoinMinerTimestampHrefFields.height ?? ''),
-					tipsetKey: String(filecoinMinerTimestampHrefFields.tipsetKey ?? ''),
-					source: String(filecoinMinerTimestampHrefFields.source ?? ''),
-					minerAddress: String(filecoinMinerTimestampHrefFields.$miner.minerAddress ?? ''),
-					network: String(caip2StringFromValue(filecoinMinerTimestampHrefFields.$miner.$network.caip2) ?? ''),
-				}) : filecoinMinerTimestampHrefFields.height !== undefined && filecoinMinerTimestampHrefFields.tipsetKey !== undefined && filecoinMinerTimestampHrefFields.source !== undefined && filecoinMinerTimestampHrefFields.$miner !== undefined && filecoinMinerTimestampHrefFields.$miner.minerAddress !== undefined && filecoinMinerTimestampHrefFields.$miner.$network !== undefined && filecoinMinerTimestampHrefFields.$miner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
-					height: String(filecoinMinerTimestampHrefFields.height ?? ''),
-					tipsetKey: String(filecoinMinerTimestampHrefFields.tipsetKey ?? ''),
-					source: String(filecoinMinerTimestampHrefFields.source ?? ''),
-					minerAddress: String(filecoinMinerTimestampHrefFields.$miner.minerAddress ?? ''),
-					network: String(filecoinMinerTimestampHrefFields.$miner.$network.slug ?? ''),
-				}) : undefined)
+				(
+					filecoinMinerTimestamp[EntityMetaKey.Selector] != null && 'height' in filecoinMinerTimestamp[EntityMetaKey.Selector]
+					&& filecoinMinerTimestamp[EntityMetaKey.Selector].height != null
+					&& filecoinMinerTimestamp[EntityMetaKey.Selector] != null && 'tipsetKey' in filecoinMinerTimestamp[EntityMetaKey.Selector]
+					&& filecoinMinerTimestamp[EntityMetaKey.Selector].tipsetKey != null
+					&& filecoinMinerTimestamp[EntityMetaKey.Selector] != null && 'source' in filecoinMinerTimestamp[EntityMetaKey.Selector]
+					&& filecoinMinerTimestamp[EntityMetaKey.Selector].source != null
+					&& filecoinMinerTimestamp[EntityMetaKey.Selector] != null && '$miner' in filecoinMinerTimestamp[EntityMetaKey.Selector]
+					&& filecoinMinerTimestamp[EntityMetaKey.Selector].$miner != null && 'minerAddress' in filecoinMinerTimestamp[EntityMetaKey.Selector].$miner
+					&& filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.minerAddress != null
+					&& filecoinMinerTimestamp[EntityMetaKey.Selector].$miner != null && '$network' in filecoinMinerTimestamp[EntityMetaKey.Selector].$miner ?
+						filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network != null && 'caip2' in filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network
+						&& filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
+						height: String(filecoinMinerTimestamp[EntityMetaKey.Selector].height ?? ''),
+						tipsetKey: String(filecoinMinerTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
+						source: String(filecoinMinerTimestamp[EntityMetaKey.Selector].source ?? ''),
+						minerAddress: String(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.minerAddress ?? ''),
+						network: String(caip2StringFromValue(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.caip2) ?? ''),
+					})
+					:
+							filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network != null && 'slug' in filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network
+							&& filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
+							height: String(filecoinMinerTimestamp[EntityMetaKey.Selector].height ?? ''),
+							tipsetKey: String(filecoinMinerTimestamp[EntityMetaKey.Selector].tipsetKey ?? ''),
+							source: String(filecoinMinerTimestamp[EntityMetaKey.Selector].source ?? ''),
+							minerAddress: String(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.minerAddress ?? ''),
+							network: String(filecoinMinerTimestamp[EntityMetaKey.Selector].$miner.$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((filecoinMinerTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin miner timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((filecoinMinerTimestampFields.qualityAdjustedPower) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((filecoinMinerTimestampFields.height) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

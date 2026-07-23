@@ -19,6 +19,7 @@
 
 	const pageSelection = $derived(select(EntityType.XrplLedger, data.selector, {
 		fields: {
+			ledgerHash: true,
 			closeTimeMs: true,
 			validated: true,
 			totalCoinsDrops: true,
@@ -27,7 +28,6 @@
 			transactionHash: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'XRPL ledger' : 'XRPL ledger')))
 
 
 	// Components
@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • XRPL ledger • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'XRPL ledger' : 'XRPL ledger'))} • XRPL ledger • Blockhead</title>
 </svelte:head>
 
 

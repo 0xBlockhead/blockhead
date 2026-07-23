@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.MoneroStealthOutput>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MoneroStealthOutput>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MoneroStealthOutput>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const moneroStealthOutput = $derived(selection({
+	const moneroStealthOutput = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			publicKey: true,
+			commitment: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			publicKey: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.outputIndex) ?? '')].filter(Boolean).join(' ') || 'monero stealth output')
-	const viewDomId = $derived('monero-stealth-output-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('monero-stealth-output-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,13 +77,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const outputIndex0 = pendingEntity.outputIndex}
-					{#if outputIndex0 !== undefined && outputIndex0 !== null}
-						<NumberValue
-							value={outputIndex0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'publicKey') && Object.hasOwn(prefetched, 'commitment')}
+			{@const outputIndex0 = pendingEntity.outputIndex}
+			{#if outputIndex0 !== undefined && outputIndex0 !== null}
+				<NumberValue
+					value={outputIndex0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={moneroStealthOutput}>
 				{#snippet children(entity)}
@@ -93,11 +100,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const publicKey0 = pendingEntity.publicKey}
-					{#if publicKey0 !== undefined && publicKey0 !== null}
-						<TruncatedValue value={String((publicKey0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'publicKey') && Object.hasOwn(prefetched, 'commitment')}
+			{@const publicKey0 = pendingEntity.publicKey}
+			{#if publicKey0 !== undefined && publicKey0 !== null}
+				<TruncatedValue value={String((publicKey0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={moneroStealthOutput}>
 				{#snippet children(entity)}
@@ -112,7 +119,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'publicKey') && Object.hasOwn(prefetched, 'commitment')}
 			{@const commitment0 = pendingEntity.commitment}
 			{#if commitment0 !== undefined && commitment0 !== null}
 				<span data-text="muted">
@@ -140,7 +147,7 @@
 				<dt>Transaction</dt>
 				<dd>
 					<MoneroTransactionView
-						selection={select(EntityType.MoneroTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.MoneroTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

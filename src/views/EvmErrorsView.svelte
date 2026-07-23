@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EVM errors',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmError>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmError>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmErrorView from '$/views/EvmErrorView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,7 +66,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.Openchain_Rest,
 			],
 			fields: {
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmErrors) => [...new Map(evmErrors.values.map((evmError) => [evmError[EntityMetaKey.SelectorKey], evmError])).values()]}
 	getKey={(evmError) => evmError[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,18 +89,27 @@
 
 	{#snippet Item({ item: evmError })}
 		{@const evmErrorFields = { ...evmError[EntityMetaKey.Selector], ...evmError }}
-		{@const selection = select(EntityType.EvmError, evmError[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmErrorHrefFields = { ...evmError, ...evmError[EntityMetaKey.Selector] }}
-		<EvmErrorView
-			selection={selection}
-			prefetched={evmErrorFields}
+		<EntityView
+			entityType={EntityType.EvmError}
+			entitySelector={evmError[EntityMetaKey.Selector]}
 			href={
-				(evmErrorHrefFields.hex !== undefined ? resolve('/evm/error/[hex=zeroExHex]', {
-					hex: String(evmErrorHrefFields.hex ?? ''),
-				}) : undefined)
+				(
+					evmError[EntityMetaKey.Selector] != null && 'hex' in evmError[EntityMetaKey.Selector]
+					&& evmError[EntityMetaKey.Selector].hex != null ?
+						resolve('/evm/error/[hex=zeroExHex]', {
+					hex: String(evmError[EntityMetaKey.Selector].hex ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'EVM error'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

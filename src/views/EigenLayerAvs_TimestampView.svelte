@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EigenLayerAvs_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EigenLayerAvs_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EigenLayerAvs_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eigenLayerAvsTimestamp = $derived(selection({
+	const eigenLayerAvsTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			operatorCount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			operatorCount: true,
 		},
 	}))
-	const titleFallback = $derived('eigen layer avs timestamp')
-	const viewDomId = $derived('eigen-layer-avs-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'eigen layer avs timestamp'
+	const viewDomId = $derived('eigen-layer-avs-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,70 +75,44 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={eigenLayerAvsTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eigenLayerAvsTimestamp}>
+			{#snippet children(entity)}
+				<EigenLayerAvsView
+					selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={eigenLayerAvsTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eigenLayerAvsTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const operatorCount0 = pendingEntity.operatorCount}
-			{#if operatorCount0 !== undefined && operatorCount0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={operatorCount0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={eigenLayerAvsTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const operatorCount0 = resolvedEntity.operatorCount}
-					{#if operatorCount0 !== undefined && operatorCount0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={operatorCount0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eigenLayerAvsTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const operatorCount0 = resolvedEntity.operatorCount}
+				{#if operatorCount0 !== undefined && operatorCount0 !== null}
+					<span data-text="muted">
+						<NumberValue
+							value={operatorCount0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,7 +121,7 @@
 				<dt>AVS</dt>
 				<dd>
 					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs, {})}
+						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

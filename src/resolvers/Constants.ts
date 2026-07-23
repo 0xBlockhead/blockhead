@@ -107,6 +107,7 @@ import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import type { EntitySelector, EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import {
@@ -124,6 +125,7 @@ import { MarketSelector } from '$/schema/Market.ts'
 import { MarketAssetSelector } from '$/schema/MarketAsset.ts'
 import { MarketVenueSelector } from '$/schema/MarketVenue.ts'
 import { EvmAccountSelector } from '$/schema/EvmAccount.ts'
+import { AccountSelector } from '$/schema/Account.ts'
 import { EvmContractSelector } from '$/schema/EvmContract.ts'
 import { EvmProtocolSelector } from '$/schema/EvmProtocol.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
@@ -146,6 +148,7 @@ import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
 import { AtprotoNetworkSelector } from '$/schema/AtprotoNetwork.ts'
 import { AtprotoPostSelector } from '$/schema/AtprotoPost.ts'
 import { _GlobalAtprotoNetworkSelector } from '$/schema/_GlobalAtprotoNetwork.ts'
+import { _GlobalArweaveNetworkSelector } from '$/schema/_GlobalArweaveNetwork.ts'
 import { _GlobalIpfsAccessSelector } from '$/schema/_GlobalIpfsAccess.ts'
 import { _GlobalSwarmAccessSelector } from '$/schema/_GlobalSwarmAccess.ts'
 import { FarcasterNetworkSelector } from '$/schema/FarcasterNetwork.ts'
@@ -176,17 +179,25 @@ import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
 import { ZcashShieldedPoolKind, ZcashShieldedPoolSelector } from '$/schema/ZcashShieldedPool.ts'
 
 const nativeAssetCoinIdByNamespace = {
+	[NetworkNamespace.Algorand]: CoinId.ALGO,
+	[NetworkNamespace.Aptos]: CoinId.APT,
+	[NetworkNamespace.Avail]: undefined,
+	[NetworkNamespace.Avalanche]: CoinId.AVAX,
 	[NetworkNamespace.Bittensor]: CoinId.TAO,
 	[NetworkNamespace.Bitcoin]: CoinId.BTC,
 	[NetworkNamespace.BitcoinCash]: CoinId.BCH,
 	[NetworkNamespace.Cardano]: CoinId.ADA,
+	[NetworkNamespace.Celestia]: CoinId.TIA,
 	[NetworkNamespace.Cosmos]: CoinId.ATOM,
+	[NetworkNamespace.Dydx]: CoinId.DYDX,
 	[NetworkNamespace.Dogecoin]: CoinId.DOGE,
 	[NetworkNamespace.Elements]: CoinId.BTC,
 	[NetworkNamespace.Evm]: CoinId.ETH,
 	[NetworkNamespace.Filecoin]: CoinId.FIL,
 	[NetworkNamespace.Hedera]: CoinId.HBAR,
 	[NetworkNamespace.Hyperliquid]: CoinId.HYPE,
+	[NetworkNamespace.InternetComputer]: CoinId.ICP,
+	[NetworkNamespace.Kaspa]: CoinId.KAS,
 	[NetworkNamespace.Lightning]: undefined,
 	[NetworkNamespace.Litecoin]: CoinId.LTC,
 	[NetworkNamespace.Logos]: undefined,
@@ -195,6 +206,11 @@ const nativeAssetCoinIdByNamespace = {
 	[NetworkNamespace.Polkadot]: CoinId.DOT,
 	[NetworkNamespace.Quilibrium]: CoinId.QUIL,
 	[NetworkNamespace.Solana]: CoinId.SOL,
+	[NetworkNamespace.Starknet]: CoinId.STRK,
+	[NetworkNamespace.Stellar]: CoinId.XLM,
+	[NetworkNamespace.Sui]: CoinId.SUI,
+	[NetworkNamespace.Tezos]: CoinId.XTZ,
+	[NetworkNamespace.Ton]: CoinId.TON,
 	[NetworkNamespace.Tron]: CoinId.TRX,
 	[NetworkNamespace.Xrpl]: CoinId.XRP,
 	[NetworkNamespace.Zcash]: CoinId.ZEC,
@@ -735,33 +751,6 @@ export default {
 			}),
 
 		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.EvmContract,
-			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
-					resolve: async ({ $network, address: addressSelector }) => {
-						const address = hexLowerOfByteSize(addressSelector, 20)
-						if (address == null)
-							throw new Error('Constants_Internal: EvmContract address not normalized')
-						const chainPrecompiles = (
-							precompilesByChainId[Number($network.caip2.reference)]
-						?? standardPrecompiles
-						)
-						const precompileName = chainPrecompiles.find((precompile) => (
-							precompile.address.toLowerCase() === address.toLowerCase()
-						))?.name
-						if (precompileName == null)
-							throw new Error(`Constants_Internal: EvmContract ${address} is not a catalog precompile on chain ${String(Number($network.caip2.reference))}`)
-						return {
-							precompileName,
-						}
-					},
-				}
-			},
-		})({
-				precompileName: (contract) => contract.precompileName,
-			}),
-
-		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[CoinSelector.CoinId]: {
@@ -805,6 +794,193 @@ export default {
 		})({
 				name: (coin) => coin.name,
 			}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.Account,
+			resolve: {
+				[AccountSelector.Caip10]: {
+					resolve: async ({ caip10 }) => ({
+						caip10,
+						namespace: caip10.namespace,
+						$network: {
+							[EntityMetaKey.Selector]: {
+								caip2: {
+									namespace: caip10.namespace,
+									reference: caip10.reference,
+								},
+							},
+						},
+						address: caip10.accountAddress,
+					}),
+				},
+			},
+		})({
+			namespace: (account) => account.namespace,
+			$network: (account) => account.$network,
+			address: (account) => account.address,
+			Evm: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							caip2: {
+								namespace: account.caip10.namespace,
+								reference: account.caip10.reference,
+							},
+						},
+						$actor: {
+							address: EvmAddress.assert(account.caip10.accountAddress),
+						},
+					},
+				}),
+			},
+			Aptos: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							$network: {
+								caip2: {
+									namespace: account.caip10.namespace,
+									reference: account.caip10.reference,
+								},
+							},
+						},
+						address: account.caip10.accountAddress,
+					},
+				}),
+			},
+			Cardano: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							caip2: {
+								namespace: account.caip10.namespace,
+								reference: account.caip10.reference,
+							},
+						},
+						address: account.caip10.accountAddress,
+					},
+				}),
+			},
+			Cosmos: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							caip2: {
+								namespace: account.caip10.namespace,
+								reference: account.caip10.reference,
+							},
+						},
+						address: account.caip10.accountAddress,
+					},
+				}),
+			},
+			Hedera: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							caip2: {
+								namespace: account.caip10.namespace,
+								reference: account.caip10.reference,
+							},
+						},
+						accountId: account.caip10.accountAddress,
+					},
+				}),
+			},
+			Polkadot: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							caip2: {
+								namespace: account.caip10.namespace,
+								reference: account.caip10.reference,
+							},
+						},
+						accountId: account.caip10.accountAddress,
+					},
+				}),
+			},
+			Solana: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							caip2: {
+								namespace: account.caip10.namespace,
+								reference: account.caip10.reference,
+							},
+						},
+						pubkey: account.caip10.accountAddress,
+					},
+				}),
+			},
+			Starknet: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							$network: {
+								caip2: {
+									namespace: account.caip10.namespace,
+									reference: account.caip10.reference,
+								},
+							},
+						},
+						address: account.caip10.accountAddress,
+					},
+				}),
+			},
+			Tron: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							caip2: {
+								namespace: account.caip10.namespace,
+								reference: account.caip10.reference,
+							},
+						},
+						address: account.caip10.accountAddress,
+					},
+				}),
+			},
+			Ton: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							caip2: {
+								namespace: account.caip10.namespace,
+								reference: account.caip10.reference,
+							},
+						},
+						address: account.caip10.accountAddress,
+					},
+				}),
+			},
+			Xrpl: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							caip2: {
+								namespace: account.caip10.namespace,
+								reference: account.caip10.reference,
+							},
+						},
+						account: account.caip10.accountAddress,
+					},
+				}),
+			},
+			Utxo: {
+				$account: (account) => ({
+					[EntityMetaKey.Selector]: {
+						$network: {
+							caip2: {
+								namespace: account.caip10.namespace,
+								reference: account.caip10.reference,
+							},
+						},
+						address: account.caip10.accountAddress,
+					},
+				}),
+			},
+		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmAccount,
@@ -1014,14 +1190,19 @@ export default {
 				label: (realm) => realm.label,
 				labelPlural: (realm) => realm.labelPlural ?? undefined,
 				slug: (realm) => realm.slug,
-				$$proposalKinds: (realm) => proposalKinds
-					.filter((proposalKind) => proposalKind.realm === realm.id)
-					.map((proposalKind) => ({
-						[EntityMetaKey.Selector]: {
-							realm: proposalKind.realm,
-							category: proposalKind.category,
-						},
-					})),
+				$$proposalKinds: {
+					select: (realm) => proposalKinds
+						.filter((proposalKind) => proposalKind.realm === realm.id)
+						.map((proposalKind) => ({
+							[EntityMetaKey.Selector]: {
+								realm: proposalKind.realm,
+								category: proposalKind.category,
+							},
+						})),
+					resolveCount: (realm) => proposalKinds
+						.filter((proposalKind) => proposalKind.realm === realm.id)
+						.length,
+				},
 			}),
 
 		defineResolver(Source.Constants_Internal, {
@@ -1504,6 +1685,19 @@ export default {
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 			}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType._GlobalArweaveNetwork,
+			resolve: {
+				[_GlobalArweaveNetworkSelector.Scope]: {
+					resolve: async ({ scope }) => ({
+						scope,
+					}),
+				},
+			},
+		})({
+			scope: (entity) => entity.scope,
+		}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._GlobalIpfsAccess,

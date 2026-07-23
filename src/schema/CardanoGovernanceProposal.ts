@@ -34,13 +34,22 @@ export const CardanoGovernanceProposal = entity({
 		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
+	governanceActionId: {
+		label: 'governance action ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
 	proposalKind: {
 		label: 'proposal kind',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	},
 	$transaction: {
@@ -49,7 +58,7 @@ export const CardanoGovernanceProposal = entity({
 		entityType: EntityType.CardanoTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	},
 	depositLovelace: {
@@ -58,7 +67,7 @@ export const CardanoGovernanceProposal = entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	},
 	returnAddress: {
@@ -67,7 +76,7 @@ export const CardanoGovernanceProposal = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	},
 	anchorUrl: {
@@ -76,7 +85,7 @@ export const CardanoGovernanceProposal = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	},
 	anchorHash: {
@@ -85,7 +94,7 @@ export const CardanoGovernanceProposal = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	},
 	proposalPayload: {
@@ -93,6 +102,9 @@ export const CardanoGovernanceProposal = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.CardanoKoios_Rest,
+		],
 	},
 	$$timestamps: {
 		label: 'timestamps',

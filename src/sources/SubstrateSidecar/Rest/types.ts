@@ -31,8 +31,18 @@ export type SidecarBlock = {
 }
 
 export type SidecarAccountBalanceInfo = {
-	nonce?: string | number
-	free?: string
+	at: {
+		hash: string
+		height: string
+	}
+	nonce: string
+	tokenSymbol: string
+	free: string
+	reserved: string
+	frozen?: string
+	miscFrozen?: string
+	feeFrozen?: string
+	transferable?: string
 }
 
 export type SidecarRuntimeMetadata = {

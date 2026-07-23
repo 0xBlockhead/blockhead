@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Market assets',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.MarketAsset>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MarketAsset>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MarketAssetView from '$/views/MarketAssetView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(marketAssets) => [...new Map(marketAssets.values.map((marketAsset) => [marketAsset[EntityMetaKey.SelectorKey], marketAsset])).values()]}
 	getKey={(marketAsset) => marketAsset[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,19 +87,34 @@
 
 	{#snippet Item({ item: marketAsset })}
 		{@const marketAssetFields = { ...marketAsset[EntityMetaKey.Selector], ...marketAsset }}
-		{@const selection = select(EntityType.MarketAsset, marketAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const marketAssetHrefFields = { ...marketAsset, ...marketAsset[EntityMetaKey.Selector] }}
-		<MarketAssetView
-			selection={selection}
-			prefetched={marketAssetFields}
+		<EntityView
+			entityType={EntityType.MarketAsset}
+			entitySelector={marketAsset[EntityMetaKey.Selector]}
 			href={
-				(marketAssetHrefFields.kind !== undefined && marketAssetHrefFields.assetKey !== undefined ? resolve('/market-asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-					kind: String(marketAssetHrefFields.kind ?? ''),
-					assetKey: String(marketAssetHrefFields.assetKey ?? ''),
-				}) : undefined)
+				(
+					marketAsset[EntityMetaKey.Selector] != null && 'kind' in marketAsset[EntityMetaKey.Selector]
+					&& marketAsset[EntityMetaKey.Selector].kind != null
+					&& marketAsset[EntityMetaKey.Selector] != null && 'assetKey' in marketAsset[EntityMetaKey.Selector]
+					&& marketAsset[EntityMetaKey.Selector].assetKey != null ?
+						resolve('/market-asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+					kind: String(marketAsset[EntityMetaKey.Selector].kind ?? ''),
+					assetKey: String(marketAsset[EntityMetaKey.Selector].assetKey ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((marketAssetFields.assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((marketAssetFields.kind) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Quilibrium frames',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.QuilibriumFrame>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.QuilibriumFrame>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import QuilibriumFrameView from '$/views/QuilibriumFrameView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(quilibriumFrames) => [...new Map(quilibriumFrames.values.map((quilibriumFrame) => [quilibriumFrame[EntityMetaKey.SelectorKey], quilibriumFrame])).values()]}
 	getKey={(quilibriumFrame) => quilibriumFrame[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: quilibriumFrame })}
 		{@const quilibriumFrameFields = { ...quilibriumFrame[EntityMetaKey.Selector], ...quilibriumFrame }}
-		{@const selection = select(EntityType.QuilibriumFrame, quilibriumFrame[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<QuilibriumFrameView
-			selection={selection}
-			prefetched={quilibriumFrameFields}
+		<EntityView
+			entityType={EntityType.QuilibriumFrame}
+			entitySelector={quilibriumFrame[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((quilibriumFrameFields.frameNumber) ?? '')].filter(Boolean).join(' ') || 'quilibrium frame'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((quilibriumFrameFields.shardKey) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((quilibriumFrameFields.frameHash) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

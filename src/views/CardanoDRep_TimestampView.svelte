@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CardanoDRep_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CardanoDRep_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoDRep_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoDRepTimestamp = $derived(selection({
+	const cardanoDRepTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('Cardano DRep timestamp')
-	const viewDomId = $derived('cardano-drep-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'Cardano DRep timestamp'
+	const viewDomId = $derived('cardano-drep-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,12 +71,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cardanoDRepTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -85,15 +88,30 @@
 				<dt>drep</dt>
 				<dd>
 					<CardanoDRepView
-						selection={select(EntityType.CardanoDRep, selection.entitySelector.$drep, {})}
+						selection={select(EntityType.CardanoDRep, selection.entitySelector.$drep)}
 						href={
-							(selection.entitySelector.$drep.drepCredential !== undefined && selection.entitySelector.$drep.$network !== undefined && selection.entitySelector.$drep.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
-								drepCredential: String(selection.entitySelector.$drep.drepCredential ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$drep.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$drep.drepCredential !== undefined && selection.entitySelector.$drep.$network !== undefined && selection.entitySelector.$drep.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
-								drepCredential: String(selection.entitySelector.$drep.drepCredential ?? ''),
-								network: String(selection.entitySelector.$drep.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$drep != null && 'drepCredential' in selection.entitySelector.$drep
+								&& selection.entitySelector.$drep.drepCredential != null
+								&& selection.entitySelector.$drep != null && '$network' in selection.entitySelector.$drep ?
+									selection.entitySelector.$drep.$network != null && 'caip2' in selection.entitySelector.$drep.$network
+									&& selection.entitySelector.$drep.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
+									drepCredential: String(selection.entitySelector.$drep.drepCredential ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$drep.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$drep.$network != null && 'slug' in selection.entitySelector.$drep.$network
+										&& selection.entitySelector.$drep.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
+										drepCredential: String(selection.entitySelector.$drep.drepCredential ?? ''),
+										network: String(selection.entitySelector.$drep.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

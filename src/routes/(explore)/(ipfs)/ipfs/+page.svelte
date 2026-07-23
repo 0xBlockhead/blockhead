@@ -30,7 +30,6 @@
 			docsUrl: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.protocolName) ?? '')].filter(Boolean).join(' ') || 'IPFS protocol' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'IPFS protocol')))
 
 
 	// Components
@@ -40,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • IPFS protocol • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'IPFS protocol' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'IPFS protocol'))} • IPFS protocol • Blockhead</title>
 </svelte:head>
 
 

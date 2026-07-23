@@ -21,7 +21,6 @@
 	const pageSelection = $derived(select(EntityType.FarcasterUser, data.selector, {
 		sources: [
 			Source.Snapchain_Rest,
-			Source.Neynar_Rest,
 		],
 		fields: {
 			$icon: true,
@@ -32,7 +31,6 @@
 			bio: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.displayName) ?? ''), String((pageSelection.entitySelector.username) ?? ''), String((pageSelection.entitySelector.fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).username) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user')))
 
 
 	// Components
@@ -42,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Farcaster user • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user' : [String((({ ...data.selector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).username) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user'))} • Farcaster user • Blockhead</title>
 </svelte:head>
 
 

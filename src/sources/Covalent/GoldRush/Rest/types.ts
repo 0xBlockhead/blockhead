@@ -81,3 +81,89 @@ export type GoldRushTransactionResult = {
 	chainId: number
 	chainName: string
 }
+
+export type GoldRushTokenBalancesResponse = {
+	data: GoldRushTokenBalancesData | null
+	error: boolean
+	error_message: string | null
+	error_code: number | null
+}
+
+export type GoldRushTokenBalancesData = {
+	address: string
+	chain_id: number
+	chain_name: string
+	chain_tip_height: number
+	chain_tip_signed_at: string
+	quote_currency: string
+	updated_at: string
+	items: GoldRushTokenBalanceItem[]
+}
+
+export type GoldRushTokenBalanceItem = {
+	contract_decimals: number
+	contract_name: string
+	contract_ticker_symbol: string
+	contract_address: string
+	contract_display_name: string
+	supports_erc: string[]
+	last_transferred_at: string | null
+	block_height: number
+	is_native_token: boolean
+	type: string
+	is_spam: boolean
+	balance: string
+	balance_24h: string | null
+	quote_rate: number | null
+	quote_rate_24h: number | null
+	quote: number | null
+	quote_24h: number | null
+	pretty_quote: string | null
+	pretty_quote_24h: string | null
+}
+
+export type GoldRushTokenBalancesResult = {
+	balances: GoldRushTokenBalanceItem[]
+	address: string
+	updatedAt: string
+	chainTipHeight: number
+	chainTipSignedAt: string
+	chainId: number
+	chainName: string
+}
+
+export type GoldRushAddressTransactionsResponse = {
+	data: GoldRushAddressTransactionsData | null
+	error: boolean
+	error_message: string | null
+	error_code: number | null
+}
+
+export type GoldRushAddressTransactionsData = {
+	address: string
+	updated_at: string
+	quote_currency: string
+	chain_id: number
+	chain_name: string
+	chain_tip_height: number
+	chain_tip_signed_at: string
+	current_page: number
+	links: {
+		prev: string | null
+		next: string | null
+	}
+	items: GoldRushTransactionItem[]
+}
+
+export type GoldRushAddressTransactionsResult = {
+	transactions: GoldRushTransactionItem[]
+	address: string
+	page: number
+	previousPageUrl: string | null
+	nextPageUrl: string | null
+	updatedAt: string
+	chainTipHeight: number
+	chainTipSignedAt: string
+	chainId: number
+	chainName: string
+}

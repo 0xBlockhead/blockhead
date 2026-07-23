@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Nostr reactions',
 		typeAnnotationParagraphs = ['A Nostr reaction is a kind-7 event keyed by event id and scoped to the note or article it reacts to.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrReaction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NostrReaction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrReactionView from '$/views/NostrReactionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nostrReactions) => [...new Map(nostrReactions.values.map((nostrReaction) => [nostrReaction[EntityMetaKey.SelectorKey], nostrReaction])).values()]}
 	getKey={(nostrReaction) => nostrReaction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,18 +88,31 @@
 
 	{#snippet Item({ item: nostrReaction })}
 		{@const nostrReactionFields = { ...nostrReaction[EntityMetaKey.Selector], ...nostrReaction }}
-		{@const selection = select(EntityType.NostrReaction, nostrReaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const nostrReactionHrefFields = { ...nostrReaction, ...nostrReaction[EntityMetaKey.Selector] }}
-		<NostrReactionView
-			selection={selection}
-			prefetched={nostrReactionFields}
+		<EntityView
+			entityType={EntityType.NostrReaction}
+			entitySelector={nostrReaction[EntityMetaKey.Selector]}
 			href={
-				(nostrReactionHrefFields.eventId !== undefined ? resolve('/nostr/reaction/[eventId=stringSegment]', {
-					eventId: String(nostrReactionHrefFields.eventId ?? ''),
-				}) : undefined)
+				(
+					nostrReaction[EntityMetaKey.Selector] != null && 'eventId' in nostrReaction[EntityMetaKey.Selector]
+					&& nostrReaction[EntityMetaKey.Selector].eventId != null ?
+						resolve('/nostr/reaction/[eventId=stringSegment]', {
+					eventId: String(nostrReaction[EntityMetaKey.Selector].eventId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nostrReactionFields.content) ?? '')].filter(Boolean).join(' ') || [String((nostrReactionFields.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr reaction'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((nostrReactionFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

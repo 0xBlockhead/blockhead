@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BnbBeaconTokenMigration>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BnbBeaconTokenMigration>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BnbBeaconTokenMigration>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,14 +44,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bnbBeaconTokenMigration = $derived(selection({
+	const bnbBeaconTokenMigration = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			migrationKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			migrationKind: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.migrationKind) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token migration')
-	const viewDomId = $derived('bnb-beacon-token-migration-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bnb-beacon-token-migration-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,63 +80,32 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.migrationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconTokenMigration}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.migrationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconTokenMigration}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.migrationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<BnbBeaconTokenView
-						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		<ResourceBoundary resource={bnbBeaconTokenMigration}>
+			{#snippet children(entity)}
+				<BnbBeaconTokenView
+					selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
 
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
-						href={
-						(selection.entitySelector.$targetNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$targetNetwork.caip2) ?? ''),
-						}) : selection.entitySelector.$targetNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$targetNetwork.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={bnbBeaconTokenMigration}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<BnbBeaconTokenView
-						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
-						href={
-						(selection.entitySelector.$targetNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(caip2StringFromValue(selection.entitySelector.$targetNetwork.caip2) ?? ''),
-						}) : selection.entitySelector.$targetNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-							network: String(selection.entitySelector.$targetNetwork.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -139,7 +114,7 @@
 				<dt>token</dt>
 				<dd>
 					<BnbBeaconTokenView
-						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token, {})}
+						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -150,13 +125,23 @@
 				<dt>target network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$targetNetwork, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
 						href={
-							(selection.entitySelector.$targetNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$targetNetwork != null && 'caip2' in selection.entitySelector.$targetNetwork
+								&& selection.entitySelector.$targetNetwork.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$targetNetwork.caip2) ?? ''),
-							}) : selection.entitySelector.$targetNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$targetNetwork.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$targetNetwork != null && 'slug' in selection.entitySelector.$targetNetwork
+									&& selection.entitySelector.$targetNetwork.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$targetNetwork.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -315,17 +300,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BnbBeaconTokenMigration_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='BnbBeaconTokenMigration_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const bnbBeaconTokenMigrationBnbBeaconTokenMigrationTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={bnbBeaconTokenMigrationBnbBeaconTokenMigrationTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BnbBeaconTokenMigration_TimestampsView
+					selection={bnbBeaconTokenMigrationBnbBeaconTokenMigrationTimestampsViewTimestampsResource}
+					countResource={bnbBeaconTokenMigrationBnbBeaconTokenMigrationTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BnbBeaconTokenMigration_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

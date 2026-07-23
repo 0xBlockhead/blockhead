@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Sync committees',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BeaconSyncCommittee>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BeaconSyncCommittee>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BeaconSyncCommitteeView from '$/views/BeaconSyncCommitteeView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(beaconSyncCommittees) => [...new Map(beaconSyncCommittees.values.map((beaconSyncCommittee) => [beaconSyncCommittee[EntityMetaKey.SelectorKey], beaconSyncCommittee])).values()]}
 	getKey={(beaconSyncCommittee) => beaconSyncCommittee[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,22 +88,44 @@
 
 	{#snippet Item({ item: beaconSyncCommittee })}
 		{@const beaconSyncCommitteeFields = { ...beaconSyncCommittee[EntityMetaKey.Selector], ...beaconSyncCommittee }}
-		{@const selection = select(EntityType.BeaconSyncCommittee, beaconSyncCommittee[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const beaconSyncCommitteeHrefFields = { ...beaconSyncCommittee, ...beaconSyncCommittee[EntityMetaKey.Selector] }}
-		<BeaconSyncCommitteeView
-			selection={selection}
-			prefetched={beaconSyncCommitteeFields}
+		<EntityView
+			entityType={EntityType.BeaconSyncCommittee}
+			entitySelector={beaconSyncCommittee[EntityMetaKey.Selector]}
 			href={
-				(beaconSyncCommitteeHrefFields.period !== undefined && beaconSyncCommitteeHrefFields.$network !== undefined && beaconSyncCommitteeHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/sync-committee/[period=nonNegativeInteger]', {
-					period: String(beaconSyncCommitteeHrefFields.period ?? ''),
-					network: String(caip2StringFromValue(beaconSyncCommitteeHrefFields.$network.caip2) ?? ''),
-				}) : beaconSyncCommitteeHrefFields.period !== undefined && beaconSyncCommitteeHrefFields.$network !== undefined && beaconSyncCommitteeHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/sync-committee/[period=nonNegativeInteger]', {
-					period: String(beaconSyncCommitteeHrefFields.period ?? ''),
-					network: String(beaconSyncCommitteeHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					beaconSyncCommittee[EntityMetaKey.Selector] != null && 'period' in beaconSyncCommittee[EntityMetaKey.Selector]
+					&& beaconSyncCommittee[EntityMetaKey.Selector].period != null
+					&& beaconSyncCommittee[EntityMetaKey.Selector] != null && '$network' in beaconSyncCommittee[EntityMetaKey.Selector] ?
+						beaconSyncCommittee[EntityMetaKey.Selector].$network != null && 'caip2' in beaconSyncCommittee[EntityMetaKey.Selector].$network
+						&& beaconSyncCommittee[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/sync-committee/[period=nonNegativeInteger]', {
+						period: String(beaconSyncCommittee[EntityMetaKey.Selector].period ?? ''),
+						network: String(caip2StringFromValue(beaconSyncCommittee[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							beaconSyncCommittee[EntityMetaKey.Selector].$network != null && 'slug' in beaconSyncCommittee[EntityMetaKey.Selector].$network
+							&& beaconSyncCommittee[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/sync-committee/[period=nonNegativeInteger]', {
+							period: String(beaconSyncCommittee[EntityMetaKey.Selector].period ?? ''),
+							network: String(beaconSyncCommittee[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((beaconSyncCommitteeFields.period) ?? '') ? 'Sync committee #' + String((beaconSyncCommitteeFields.period) ?? '') : '') || 'beacon sync committee'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((beaconSyncCommitteeFields.$network.name) ?? '')].filter(Boolean).join(' ') || [beaconSyncCommitteeFields.$network.caip2 == null ? '' : String(`${(beaconSyncCommitteeFields.$network.caip2).namespace}:${(beaconSyncCommitteeFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

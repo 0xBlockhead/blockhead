@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Global X networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalXNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalXNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalXNetworkView from '$/views/_GlobalXNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,6 +70,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalXNetworks) => [...new Map(globalXNetworks.values.map((globalXNetwork) => [globalXNetwork[EntityMetaKey.SelectorKey], globalXNetwork])).values()]}
 	getKey={(globalXNetwork) => globalXNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -91,12 +85,20 @@
 
 	{#snippet Item({ item: globalXNetwork })}
 		{@const globalXNetworkFields = { ...globalXNetwork[EntityMetaKey.Selector], ...globalXNetwork }}
-		{@const selection = select(EntityType._GlobalXNetwork, globalXNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<GlobalXNetworkView
-			selection={selection}
-			prefetched={globalXNetworkFields}
+		<EntityView
+			entityType={EntityType._GlobalXNetwork}
+			entitySelector={globalXNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'global X network'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((globalXNetworkFields.scope) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

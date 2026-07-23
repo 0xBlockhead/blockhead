@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.RssFeed_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.RssFeed_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.RssFeed_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const rssFeedTimestamp = $derived(selection({
+	const rssFeedTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('RSS feed observation')
-	const viewDomId = $derived('rss-feed-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'RSS feed observation'
+	const viewDomId = $derived('rss-feed-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,39 +66,45 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$feed !== undefined && pendingEntity.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			feedUrl: encodeURIComponent(String(pendingEntity.$feed.feedUrl ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$feed' in selection.entitySelector
+			&& selection.entitySelector.$feed != null && 'feedUrl' in selection.entitySelector.$feed
+			&& selection.entitySelector.$feed.feedUrl != null ?
+				resolve('/rss/feed/[feedUrl=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			feedUrl: encodeURIComponent(String(selection.entitySelector.$feed.feedUrl ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<RssFeedView
-						selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
-						href={
-						(selection.entitySelector.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-							feedUrl: encodeURIComponent(String(selection.entitySelector.$feed.feedUrl ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$feed') && prefetched.$feed != null && Object.hasOwn(prefetched.$feed, 'title') && Object.hasOwn(prefetched.$feed, 'lastBuildDate')}
+			{@const rssFeed0 = pendingEntity.$feed}
+			{#if rssFeed0 != null && selection.entitySelector.$feed != null}
+				<RssFeedView
+					selection={select(EntityType.RssFeed, selection.entitySelector.$feed, { sources: selection.sources })}
+					prefetched={rssFeed0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={rssFeedTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<RssFeedView
 						selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
-						href={
-						(selection.entitySelector.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-							feedUrl: encodeURIComponent(String(selection.entitySelector.$feed.feedUrl ?? '')),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -104,11 +114,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$feed') && prefetched.$feed != null && Object.hasOwn(prefetched.$feed, 'title') && Object.hasOwn(prefetched.$feed, 'lastBuildDate')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={rssFeedTimestamp}>
 				{#snippet children(entity)}
@@ -128,11 +138,17 @@
 				<dt>Feed</dt>
 				<dd>
 					<RssFeedView
-						selection={select(EntityType.RssFeed, selection.entitySelector.$feed, {})}
+						selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
 						href={
-							(selection.entitySelector.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
+							(
+								selection.entitySelector.$feed != null && 'feedUrl' in selection.entitySelector.$feed
+								&& selection.entitySelector.$feed.feedUrl != null ?
+									resolve('/rss/feed/[feedUrl=absoluteUrl]', {
 								feedUrl: encodeURIComponent(String(selection.entitySelector.$feed.feedUrl ?? '')),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

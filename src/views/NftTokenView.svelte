@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NftToken>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NftToken>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NftToken>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nftToken = $derived(selection({
+	const nftToken = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('NFT token')
-	const viewDomId = $derived('nft-token-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'NFT token'
+	const viewDomId = $derived('nft-token-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,12 +71,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={nftToken}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -85,7 +88,7 @@
 				<dt>collection</dt>
 				<dd>
 					<NftCollectionView
-						selection={select(EntityType.NftCollection, selection.entitySelector.$collection, {})}
+						selection={select(EntityType.NftCollection, selection.entitySelector.$collection)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -185,17 +188,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<UsageRight_TimestampsView
-				selection={
-						selection.$$usageRightTimestamps({
-							count: true,
-						})
-					}
-				title='usage right timestamps'
-				emptyText='No usage right observations.'
-				id='UsageRight_TimestampsView-usage-right-timestamps'
-			/>
-		{/if}
+		{@const nftTokenUsageRightTimestampsViewUsageRightTimestampsResource = selection.$$usageRightTimestamps}
+		<ResourceBoundary
+			resource={nftTokenUsageRightTimestampsViewUsageRightTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<UsageRight_TimestampsView
+					selection={nftTokenUsageRightTimestampsViewUsageRightTimestampsResource}
+					countResource={nftTokenUsageRightTimestampsViewUsageRightTimestampsResource.count}
+					title='usage right timestamps'
+					id='UsageRight_TimestampsView-usage-right-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

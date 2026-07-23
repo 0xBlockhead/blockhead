@@ -36,7 +36,6 @@
 			proposerSlashingsCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.epoch) ?? '') ? 'Epoch #' + String((pageSelection.entitySelector.epoch) ?? '') : '') || 'beacon epoch' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).epoch) ?? '') ? 'Epoch #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).epoch) ?? '') : '') || 'beacon epoch')))
 
 
 	// Components
@@ -46,7 +45,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • beacon epoch • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String((data.selector.epoch) ?? '') ? 'Epoch #' + String((data.selector.epoch) ?? '') : '') || 'beacon epoch' : (String((({ ...data.selector, ...pageSelection.entity }).epoch) ?? '') ? 'Epoch #' + String((({ ...data.selector, ...pageSelection.entity }).epoch) ?? '') : '') || 'beacon epoch'))} • beacon epoch • Blockhead</title>
 </svelte:head>
 
 

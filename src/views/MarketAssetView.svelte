@@ -4,12 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { MarketAssetKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -30,7 +31,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.MarketAsset>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MarketAsset>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MarketAsset>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -44,11 +45,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const marketAsset = $derived(selection({
+	const marketAsset = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset')
-	const viewDomId = $derived('market-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('market-asset-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,17 +69,25 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.kind !== undefined && pendingEntity.assetKey !== undefined ? resolve('/market-asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-			kind: String(pendingEntity.kind ?? ''),
-			assetKey: String(pendingEntity.assetKey ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'kind' in selection.entitySelector
+			&& selection.entitySelector.kind != null
+			&& selection.entitySelector != null && 'assetKey' in selection.entitySelector
+			&& selection.entitySelector.assetKey != null ?
+				resolve('/market-asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+			kind: String(selection.entitySelector.kind ?? ''),
+			assetKey: String(selection.entitySelector.assetKey ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{[String((pendingEntity.assetKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={marketAsset}>
@@ -88,7 +100,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{@const kind0 = pendingEntity.kind}
 			{#if kind0 !== undefined && kind0 !== null}
 				<span data-text="muted">
@@ -171,11 +183,12 @@
 						<dd>
 							<ResourceBoundary
 								resource={
-									projection.$coin({
-										sources: [
-											Source.Constants_Internal,
-										],
-									})
+									projection
+										.$coin({
+											sources: [
+												Source.Constants_Internal,
+											],
+										})
 								}
 							>
 								{#snippet children(coin)}
@@ -184,9 +197,15 @@
 											selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
 											prefetched={coin}
 											href={
-												(coin[EntityMetaKey.Selector].coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
+												(
+													coin[EntityMetaKey.Selector] != null && 'coinId' in coin[EntityMetaKey.Selector]
+													&& coin[EntityMetaKey.Selector].coinId != null ?
+														resolve('/coin/[coinId=stringSegment]', {
 													coinId: String(coin[EntityMetaKey.Selector].coinId ?? ''),
-												}) : undefined)
+												})
+												:
+														undefined
+												)
 											}
 											layout={EntityLayout.Value}
 											open={false}
@@ -215,13 +234,32 @@
 											selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 											prefetched={evmCoinInstance}
 											href={
-												(evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+												(
+													evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency'
+													&& evmCoinInstance[EntityMetaKey.Selector] != null && '$network' in evmCoinInstance[EntityMetaKey.Selector]
+													&& evmCoinInstance[EntityMetaKey.Selector].$network != null && 'caip2' in evmCoinInstance[EntityMetaKey.Selector].$network
+													&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2 != null && 'reference' in evmCoinInstance[EntityMetaKey.Selector].$network.caip2
+													&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference != null ?
+														resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 													chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-													coinInstanceSlug: String('native' ?? ''),
-												}) : evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-													coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
-													chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-												}) : undefined)
+													coinInstanceSlug: String('native'),
+												})
+												:
+														evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token'
+														&& evmCoinInstance[EntityMetaKey.Selector] != null && '$contract' in evmCoinInstance[EntityMetaKey.Selector]
+														&& evmCoinInstance[EntityMetaKey.Selector].$contract != null && 'address' in evmCoinInstance[EntityMetaKey.Selector].$contract
+														&& evmCoinInstance[EntityMetaKey.Selector].$contract.address != null
+														&& evmCoinInstance[EntityMetaKey.Selector] != null && '$network' in evmCoinInstance[EntityMetaKey.Selector]
+														&& evmCoinInstance[EntityMetaKey.Selector].$network != null && 'caip2' in evmCoinInstance[EntityMetaKey.Selector].$network
+														&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2 != null && 'reference' in evmCoinInstance[EntityMetaKey.Selector].$network.caip2
+														&& evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference != null ?
+															resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+														coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
+														chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+													})
+													:
+														undefined
+												)
 											}
 											layout={EntityLayout.Value}
 											open={false}
@@ -243,11 +281,12 @@
 						<dd>
 							<ResourceBoundary
 								resource={
-									projection.$currency({
-										sources: [
-											Source.Constants_Internal,
-										],
-									})
+									projection
+										.$currency({
+											sources: [
+												Source.Constants_Internal,
+											],
+										})
 								}
 							>
 								{#snippet children(currency)}
@@ -256,9 +295,15 @@
 											selection={select(EntityType.Currency, currency[EntityMetaKey.Selector])}
 											prefetched={currency}
 											href={
-												(currency[EntityMetaKey.Selector].iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
+												(
+													currency[EntityMetaKey.Selector] != null && 'iso4217' in currency[EntityMetaKey.Selector]
+													&& currency[EntityMetaKey.Selector].iso4217 != null ?
+														resolve('/currency/[iso4217=iso4217]', {
 													iso4217: String(currency[EntityMetaKey.Selector].iso4217 ?? ''),
-												}) : undefined)
+												})
+												:
+														undefined
+												)
 											}
 											layout={EntityLayout.Value}
 											open={false}

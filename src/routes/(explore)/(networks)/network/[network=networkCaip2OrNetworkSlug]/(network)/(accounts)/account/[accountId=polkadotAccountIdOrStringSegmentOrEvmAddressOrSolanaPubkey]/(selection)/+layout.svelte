@@ -24,6 +24,8 @@
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import PolkadotAccountView from '$/views/PolkadotAccountView.svelte'
 	import CosmosAccountView from '$/views/CosmosAccountView.svelte'
+	import HederaAccountView from '$/views/HederaAccountView.svelte'
+	import CardanoAddressView from '$/views/CardanoAddressView.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
 	import TonAccountView from '$/views/TonAccountView.svelte'
@@ -41,10 +43,10 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.PolkadotAccount && data.selectorMapping.selectorName === 'NetworkAccountId' ? PolkadotAccountView : data.selectorMapping.entityType === EntityType.CosmosAccount && data.selectorMapping.selectorName === 'NetworkAddress' ? CosmosAccountView : data.selectorMapping.entityType === EntityType.EvmNetworkAccount && data.selectorMapping.selectorName === 'EvmNetworkEvmAccount' ? EvmNetworkAccountView : data.selectorMapping.entityType === EntityType.SolanaAccount && data.selectorMapping.selectorName === 'NetworkPubkey' ? SolanaAccountView : data.selectorMapping.entityType === EntityType.TonAccount && data.selectorMapping.selectorName === 'NetworkAddress' ? TonAccountView : XrplAccountView}
+			{@const DetailView = data.entityType === EntityType.PolkadotAccount && data.selectorName === 'NetworkAccountId' ? PolkadotAccountView : data.entityType === EntityType.CosmosAccount && data.selectorName === 'NetworkAddress' ? CosmosAccountView : data.entityType === EntityType.HederaAccount && data.selectorName === 'NetworkAccountId' ? HederaAccountView : data.entityType === EntityType.CardanoAddress && data.selectorName === 'NetworkAddress' ? CardanoAddressView : data.entityType === EntityType.EvmNetworkAccount && data.selectorName === 'EvmNetworkEvmAccount' ? EvmNetworkAccountView : data.entityType === EntityType.SolanaAccount && data.selectorName === 'NetworkPubkey' ? SolanaAccountView : data.entityType === EntityType.TonAccount && data.selectorName === 'NetworkAddress' ? TonAccountView : XrplAccountView}
 
 			<DetailView
-				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}
+				selection={select(data.entityType, data.selector)}
 				href={
 					resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 						network: params.network,

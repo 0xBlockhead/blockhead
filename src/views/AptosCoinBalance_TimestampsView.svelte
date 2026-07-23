@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Current Aptos coin balance observations',
 		typeAnnotationParagraphs = ['A current balance reported by the Aptos Indexer, anchored to the row\'s last transaction version. This surface does not imply retained balance history.'],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AptosCoinBalance_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AptosCoinBalance_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AptosCoinBalance_TimestampView from '$/views/AptosCoinBalance_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(aptosCoinBalanceTimestamps) => [...new Map(aptosCoinBalanceTimestamps.values.map((aptosCoinBalanceTimestamp) => [aptosCoinBalanceTimestamp[EntityMetaKey.SelectorKey], aptosCoinBalanceTimestamp])).values()]}
 	getKey={(aptosCoinBalanceTimestamp) => aptosCoinBalanceTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: aptosCoinBalanceTimestamp })}
 		{@const aptosCoinBalanceTimestampFields = { ...aptosCoinBalanceTimestamp[EntityMetaKey.Selector], ...aptosCoinBalanceTimestamp }}
-		{@const selection = select(EntityType.AptosCoinBalance_Timestamp, aptosCoinBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AptosCoinBalance_TimestampView
-			selection={selection}
-			prefetched={aptosCoinBalanceTimestampFields}
+		<EntityView
+			entityType={EntityType.AptosCoinBalance_Timestamp}
+			entitySelector={aptosCoinBalanceTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((aptosCoinBalanceTimestampFields.assetType) ?? '')].filter(Boolean).join(' ') || 'current Aptos coin balance observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[(String((aptosCoinBalanceTimestampFields.amount) ?? '') ? String((aptosCoinBalanceTimestampFields.amount) ?? '') + aptosCoinBalanceTimestampFields.unit : '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((aptosCoinBalanceTimestampFields.ledgerVersion) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

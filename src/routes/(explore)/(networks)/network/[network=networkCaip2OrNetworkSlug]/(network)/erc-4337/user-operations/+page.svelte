@@ -44,14 +44,14 @@
 				}
 				title='ERC-4337 user operations'
 				selection={
-					projection.$$userOperations({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$userOperations({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
-				id='user-operations'
+				id='account-evm-user-operation'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

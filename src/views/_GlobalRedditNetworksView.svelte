@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Reddit',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalRedditNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalRedditNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalRedditNetworkView from '$/views/_GlobalRedditNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,8 +66,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
-				Source.Constants_Internal,
+			sources: selection.sources ?? [
 				Source.Reddit_PublicJson,
 			],
 			fields: {
@@ -82,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalRedditNetworks) => [...new Map(globalRedditNetworks.values.map((globalRedditNetwork) => [globalRedditNetwork[EntityMetaKey.SelectorKey], globalRedditNetwork])).values()]}
 	getKey={(globalRedditNetwork) => globalRedditNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,14 +89,24 @@
 
 	{#snippet Item({ item: globalRedditNetwork })}
 		{@const globalRedditNetworkFields = { ...globalRedditNetwork[EntityMetaKey.Selector], ...globalRedditNetwork }}
-		{@const selection = select(EntityType._GlobalRedditNetwork, globalRedditNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const globalRedditNetworkHrefFields = { ...globalRedditNetwork, ...globalRedditNetwork[EntityMetaKey.Selector] }}
-		<GlobalRedditNetworkView
-			selection={selection}
-			prefetched={globalRedditNetworkFields}
-			href={(globalRedditNetwork[EntityMetaKey.Selector].scope === '_GlobalRedditNetwork' ? resolve('/reddit') : undefined)}
+		<EntityView
+			entityType={EntityType._GlobalRedditNetwork}
+			entitySelector={globalRedditNetwork[EntityMetaKey.Selector]}
+			href={
+				(
+					globalRedditNetwork[EntityMetaKey.Selector].scope === '_GlobalRedditNetwork' ?
+						resolve('/reddit')
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'Reddit'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Avalanche validator observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AvalancheValidator_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AvalancheValidator_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AvalancheValidator_TimestampView from '$/views/AvalancheValidator_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(avalancheValidatorTimestamps) => [...new Map(avalancheValidatorTimestamps.values.map((avalancheValidatorTimestamp) => [avalancheValidatorTimestamp[EntityMetaKey.SelectorKey], avalancheValidatorTimestamp])).values()]}
 	getKey={(avalancheValidatorTimestamp) => avalancheValidatorTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: avalancheValidatorTimestamp })}
 		{@const avalancheValidatorTimestampFields = { ...avalancheValidatorTimestamp[EntityMetaKey.Selector], ...avalancheValidatorTimestamp }}
-		{@const selection = select(EntityType.AvalancheValidator_Timestamp, avalancheValidatorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AvalancheValidator_TimestampView
-			selection={selection}
-			prefetched={avalancheValidatorTimestampFields}
+		<EntityView
+			entityType={EntityType.AvalancheValidator_Timestamp}
+			entitySelector={avalancheValidatorTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((avalancheValidatorTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'avalanche validator timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((avalancheValidatorTimestampFields.connected) ?? ''), String((avalancheValidatorTimestampFields.uptimePercent) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((avalancheValidatorTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

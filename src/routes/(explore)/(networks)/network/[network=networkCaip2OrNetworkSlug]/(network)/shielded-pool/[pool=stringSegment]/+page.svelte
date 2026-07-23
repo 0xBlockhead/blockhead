@@ -28,7 +28,6 @@
 			activationNetworkUpgrade: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.pool) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded pool' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).pool) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded pool')))
 
 
 	// Components
@@ -38,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Zcash shielded pool • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.pool) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded pool' : [String((({ ...data.selector, ...pageSelection.entity }).pool) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded pool'))} • Zcash shielded pool • Blockhead</title>
 </svelte:head>
 
 

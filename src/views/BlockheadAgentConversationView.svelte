@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadAgentConversation>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadAgentConversation>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAgentConversation>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAgentConversation = $derived(selection({
+	const blockheadAgentConversation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			name: true,
+			updatedAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			name: true,
@@ -51,7 +58,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation')
-	const viewDomId = $derived('blockhead-agent-conversation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-agent-conversation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,16 +76,22 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]', {
-			conversationId: String(pendingEntity.id ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'id' in selection.entitySelector
+			&& selection.entitySelector.id != null ?
+				resolve('/~/agents/conversation/[conversationId=stringSegment]', {
+			conversationId: String(selection.entitySelector.id ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'updatedAt')}
 			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadAgentConversation}>
@@ -91,11 +104,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const updatedAt0 = pendingEntity.updatedAt}
-					{#if updatedAt0 !== undefined && updatedAt0 !== null}
-						<Timestamp timestamp={Number(updatedAt0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'updatedAt')}
+			{@const updatedAt0 = pendingEntity.updatedAt}
+			{#if updatedAt0 !== undefined && updatedAt0 !== null}
+				<Timestamp timestamp={Number(updatedAt0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadAgentConversation}>
 				{#snippet children(entity)}
@@ -275,17 +288,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadAgentConversationTurnsView
-				selection={
-						selection.$$turns({
-							count: true,
-						})
-					}
-				title='Turns'
-				emptyText='No turns yet.'
-				id='BlockheadAgentConversationTurnsView-turns'
-			/>
-		{/if}
+		{@const blockheadAgentConversationBlockheadAgentConversationTurnsViewTurnsResource = selection.$$turns}
+		<ResourceBoundary
+			resource={blockheadAgentConversationBlockheadAgentConversationTurnsViewTurnsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadAgentConversationTurnsView
+					selection={blockheadAgentConversationBlockheadAgentConversationTurnsViewTurnsResource}
+					countResource={blockheadAgentConversationBlockheadAgentConversationTurnsViewTurnsResource.count}
+					title='Turns'
+					id='BlockheadAgentConversationTurnsView-turns'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

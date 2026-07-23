@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { MarketVenueId } from '$/constants/MarketVenue.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -25,7 +26,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.MarketVenue>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MarketVenue>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MarketVenue>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -39,14 +40,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const marketVenue = $derived(selection({
+	const marketVenue = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue')
-	const viewDomId = $derived('market-venue-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('market-venue-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,16 +67,22 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.marketVenueId !== undefined ? resolve('/market-venue/[marketVenueId=marketVenueId]', {
-			marketVenueId: String(pendingEntity.marketVenueId ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'marketVenueId' in selection.entitySelector
+			&& selection.entitySelector.marketVenueId != null ?
+				resolve('/market-venue/[marketVenueId=marketVenueId]', {
+			marketVenueId: String(selection.entitySelector.marketVenueId ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label')}
 			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={marketVenue}>
@@ -117,20 +129,26 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<MarketsView
-				selection={
-						selection.$$markets({
-							sources: [
-								Source.Constants_Internal,
-							],
-							count: true,
-						})
-					}
-				title='Markets'
-				href={resolve('/markets')}
-				id='MarketsView-markets'
-			/>
-		{/if}
+				{@const marketVenueMarketsViewMarketsResource = selection
+		.$$markets({
+			sources: [
+				Source.Constants_Internal,
+			],
+		})}
+				<ResourceBoundary
+					resource={marketVenueMarketsViewMarketsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<MarketsView
+							selection={marketVenueMarketsViewMarketsResource}
+							countResource={marketVenueMarketsViewMarketsResource.count}
+							title='Markets'
+							href={resolve('/markets')}
+							id='MarketsView-markets'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BnbBeaconTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BnbBeaconTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BnbBeaconTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bnbBeaconTransaction = $derived(selection({
+	const bnbBeaconTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			txType: true,
+			tokenSymbol: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			txType: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'bnb beacon transaction')
-	const viewDomId = $derived('bnb-beacon-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bnb-beacon-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,82 +79,48 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const txHash0 = pendingEntity.txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String((txHash0) ?? '')} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const txHash0 = resolvedEntity.txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String((txHash0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const txHash0 = resolvedEntity.txHash}
+				{#if txHash0 !== undefined && txHash0 !== null}
+					<TruncatedValue value={String((txHash0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.txType) ?? ''), String((pendingEntity.tokenSymbol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.txType) ?? ''), String((resolvedEntity.tokenSymbol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.txHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.txType) ?? ''), String((resolvedEntity.tokenSymbol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.txHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<ResourceBoundary
-				resource={selection.$block}
-			>
-				{#snippet children(bnbBeaconBlock)}
-					{#if bnbBeaconBlock != null && bnbBeaconBlock[EntityMetaKey.Selector] != null}
-						<span data-text="muted">
-							<BnbBeaconBlockView
-								selection={select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector])}
-								prefetched={bnbBeaconBlock}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{:else}
-						<span data-text="muted">Unavailable</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={bnbBeaconTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$block}
-					>
-						{#snippet children(bnbBeaconBlock)}
-							{#if bnbBeaconBlock != null && bnbBeaconBlock[EntityMetaKey.Selector] != null}
-								<span data-text="muted">
-									<BnbBeaconBlockView
-										selection={select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector])}
-										prefetched={bnbBeaconBlock}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
-								</span>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<ResourceBoundary
+					resource={selection.$block}
+				>
+					{#snippet children(bnbBeaconBlock)}
+						{#if bnbBeaconBlock != null && bnbBeaconBlock[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<BnbBeaconBlockView
+									selection={select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector])}
+									prefetched={bnbBeaconBlock}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -156,7 +129,7 @@
 				<dt>network</dt>
 				<dd>
 					<BnbBeaconNetworkView
-						selection={select(EntityType.BnbBeaconNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.BnbBeaconNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -466,17 +439,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BnbBeaconTokenTransfersView
-				selection={
-						selection.$$tokenEffects({
-							count: true,
-						})
-					}
-				title='token effects'
-				emptyText='No token effects found.'
-				id='BnbBeaconTokenTransfersView-token-effects'
-			/>
-		{/if}
+		{@const bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource = selection.$$tokenEffects}
+		<ResourceBoundary
+			resource={bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BnbBeaconTokenTransfersView
+					selection={bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource}
+					countResource={bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource.count}
+					title='token effects'
+					id='BnbBeaconTokenTransfersView-token-effects'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

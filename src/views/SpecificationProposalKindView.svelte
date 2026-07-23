@@ -4,13 +4,14 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { proposalCategoryById, specificationRealmById } from '$/constants/SpecificationProposal.ts'
-	import { Source } from '$/sources/Source.ts'
+	import { defaultSpecificationProposalSources, specificationProposalSourceSelectionByKey } from '$/sources/$sourceSelections.ts'
 
 
 	// Context
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.SpecificationProposalKind>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SpecificationProposalKind>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SpecificationProposalKind>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,7 +44,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const specificationProposalKind = $derived(selection({
+	const specificationProposalKind = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+			labelPlural: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
@@ -52,7 +59,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.labelPlural) ?? '')].filter(Boolean).join(' ') || [String((proposalCategoryById[String(pendingEntity.category)]?.labelPlural ?? (String((pendingEntity.category) ?? ''))) ?? '')].filter(Boolean).join(' ') || 'Specification proposal kind')
-	const viewDomId = $derived('specification-proposal-kind-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('specification-proposal-kind-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,17 +75,25 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.realm !== undefined && pendingEntity.category !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
-			specificationRealmSlug: String(specificationRealmById[String(pendingEntity.realm)].slug ?? ''),
-			proposalKindSlug: String(proposalCategoryById[String(pendingEntity.category)].slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'realm' in selection.entitySelector
+			&& selection.entitySelector.realm != null
+			&& selection.entitySelector != null && 'category' in selection.entitySelector
+			&& selection.entitySelector.category != null ?
+				resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
+			specificationRealmSlug: String(specificationRealmById[String(selection.entitySelector.realm)].slug ?? ''),
+			proposalKindSlug: String(proposalCategoryById[String(selection.entitySelector.category)].slug ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'labelPlural') && Object.hasOwn(prefetched, 'label')}
 			{[String((pendingEntity.labelPlural) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={specificationProposalKind}>
@@ -91,7 +106,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'labelPlural') && Object.hasOwn(prefetched, 'label')}
 			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.labelPlural) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={specificationProposalKind}>
@@ -165,9 +180,15 @@
 									selection={select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector])}
 									prefetched={specificationRealm}
 									href={
-										(specificationRealm[EntityMetaKey.Selector].realm !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+										(
+											specificationRealm[EntityMetaKey.Selector] != null && 'realm' in specificationRealm[EntityMetaKey.Selector]
+											&& specificationRealm[EntityMetaKey.Selector].realm != null ?
+												resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
 											specificationRealmSlug: String(specificationRealmById[String(specificationRealm[EntityMetaKey.Selector].realm)].slug ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -181,49 +202,38 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<ResourceBoundary
-				resource={
-						selection({
-							fields: {
-								labelPlural: true,
-							},
-						})
-					}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<SpecificationProposalsView
-						selection={
-								selection.$$proposals({
-									sources: [
-										Source.BitcoinBips_Github,
-										Source.BitcoinCashChips_Gitlab,
-										Source.Caips_Github,
-										Source.CosmosAdrs_Github,
-										Source.DogecoinDips_Github,
-										Source.Ensips_Github,
-										Source.EthereumEips_Github,
-										Source.FilecoinFips_Github,
-										Source.HyperliquidDocs_Rest,
-										Source.LitecoinLips_Github,
-										Source.NearNeps_Github,
-										Source.PolkadotRfcs_Github,
-										Source.QuilibriumDocs_Rest,
-										Source.SolanaSimds_Github,
-										Source.ZcashZips_Github,
-									],
-									count: true,
-								})
-							}
-						title={String(entity.labelPlural ?? 'Proposals')}
-						emptyText='No proposals for this kind.'
-						filterRealm={selection.entitySelector.realm}
-						filterCategory={selection.entitySelector.category}
-						id='SpecificationProposalsView-proposals'
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				{@const specificationProposalKindSpecificationProposalsViewProposalsResource = selection
+		.$$proposals({
+			sources: specificationProposalSourceSelectionByKey[[String(pendingEntity.realm), String(pendingEntity.category)].join(':')] ?? defaultSpecificationProposalSources,
+		})}
+				<ResourceBoundary
+					resource={specificationProposalKindSpecificationProposalsViewProposalsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<ResourceBoundary
+							resource={
+									selection({
+										fields: {
+											labelPlural: true,
+										},
+									})
+								}
+						>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								<SpecificationProposalsView
+									selection={specificationProposalKindSpecificationProposalsViewProposalsResource}
+									countResource={specificationProposalKindSpecificationProposalsViewProposalsResource.count}
+									title={String(entity.labelPlural ?? 'Proposals')}
+									filterRealm={selection.entitySelector.realm}
+									filterCategory={selection.entitySelector.category}
+									id='SpecificationProposalsView-proposals'
+								/>
+							{/snippet}
+						</ResourceBoundary>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

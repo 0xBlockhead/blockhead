@@ -29,7 +29,6 @@
 			quoteCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post observation' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post observation'))
 
 
 	// Components
@@ -39,7 +38,17 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • AT Protocol post observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$post: {
+			uri: decodeURIComponent(params.uri),
+		},
+		timestampMs: Number(params.timestampMs),
+	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post observation' : [String((({ ...{
+		$post: {
+			uri: decodeURIComponent(params.uri),
+		},
+		timestampMs: Number(params.timestampMs),
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post observation')} • AT Protocol post observation • Blockhead</title>
 </svelte:head>
 
 

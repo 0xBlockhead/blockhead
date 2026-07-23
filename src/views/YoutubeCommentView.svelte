@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.YoutubeComment>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.YoutubeComment>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.YoutubeComment>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -53,7 +54,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.text) ?? '')].filter(Boolean).join(' ') || 'YouTube comment')
-	const viewDomId = $derived('youtube-comment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('youtube-comment-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,10 +74,18 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.videoId !== undefined && pendingEntity.commentId !== undefined ? resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]', {
-			videoId: encodeURIComponent(String(pendingEntity.videoId ?? '')),
-			commentId: encodeURIComponent(String(pendingEntity.commentId ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'videoId' in selection.entitySelector
+			&& selection.entitySelector.videoId != null
+			&& selection.entitySelector != null && 'commentId' in selection.entitySelector
+			&& selection.entitySelector.commentId != null ?
+				resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]', {
+			videoId: encodeURIComponent(String(selection.entitySelector.videoId ?? '')),
+			commentId: encodeURIComponent(String(selection.entitySelector.commentId ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -115,26 +124,17 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const publishedAtMs0 = pendingEntity.publishedAtMs}
-			{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(publishedAtMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={youtubeComment}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const publishedAtMs0 = resolvedEntity.publishedAtMs}
-					{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(publishedAtMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={youtubeComment}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const publishedAtMs0 = resolvedEntity.publishedAtMs}
+				{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(publishedAtMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -236,9 +236,15 @@
 										selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
 										prefetched={youtubeChannel}
 										href={
-											(youtubeChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]', {
+											(
+												youtubeChannel[EntityMetaKey.Selector] != null && 'channelId' in youtubeChannel[EntityMetaKey.Selector]
+												&& youtubeChannel[EntityMetaKey.Selector].channelId != null ?
+													resolve('/youtube/channel/[channelId=stringSegment]', {
 												channelId: encodeURIComponent(String(youtubeChannel[EntityMetaKey.Selector].channelId ?? '')),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -263,9 +269,15 @@
 										selection={select(EntityType.YoutubeVideo, youtubeVideo[EntityMetaKey.Selector])}
 										prefetched={youtubeVideo}
 										href={
-											(youtubeVideo[EntityMetaKey.Selector].videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
+											(
+												youtubeVideo[EntityMetaKey.Selector] != null && 'videoId' in youtubeVideo[EntityMetaKey.Selector]
+												&& youtubeVideo[EntityMetaKey.Selector].videoId != null ?
+													resolve('/youtube/video/[videoId=stringSegment]', {
 												videoId: encodeURIComponent(String(youtubeVideo[EntityMetaKey.Selector].videoId ?? '')),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -290,10 +302,18 @@
 										selection={select(EntityType.YoutubeComment, youtubeComment[EntityMetaKey.Selector])}
 										prefetched={youtubeComment}
 										href={
-											(youtubeComment[EntityMetaKey.Selector].videoId !== undefined && youtubeComment[EntityMetaKey.Selector].commentId !== undefined ? resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]', {
+											(
+												youtubeComment[EntityMetaKey.Selector] != null && 'videoId' in youtubeComment[EntityMetaKey.Selector]
+												&& youtubeComment[EntityMetaKey.Selector].videoId != null
+												&& youtubeComment[EntityMetaKey.Selector] != null && 'commentId' in youtubeComment[EntityMetaKey.Selector]
+												&& youtubeComment[EntityMetaKey.Selector].commentId != null ?
+													resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]', {
 												videoId: encodeURIComponent(String(youtubeComment[EntityMetaKey.Selector].videoId ?? '')),
 												commentId: encodeURIComponent(String(youtubeComment[EntityMetaKey.Selector].commentId ?? '')),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -329,37 +349,48 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<YoutubeCommentsView
-				selection={
-						selection.$$replies({
-							sources: [
-								Source.Youtube_Rest,
-							],
-							limit: 50,
-							count: true,
-						})
-					}
-				title='Replies'
-				emptyText='No replies yet.'
-				id='YoutubeCommentsView-replies'
-			/>
-
-			<YoutubeComment_TimestampsView
-				selection={
-						selection.$$timestamps({
-							sources: [
-								Source.Youtube_Rest,
-								Source.Piped_Rest,
-							],
-							limit: 50,
-							count: true,
-						})
-					}
-				title='Metric snapshots'
-				emptyText='No metric snapshots for this comment yet.'
-				id='YoutubeComment_TimestampsView-timestamps'
-			/>
-		{/if}
+				{@const youtubeCommentYoutubeCommentsViewRepliesResource = selection
+		.$$replies({
+			sources: [
+				Source.Youtube_Rest,
+			],
+			limit: 50,
+		})}
+				<ResourceBoundary
+					resource={youtubeCommentYoutubeCommentsViewRepliesResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<YoutubeCommentsView
+							selection={youtubeCommentYoutubeCommentsViewRepliesResource}
+							countResource={youtubeCommentYoutubeCommentsViewRepliesResource.count}
+							title='Replies'
+							id='YoutubeCommentsView-replies'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const youtubeCommentYoutubeCommentTimestampsViewTimestampsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.Youtube_Rest,
+				Source.Piped_Rest,
+			],
+			limit: 50,
+		})}
+				<ResourceBoundary
+					resource={youtubeCommentYoutubeCommentTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<YoutubeComment_TimestampsView
+							selection={youtubeCommentYoutubeCommentTimestampsViewTimestampsResource}
+							countResource={youtubeCommentYoutubeCommentTimestampsViewTimestampsResource.count}
+							title='Metric snapshots'
+							id='YoutubeComment_TimestampsView-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

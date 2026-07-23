@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Logos blockchain network observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LogosBlockchainNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LogosBlockchainNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LogosBlockchainNetwork_TimestampView from '$/views/LogosBlockchainNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(logosBlockchainNetworkTimestamps) => [...new Map(logosBlockchainNetworkTimestamps.values.map((logosBlockchainNetworkTimestamp) => [logosBlockchainNetworkTimestamp[EntityMetaKey.SelectorKey], logosBlockchainNetworkTimestamp])).values()]}
 	getKey={(logosBlockchainNetworkTimestamp) => logosBlockchainNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: logosBlockchainNetworkTimestamp })}
 		{@const logosBlockchainNetworkTimestampFields = { ...logosBlockchainNetworkTimestamp[EntityMetaKey.Selector], ...logosBlockchainNetworkTimestamp }}
-		{@const selection = select(EntityType.LogosBlockchainNetwork_Timestamp, logosBlockchainNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<LogosBlockchainNetwork_TimestampView
-			selection={selection}
-			prefetched={logosBlockchainNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType.LogosBlockchainNetwork_Timestamp}
+			entitySelector={logosBlockchainNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((logosBlockchainNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Logos blockchain network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((logosBlockchainNetworkTimestampFields.height) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((logosBlockchainNetworkTimestampFields.mode) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

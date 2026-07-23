@@ -44,14 +44,14 @@
 				}
 				title='Contracts'
 				selection={
-					projection.$$contracts({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$contracts({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
-				id='contracts'
+				id='account-evm-contract'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

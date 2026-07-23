@@ -44,14 +44,14 @@
 				}
 				title='Solana token mints'
 				selection={
-					projection.$$tokenMints({
-						sources: [
-							Source.Solana_JsonRpc,
-						],
-						count: true,
-					})
+					projection
+						.$$tokenMints({
+							sources: [
+								Source.Solana_JsonRpc,
+							],
+						})
 				}
-				id='token-mints'
+				id='account-solana-token-mint'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

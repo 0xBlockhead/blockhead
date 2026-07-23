@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Elements peg observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ElementsPeg_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ElementsPeg_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ElementsPeg_TimestampView from '$/views/ElementsPeg_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(elementsPegTimestamps) => [...new Map(elementsPegTimestamps.values.map((elementsPegTimestamp) => [elementsPegTimestamp[EntityMetaKey.SelectorKey], elementsPegTimestamp])).values()]}
 	getKey={(elementsPegTimestamp) => elementsPegTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: elementsPegTimestamp })}
 		{@const elementsPegTimestampFields = { ...elementsPegTimestamp[EntityMetaKey.Selector], ...elementsPegTimestamp }}
-		{@const selection = select(EntityType.ElementsPeg_Timestamp, elementsPegTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ElementsPeg_TimestampView
-			selection={selection}
-			prefetched={elementsPegTimestampFields}
+		<EntityView
+			entityType={EntityType.ElementsPeg_Timestamp}
+			entitySelector={elementsPegTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((elementsPegTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Elements peg observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((elementsPegTimestampFields.status) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((elementsPegTimestampFields.confirmations) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.MoveModule_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MoveModule_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MoveModule_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const moveModuleTimestamp = $derived(selection({
+	const moveModuleTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			ledgerVersion: true,
+			packageVersion: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			ledgerVersion: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'move module timestamp')
-	const viewDomId = $derived('move-module-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('move-module-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,11 +80,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'ledgerVersion') && Object.hasOwn(prefetched, 'packageVersion')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={moveModuleTimestamp}>
 				{#snippet children(entity)}
@@ -92,7 +99,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'ledgerVersion') && Object.hasOwn(prefetched, 'packageVersion')}
 			{[String((pendingEntity.ledgerVersion) ?? ''), String((pendingEntity.packageVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={moveModuleTimestamp}>
@@ -105,7 +112,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'ledgerVersion') && Object.hasOwn(prefetched, 'packageVersion')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -133,7 +140,7 @@
 				<dt>module</dt>
 				<dd>
 					<MoveModuleView
-						selection={select(EntityType.MoveModule, selection.entitySelector.$module, {})}
+						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -338,28 +345,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<MoveFunctionsView
-				selection={
-						selection.$$functions({
-							count: true,
-						})
-					}
-				title='functions'
-				emptyText='No functions found.'
-				id='MoveFunctionsView-functions'
-			/>
-
-			<MoveStructsView
-				selection={
-						selection.$$structs({
-							count: true,
-						})
-					}
-				title='structs'
-				emptyText='No structs found.'
-				id='MoveStructsView-structs'
-			/>
-		{/if}
+		{@const moveModuleTimestampMoveFunctionsViewFunctionsResource = selection.$$functions}
+		<ResourceBoundary
+			resource={moveModuleTimestampMoveFunctionsViewFunctionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<MoveFunctionsView
+					selection={moveModuleTimestampMoveFunctionsViewFunctionsResource}
+					countResource={moveModuleTimestampMoveFunctionsViewFunctionsResource.count}
+					title='functions'
+					id='MoveFunctionsView-functions'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const moveModuleTimestampMoveStructsViewStructsResource = selection.$$structs}
+		<ResourceBoundary
+			resource={moveModuleTimestampMoveStructsViewStructsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<MoveStructsView
+					selection={moveModuleTimestampMoveStructsViewStructsResource}
+					countResource={moveModuleTimestampMoveStructsViewStructsResource.count}
+					title='structs'
+					id='MoveStructsView-structs'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

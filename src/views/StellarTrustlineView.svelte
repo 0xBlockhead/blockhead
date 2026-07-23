@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.StellarTrustline>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.StellarTrustline>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StellarTrustline>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarTrustline = $derived(selection({
+	const stellarTrustline = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('stellar trustline')
-	const viewDomId = $derived('stellar-trustline-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'stellar trustline'
+	const viewDomId = $derived('stellar-trustline-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,12 +70,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={stellarTrustline}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -84,7 +87,7 @@
 				<dt>account</dt>
 				<dd>
 					<StellarAccountView
-						selection={select(EntityType.StellarAccount, selection.entitySelector.$account, {})}
+						selection={select(EntityType.StellarAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -95,7 +98,7 @@
 				<dt>asset</dt>
 				<dd>
 					<StellarAssetView
-						selection={select(EntityType.StellarAsset, selection.entitySelector.$asset, {})}
+						selection={select(EntityType.StellarAsset, selection.entitySelector.$asset)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

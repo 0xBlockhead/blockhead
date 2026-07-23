@@ -19,6 +19,7 @@ import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 	entityFieldDefinitions,
+	entityFieldFacetPath,
 	entitySelectorKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -246,6 +247,7 @@ const writeLocalPresence = (
 		selectorKey,
 		resolution: 'present',
 	} as const
+	context.entityCollections[entityType].startSyncImmediate()
 	context.entityCollections[entityType].utils.writeUpsertWithAuthority(
 		{
 			[EntityMetaKey.Selector]: entitySelector,
@@ -264,12 +266,20 @@ const deleteLocalPresence = (
 	entitySelector: object
 ) => {
 	const selectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector)
-	context.entityCollections[entityType].utils.deleteSelectorRowsAndAuthority(
+	context.entityCollections[entityType].startSyncImmediate()
+	context.entityCollections[entityType].utils.replaceRowsWithAuthority(
 		(row) => (
 			row[EntityMetaKey.Source] === Source.Local_Internal
 			&& row[EntityMetaKey.SelectorKey] === selectorKey
 		),
-		selectorKey
+		[],
+		selectorKey,
+		localMutationAuthorityKey({
+			source: Source.Local_Internal,
+			entityType,
+			selectorKey,
+		}),
+		'deleted'
 	)
 }
 
@@ -314,6 +324,7 @@ const writeLocalPrimitiveFields = (
 	Object.entries(fields).forEach(([fieldName, value]) => {
 		const parentSelectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector)
 		const collection = context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)]
+		collection.startSyncImmediate()
 		const authority = localMutationAuthority(entityType, entitySelector, {
 			fieldName,
 			facetPathKey: stringify([]),
@@ -348,22 +359,51 @@ const deleteLocalEntityFields = (
 	entitySelector: object
 ) => {
 	const parentSelectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector)
-	Object.values(context.entityFieldCollections[entityType]).forEach((collection) => {
-		collection.utils.deleteSelectorRowsAndAuthority(
+	entityFieldDefinitions(entityDefinitionByType[entityType]).forEach((definition) => {
+		const facetPath = entityFieldFacetPath(definition)
+		const fieldAddressKey = entityFieldAddressKey(String(entityType), facetPath, String(definition.name))
+		const collection = context.entityFieldCollections[entityType][fieldAddressKey]
+		collection.startSyncImmediate()
+		collection.utils.replaceRowsWithAuthority(
 			(row) => (
 				row[EntityMetaKey.Source] === Source.Local_Internal
 				&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
 			),
-			parentSelectorKey
+			[],
+			parentSelectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType,
+				selectorKey: parentSelectorKey,
+				fieldName: definition.name,
+				fieldAddressKey,
+				facetPathKey: stringify(facetPath),
+			}),
+			'deleted'
 		)
 	})
-	Object.values(context.entityFieldCountCollections[entityType]).forEach((collection) => {
-		collection?.utils.deleteSelectorRowsAndAuthority(
+	entityFieldDefinitions(entityDefinitionByType[entityType]).forEach((definition) => {
+		const facetPath = entityFieldFacetPath(definition)
+		const fieldAddressKey = entityFieldAddressKey(String(entityType), facetPath, String(definition.name))
+		const collection = context.entityFieldCountCollections[entityType][fieldAddressKey]
+		collection?.startSyncImmediate()
+		collection?.utils.replaceRowsWithAuthority(
 			(row) => (
 				row[EntityMetaKey.Source] === Source.Local_Internal
 				&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
 			),
-			parentSelectorKey
+			[],
+			parentSelectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType,
+				selectorKey: parentSelectorKey,
+				fieldName: definition.name,
+				fieldAddressKey,
+				facetPathKey: stringify(facetPath),
+				filterKey: stringify({}),
+			}),
+			'deleted'
 		)
 	})
 }
@@ -377,15 +417,42 @@ const writeLocalEntityReferenceField = (
 	valueIndex?: number
 ) => {
 	const collection = context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)]
+	collection.startSyncImmediate()
 	const fieldDefinition = entityFieldDefinitions(entityDefinitionByType[entityType]).find((definition) => definition.name === fieldName)
 	if (fieldDefinition?.type !== EntityFieldType.EntityReference && fieldDefinition?.type !== EntityFieldType.EntitiesReference)
 		throw new Error(`Local mutation field is not an entity reference: ${entityType}.${fieldName}`)
+	const parentSelectorKey = entitySelectorKey(
+		schema,
+		entityDefinitionByType[entityType],
+		entitySelector
+	)
 	const referencedEntitySelectorKey = entitySelectorKey(
 		schema,
 		entityDefinitionByType[fieldDefinition.entityType],
 		referencedEntitySelector
 	)
 	const valueKey = `Entity:${referencedEntitySelectorKey}`
+	const relationshipValueIndex = (
+		fieldDefinition.type === EntityFieldType.EntitiesReference ?
+			valueIndex
+				?? collection.toArray.find((row) => (
+					row[EntityMetaKey.Source] === Source.Local_Internal
+					&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+					&& row.facetPathKey === stringify([])
+					&& row.valueKey === valueKey
+				))?.valueIndex
+				?? collection.toArray.reduce((highestValueIndex, row) => (
+					row[EntityMetaKey.Source] === Source.Local_Internal
+					&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+					&& row.facetPathKey === stringify([])
+					&& row.valueIndex !== undefined ?
+						Math.max(highestValueIndex, row.valueIndex)
+					:
+						highestValueIndex
+				), -1) + 1
+		:
+			undefined
+	)
 	const authority = localMutationAuthority(entityType, entitySelector, {
 		fieldName,
 		facetPathKey: stringify([]),
@@ -398,11 +465,11 @@ const writeLocalEntityReferenceField = (
 		facetPath: [],
 		facetPathKey: stringify([]),
 		fieldName,
-		...(valueIndex !== undefined && {
-			valueIndex,
+		...(relationshipValueIndex !== undefined && {
+			valueIndex: relationshipValueIndex,
 		}),
 		[EntityMetaKey.ParentSelector]: entitySelector,
-		[EntityMetaKey.ParentSelectorKey]: entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector),
+		[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
 		[EntityMetaKey.Source]: Source.Local_Internal,
 		[EntityMetaKey.Value]: {
 			[EntityMetaKey.Selector]: referencedEntitySelector,
@@ -429,9 +496,16 @@ const writeLocalEntityReferenceFieldCount = (
 	const countCollection = context.entityFieldCountCollections[entityType][
 		entityFieldAddressKey(entityType, [], fieldName)
 	]
+	fieldCollection.startSyncImmediate()
 	if (countCollection == null)
 		return
 
+	countCollection.startSyncImmediate()
+	const localFieldRows = fieldCollection.toArray.filter((row) => (
+		row[EntityMetaKey.Source] === Source.Local_Internal
+		&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+		&& row.facetPathKey === stringify([])
+	))
 	const authority = localMutationAuthority(entityType, entitySelector, {
 		fieldName,
 		facetPathKey: stringify([]),
@@ -442,11 +516,7 @@ const writeLocalEntityReferenceFieldCount = (
 		[EntityMetaKey.ParentSelector]: entitySelector,
 		[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
 		[EntityMetaKey.Source]: Source.Local_Internal,
-		[EntityMetaKey.Value]: fieldCollection.toArray.filter((row) => (
-			row[EntityMetaKey.Source] === Source.Local_Internal
-			&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
-			&& row.facetPathKey === stringify([])
-		)).length,
+		[EntityMetaKey.Value]: localFieldRows.length,
 		facetPath: [],
 		facetPathKey: stringify([]),
 		fieldName,
@@ -491,6 +561,7 @@ const deleteLocalEntityReferenceField = (
 		valueKey,
 		resolution: 'deleted',
 	})
+	context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)].startSyncImmediate()
 	context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)].utils.replaceRowsWithAuthority(
 		(row) => (
 			row[EntityMetaKey.Source] === Source.Local_Internal
@@ -504,49 +575,72 @@ const deleteLocalEntityReferenceField = (
 	)
 }
 
-const deleteLocalEntityReferenceFieldRows = (
+const replaceLocalEntityReferenceFieldRows = (
 	context: LocalMutationContext,
 	entityType: EntityType,
 	entitySelector: object,
-	fieldName: string
+	fieldName: string,
+	referencedEntitySelectors: readonly object[]
 ) => {
+	const fieldDefinition = entityFieldDefinitions(entityDefinitionByType[entityType]).find((definition) => definition.name === fieldName)
+	if (fieldDefinition?.type !== EntityFieldType.EntityReference && fieldDefinition?.type !== EntityFieldType.EntitiesReference)
+		throw new Error(`Local mutation field is not an entity reference: ${entityType}.${fieldName}`)
+	if (fieldDefinition.type === EntityFieldType.EntityReference && referencedEntitySelectors.length > 1)
+		throw new Error(`Local mutation singular reference received multiple values: ${entityType}.${fieldName}`)
+
+	const parentSelectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector)
 	const authority = localMutationAuthority(entityType, entitySelector, {
 		fieldName,
 		facetPathKey: stringify([]),
 		resolution: 'resolved',
 	})
+	context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)].startSyncImmediate()
 	context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)].utils.replaceRowsWithAuthority(
 		(row) => (
 			row[EntityMetaKey.Source] === Source.Local_Internal
-				&& row[EntityMetaKey.ParentSelectorKey] === entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector)
+			&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
 		),
-		[],
+		referencedEntitySelectors.map((referencedEntitySelector, valueIndex) => {
+			const referencedEntitySelectorKey = entitySelectorKey(
+				schema,
+				entityDefinitionByType[fieldDefinition.entityType],
+				referencedEntitySelector
+			)
+			return {
+				facetPath: [],
+				facetPathKey: stringify([]),
+				fieldName,
+				...(fieldDefinition.type === EntityFieldType.EntitiesReference && {
+					valueIndex,
+				}),
+				[EntityMetaKey.ParentSelector]: entitySelector,
+				[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+				[EntityMetaKey.Value]: {
+					[EntityMetaKey.Selector]: referencedEntitySelector,
+					[EntityMetaKey.SelectorKey]: referencedEntitySelectorKey,
+				},
+				valueKey: `Entity:${referencedEntitySelectorKey}`,
+			}
+		}),
 		authority.selectorKey,
 		authority.authorityKey,
 		authority.resolution
 	)
 }
 
-export const initializeLocalMutationAuthorities = (
-	context: LocalMutationContext
-) => {
-	for (const [entitySelector, fieldName] of [
-		[
-			{ scope: '$$blockheadSessions' },
-			'$$blockheadSessions',
-		],
-		[
-			{ scope: '$$blockheadWalletConnections' },
-			'$$blockheadWalletConnections',
-		],
-	] as const)
-		writeLocalEntityReferenceFieldCount(
-			context,
-			EntityType._Global,
-			entitySelector,
-			fieldName
-		)
-}
+const deleteLocalEntityReferenceFieldRows = (
+	context: LocalMutationContext,
+	entityType: EntityType,
+	entitySelector: object,
+	fieldName: string
+) => replaceLocalEntityReferenceFieldRows(
+	context,
+	entityType,
+	entitySelector,
+	fieldName,
+	[]
+)
 
 export const writeLocalWatchedEvmAccount = (
 	context: LocalMutationContext,
@@ -568,7 +662,7 @@ export const writeLocalWatchedEvmAccount = (
 	)
 }
 
-export const writeLocalBlockheadSession = (
+export const writeLocalBlockheadSession = async (
 	context: LocalMutationContext,
 	parentEntitySelector: EntitySelector<typeof schema, EntityType._Global>,
 	sessionName: string
@@ -579,11 +673,66 @@ export const writeLocalBlockheadSession = (
 	}
 	writeLocalPresence(context, EntityType.BlockheadSession, entitySelector)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, entitySelector, {
-		...(sessionName !== '' && { name: sessionName }),
+		name: sessionName === '' ? undefined : sessionName,
 		status: BlockheadSessionStatus.Draft,
 		createdAt: now,
 		updatedAt: now,
+		lockedAt: undefined,
+		simulationCount: undefined,
 	})
+	deleteLocalEntityReferenceFieldRows(
+		context,
+		EntityType.BlockheadSession,
+		entitySelector,
+		'$latestSimulation'
+	)
+	for (const fieldName of [
+		'$$actions',
+		'$$intentInvocations',
+		'$$simulations',
+	] as const) {
+		deleteLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadSession,
+			entitySelector,
+			fieldName
+		)
+		writeLocalEntityReferenceFieldCount(
+			context,
+			EntityType.BlockheadSession,
+			entitySelector,
+			fieldName
+		)
+	}
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadSession].utils.waitForPersistence(),
+		...[
+			'name',
+			'status',
+			'createdAt',
+			'updatedAt',
+			'lockedAt',
+			'simulationCount',
+			'$latestSimulation',
+			'$$actions',
+			'$$intentInvocations',
+			'$$simulations',
+		].map((fieldName) => (
+			context.entityFieldCollections[EntityType.BlockheadSession][
+				entityFieldAddressKey(EntityType.BlockheadSession, [], fieldName)
+			].utils.waitForPersistence()
+		)),
+		...[
+			'$$actions',
+			'$$intentInvocations',
+			'$$simulations',
+		].flatMap((fieldName) => {
+			const collection = context.entityFieldCountCollections[EntityType.BlockheadSession][
+				entityFieldAddressKey(EntityType.BlockheadSession, [], fieldName)
+			]
+			return collection === undefined ? [] : [collection.utils.waitForPersistence()]
+		}),
+	])
 	writeLocalEntityReferenceField(
 		context,
 		EntityType._Global,
@@ -597,6 +746,14 @@ export const writeLocalBlockheadSession = (
 		parentEntitySelector,
 		'$$blockheadSessions'
 	)
+	await Promise.all([
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadSessions')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadSessions')
+		]?.utils.waitForPersistence(),
+	])
 
 	return entitySelector
 }
@@ -621,6 +778,7 @@ export const writeLocalBlockheadSessionAction = (
 	actionParams?: object
 ) => {
 	const now = Date.now()
+	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams ?? {})
 	const entitySelector = {
 		sessionId: sessionEntitySelector.id,
 		actionId: globalThis.crypto.randomUUID(),
@@ -636,7 +794,7 @@ export const writeLocalBlockheadSessionAction = (
 	writeLocalPrimitiveFields(context, EntityType.BlockheadSessionAction, entitySelector, {
 		indexInSequence,
 		actionType,
-		actionParams: actionTypeDefinitionByActionType[actionType].params.assert(actionParams ?? {}),
+		actionParams: validatedActionParams,
 		createdAt: now,
 		updatedAt: now,
 	})
@@ -656,6 +814,28 @@ export const writeLocalBlockheadSessionAction = (
 	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, sessionEntitySelector, {
 		updatedAt: now,
 	})
+	return Promise.all([
+		context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
+		...[
+			'$session',
+			'indexInSequence',
+			'actionType',
+			'actionParams',
+			'createdAt',
+			'updatedAt',
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionAction][
+			entityFieldAddressKey(EntityType.BlockheadSessionAction, [], fieldName)
+		].utils.waitForPersistence()),
+		context.entityFieldCollections[EntityType.BlockheadSession][
+			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
+		].utils.waitForPersistence(),
+		context.entityFieldCollections[EntityType.BlockheadSession][
+			entityFieldAddressKey(EntityType.BlockheadSession, [], 'updatedAt')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType.BlockheadSession][
+			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
+		]?.utils.waitForPersistence(),
+	])
 }
 
 export const writeLocalBlockheadSessionLockedAt = (
@@ -688,6 +868,7 @@ export const deleteLocalBlockheadSession = (
 	parentEntitySelector: EntitySelector<typeof schema, EntityType._Global>,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>
 ) => {
+	let deletedAction = false
 	for (const actionRow of context.entityFieldCollections[EntityType.BlockheadSession][
 		entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
 	].toArray.filter((row) => (
@@ -698,6 +879,7 @@ export const deleteLocalBlockheadSession = (
 			Object(actionRow[EntityMetaKey.Value]),
 			EntityMetaKey.Selector
 		)?.value)
+		deletedAction = true
 		deleteLocalEntityFields(context, EntityType.BlockheadSessionAction, actionSelector)
 		deleteLocalPresence(context, EntityType.BlockheadSessionAction, actionSelector)
 	}
@@ -716,9 +898,30 @@ export const deleteLocalBlockheadSession = (
 	)
 	deleteLocalEntityFields(context, EntityType.BlockheadSession, entitySelector)
 	deleteLocalPresence(context, EntityType.BlockheadSession, entitySelector)
+	return Promise.all([
+		context.entityCollections[EntityType.BlockheadSession].utils.waitForPersistence(),
+		...(deletedAction ? [
+			context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
+		] : []),
+		...Object.values(context.entityFieldCollections[EntityType.BlockheadSession])
+			.map((collection) => collection.utils.waitForPersistence()),
+		...(deletedAction ?
+			Object.values(context.entityFieldCollections[EntityType.BlockheadSessionAction])
+				.map((collection) => collection.utils.waitForPersistence())
+		:
+			[]),
+		...Object.values(context.entityFieldCountCollections[EntityType.BlockheadSession])
+			.flatMap((collection) => collection === undefined ? [] : [collection.utils.waitForPersistence()]),
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadSessions')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadSessions')
+		]?.utils.waitForPersistence(),
+	])
 }
 
-export const deleteLocalBlockheadSessionAction = (
+export const deleteLocalBlockheadSessionAction = async (
 	context: LocalMutationContext,
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
@@ -730,17 +933,33 @@ export const deleteLocalBlockheadSessionAction = (
 		'$$actions',
 		entitySelector
 	)
-	deleteLocalEntityFields(context, EntityType.BlockheadSessionAction, entitySelector)
-	deleteLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
 	writeLocalEntityReferenceFieldCount(
 		context,
 		EntityType.BlockheadSession,
 		sessionEntitySelector,
 		'$$actions'
 	)
+	await Promise.all([
+		context.entityFieldCollections[EntityType.BlockheadSession][
+			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType.BlockheadSession][
+			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
+		]?.utils.waitForPersistence(),
+	])
+	deleteLocalEntityFields(context, EntityType.BlockheadSessionAction, entitySelector)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, sessionEntitySelector, {
 		updatedAt: Date.now(),
 	})
+	await Promise.all([
+		...Object.values(context.entityFieldCollections[EntityType.BlockheadSessionAction])
+			.map((collection) => collection.utils.waitForPersistence()),
+		context.entityFieldCollections[EntityType.BlockheadSession][
+			entityFieldAddressKey(EntityType.BlockheadSession, [], 'updatedAt')
+		].utils.waitForPersistence(),
+	])
+	deleteLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
+	await context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence()
 }
 
 export const updateLocalBlockheadSessionActionType = (
@@ -749,8 +968,10 @@ export const updateLocalBlockheadSessionActionType = (
 	sessionSelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	indexInSequence: number,
 	createdAt: number,
-	actionType: ActionType
+	actionType: ActionType,
+	actionParams: object = {}
 ) => {
+	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams)
 	writeLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
 	writeLocalEntityReferenceField(
 		context,
@@ -762,10 +983,23 @@ export const updateLocalBlockheadSessionActionType = (
 	writeLocalPrimitiveFields(context, EntityType.BlockheadSessionAction, entitySelector, {
 		indexInSequence,
 		actionType,
-		actionParams: actionTypeDefinitionByActionType[actionType].params.assert({}),
+		actionParams: validatedActionParams,
 		createdAt,
 		updatedAt: Date.now(),
 	})
+	return Promise.all([
+		context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
+		...[
+			'$session',
+			'indexInSequence',
+			'actionType',
+			'actionParams',
+			'createdAt',
+			'updatedAt',
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionAction][
+			entityFieldAddressKey(EntityType.BlockheadSessionAction, [], fieldName)
+		].utils.waitForPersistence()),
+	])
 }
 
 export const writeLocalBlockheadWorkspace = (
@@ -897,7 +1131,36 @@ export const writeLocalBlockheadPanel = (
 	)
 }
 
-export const writeLocalBlockheadWallet = (
+export const deleteLocalBlockheadPanel = (
+	context: LocalMutationContext,
+	treeId: string,
+	panelId: string
+) => {
+	const panelTreeSelector = {
+		id: treeId,
+	}
+	const panelSelector = {
+		treeId,
+		panelId,
+	}
+	deleteLocalEntityReferenceField(
+		context,
+		EntityType.BlockheadPanelTree,
+		panelTreeSelector,
+		'$$panels',
+		panelSelector
+	)
+	writeLocalEntityReferenceFieldCount(
+		context,
+		EntityType.BlockheadPanelTree,
+		panelTreeSelector,
+		'$$panels'
+	)
+	deleteLocalEntityFields(context, EntityType.BlockheadPanel, panelSelector)
+	deleteLocalPresence(context, EntityType.BlockheadPanel, panelSelector)
+}
+
+export const writeLocalBlockheadWallet = async (
 	context: LocalMutationContext,
 	candidate: LocalWalletCandidate
 ) => {
@@ -918,6 +1181,26 @@ export const writeLocalBlockheadWallet = (
 		sourceWalletKey: undefined,
 		detectedAt: undefined,
 	})
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadWallet].utils.waitForPersistence(),
+		...[
+			'name',
+			'icon',
+			'protocol',
+			'discoveryKind',
+			'transportKind',
+			'rdns',
+			'websiteUrl',
+			'capabilities',
+			'adapterId',
+			'sourceWalletKey',
+			'detectedAt',
+		].map((fieldName) => (
+			context.entityFieldCollections[EntityType.BlockheadWallet][
+				entityFieldAddressKey(EntityType.BlockheadWallet, [], fieldName)
+			].utils.waitForPersistence()
+		)),
+	])
 	writeLocalEntityReferenceField(
 		context,
 		EntityType._Global,
@@ -931,70 +1214,84 @@ export const writeLocalBlockheadWallet = (
 		{ scope: '$$blockheadWallets' },
 		'$$blockheadWallets'
 	)
+	await Promise.all([
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWallets')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWallets')
+		]?.utils.waitForPersistence(),
+	])
 }
 
-export const writeLocalBlockheadWalletAccount = (
+export const writeLocalBlockheadAccount = async (
 	context: LocalMutationContext,
-	account: LocalWalletConnection['accounts'][number]
+	account: Pick<
+		LocalWalletAccount,
+		'namespace' | 'reference' | 'accountAddress'
+	>
 ) => {
-	const entitySelector = {
+	const accountSelector = {
 		caip10: {
 			namespace: account.namespace,
 			reference: account.reference,
 			accountAddress: account.accountAddress,
 		},
 	}
-	writeLocalPresence(context, EntityType.BlockheadWalletAccount, entitySelector)
+	const entitySelector = {
+		$account: accountSelector,
+	}
+	writeLocalPresence(context, EntityType.BlockheadAccount, entitySelector)
 	writeLocalEntityReferenceField(
 		context,
-		EntityType.BlockheadWalletAccount,
+		EntityType.BlockheadAccount,
 		entitySelector,
-		'$network',
-		{
-			caip2: {
-				namespace: account.namespace,
-				reference: account.reference,
-			},
-		}
+		'$account',
+		accountSelector
 	)
-	writeLocalPrimitiveFields(context, EntityType.BlockheadWalletAccount, entitySelector, {
-		caip10: entitySelector.caip10,
-		address: account.accountAddress,
-		label: undefined,
-		capabilities: account.capabilities,
-		namespace: account.namespace,
-		reference: account.reference,
-		accountAddress: account.accountAddress,
-		addressKind: undefined,
-		canonicalAddress: undefined,
-		derivationPath: undefined,
-		publicKey: undefined,
-	})
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadAccount].utils.waitForPersistence(),
+		context.entityFieldCollections[EntityType.BlockheadAccount][
+			entityFieldAddressKey(EntityType.BlockheadAccount, [], '$account')
+		].utils.waitForPersistence(),
+	])
 	writeLocalEntityReferenceField(
 		context,
 		EntityType._Global,
-		{ scope: '$$blockheadWalletAccounts' },
-		'$$blockheadWalletAccounts',
+		{ scope: '$$blockheadAccounts' },
+		'$$blockheadAccounts',
 		entitySelector
 	)
+	await context.entityFieldCollections[EntityType._Global][
+		entityFieldAddressKey(EntityType._Global, [], '$$blockheadAccounts')
+	].utils.waitForPersistence()
 	writeLocalEntityReferenceFieldCount(
 		context,
 		EntityType._Global,
-		{ scope: '$$blockheadWalletAccounts' },
-		'$$blockheadWalletAccounts'
+		{ scope: '$$blockheadAccounts' },
+		'$$blockheadAccounts'
 	)
+	await Promise.all([
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadAccounts')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadAccounts')
+		]?.utils.waitForPersistence(),
+	])
 }
 
-export const writeLocalBlockheadWalletConnection = (
+export const writeLocalBlockheadWalletConnection = async (
 	context: LocalMutationContext,
 	connection: LocalWalletConnection
 ) => {
+	for (const account of connection.accounts)
+		await writeLocalBlockheadAccount(context, account)
 	const activeAccount = connection.activeAccount ?? connection.accounts.at(0)
 	const connectionKey = connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
 	const entitySelector = {
 		connectionKey,
 	}
-	connection.accounts.forEach((account) => writeLocalBlockheadWalletAccount(context, account))
 
 	writeLocalPresence(context, EntityType.BlockheadWalletConnection, entitySelector)
 	writeLocalEntityReferenceField(
@@ -1013,48 +1310,32 @@ export const writeLocalBlockheadWalletConnection = (
 		transportKind: connection.transportKind,
 		scopes: connection.scopes,
 	})
-	deleteLocalEntityReferenceFieldRows(
+	replaceLocalEntityReferenceFieldRows(
 		context,
 		EntityType.BlockheadWalletConnection,
 		entitySelector,
-		'$$connectedAccounts'
-	)
-	connection.accounts.forEach((account, accountIndex) => {
-		writeLocalEntityReferenceField(
-			context,
-			EntityType.BlockheadWalletConnection,
-			entitySelector,
-			'$$connectedAccounts',
-			{
-				caip10: {
-					namespace: account.namespace,
-					reference: account.reference,
-					accountAddress: account.accountAddress,
-				},
+		'$$accounts',
+		connection.accounts.map((account) => ({
+			caip10: {
+				namespace: account.namespace,
+				reference: account.reference,
+				accountAddress: account.accountAddress,
 			},
-			accountIndex
-		)
-	})
-	deleteLocalEntityReferenceFieldRows(
+		}))
+	)
+	replaceLocalEntityReferenceFieldRows(
 		context,
 		EntityType.BlockheadWalletConnection,
 		entitySelector,
-		'$activeAccount'
-	)
-	if (activeAccount != null)
-		writeLocalEntityReferenceField(
-			context,
-			EntityType.BlockheadWalletConnection,
-			entitySelector,
-			'$activeAccount',
-			{
+		'$activeAccount',
+		activeAccount == null ? [] : [{
 				caip10: {
 					namespace: activeAccount.namespace,
 					reference: activeAccount.reference,
 					accountAddress: activeAccount.accountAddress,
 				},
-			}
-		)
+			}]
+	)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadWalletConnection, entitySelector, {
 		selected: connection.selected,
 		connectedAt: connection.connectedAt,
@@ -1063,6 +1344,29 @@ export const writeLocalBlockheadWalletConnection = (
 		sessionTopic: connection.sessionTopic,
 		error: connection.error,
 	})
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadWalletConnection].utils.waitForPersistence(),
+		...[
+			'$wallet',
+			'connectionKey',
+			'status',
+			'protocol',
+			'transportKind',
+			'scopes',
+			'$$accounts',
+			'$activeAccount',
+			'selected',
+			...(connection.connectedAt === undefined ? [] : ['connectedAt']),
+			...(connection.disconnectedAt === undefined ? [] : ['disconnectedAt']),
+			...(connection.sessionId === undefined ? [] : ['sessionId']),
+			...(connection.sessionTopic === undefined ? [] : ['sessionTopic']),
+			...(connection.error === undefined ? [] : ['error']),
+		].map((fieldName) => (
+			context.entityFieldCollections[EntityType.BlockheadWalletConnection][
+				entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], fieldName)
+			].utils.waitForPersistence()
+		)),
+	])
 	writeLocalEntityReferenceField(
 		context,
 		EntityType._Global,
@@ -1070,11 +1374,14 @@ export const writeLocalBlockheadWalletConnection = (
 		'$$blockheadWalletConnections',
 		entitySelector
 	)
+	await context.entityFieldCollections[EntityType._Global][
+		entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletConnections')
+	].utils.waitForPersistence()
 	writeLocalEntityReferenceFieldCount(
 		context,
 		EntityType.BlockheadWalletConnection,
 		entitySelector,
-		'$$connectedAccounts'
+		'$$accounts'
 	)
 	writeLocalEntityReferenceFieldCount(
 		context,
@@ -1082,34 +1389,88 @@ export const writeLocalBlockheadWalletConnection = (
 		{ scope: '$$blockheadWalletConnections' },
 		'$$blockheadWalletConnections'
 	)
+	await Promise.all([
+		context.entityFieldCollections[EntityType.BlockheadWalletConnection][
+			entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], '$$accounts')
+		].utils.waitForPersistence(),
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletConnections')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType.BlockheadWalletConnection][
+			entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], '$$accounts')
+		]?.utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletConnections')
+		]?.utils.waitForPersistence(),
+	])
 }
 
-export const deleteLocalBlockheadWalletConnection = (
+export const deleteLocalBlockheadWalletConnection = async (
 	context: LocalMutationContext,
 	connectionKey: string
 ) => {
 	const entitySelector = {
 		connectionKey,
 	}
-	deleteLocalEntityReferenceField(
+	const parentEntitySelector = {
+		scope: '$$blockheadWalletConnections',
+	}
+	replaceLocalEntityReferenceFieldRows(
 		context,
 		EntityType._Global,
-		{ scope: '$$blockheadWalletConnections' },
+		parentEntitySelector,
 		'$$blockheadWalletConnections',
-		entitySelector
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletConnections')
+		].toArray.filter((row) => (
+			row[EntityMetaKey.Source] === Source.Local_Internal
+			&& row[EntityMetaKey.ParentSelectorKey] === entitySelectorKey(
+				schema,
+				entityDefinitionByType[EntityType._Global],
+				parentEntitySelector
+			)
+			&& row.valueKey !== `Entity:${entitySelectorKey(
+				schema,
+				entityDefinitionByType[EntityType.BlockheadWalletConnection],
+				entitySelector
+			)}`
+		)).map((row) => Object(Object.getOwnPropertyDescriptor(
+			Object(row[EntityMetaKey.Value]),
+			EntityMetaKey.Selector
+		)?.value))
 	)
+	await context.entityFieldCollections[EntityType._Global][
+		entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletConnections')
+	].utils.waitForPersistence()
 	writeLocalEntityReferenceFieldCount(
 		context,
 		EntityType._Global,
-		{ scope: '$$blockheadWalletConnections' },
+		parentEntitySelector,
 		'$$blockheadWalletConnections'
 	)
+	await Promise.all([
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletConnections')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletConnections')
+		]?.utils.waitForPersistence(),
+	])
 	deleteLocalEntityFields(
 		context,
 		EntityType.BlockheadWalletConnection,
 		entitySelector
 	)
 	deleteLocalPresence(context, EntityType.BlockheadWalletConnection, entitySelector)
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadWalletConnection].utils.waitForPersistence(),
+		...Object.values(context.entityFieldCollections[EntityType.BlockheadWalletConnection])
+			.map((collection) => collection.utils.waitForPersistence()),
+		...Object.values(context.entityFieldCountCollections[EntityType.BlockheadWalletConnection])
+			.flatMap((collection) => (
+				collection === undefined ? [] : [collection.utils.waitForPersistence()]
+			)),
+	])
 }
 
 export const writeLocalBlockheadFarcasterAccountConnection = (
@@ -1433,7 +1794,7 @@ export const writeLocalBlockheadWalletRequest_Timestamp = (
 	)
 }
 
-export const writeLocalBlockheadWalletRequest = (
+export const writeLocalBlockheadWalletRequest = async (
 	context: LocalMutationContext,
 	request: LocalBlockheadWalletRequest
 ) => {
@@ -1559,4 +1920,88 @@ export const writeLocalBlockheadWalletRequest = (
 		{ scope: '$$blockheadWalletRequests' },
 		'$$blockheadWalletRequests'
 	)
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadWalletRequest].utils.waitForPersistence(),
+		...[
+			'$sessionAction',
+			'$intentOrder',
+			'$walletConnection',
+			'id',
+			'walletProtocol',
+			'caip10',
+			'requestKind',
+			'requestMethod',
+			'chainId',
+			'fromAddress',
+			'toAddress',
+			'value',
+			'callCount',
+			'atomicRequired',
+			'requestPayloadHash',
+			'walletCallBundleId',
+			'requestedAt',
+			'submittedAt',
+			'$$calls',
+			'$$timestamps',
+		].map((fieldName) => (
+			context.entityFieldCollections[EntityType.BlockheadWalletRequest][
+				entityFieldAddressKey(EntityType.BlockheadWalletRequest, [], fieldName)
+			].utils.waitForPersistence()
+		)),
+		context.entityFieldCountCollections[EntityType.BlockheadWalletRequest][
+			entityFieldAddressKey(EntityType.BlockheadWalletRequest, [], '$$calls')
+		]?.utils.waitForPersistence(),
+		...(
+			request.calls?.length ? [
+				context.entityCollections[EntityType.BlockheadWalletRequestCall].utils.waitForPersistence(),
+				...[
+					'$walletRequest',
+					'callIndex',
+					'caip2',
+					'toAddress',
+					'value',
+					'inputDataHash',
+				].map((fieldName) => (
+					context.entityFieldCollections[EntityType.BlockheadWalletRequestCall][
+						entityFieldAddressKey(EntityType.BlockheadWalletRequestCall, [], fieldName)
+					].utils.waitForPersistence()
+				)),
+			]
+			: []
+		),
+		...(
+			request.timestamps?.length ? [
+				context.entityCollections[EntityType.BlockheadWalletRequest_Timestamp].utils.waitForPersistence(),
+				...[
+					'$walletRequest',
+					'timestampMs',
+					'source',
+					'status',
+					'walletStatusCode',
+					'walletCallBundleStatus',
+					'atomic',
+					'receiptCount',
+					'transactionHash',
+					'transactionId',
+					'signatureHash',
+					'statusPayloadHash',
+					'error',
+				].map((fieldName) => (
+					context.entityFieldCollections[EntityType.BlockheadWalletRequest_Timestamp][
+						entityFieldAddressKey(EntityType.BlockheadWalletRequest_Timestamp, [], fieldName)
+					].utils.waitForPersistence()
+				)),
+				context.entityFieldCountCollections[EntityType.BlockheadWalletRequest][
+					entityFieldAddressKey(EntityType.BlockheadWalletRequest, [], '$$timestamps')
+				]?.utils.waitForPersistence(),
+			]
+			: []
+		),
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletRequests')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletRequests')
+		]?.utils.waitForPersistence(),
+	])
 }

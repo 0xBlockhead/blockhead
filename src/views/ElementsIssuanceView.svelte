@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ElementsIssuance>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ElementsIssuance>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ElementsIssuance>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const elementsIssuance = $derived(selection({
+	const elementsIssuance = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			isReissuance: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			isReissuance: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.inputIndex) ?? '')].filter(Boolean).join(' ') || 'Elements issuance')
-	const viewDomId = $derived('elements-issuance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('elements-issuance-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,126 +78,69 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const inputIndex0 = pendingEntity.inputIndex}
-					{#if inputIndex0 !== undefined && inputIndex0 !== null}
-						<NumberValue
-							value={inputIndex0}
-						/>
-					{/if}
-		{:else}
-			<ResourceBoundary resource={elementsIssuance}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const inputIndex0 = resolvedEntity.inputIndex}
-					{#if inputIndex0 !== undefined && inputIndex0 !== null}
-						<NumberValue
-							value={inputIndex0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={elementsIssuance}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const inputIndex0 = resolvedEntity.inputIndex}
+				{#if inputIndex0 !== undefined && inputIndex0 !== null}
+					<NumberValue
+						value={inputIndex0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={selection.$asset}
-					>
-						{#snippet children(elementsAsset)}
-							{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
-								<ElementsAssetView
-									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
-									prefetched={elementsAsset}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+		<ResourceBoundary resource={elementsIssuance}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={selection.$asset}
+				>
+					{#snippet children(elementsAsset)}
+						{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
+							<ElementsAssetView
+								selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
+								prefetched={elementsAsset}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-					<ResourceBoundary
-						resource={selection.$reissuanceTokenAsset}
-					>
-						{#snippet children(elementsAsset)}
-							{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
-								<ElementsAssetView
-									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
-									prefetched={elementsAsset}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={elementsIssuance}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$asset}
-					>
-						{#snippet children(elementsAsset)}
-							{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
-								<ElementsAssetView
-									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
-									prefetched={elementsAsset}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-
-					<ResourceBoundary
-						resource={selection.$reissuanceTokenAsset}
-					>
-						{#snippet children(elementsAsset)}
-							{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
-								<ElementsAssetView
-									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
-									prefetched={elementsAsset}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				<ResourceBoundary
+					resource={selection.$reissuanceTokenAsset}
+				>
+					{#snippet children(elementsAsset)}
+						{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
+							<ElementsAssetView
+								selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
+								prefetched={elementsAsset}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const isReissuance0 = pendingEntity.isReissuance}
-			{#if isReissuance0 !== undefined && isReissuance0 !== null}
-				<span data-text="muted">
-					{isReissuance0 ? 'Yes' : 'No'}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={elementsIssuance}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isReissuance0 = resolvedEntity.isReissuance}
-					{#if isReissuance0 !== undefined && isReissuance0 !== null}
-						<span data-text="muted">
-							{isReissuance0 ? 'Yes' : 'No'}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={elementsIssuance}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const isReissuance0 = resolvedEntity.isReissuance}
+				{#if isReissuance0 !== undefined && isReissuance0 !== null}
+					<span data-text="muted">
+						{isReissuance0 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -200,15 +149,30 @@
 				<dt>Transaction</dt>
 				<dd>
 					<UtxoTransactionView
-						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction)}
 						href={
-							(selection.entitySelector.$transaction.txId !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$transaction.txId !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
-								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$transaction != null && 'txId' in selection.entitySelector.$transaction
+								&& selection.entitySelector.$transaction.txId != null
+								&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
+									selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+									&& selection.entitySelector.$transaction.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+									transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+										&& selection.entitySelector.$transaction.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+										transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+										network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

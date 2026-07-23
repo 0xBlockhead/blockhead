@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmNetworkBridge>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmNetworkBridge>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmNetworkBridge>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,14 +44,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmNetworkBridge = $derived(selection({
+	const evmNetworkBridge = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			relationshipType: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			relationshipType: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || 'EVM network bridge')
-	const viewDomId = $derived('evm-network-bridge-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('evm-network-bridge-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,33 +72,51 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$toNetwork !== undefined && pendingEntity.$toNetwork.caip2 !== undefined && pendingEntity.url !== undefined && pendingEntity.$fromNetwork !== undefined && pendingEntity.$fromNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
-			toCaip2: String(caip2StringFromValue(pendingEntity.$toNetwork.caip2) ?? ''),
-			url: encodeURIComponent(String(pendingEntity.url ?? '')),
-			network: String(caip2StringFromValue(pendingEntity.$fromNetwork.caip2) ?? ''),
-		}) : pendingEntity.$toNetwork !== undefined && pendingEntity.$toNetwork.caip2 !== undefined && pendingEntity.url !== undefined && pendingEntity.$fromNetwork !== undefined && pendingEntity.$fromNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
-			toCaip2: String(caip2StringFromValue(pendingEntity.$toNetwork.caip2) ?? ''),
-			url: encodeURIComponent(String(pendingEntity.url ?? '')),
-			network: String(pendingEntity.$fromNetwork.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && '$toNetwork' in selection.entitySelector
+			&& selection.entitySelector.$toNetwork != null && 'caip2' in selection.entitySelector.$toNetwork
+			&& selection.entitySelector.$toNetwork.caip2 != null
+			&& selection.entitySelector != null && 'url' in selection.entitySelector
+			&& selection.entitySelector.url != null
+			&& selection.entitySelector != null && '$fromNetwork' in selection.entitySelector ?
+				selection.entitySelector.$fromNetwork != null && 'caip2' in selection.entitySelector.$fromNetwork
+				&& selection.entitySelector.$fromNetwork.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
+				toCaip2: String(caip2StringFromValue(selection.entitySelector.$toNetwork.caip2) ?? ''),
+				url: encodeURIComponent(String(selection.entitySelector.url ?? '')),
+				network: String(caip2StringFromValue(selection.entitySelector.$fromNetwork.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$fromNetwork != null && 'slug' in selection.entitySelector.$fromNetwork
+					&& selection.entitySelector.$fromNetwork.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
+					toCaip2: String(caip2StringFromValue(selection.entitySelector.$toNetwork.caip2) ?? ''),
+					url: encodeURIComponent(String(selection.entitySelector.url ?? '')),
+					network: String(selection.entitySelector.$fromNetwork.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const url0 = pendingEntity.url}
-					{#if url0 !== undefined && url0 !== null}
-						<svelte:element
-							this={'a'}
-							href={String(url0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(url0)} />
-						</svelte:element>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'relationshipType')}
+			{@const url0 = pendingEntity.url}
+			{#if url0 !== undefined && url0 !== null}
+				<svelte:element
+					this={'a'}
+					href={String(url0)}
+					target="_blank"
+					rel="noreferrer noopener"
+				>
+					<TruncatedValue value={String(url0)} />
+				</svelte:element>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={evmNetworkBridge}>
 				{#snippet children(entity)}
@@ -114,11 +138,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const url0 = pendingEntity.url}
-					{#if url0 !== undefined && url0 !== null}
-						<TruncatedValue value={String((url0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'relationshipType')}
+			{@const url0 = pendingEntity.url}
+			{#if url0 !== undefined && url0 !== null}
+				<TruncatedValue value={String((url0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={evmNetworkBridge}>
 				{#snippet children(entity)}
@@ -133,7 +157,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'relationshipType')}
 			{@const relationshipType0 = pendingEntity.relationshipType}
 			{#if relationshipType0 !== undefined && relationshipType0 !== null}
 				<span data-text="muted">
@@ -218,13 +242,23 @@
 				<dt>From network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$fromNetwork, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$fromNetwork)}
 						href={
-							(selection.entitySelector.$fromNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$fromNetwork != null && 'caip2' in selection.entitySelector.$fromNetwork
+								&& selection.entitySelector.$fromNetwork.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$fromNetwork.caip2) ?? ''),
-							}) : selection.entitySelector.$fromNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$fromNetwork.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$fromNetwork != null && 'slug' in selection.entitySelector.$fromNetwork
+									&& selection.entitySelector.$fromNetwork.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$fromNetwork.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -236,13 +270,23 @@
 				<dt>To network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$toNetwork, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$toNetwork)}
 						href={
-							(selection.entitySelector.$toNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$toNetwork != null && 'caip2' in selection.entitySelector.$toNetwork
+								&& selection.entitySelector.$toNetwork.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$toNetwork.caip2) ?? ''),
-							}) : selection.entitySelector.$toNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$toNetwork.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$toNetwork != null && 'slug' in selection.entitySelector.$toNetwork
+									&& selection.entitySelector.$toNetwork.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$toNetwork.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

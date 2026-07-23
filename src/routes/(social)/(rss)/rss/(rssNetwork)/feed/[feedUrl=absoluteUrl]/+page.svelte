@@ -33,7 +33,6 @@
 			description: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.title) ?? ''), String((pageSelection.entitySelector.feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).title) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed')))
 
 
 	// Components
@@ -43,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • RSS feed • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed' : [String((({ ...data.selector, ...pageSelection.entity }).title) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed'))} • RSS feed • Blockhead</title>
 </svelte:head>
 
 

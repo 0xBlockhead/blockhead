@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FilecoinMessageReceipt>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FilecoinMessageReceipt>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FilecoinMessageReceipt>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const filecoinMessageReceipt = $derived(selection({
+	const filecoinMessageReceipt = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			exitCode: true,
+			gasUsed: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			exitCode: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.tipsetKey) ?? '')].filter(Boolean).join(' ') || 'filecoin message receipt')
-	const viewDomId = $derived('filecoin-message-receipt-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('filecoin-message-receipt-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,7 +78,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'exitCode') && Object.hasOwn(prefetched, 'gasUsed')}
 			{[String((pendingEntity.tipsetKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={filecoinMessageReceipt}>
@@ -84,13 +91,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const exitCode0 = pendingEntity.exitCode}
-					{#if exitCode0 !== undefined && exitCode0 !== null}
-						<NumberValue
-							value={exitCode0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'exitCode') && Object.hasOwn(prefetched, 'gasUsed')}
+			{@const exitCode0 = pendingEntity.exitCode}
+			{#if exitCode0 !== undefined && exitCode0 !== null}
+				<NumberValue
+					value={exitCode0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={filecoinMessageReceipt}>
 				{#snippet children(entity)}
@@ -107,7 +114,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'exitCode') && Object.hasOwn(prefetched, 'gasUsed')}
 			{@const gasUsed0 = pendingEntity.gasUsed}
 			{#if gasUsed0 !== undefined && gasUsed0 !== null}
 				<span data-text="muted">
@@ -139,7 +146,7 @@
 				<dt>Message</dt>
 				<dd>
 					<FilecoinMessageView
-						selection={select(EntityType.FilecoinMessage, selection.entitySelector.$message, {})}
+						selection={select(EntityType.FilecoinMessage, selection.entitySelector.$message)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

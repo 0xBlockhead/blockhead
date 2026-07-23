@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AcpMessagePart>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AcpMessagePart>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpMessagePart>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpMessagePart = $derived(selection({
+	const acpMessagePart = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			partKind: true,
+			mimeType: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			partKind: true,
@@ -49,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.partKind) ?? '')].filter(Boolean).join(' ') || 'ACP message part')
-	const viewDomId = $derived('acp-message-part-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('acp-message-part-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,7 +79,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'partKind') && Object.hasOwn(prefetched, 'mimeType')}
 			{[String((pendingEntity.partKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={acpMessagePart}>
@@ -85,13 +92,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const partIndex0 = pendingEntity.partIndex}
-					{#if partIndex0 !== undefined && partIndex0 !== null}
-						<NumberValue
-							value={partIndex0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'partKind') && Object.hasOwn(prefetched, 'mimeType')}
+			{@const partIndex0 = pendingEntity.partIndex}
+			{#if partIndex0 !== undefined && partIndex0 !== null}
+				<NumberValue
+					value={partIndex0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={acpMessagePart}>
 				{#snippet children(entity)}
@@ -108,7 +115,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'partKind') && Object.hasOwn(prefetched, 'mimeType')}
 			{@const mimeType0 = pendingEntity.mimeType}
 			{#if mimeType0 !== undefined && mimeType0 !== null}
 				<span data-text="muted">
@@ -136,7 +143,7 @@
 				<dt>message</dt>
 				<dd>
 					<AcpMessageView
-						selection={select(EntityType.AcpMessage, selection.entitySelector.$message, {})}
+						selection={select(EntityType.AcpMessage, selection.entitySelector.$message)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

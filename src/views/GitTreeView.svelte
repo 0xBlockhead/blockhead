@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.GitTree>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.GitTree>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitTree>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitTree = $derived(selection({
+	const gitTree = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git tree')
-	const viewDomId = $derived('git-tree-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('git-tree-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,11 +71,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const objectId0 = pendingEntity.objectId}
-					{#if objectId0 !== undefined && objectId0 !== null}
-						<TruncatedValue value={String((objectId0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails}
+			{@const objectId0 = pendingEntity.objectId}
+			{#if objectId0 !== undefined && objectId0 !== null}
+				<TruncatedValue value={String((objectId0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={gitTree}>
 				{#snippet children(entity)}
@@ -86,7 +90,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{[String((pendingEntity.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={gitTree}>
@@ -171,17 +175,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<GitTreeEntriesView
-				selection={
-						selection.$$entries({
-							count: true,
-						})
-					}
-				title='entries'
-				emptyText='No tree entries.'
-				id='GitTreeEntriesView-entries'
-			/>
-		{/if}
+		{@const gitTreeGitTreeEntriesViewEntriesResource = selection.$$entries}
+		<ResourceBoundary
+			resource={gitTreeGitTreeEntriesViewEntriesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<GitTreeEntriesView
+					selection={gitTreeGitTreeEntriesViewEntriesResource}
+					countResource={gitTreeGitTreeEntriesViewEntriesResource.count}
+					title='entries'
+					id='GitTreeEntriesView-entries'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

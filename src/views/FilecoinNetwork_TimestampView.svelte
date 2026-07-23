@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FilecoinNetwork_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FilecoinNetwork_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FilecoinNetwork_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,7 +44,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const filecoinNetworkTimestamp = $derived(selection({
+	const filecoinNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			headHeight: true,
+			headTipsetKey: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			headHeight: true,
@@ -51,7 +58,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin network timestamp')
-	const viewDomId = $derived('filecoin-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('filecoin-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -75,11 +82,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'headHeight') && Object.hasOwn(prefetched, 'headTipsetKey')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={filecoinNetworkTimestamp}>
 				{#snippet children(entity)}
@@ -94,13 +101,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const headHeight0 = pendingEntity.headHeight}
-					{#if headHeight0 !== undefined && headHeight0 !== null}
-						<NumberValue
-							value={headHeight0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'headHeight') && Object.hasOwn(prefetched, 'headTipsetKey')}
+			{@const headHeight0 = pendingEntity.headHeight}
+			{#if headHeight0 !== undefined && headHeight0 !== null}
+				<NumberValue
+					value={headHeight0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={filecoinNetworkTimestamp}>
 				{#snippet children(entity)}
@@ -117,7 +124,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'headHeight') && Object.hasOwn(prefetched, 'headTipsetKey')}
 			{@const headTipsetKey0 = pendingEntity.headTipsetKey}
 			{#if headTipsetKey0 !== undefined && headTipsetKey0 !== null}
 				<span data-text="muted">
@@ -145,13 +152,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -309,11 +326,12 @@
 
 			<ResourceBoundary
 				resource={
-					selection.$headTipset({
-						sources: [
-							Source.Lotus_JsonRpc,
-						],
-					})
+					selection
+						.$headTipset({
+							sources: [
+								Source.Lotus_JsonRpc,
+							],
+						})
 				}
 			>
 				{#snippet children(filecoinTipset)}
@@ -490,19 +508,25 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<FilecoinMinersView
-				selection={
-						selection.$$headMiners({
-							sources: [
-								Source.Lotus_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Head miners'
-				id='FilecoinMinersView-head-miners'
-			/>
-		{/if}
+				{@const filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource = selection
+		.$$headMiners({
+			sources: [
+				Source.Lotus_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<FilecoinMinersView
+							selection={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource}
+							countResource={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource.count}
+							title='Head miners'
+							id='FilecoinMinersView-head-miners'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

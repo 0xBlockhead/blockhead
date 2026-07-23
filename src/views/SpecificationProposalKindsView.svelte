@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { specificationRealmById, proposalCategoryById } from '$/constants/SpecificationProposal.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Proposal kinds',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.SpecificationProposalKind>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SpecificationProposalKind>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import SpecificationProposalKindView from '$/views/SpecificationProposalKindView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(specificationProposalKinds) => [...new Map(specificationProposalKinds.values.map((specificationProposalKind) => [specificationProposalKind[EntityMetaKey.SelectorKey], specificationProposalKind])).values()]}
 	getKey={(specificationProposalKind) => specificationProposalKind[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,19 +90,34 @@
 
 	{#snippet Item({ item: specificationProposalKind })}
 		{@const specificationProposalKindFields = { ...specificationProposalKind[EntityMetaKey.Selector], ...specificationProposalKind }}
-		{@const selection = select(EntityType.SpecificationProposalKind, specificationProposalKind[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const specificationProposalKindHrefFields = { ...specificationProposalKind, ...specificationProposalKind[EntityMetaKey.Selector] }}
-		<SpecificationProposalKindView
-			selection={selection}
-			prefetched={specificationProposalKindFields}
+		<EntityView
+			entityType={EntityType.SpecificationProposalKind}
+			entitySelector={specificationProposalKind[EntityMetaKey.Selector]}
 			href={
-				(specificationProposalKindHrefFields.realm !== undefined && specificationProposalKindHrefFields.category !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
-					specificationRealmSlug: String(specificationRealmById[String(specificationProposalKindHrefFields.realm)].slug ?? ''),
-					proposalKindSlug: String(proposalCategoryById[String(specificationProposalKindHrefFields.category)].slug ?? ''),
-				}) : undefined)
+				(
+					specificationProposalKind[EntityMetaKey.Selector] != null && 'realm' in specificationProposalKind[EntityMetaKey.Selector]
+					&& specificationProposalKind[EntityMetaKey.Selector].realm != null
+					&& specificationProposalKind[EntityMetaKey.Selector] != null && 'category' in specificationProposalKind[EntityMetaKey.Selector]
+					&& specificationProposalKind[EntityMetaKey.Selector].category != null ?
+						resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
+					specificationRealmSlug: String(specificationRealmById[String(specificationProposalKind[EntityMetaKey.Selector].realm)].slug ?? ''),
+					proposalKindSlug: String(proposalCategoryById[String(specificationProposalKind[EntityMetaKey.Selector].category)].slug ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((specificationProposalKindFields.labelPlural) ?? '')].filter(Boolean).join(' ') || [String((proposalCategoryById[String(specificationProposalKindFields.category)]?.labelPlural ?? (String((specificationProposalKindFields.category) ?? ''))) ?? '')].filter(Boolean).join(' ') || 'Specification proposal kind'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((specificationProposalKindFields.label) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

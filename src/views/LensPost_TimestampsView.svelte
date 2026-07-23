@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Lens post observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.LensPost_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LensPost_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LensPost_TimestampView from '$/views/LensPost_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,11 +67,17 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				$post: true,
+				$post: {
+					fields: {
+						text: true,
+						timestamp: true,
+					},
+				},
 				timestampMs: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(lensPostTimestamps) => [...new Map(lensPostTimestamps.values.map((lensPostTimestamp) => [lensPostTimestamp[EntityMetaKey.SelectorKey], lensPostTimestamp])).values()]}
 	getKey={(lensPostTimestamp) => lensPostTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,19 +92,35 @@
 
 	{#snippet Item({ item: lensPostTimestamp })}
 		{@const lensPostTimestampFields = { ...lensPostTimestamp[EntityMetaKey.Selector], ...lensPostTimestamp }}
-		{@const selection = select(EntityType.LensPost_Timestamp, lensPostTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const lensPostTimestampHrefFields = { ...lensPostTimestamp, ...lensPostTimestamp[EntityMetaKey.Selector] }}
-		<LensPost_TimestampView
-			selection={selection}
-			prefetched={lensPostTimestampFields}
+		<EntityView
+			entityType={EntityType.LensPost_Timestamp}
+			entitySelector={lensPostTimestamp[EntityMetaKey.Selector]}
 			href={
-				(lensPostTimestampHrefFields.timestampMs !== undefined && lensPostTimestampHrefFields.$post !== undefined && lensPostTimestampHrefFields.$post.id !== undefined ? resolve('/lens/post/[postId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-					timestampMs: String(lensPostTimestampHrefFields.timestampMs ?? ''),
-					postId: String(lensPostTimestampHrefFields.$post.id ?? ''),
-				}) : undefined)
+				(
+					lensPostTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in lensPostTimestamp[EntityMetaKey.Selector]
+					&& lensPostTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& lensPostTimestamp[EntityMetaKey.Selector] != null && '$post' in lensPostTimestamp[EntityMetaKey.Selector]
+					&& lensPostTimestamp[EntityMetaKey.Selector].$post != null && 'id' in lensPostTimestamp[EntityMetaKey.Selector].$post
+					&& lensPostTimestamp[EntityMetaKey.Selector].$post.id != null ?
+						resolve('/lens/post/[postId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+					timestampMs: String(lensPostTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					postId: String(lensPostTimestamp[EntityMetaKey.Selector].$post.id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((lensPostTimestampFields.$post.text) ?? ''), String((lensPostTimestampFields.$post.id) ?? '')].filter(Boolean).join(' ') || 'Lens post'].filter(Boolean).join(' ') || 'Lens post observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((lensPostTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

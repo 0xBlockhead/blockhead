@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Monero network observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.MoneroNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MoneroNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MoneroNetwork_TimestampView from '$/views/MoneroNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(moneroNetworkTimestamps) => [...new Map(moneroNetworkTimestamps.values.map((moneroNetworkTimestamp) => [moneroNetworkTimestamp[EntityMetaKey.SelectorKey], moneroNetworkTimestamp])).values()]}
 	getKey={(moneroNetworkTimestamp) => moneroNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: moneroNetworkTimestamp })}
 		{@const moneroNetworkTimestampFields = { ...moneroNetworkTimestamp[EntityMetaKey.Selector], ...moneroNetworkTimestamp }}
-		{@const selection = select(EntityType.MoneroNetwork_Timestamp, moneroNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<MoneroNetwork_TimestampView
-			selection={selection}
-			prefetched={moneroNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType.MoneroNetwork_Timestamp}
+			entitySelector={moneroNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((moneroNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'monero network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((moneroNetworkTimestampFields.height) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((moneroNetworkTimestampFields.status) ?? ''), String((moneroNetworkTimestampFields.synchronized) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

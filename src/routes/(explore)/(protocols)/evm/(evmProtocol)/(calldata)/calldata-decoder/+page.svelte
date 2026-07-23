@@ -275,9 +275,7 @@
 								<EntityView
 									entityType={EntityType.EvmSelector}
 									entitySelector={{ hex: normalizedSelector }}
-													href={resolve('/evm/selector/[hex]', {
-										hex: normalizedSelector,
-									})}
+													href={resolve(`/evm/selector/${normalizedSelector}`)}
 								>
 									{#snippet Icon()}
 										<Icon
@@ -294,9 +292,7 @@
 										>
 											{#snippet children()}
 												<Heading>
-															<a href={resolve('/evm/selector/[hex]', {
-														hex: normalizedSelector,
-													})}>
+															<a href={resolve(`/evm/selector/${normalizedSelector}`)}>
 														{functionSignatures[selectedSignatureIndex] ?? normalizedSelector}
 													</a>
 												</Heading>
@@ -376,9 +372,7 @@
 								<EntityView
 									entityType={EntityType.EvmTopic}
 									entitySelector={{ hex: normalizedTopic }}
-													href={resolve('/evm/topic/[hex]', {
-										hex: normalizedTopic,
-									})}
+													href={resolve(`/evm/topic/${normalizedTopic}`)}
 								>
 									{#snippet Icon()}
 										<Icon
@@ -395,9 +389,7 @@
 										>
 											{#snippet children()}
 												<Heading>
-															<a href={resolve('/evm/topic/[hex]', {
-														hex: normalizedTopic,
-													})}>
+															<a href={resolve(`/evm/topic/${normalizedTopic}`)}>
 														{eventSignatures[selectedEventSignatureIndex] ?? normalizedTopic}
 													</a>
 												</Heading>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'MCP tools',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.McpTool>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.McpTool>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import McpToolView from '$/views/McpToolView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,11 +67,17 @@
 			sources: selection.sources,
 			fields: {
 				title: true,
-				$server: true,
+				$server: {
+					fields: {
+						transportKind: true,
+						endpointUrl: true,
+					},
+				},
 				name: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(mcpTools) => [...new Map(mcpTools.values.map((mcpTool) => [mcpTool[EntityMetaKey.SelectorKey], mcpTool])).values()]}
 	getKey={(mcpTool) => mcpTool[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +92,20 @@
 
 	{#snippet Item({ item: mcpTool })}
 		{@const mcpToolFields = { ...mcpTool[EntityMetaKey.Selector], ...mcpTool }}
-		{@const selection = select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<McpToolView
-			selection={selection}
-			prefetched={mcpToolFields}
+		<EntityView
+			entityType={EntityType.McpTool}
+			entitySelector={mcpTool[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((mcpToolFields.title) ?? '')].filter(Boolean).join(' ') || [String((mcpToolFields.name) ?? '')].filter(Boolean).join(' ') || 'mcp tool'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((mcpToolFields.$server.serverKey) ?? '')].filter(Boolean).join(' ') || 'mcp server'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

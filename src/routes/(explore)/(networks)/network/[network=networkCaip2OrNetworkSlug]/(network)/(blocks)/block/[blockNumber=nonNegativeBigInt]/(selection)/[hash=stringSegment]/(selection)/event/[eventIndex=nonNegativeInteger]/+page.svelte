@@ -27,7 +27,6 @@
 			$extrinsic: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.eventName) ?? ''), (String((pageSelection.entitySelector.indexInBlock) ?? '') ? 'Event ' + String((pageSelection.entitySelector.indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || 'Polkadot event' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).eventName) ?? ''), (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInBlock) ?? '') ? 'Event ' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || 'Polkadot event')))
 
 
 	// Components
@@ -37,7 +36,22 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Polkadot event • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [(String(({
+		$block: data.selector,
+		indexInBlock: Number(params.eventIndex),
+	}.indexInBlock) ?? '') ? 'Event ' + String(({
+		$block: data.selector,
+		indexInBlock: Number(params.eventIndex),
+	}.indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || 'Polkadot event' : [String((({ ...{
+		$block: data.selector,
+		indexInBlock: Number(params.eventIndex),
+	}, ...pageSelection.entity }).eventName) ?? ''), (String((({ ...{
+		$block: data.selector,
+		indexInBlock: Number(params.eventIndex),
+	}, ...pageSelection.entity }).indexInBlock) ?? '') ? 'Event ' + String((({ ...{
+		$block: data.selector,
+		indexInBlock: Number(params.eventIndex),
+	}, ...pageSelection.entity }).indexInBlock) ?? '') : '')].filter(Boolean).join(' ') || 'Polkadot event'))} • Polkadot event • Blockhead</title>
 </svelte:head>
 
 

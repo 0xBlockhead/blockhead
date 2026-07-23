@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Elements assets',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ElementsAsset>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ElementsAsset>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ElementsAssetView from '$/views/ElementsAssetView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(elementsAssets) => [...new Map(elementsAssets.values.map((elementsAsset) => [elementsAsset[EntityMetaKey.SelectorKey], elementsAsset])).values()]}
 	getKey={(elementsAsset) => elementsAsset[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: elementsAsset })}
 		{@const elementsAssetFields = { ...elementsAsset[EntityMetaKey.Selector], ...elementsAsset }}
-		{@const selection = select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ElementsAssetView
-			selection={selection}
-			prefetched={elementsAssetFields}
+		<EntityView
+			entityType={EntityType.ElementsAsset}
+			entitySelector={elementsAsset[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((elementsAssetFields.name) ?? ''), String((elementsAssetFields.ticker) ?? ''), String((elementsAssetFields.assetId) ?? '')].filter(Boolean).join(' ') || 'Elements asset'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((elementsAssetFields.ticker) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((elementsAssetFields.assetId) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

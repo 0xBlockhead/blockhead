@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ZeroGStorageProof>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ZeroGStorageProof>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZeroGStorageProof>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zeroGStorageProof = $derived(selection({
+	const zeroGStorageProof = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			proofKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			proofKind: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || 'zero g storage proof')
-	const viewDomId = $derived('zero-gstorage-proof-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('zero-gstorage-proof-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,7 +76,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$storageNode') && prefetched.$storageNode != null && Object.hasOwn(prefetched, 'proofKind')}
 			{[String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={zeroGStorageProof}>
@@ -83,18 +89,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ZeroGStorageNodeView
-						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$storageNode') && prefetched.$storageNode != null && Object.hasOwn(prefetched, 'proofKind')}
+			{@const zeroGStorageNode0 = pendingEntity.$storageNode}
+			{#if zeroGStorageNode0 != null && selection.entitySelector.$storageNode != null}
+				<ZeroGStorageNodeView
+					selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode, { sources: selection.sources })}
+					prefetched={zeroGStorageNode0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={zeroGStorageProof}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<ZeroGStorageNodeView
 						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -104,7 +115,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$storageNode') && prefetched.$storageNode != null && Object.hasOwn(prefetched, 'proofKind')}
 			{@const proofKind0 = pendingEntity.proofKind}
 			{#if proofKind0 !== undefined && proofKind0 !== null}
 				<span data-text="muted">
@@ -132,7 +143,7 @@
 				<dt>storage node</dt>
 				<dd>
 					<ZeroGStorageNodeView
-						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode, {})}
+						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

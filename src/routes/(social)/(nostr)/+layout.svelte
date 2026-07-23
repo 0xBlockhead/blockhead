@@ -10,7 +10,7 @@
 
 
 	// Components
-	import SocialClientArchetype from '$/components/social/SocialClientArchetype.svelte'
+	import SocialClientArchetype from '../SocialClientArchetype.svelte'
 </script>
 
 

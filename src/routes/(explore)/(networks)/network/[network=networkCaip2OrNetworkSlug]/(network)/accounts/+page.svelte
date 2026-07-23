@@ -44,14 +44,14 @@
 				}
 				title='Solana accounts'
 				selection={
-					projection.$$accounts({
-						sources: [
-							Source.Solana_JsonRpc,
-						],
-						count: true,
-					})
+					projection
+						.$$accounts({
+							sources: [
+								Source.Solana_JsonRpc,
+							],
+						})
 				}
-				id='accounts'
+				id='account-solana-account'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

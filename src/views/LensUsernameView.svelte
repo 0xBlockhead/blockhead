@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.LensUsername>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensUsername>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LensUsername>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,7 +38,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lensUsername = $derived(selection({
+	const lensUsername = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			value: true,
+			timestamp: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			value: true,
@@ -45,7 +52,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.value) ?? ''), String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || 'Lens username')
-	const viewDomId = $derived('lens-username-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('lens-username-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,7 +73,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'value') && Object.hasOwn(prefetched, 'localName') && Object.hasOwn(prefetched, 'timestamp')}
 			{[String((pendingEntity.value) ?? ''), String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={lensUsername}>
@@ -79,7 +86,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'value') && Object.hasOwn(prefetched, 'localName') && Object.hasOwn(prefetched, 'timestamp')}
 			{[String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.value) ?? ''), String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={lensUsername}>
@@ -92,7 +99,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'value') && Object.hasOwn(prefetched, 'localName') && Object.hasOwn(prefetched, 'timestamp')}
 			{@const timestamp0 = pendingEntity.timestamp}
 			{#if timestamp0 !== undefined && timestamp0 !== null}
 				<span data-text="muted">

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BittensorNeuron>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BittensorNeuron>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BittensorNeuron>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bittensorNeuron = $derived(selection({
+	const bittensorNeuron = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.uid) ?? '')].filter(Boolean).join(' ') || 'Bittensor neuron')
-	const viewDomId = $derived('bittensor-neuron-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bittensor-neuron-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,13 +69,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const uid0 = pendingEntity.uid}
-					{#if uid0 !== undefined && uid0 !== null}
-						<NumberValue
-							value={uid0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$subnet') && prefetched.$subnet != null && Object.hasOwn(prefetched.$subnet, 'name')}
+			{@const uid0 = pendingEntity.uid}
+			{#if uid0 !== undefined && uid0 !== null}
+				<NumberValue
+					value={uid0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={bittensorNeuron}>
 				{#snippet children(entity)}
@@ -88,18 +92,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<BittensorSubnetView
-						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$subnet') && prefetched.$subnet != null && Object.hasOwn(prefetched.$subnet, 'name')}
+			{@const bittensorSubnet0 = pendingEntity.$subnet}
+			{#if bittensorSubnet0 != null && selection.entitySelector.$subnet != null}
+				<BittensorSubnetView
+					selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet, { sources: selection.sources })}
+					prefetched={bittensorSubnet0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={bittensorNeuron}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<BittensorSubnetView
 						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -114,7 +123,7 @@
 				<dt>Subnet</dt>
 				<dd>
 					<BittensorSubnetView
-						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet, {})}
+						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

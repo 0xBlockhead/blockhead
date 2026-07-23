@@ -29,13 +29,24 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$eip8004Services',
-			}).$$eip8004Services({
-				sources: [
-					Source.Eip8004Scan_Rest,
-				],
-				limit: 100,
-				count: true,
 			})
+				.$$eip8004Services({
+					sources: [
+						Source.Eip8004Scan_Rest,
+					],
+					limit: 100,
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$eip8004Services',
+			})
+				.$$eip8004Services({
+					sources: [
+						Source.Eip8004Scan_Rest,
+					],
+					limit: 100,
+				}).count
 		}
 		id='eip8004-services'
 		data-column-item="flexible"

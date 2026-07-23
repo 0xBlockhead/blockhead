@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Monero blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.MoneroBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MoneroBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MoneroBlockView from '$/views/MoneroBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,7 +65,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.MoneroDaemonRpc_JsonRpc,
 				Source.ThreeXpl_Rest,
 			],
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(moneroBlocks) => [...new Map(moneroBlocks.values.map((moneroBlock) => [moneroBlock[EntityMetaKey.SelectorKey], moneroBlock])).values()]}
 	getKey={(moneroBlock) => moneroBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,12 +91,24 @@
 
 	{#snippet Item({ item: moneroBlock })}
 		{@const moneroBlockFields = { ...moneroBlock[EntityMetaKey.Selector], ...moneroBlock }}
-		{@const selection = select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<MoneroBlockView
-			selection={selection}
-			prefetched={moneroBlockFields}
+		<EntityView
+			entityType={EntityType.MoneroBlock}
+			entitySelector={moneroBlock[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((moneroBlockFields.height) ?? '')].filter(Boolean).join(' ') || 'monero block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((moneroBlockFields.hash) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((moneroBlockFields.timestampMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

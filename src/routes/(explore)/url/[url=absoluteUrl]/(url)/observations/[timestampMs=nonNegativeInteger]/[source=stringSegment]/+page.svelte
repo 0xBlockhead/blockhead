@@ -40,7 +40,6 @@
 			imageUrl: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.title) ?? '')].filter(Boolean).join(' ') || 'URL preview timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || 'URL preview timestamp'))
 
 
 	// Components
@@ -50,7 +49,13 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • URL preview timestamp • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'URL preview timestamp' : [String((({ ...{
+		$url: {
+			url: decodeURIComponent(params.url),
+		},
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || 'URL preview timestamp')} • URL preview timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CardanoTransactionSelector {
@@ -75,42 +76,64 @@ export const CardanoTransaction = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoTxInput,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$$outputs: {
 		label: 'outputs',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoTxOutput,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$$certificates: {
 		label: 'certificates',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoCertificate,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.CardanoKoios_Rest,
+		],
 	},
 	$$scripts: {
 		label: 'scripts',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoScriptWitness,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.CardanoKoios_Rest,
+		],
 	},
 	$$governanceProposals: {
 		label: 'governance proposals',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoGovernanceProposal,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.CardanoKoios_Rest,
+		],
 	},
 	$$governanceVotes: {
 		label: 'governance votes',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.CardanoKoios_Rest,
+		],
 	},
 	$$assets: {
 		label: 'assets',
+		description: 'Native assets touched by transaction inputs or outputs.',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoNativeAsset,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 })({
 	selectors: {

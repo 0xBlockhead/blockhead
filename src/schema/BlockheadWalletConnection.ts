@@ -93,16 +93,16 @@ export const BlockheadWalletConnection = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	$$connectedAccounts: {
-		label: 'Connected accounts',
+	$$accounts: {
+		label: 'Accounts',
 		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.BlockheadWalletAccount,
+		entityType: EntityType.Account,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$activeAccount: {
 		label: 'Active account',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.BlockheadWalletAccount,
+		entityType: EntityType.Account,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

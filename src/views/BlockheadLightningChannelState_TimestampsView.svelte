@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Lightning channel state observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadLightningChannelState_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadLightningChannelState_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadLightningChannelState_TimestampView from '$/views/BlockheadLightningChannelState_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadLightningChannelStateTimestamps) => [...new Map(blockheadLightningChannelStateTimestamps.values.map((blockheadLightningChannelStateTimestamp) => [blockheadLightningChannelStateTimestamp[EntityMetaKey.SelectorKey], blockheadLightningChannelStateTimestamp])).values()]}
 	getKey={(blockheadLightningChannelStateTimestamp) => blockheadLightningChannelStateTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadLightningChannelStateTimestamp })}
 		{@const blockheadLightningChannelStateTimestampFields = { ...blockheadLightningChannelStateTimestamp[EntityMetaKey.Selector], ...blockheadLightningChannelStateTimestamp }}
-		{@const selection = select(EntityType.BlockheadLightningChannelState_Timestamp, blockheadLightningChannelStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadLightningChannelState_TimestampView
-			selection={selection}
-			prefetched={blockheadLightningChannelStateTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadLightningChannelState_Timestamp}
+			entitySelector={blockheadLightningChannelStateTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadLightningChannelStateTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning channel state timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadLightningChannelStateTimestampFields.active) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadLightningChannelStateTimestampFields.localBalanceSats) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

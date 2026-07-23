@@ -53,18 +53,27 @@ export const _Global = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.SpecificationProposal,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$specificationRealms: {
 		label: 'specification realms',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.SpecificationRealm,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$proposalKinds: {
 		label: 'proposal kinds',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.SpecificationProposalKind,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$coins: {
 		label: 'coins',
@@ -135,11 +144,14 @@ export const _Global = entity({
 		entityType: EntityType.BlockheadWalletConnection,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$blockheadWalletAccounts: {
-		label: 'blockhead wallet accounts',
+	$$blockheadAccounts: {
+		label: 'blockhead accounts',
 		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.BlockheadWalletAccount,
+		entityType: EntityType.BlockheadAccount,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Local_Internal,
+		],
 	},
 	$$blockheadWalletTransportSessions: {
 		label: 'blockhead wallet transport sessions',

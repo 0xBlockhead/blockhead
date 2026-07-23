@@ -40,13 +40,22 @@
 		selection={
 			select(EntityType.RedditComment, {
 				fullname: decodeURIComponent(params.fullname),
-			}).$$replies({
-				sources: [
-					Source.Constants_Internal,
-					Source.Reddit_PublicJson,
-				],
-				count: true,
 			})
+				.$$replies({
+					sources: [
+						Source.Reddit_PublicJson,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.RedditComment, {
+				fullname: decodeURIComponent(params.fullname),
+			})
+				.$$replies({
+					sources: [
+						Source.Reddit_PublicJson,
+					],
+				}).count
 		}
 		id='replies'
 		data-column-item="flexible"

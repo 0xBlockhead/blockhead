@@ -50,7 +50,6 @@
 			signature: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.hash) ?? '')].filter(Boolean).join(' ') || 'User operation' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'User operation')))
 
 
 	// Components
@@ -60,7 +59,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • User operation • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.hash) ?? '')].filter(Boolean).join(' ') || 'User operation' : [String((({ ...data.selector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'User operation'))} • User operation • Blockhead</title>
 </svelte:head>
 
 

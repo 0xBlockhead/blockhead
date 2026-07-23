@@ -38,11 +38,8 @@
 			})
 		}
 		title='Paymaster observations'
-		selection={
-			select(EntityType.Erc4337Paymaster, data.selector).$$timestamps({
-				count: true,
-			})
-		}
+		selection={select(EntityType.Erc4337Paymaster, data.selector).$$timestamps}
+		countResource={select(EntityType.Erc4337Paymaster, data.selector).$$timestamps.count}
 		id='timestamps'
 		data-column-item="flexible"
 		data-card

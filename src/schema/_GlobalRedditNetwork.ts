@@ -29,7 +29,6 @@ export const _GlobalRedditNetwork = entity({
 		entityType: EntityType.RedditSubreddit,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Constants_Internal,
 			Source.Reddit_PublicJson,
 		],
 	},
@@ -39,7 +38,6 @@ export const _GlobalRedditNetwork = entity({
 		entityType: EntityType.RedditLink,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Constants_Internal,
 			Source.Reddit_PublicJson,
 		],
 	},

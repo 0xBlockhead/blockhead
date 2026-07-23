@@ -1,3 +1,26 @@
+<script module lang="ts">
+	import type { ComponentProps as ModuleComponentProps } from 'svelte'
+	import type { ResolvedPathname as ModuleResolvedPathname } from '$app/types'
+
+	type CollapsibleForwardProps = Omit<
+		ModuleComponentProps<(typeof import('$/components/Collapsible.svelte'))['default']>,
+		| 'Annotation'
+		| 'children'
+		| 'open'
+		| 'Summary'
+		| 'Toolbar'
+	>
+
+	export type EntitiesListForwardProps = {
+		CollapsibleProps?: CollapsibleForwardProps
+		'data-card'?: boolean
+		'data-column-item'?: string
+		'data-scroll-container'?: boolean
+		href?: ModuleResolvedPathname
+	}
+</script>
+
+
 <script
 	lang="ts"
 	generics="
@@ -13,6 +36,7 @@
 	"
 >
 	// Types/constants
+	import type { ResolvedPathname } from '$app/types'
 	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import type { RegisteredEntityType, schema } from '$/schema/index.ts'
 	import { entityDefinitionByType } from '$/schema/index.ts'
@@ -37,15 +61,6 @@
 		key: _Key
 	}
 
-	type CollapsibleForwardProps = Omit<
-		ComponentProps<typeof Collapsible>,
-		| 'Annotation'
-		| 'children'
-		| 'open'
-		| 'Summary'
-		| 'Toolbar'
-	>
-
 	type HeadingForwardProps = Omit<ComponentProps<typeof Heading>, 'children'>
 
 	type UnorderedListForwardProps = {
@@ -55,8 +70,7 @@
 	type ItemsInput = Iterable<_Item>
 	type ResourceItemsInput = {
 		readonly continuation?: PersistedCollectionContinuation
-		readonly values: ItemsInput
-		readonly totalCount?: number
+		readonly values: readonly _Item[]
 	}
 
 
@@ -77,7 +91,7 @@
 		entityType,
 		id = `EntitiesList:${entityType}`,
 		title = entityDefinitionByType[entityType].labels.plural,
-		href = `#${id}`,
+		href,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
@@ -86,8 +100,8 @@
 		getSortValue,
 		placeholderText,
 		resource,
+		countResource,
 		getResourceItems,
-		totalCount,
 		placeholderKeys = new SvelteSet<_Key>(),
 		Item,
 		ItemPlaceholder,
@@ -125,11 +139,12 @@
 			Empty?: Snippet
 			/** Tooltip body for the list entity-type label (label plural); hover target is the annotation, not a separate icon. */
 			TypeAnnotationTooltip?: Snippet
+			'data-column-item'?: string
 			entityType: _EntityType
 			getKey?: (item: _Item) => _Key
 			getSortValue?: (item: _Item) => number | string
 			HeadingProps?: HeadingForwardProps
-			href?: string
+			href?: ResolvedPathname
 			id?: string
 			Item?: Snippet<[context: ListItemProps]>
 			ItemPlaceholder?: Snippet<[context: PlaceholderListItemProps]>
@@ -138,8 +153,8 @@
 			open?: boolean
 			placeholderText?: string
 			resource?: SvelteKitResource<ResourceItemsInput | undefined>
+			countResource?: SvelteKitResource<number>
 			getResourceItems?: (resource: ResourceItemsInput) => ItemsInput
-			totalCount?: number
 			placeholderKeys?: Set<_Key>
 			title?: string
 			UnorderedListProps?: UnorderedListForwardProps
@@ -156,12 +171,13 @@
 	import { goto } from '$app/navigation'
 
 	setOnNestedCollapsibleClose((collapsibleId?: string) => {
-		goto(
-			collapsibleId ?
-				`${href.replace(/#.*$/, '')}#${encodeURIComponent(collapsibleId)}`
-			:
-				href
-		)
+		if (href)
+			goto(
+				collapsibleId ?
+					`${href.replace(/#.*$/, '')}#${encodeURIComponent(collapsibleId)}`
+				:
+					href
+			)
 	})
 	setIsInsideEntityList(true)
 	setIsPageRoot(false)
@@ -187,11 +203,6 @@
 		:
 			undefined,
 	)
-
-	const displayedTotalCount = $derived(
-		totalCount ?? listSummary.total,
-	)
-
 
 	const listItems = $derived(
 		items !== undefined ?
@@ -221,6 +232,9 @@
 			'resolved-nonempty'
 	}
 	{...articleElementProps}
+	data-column-item={articleElementProps['data-column-item'] ?? 'flexible'}
+	data-card
+	data-scroll-container
 	style:view-transition-name={`EntitiesList-${id}`}
 >
 	{#snippet EmptyFallback()}
@@ -245,9 +259,23 @@
 		>
 			{#if showTitle}
 				<Heading {...HeadingProps}>
-					<a {href}>{title}</a>
-					{#if (count !== undefined || displayedTotalCount !== undefined)}
-						<small>({#if count !== undefined}<NumberValue value={count} />{/if}{#if (count !== undefined && displayedTotalCount !== undefined && displayedTotalCount !== count)}/<NumberValue value={displayedTotalCount!} />{/if}{#if count === undefined && displayedTotalCount !== undefined}<NumberValue value={displayedTotalCount} />{/if})</small>
+					{#if href}
+						<a {href}>{title}</a>
+					{:else}
+						{title}
+					{/if}
+					{#if count !== undefined}
+						<small>
+							(<NumberValue value={count} />{#if countResource}<ResourceBoundary resource={countResource}>
+								{#snippet children(authoritativeCount)}
+									{#if authoritativeCount !== count}
+										/<NumberValue value={authoritativeCount} />
+									{/if}
+								{/snippet}
+
+								{#snippet Pending()}{/snippet}
+							</ResourceBoundary>{/if})
+						</small>
 					{/if}
 				</Heading>
 			{/if}
@@ -361,9 +389,10 @@
 				else if (!isInsidePage)
 					onNestedCollapsibleClose?.(id)
 				CollapsibleProps.onclose?.(_closeId)
-			}}
-			data-card
-		>
+				}}
+				data-card={undefined}
+				data-scroll-container={undefined}
+			>
 			{#snippet Summary()}
 				{@render SummaryHeader()}
 			{/snippet}

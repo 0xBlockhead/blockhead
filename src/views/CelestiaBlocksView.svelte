@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Celestia blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CelestiaBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CelestiaBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CelestiaBlockView from '$/views/CelestiaBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(celestiaBlocks) => [...new Map(celestiaBlocks.values.map((celestiaBlock) => [celestiaBlock[EntityMetaKey.SelectorKey], celestiaBlock])).values()]}
 	getKey={(celestiaBlock) => celestiaBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: celestiaBlock })}
 		{@const celestiaBlockFields = { ...celestiaBlock[EntityMetaKey.Selector], ...celestiaBlock }}
-		{@const selection = select(EntityType.CelestiaBlock, celestiaBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CelestiaBlockView
-			selection={selection}
-			prefetched={celestiaBlockFields}
+		<EntityView
+			entityType={EntityType.CelestiaBlock}
+			entitySelector={celestiaBlock[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((celestiaBlockFields.height) ?? '')].filter(Boolean).join(' ') || [String((celestiaBlockFields.hash) ?? '')].filter(Boolean).join(' ') || 'celestia block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((celestiaBlockFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -39,13 +39,22 @@
 		}
 		title='Feed items'
 		selection={
-			select(EntityType.RssFeed, data.selector).$$items({
-				sources: [
-					Source.Rss_Rest,
-					Source.Rss2Json_Rest,
-				],
-				count: true,
-			})
+			select(EntityType.RssFeed, data.selector)
+				.$$items({
+					sources: [
+						Source.Rss_Rest,
+						Source.Rss2Json_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.RssFeed, data.selector)
+				.$$items({
+					sources: [
+						Source.Rss_Rest,
+						Source.Rss2Json_Rest,
+					],
+				}).count
 		}
 		id='items'
 		data-column-item="flexible"

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BittensorMetagraph_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BittensorMetagraph_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BittensorMetagraph_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bittensorMetagraphTimestamp = $derived(selection({
+	const bittensorMetagraphTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			metagraphByteLength: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			metagraphByteLength: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Bittensor metagraph observation')
-	const viewDomId = $derived('bittensor-metagraph-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bittensor-metagraph-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,11 +75,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'metagraphByteLength')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={bittensorMetagraphTimestamp}>
 				{#snippet children(entity)}
@@ -88,13 +94,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const metagraphByteLength0 = pendingEntity.metagraphByteLength}
-					{#if metagraphByteLength0 !== undefined && metagraphByteLength0 !== null}
-						<NumberValue
-							value={metagraphByteLength0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'metagraphByteLength')}
+			{@const metagraphByteLength0 = pendingEntity.metagraphByteLength}
+			{#if metagraphByteLength0 !== undefined && metagraphByteLength0 !== null}
+				<NumberValue
+					value={metagraphByteLength0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={bittensorMetagraphTimestamp}>
 				{#snippet children(entity)}
@@ -116,7 +122,7 @@
 				<dt>Subnet</dt>
 				<dd>
 					<BittensorSubnetView
-						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet, {})}
+						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

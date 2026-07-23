@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'TON NFT item observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TonNftItem_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TonNftItem_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TonNftItem_TimestampView from '$/views/TonNftItem_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(tonNftItemTimestamps) => [...new Map(tonNftItemTimestamps.values.map((tonNftItemTimestamp) => [tonNftItemTimestamp[EntityMetaKey.SelectorKey], tonNftItemTimestamp])).values()]}
 	getKey={(tonNftItemTimestamp) => tonNftItemTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: tonNftItemTimestamp })}
 		{@const tonNftItemTimestampFields = { ...tonNftItemTimestamp[EntityMetaKey.Selector], ...tonNftItemTimestamp }}
-		{@const selection = select(EntityType.TonNftItem_Timestamp, tonNftItemTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TonNftItem_TimestampView
-			selection={selection}
-			prefetched={tonNftItemTimestampFields}
+		<EntityView
+			entityType={EntityType.TonNftItem_Timestamp}
+			entitySelector={tonNftItemTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'TON NFT item timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

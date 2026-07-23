@@ -114,6 +114,19 @@ export const listAuthorTextNotes = async (pubkey: string, limit: number) => (
 )
 
 /**
+ * GET /v0/events/authors/{pubkey} — kind-0 profile metadata events only.
+ */
+export const listAuthorMetadataEvents = (pubkey: string, limit: number) => (
+	nostrBandGet<NostrBandEventsList>(
+		`/events/authors/${encodeURIComponent(pubkey.toLowerCase())}`,
+		{
+			limit: clampNostrBandLimit(limit),
+			kinds: '0',
+		}
+	)
+)
+
+/**
  * GET /v0/events/authors/{pubkey} — kind-6 reposts only.
  */
 export const listAuthorReposts = async (pubkey: string, limit: number) => (

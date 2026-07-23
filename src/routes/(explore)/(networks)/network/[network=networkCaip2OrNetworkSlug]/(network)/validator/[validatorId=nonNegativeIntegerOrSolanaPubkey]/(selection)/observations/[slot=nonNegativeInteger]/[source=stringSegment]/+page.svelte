@@ -42,7 +42,6 @@
 			timestampMs: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.slot) ?? '') ? 'Slot #' + String((pageSelection.entitySelector.slot) ?? '') : '') || 'beacon validator timestamp' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).slot) ?? '') ? 'Slot #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).slot) ?? '') : '') || 'beacon validator timestamp')))
 
 
 	// Components
@@ -52,7 +51,23 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • beacon validator timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
+		$validator: data.selector,
+		slot: Number(params.slot),
+		source: params.source,
+	}.slot) ?? '') ? 'Slot #' + String(({
+		$validator: data.selector,
+		slot: Number(params.slot),
+		source: params.source,
+	}.slot) ?? '') : '') || 'beacon validator timestamp' : (String((({ ...{
+		$validator: data.selector,
+		slot: Number(params.slot),
+		source: params.source,
+	}, ...pageSelection.entity }).slot) ?? '') ? 'Slot #' + String((({ ...{
+		$validator: data.selector,
+		slot: Number(params.slot),
+		source: params.source,
+	}, ...pageSelection.entity }).slot) ?? '') : '') || 'beacon validator timestamp'))} • beacon validator timestamp • Blockhead</title>
 </svelte:head>
 
 

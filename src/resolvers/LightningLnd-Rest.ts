@@ -303,7 +303,8 @@ const paymentFieldsFromLndPayment = (
 
 const lndChannels = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {
 	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
-	return (await listChannels(context.publicEnv)).channels ?? []
+	return ((await listChannels(context.publicEnv)).channels ?? [])
+		.filter((channel) => channel.private === false)
 }
 
 const lndInfo = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {

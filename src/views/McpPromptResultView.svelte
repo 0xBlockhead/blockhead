@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.McpPromptResult>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.McpPromptResult>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.McpPromptResult>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const mcpPromptResult = $derived(selection({
+	const mcpPromptResult = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			error: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			error: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp prompt result')
-	const viewDomId = $derived('mcp-prompt-result-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('mcp-prompt-result-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,11 +76,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$prompt') && prefetched.$prompt != null && Object.hasOwn(prefetched.$prompt, 'title') && Object.hasOwn(prefetched.$prompt, '$server') && prefetched.$prompt.$server != null && Object.hasOwn(prefetched.$prompt.$server, 'transportKind') && Object.hasOwn(prefetched.$prompt.$server, 'endpointUrl') && Object.hasOwn(prefetched, 'error')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={mcpPromptResult}>
 				{#snippet children(entity)}
@@ -89,18 +95,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<McpPromptView
-						selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$prompt') && prefetched.$prompt != null && Object.hasOwn(prefetched.$prompt, 'title') && Object.hasOwn(prefetched.$prompt, '$server') && prefetched.$prompt.$server != null && Object.hasOwn(prefetched.$prompt.$server, 'transportKind') && Object.hasOwn(prefetched.$prompt.$server, 'endpointUrl') && Object.hasOwn(prefetched, 'error')}
+			{@const mcpPrompt0 = pendingEntity.$prompt}
+			{#if mcpPrompt0 != null && selection.entitySelector.$prompt != null}
+				<McpPromptView
+					selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt, { sources: selection.sources })}
+					prefetched={mcpPrompt0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={mcpPromptResult}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<McpPromptView
 						selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt)}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -110,7 +121,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$prompt') && prefetched.$prompt != null && Object.hasOwn(prefetched.$prompt, 'title') && Object.hasOwn(prefetched.$prompt, '$server') && prefetched.$prompt.$server != null && Object.hasOwn(prefetched.$prompt.$server, 'transportKind') && Object.hasOwn(prefetched.$prompt.$server, 'endpointUrl') && Object.hasOwn(prefetched, 'error')}
 			{@const error0 = pendingEntity.error}
 			{#if error0 !== undefined && error0 !== null}
 				<span data-text="muted">
@@ -138,7 +149,7 @@
 				<dt>prompt</dt>
 				<dd>
 					<McpPromptView
-						selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt, {})}
+						selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

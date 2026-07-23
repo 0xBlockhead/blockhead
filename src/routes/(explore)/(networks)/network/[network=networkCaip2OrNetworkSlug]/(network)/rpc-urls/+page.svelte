@@ -42,12 +42,8 @@
 					})
 				}
 				title='RPC URLs'
-				selection={
-					projection.$$rpcUrls({
-						count: true,
-					})
-				}
-				id='rpc-urls'
+				selection={projection.$$rpcUrls}
+				id='account-url'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

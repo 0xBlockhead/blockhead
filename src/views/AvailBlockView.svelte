@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AvailBlock>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AvailBlock>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvailBlock>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const availBlock = $derived(selection({
+	const availBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			timestampMs: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			timestampMs: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.blockHash) ?? '')].filter(Boolean).join(' ') || 'avail block')
-	const viewDomId = $derived('avail-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('avail-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,13 +78,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const blockNumber0 = pendingEntity.blockNumber}
-					{#if blockNumber0 !== undefined && blockNumber0 !== null}
-						<NumberValue
-							value={blockNumber0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockNumber') && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'blockHash')}
+			{@const blockNumber0 = pendingEntity.blockNumber}
+			{#if blockNumber0 !== undefined && blockNumber0 !== null}
+				<NumberValue
+					value={blockNumber0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={availBlock}>
 				{#snippet children(entity)}
@@ -95,11 +101,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockNumber') && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'blockHash')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={availBlock}>
 				{#snippet children(entity)}
@@ -119,7 +125,7 @@
 				<dt>network</dt>
 				<dd>
 					<AvailNetworkView
-						selection={select(EntityType.AvailNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.AvailNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -377,17 +383,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AvailDataSubmissionsView
-				selection={
-						selection.$$dataSubmissions({
-							count: true,
-						})
-					}
-				title='data submissions'
-				emptyText='No data submissions found.'
-				id='AvailDataSubmissionsView-data-submissions'
-			/>
-		{/if}
+		{@const availBlockAvailDataSubmissionsViewDataSubmissionsResource = selection.$$dataSubmissions}
+		<ResourceBoundary
+			resource={availBlockAvailDataSubmissionsViewDataSubmissionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AvailDataSubmissionsView
+					selection={availBlockAvailDataSubmissionsViewDataSubmissionsResource}
+					countResource={availBlockAvailDataSubmissionsViewDataSubmissionsResource.count}
+					title='data submissions'
+					id='AvailDataSubmissionsView-data-submissions'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

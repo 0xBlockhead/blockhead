@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NearAccessKey>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NearAccessKey>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NearAccessKey>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nearAccessKey = $derived(selection({
+	const nearAccessKey = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			permission: true,
+			nonce: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			permission: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || 'near access key')
-	const viewDomId = $derived('near-access-key-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('near-access-key-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,11 +77,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const publicKey0 = pendingEntity.publicKey}
-					{#if publicKey0 !== undefined && publicKey0 !== null}
-						<TruncatedValue value={String((publicKey0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'permission') && Object.hasOwn(prefetched, 'nonce')}
+			{@const publicKey0 = pendingEntity.publicKey}
+			{#if publicKey0 !== undefined && publicKey0 !== null}
+				<TruncatedValue value={String((publicKey0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={nearAccessKey}>
 				{#snippet children(entity)}
@@ -89,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'permission') && Object.hasOwn(prefetched, 'nonce')}
 			{[String((pendingEntity.permission) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={nearAccessKey}>
@@ -102,7 +109,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'permission') && Object.hasOwn(prefetched, 'nonce')}
 			{@const nonce0 = pendingEntity.nonce}
 			{#if nonce0 !== undefined && nonce0 !== null}
 				<span data-text="muted">
@@ -134,7 +141,7 @@
 				<dt>Account</dt>
 				<dd>
 					<NearAccountView
-						selection={select(EntityType.NearAccount, selection.entitySelector.$account, {})}
+						selection={select(EntityType.NearAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

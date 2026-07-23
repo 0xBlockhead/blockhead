@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Cashu tokens',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadCashuToken>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadCashuToken>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadCashuTokenView from '$/views/BlockheadCashuTokenView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -76,9 +69,11 @@
 				id: true,
 				status: true,
 				totalAmount: true,
+				unit: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadCashuTokens) => [...new Map(blockheadCashuTokens.values.map((blockheadCashuToken) => [blockheadCashuToken[EntityMetaKey.SelectorKey], blockheadCashuToken])).values()]}
 	getKey={(blockheadCashuToken) => blockheadCashuToken[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +88,20 @@
 
 	{#snippet Item({ item: blockheadCashuToken })}
 		{@const blockheadCashuTokenFields = { ...blockheadCashuToken[EntityMetaKey.Selector], ...blockheadCashuToken }}
-		{@const selection = select(EntityType.BlockheadCashuToken, blockheadCashuToken[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadCashuTokenView
-			selection={selection}
-			prefetched={blockheadCashuTokenFields}
+		<EntityView
+			entityType={EntityType.BlockheadCashuToken}
+			entitySelector={blockheadCashuToken[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadCashuTokenFields.id) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu token'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadCashuTokenFields.status) ?? ''), (String((blockheadCashuTokenFields.totalAmount) ?? '') ? String((blockheadCashuTokenFields.totalAmount) ?? '') + blockheadCashuTokenFields.unit : '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -46,11 +46,11 @@ describe('X FxEmbed reading materialization', () => {
 			}],
 		})
 
-		const users = await fxEmbedResolvers.resolvers[4].resolve[XNetworkSelector.Scope].resolve(
+		const users = await fxEmbedResolvers.resolvers[2].resolve[XNetworkSelector.Scope].resolve(
 			{ scope: 'XNetwork' },
 			resolverContext
 		)
-		const posts = await fxEmbedResolvers.resolvers[5].resolve[XNetworkSelector.Scope].resolve(
+		const posts = await fxEmbedResolvers.resolvers[3].resolve[XNetworkSelector.Scope].resolve(
 			{ scope: 'XNetwork' },
 			resolverContext
 		)
@@ -71,6 +71,10 @@ describe('X FxEmbed reading materialization', () => {
 					'https://x.com/i/web/status/post-1',
 				[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 					[EntityMetaKey.Selector]: { id: 'user-1' },
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.XUser, [], 'username')]: 'reader',
+						[entityFieldAddressKey(EntityType.XUser, [], 'name')]: 'Fixture Reader',
+					},
 				},
 			},
 		}])
@@ -84,15 +88,25 @@ describe('X FxEmbed reading materialization', () => {
 					id: 'post-2',
 					text: 'Profile fixture post',
 					created_timestamp: 1_768_435_201,
+					author: {
+						id: 'user-1',
+					},
 				},
 				{
 					type: 'tombstone',
 					id: 'removed-post',
 				},
+				{
+					type: 'status',
+					id: 'foreign-post',
+					author: {
+						id: 'user-2',
+					},
+				},
 			],
 		})
 
-		const posts = await fxEmbedResolvers.resolvers[8].resolve[XUserSelector.Id].resolve(
+		const posts = await fxEmbedResolvers.resolvers[6].resolve[XUserSelector.Id].resolve(
 			{ id: 'user-1' },
 			resolverContext
 		)
@@ -104,6 +118,9 @@ describe('X FxEmbed reading materialization', () => {
 				[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]: 1_768_435_201_000,
 				[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
 					'https://x.com/i/web/status/post-2',
+				[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
+					[EntityMetaKey.Selector]: { id: 'user-1' },
+				},
 			},
 		}])
 	})

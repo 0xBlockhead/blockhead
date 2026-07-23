@@ -169,6 +169,7 @@ export const TronTransaction = entity({
 			Source.TronGrid_Rest,
 			Source.TronFullNode_Rest,
 			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
 		],
 	},
 	rawDataHex: {

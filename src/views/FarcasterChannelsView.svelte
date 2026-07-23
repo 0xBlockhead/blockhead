@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Farcaster channels',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FarcasterChannel>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FarcasterChannel>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FarcasterChannelView from '$/views/FarcasterChannelView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(farcasterChannels) => [...new Map(farcasterChannels.values.map((farcasterChannel) => [farcasterChannel[EntityMetaKey.SelectorKey], farcasterChannel])).values()]}
 	getKey={(farcasterChannel) => farcasterChannel[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,18 +89,35 @@
 
 	{#snippet Item({ item: farcasterChannel })}
 		{@const farcasterChannelFields = { ...farcasterChannel[EntityMetaKey.Selector], ...farcasterChannel }}
-		{@const selection = select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const farcasterChannelHrefFields = { ...farcasterChannel, ...farcasterChannel[EntityMetaKey.Selector] }}
-		<FarcasterChannelView
-			selection={selection}
-			prefetched={farcasterChannelFields}
+		<EntityView
+			entityType={EntityType.FarcasterChannel}
+			entitySelector={farcasterChannel[EntityMetaKey.Selector]}
 			href={
-				(farcasterChannelHrefFields.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
-					channelId: String(farcasterChannelHrefFields.id ?? ''),
-				}) : undefined)
+				(
+					farcasterChannel[EntityMetaKey.Selector] != null && 'id' in farcasterChannel[EntityMetaKey.Selector]
+					&& farcasterChannel[EntityMetaKey.Selector].id != null ?
+						resolve('/farcaster/channel/[channelId=stringSegment]', {
+					channelId: String(farcasterChannel[EntityMetaKey.Selector].id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((farcasterChannelFields.name) ?? ''), String((farcasterChannelFields.id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((farcasterChannelFields.id) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((farcasterChannelFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

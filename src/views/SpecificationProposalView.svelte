@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { proposalCategoryById, specificationRealmById } from '$/constants/SpecificationProposal.ts'
 
 
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.SpecificationProposal>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SpecificationProposal>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SpecificationProposal>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -52,7 +53,7 @@
 			[String((proposalCategoryById[String(pendingEntity.category)]?.label ?? (String((pendingEntity.category) ?? ''))) ?? '')].filter(Boolean).join(''),
 			String((pendingEntity.number) ?? ''),
 		].filter(Boolean).join('-')].filter(Boolean).join(' ') || 'Specification proposal')
-	const viewDomId = $derived('specification-proposal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('specification-proposal-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,11 +68,21 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.realm !== undefined && pendingEntity.category !== undefined && pendingEntity.number !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]/[proposalRef=proposalRef]', {
-			specificationRealmSlug: String(specificationRealmById[String(pendingEntity.realm)].slug ?? ''),
-			proposalKindSlug: String(proposalCategoryById[String(pendingEntity.category)].slug ?? ''),
-			proposalRef: `${String(String(proposalCategoryById[String(pendingEntity.category)].label ?? '') ?? '')}-${String(pendingEntity.number ?? '')}`,
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'realm' in selection.entitySelector
+			&& selection.entitySelector.realm != null
+			&& selection.entitySelector != null && 'category' in selection.entitySelector
+			&& selection.entitySelector.category != null
+			&& selection.entitySelector != null && 'number' in selection.entitySelector
+			&& selection.entitySelector.number != null ?
+				resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]/[proposalRef=proposalRef]', {
+			specificationRealmSlug: String(specificationRealmById[String(selection.entitySelector.realm)].slug ?? ''),
+			proposalKindSlug: String(proposalCategoryById[String(selection.entitySelector.category)].slug ?? ''),
+			proposalRef: `${String(String(proposalCategoryById[String(selection.entitySelector.category)].label ?? '') ?? '')}-${String(String(selection.entitySelector.number ?? '') ?? '')}`,
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -192,7 +203,7 @@
 									<a
 										href={
 											resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-												specificationRealmSlug: specificationRealmById[String(({ value: realm, ...resolvedEntity }).value)].slug,
+												specificationRealmSlug: String(specificationRealmById[String(({ value: realm, ...resolvedEntity }).value)].slug ?? ''),
 											})
 										}
 									>
@@ -226,8 +237,8 @@
 									<a
 										href={
 											resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
-												specificationRealmSlug: specificationRealmById[String(({ value: category, ...resolvedEntity }).realm)].slug,
-												proposalKindSlug: proposalCategoryById[String(({ value: category, ...resolvedEntity }).category)].slug,
+												specificationRealmSlug: String(specificationRealmById[String(({ value: category, ...resolvedEntity }).realm)].slug ?? ''),
+												proposalKindSlug: String(proposalCategoryById[String(({ value: category, ...resolvedEntity }).category)].slug ?? ''),
 											})
 										}
 									>

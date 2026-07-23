@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EVM network gas fee blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmNetwork_GasFee_Block>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmNetwork_GasFee_Block>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmNetwork_GasFee_BlockView from '$/views/EvmNetwork_GasFee_BlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmNetworkGasFeeBlocks) => [...new Map(evmNetworkGasFeeBlocks.values.map((evmNetworkGasFeeBlock) => [evmNetworkGasFeeBlock[EntityMetaKey.SelectorKey], evmNetworkGasFeeBlock])).values()]}
 	getKey={(evmNetworkGasFeeBlock) => evmNetworkGasFeeBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,22 +89,48 @@
 
 	{#snippet Item({ item: evmNetworkGasFeeBlock })}
 		{@const evmNetworkGasFeeBlockFields = { ...evmNetworkGasFeeBlock[EntityMetaKey.Selector], ...evmNetworkGasFeeBlock }}
-		{@const selection = select(EntityType.EvmNetwork_GasFee_Block, evmNetworkGasFeeBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmNetworkGasFeeBlockHrefFields = { ...evmNetworkGasFeeBlock, ...evmNetworkGasFeeBlock[EntityMetaKey.Selector] }}
-		<EvmNetwork_GasFee_BlockView
-			selection={selection}
-			prefetched={evmNetworkGasFeeBlockFields}
+		<EntityView
+			entityType={EntityType.EvmNetwork_GasFee_Block}
+			entitySelector={evmNetworkGasFeeBlock[EntityMetaKey.Selector]}
 			href={
-				(evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined && evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
-					blockNumber: String(evmNetworkGasFeeBlockHrefFields.blockNumber ?? ''),
-					network: String(caip2StringFromValue(evmNetworkGasFeeBlockHrefFields.$network.caip2) ?? ''),
-				}) : evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined && evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
-					blockNumber: String(evmNetworkGasFeeBlockHrefFields.blockNumber ?? ''),
-					network: String(evmNetworkGasFeeBlockHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					evmNetworkGasFeeBlock[EntityMetaKey.Selector] != null && 'blockNumber' in evmNetworkGasFeeBlock[EntityMetaKey.Selector]
+					&& evmNetworkGasFeeBlock[EntityMetaKey.Selector].blockNumber != null
+					&& evmNetworkGasFeeBlock[EntityMetaKey.Selector] != null && '$network' in evmNetworkGasFeeBlock[EntityMetaKey.Selector] ?
+						evmNetworkGasFeeBlock[EntityMetaKey.Selector].$network != null && 'caip2' in evmNetworkGasFeeBlock[EntityMetaKey.Selector].$network
+						&& evmNetworkGasFeeBlock[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
+						blockNumber: String(evmNetworkGasFeeBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+						network: String(caip2StringFromValue(evmNetworkGasFeeBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							evmNetworkGasFeeBlock[EntityMetaKey.Selector].$network != null && 'slug' in evmNetworkGasFeeBlock[EntityMetaKey.Selector].$network
+							&& evmNetworkGasFeeBlock[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
+							blockNumber: String(evmNetworkGasFeeBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+							network: String(evmNetworkGasFeeBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[(String((evmNetworkGasFeeBlockFields.blockNumber) ?? '') ? 'Block ' + String((evmNetworkGasFeeBlockFields.blockNumber) ?? '') : ''), (String((evmNetworkGasFeeBlockFields.baseFeePerGas) ?? '') ? String((evmNetworkGasFeeBlockFields.baseFeePerGas) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'EVM network gas fee block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[(String((evmNetworkGasFeeBlockFields.baseFeePerGas) ?? '') ? String((evmNetworkGasFeeBlockFields.baseFeePerGas) ?? '') + ' wei' : '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((evmNetworkGasFeeBlockFields.$network.name) ?? '')].filter(Boolean).join(' ') || [evmNetworkGasFeeBlockFields.$network.caip2 == null ? '' : String(`${(evmNetworkGasFeeBlockFields.$network.caip2).namespace}:${(evmNetworkGasFeeBlockFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

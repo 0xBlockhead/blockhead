@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hedera token observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HederaToken_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HederaToken_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HederaToken_TimestampView from '$/views/HederaToken_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(hederaTokenTimestamps) => [...new Map(hederaTokenTimestamps.values.map((hederaTokenTimestamp) => [hederaTokenTimestamp[EntityMetaKey.SelectorKey], hederaTokenTimestamp])).values()]}
 	getKey={(hederaTokenTimestamp) => hederaTokenTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: hederaTokenTimestamp })}
 		{@const hederaTokenTimestampFields = { ...hederaTokenTimestamp[EntityMetaKey.Selector], ...hederaTokenTimestamp }}
-		{@const selection = select(EntityType.HederaToken_Timestamp, hederaTokenTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HederaToken_TimestampView
-			selection={selection}
-			prefetched={hederaTokenTimestampFields}
+		<EntityView
+			entityType={EntityType.HederaToken_Timestamp}
+			entitySelector={hederaTokenTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'hedera token timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

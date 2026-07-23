@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.StarknetTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.StarknetTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StarknetTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const starknetTransaction = $derived(selection({
+	const starknetTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			transactionKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			transactionKind: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || 'starknet transaction')
-	const viewDomId = $derived('starknet-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('starknet-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,76 +76,45 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={starknetTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={starknetTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={starknetTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={starknetTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<ResourceBoundary
-				resource={selection.$block}
-			>
-				{#snippet children(starknetBlock)}
-					{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
-						<span data-text="muted">
-							<StarknetBlockView
-								selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
-								prefetched={starknetBlock}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-					{:else}
-						<span data-text="muted">Unavailable</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={starknetTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$block}
-					>
-						{#snippet children(starknetBlock)}
-							{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
-								<span data-text="muted">
-									<StarknetBlockView
-										selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
-										prefetched={starknetBlock}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
-								</span>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={starknetTransaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<ResourceBoundary
+					resource={selection.$block}
+				>
+					{#snippet children(starknetBlock)}
+						{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
+							<span data-text="muted">
+								<StarknetBlockView
+									selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
+									prefetched={starknetBlock}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</span>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -361,28 +336,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<StarknetEventsView
-				selection={
-						selection.$$events({
-							count: true,
-						})
-					}
-				title='events'
-				emptyText='No Starknet events.'
-				id='StarknetEventsView-events'
-			/>
-
-			<StarknetTransaction_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No Starknet transaction observations.'
-				id='StarknetTransaction_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const starknetTransactionStarknetEventsViewEventsResource = selection.$$events}
+		<ResourceBoundary
+			resource={starknetTransactionStarknetEventsViewEventsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<StarknetEventsView
+					selection={starknetTransactionStarknetEventsViewEventsResource}
+					countResource={starknetTransactionStarknetEventsViewEventsResource.count}
+					title='events'
+					id='StarknetEventsView-events'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const starknetTransactionStarknetTransactionTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={starknetTransactionStarknetTransactionTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<StarknetTransaction_TimestampsView
+					selection={starknetTransactionStarknetTransactionTimestampsViewTimestampsResource}
+					countResource={starknetTransactionStarknetTransactionTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='StarknetTransaction_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

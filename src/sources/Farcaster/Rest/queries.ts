@@ -71,12 +71,23 @@ export const getPrimaryAddress = async ({
 }: {
 	fid: number
 	protocol?: 'ethereum' | 'solana'
-}) => (
-	(await farcasterGet<FarcasterPrimaryAddressResponse>('/fc/primary-address', {
+}) => {
+	const address = (
+		await farcasterGet<FarcasterPrimaryAddressResponse>('/fc/primary-address', {
 		fid,
 		protocol,
-	})).result?.address?.address
-)
+		})
+	).result?.address
+	if (
+		address != null
+		&& (
+			address.fid !== fid
+			|| address.protocol !== protocol
+		)
+	)
+		throw new Error('Farcaster_Rest: primary address subject mismatch')
+	return address?.address
+}
 
 /**
  * Public web API used by farcaster.xyz cast pages (no API key required).
@@ -113,6 +124,41 @@ export const getCastByUsernameAndHashPrefix = async ({
 		castHashPrefix,
 	})).result?.casts?.[0]
 )
+
+export const getCastAndDirectRepliesByUsernameAndHashPrefix = async ({
+	username,
+	castHashPrefix,
+}: {
+	username: string
+	castHashPrefix: string
+}) => {
+	const casts = (
+		(await getUserThreadCasts({
+			username,
+			castHashPrefix,
+		})).result?.casts ?? []
+	)
+	const cast = casts.at(0)
+	if (cast?.hash == null)
+		return {
+			cast,
+			directReplies: [],
+		}
+
+	return ((focalHash) => ({
+		cast,
+		directReplies: casts.filter((candidate) => (
+			candidate.hash != null
+			&& candidate.author != null
+			&& Number.isSafeInteger(candidate.author.fid)
+			&& candidate.author.fid >= 0
+			&& candidate.parentHash != null
+			&& candidate.parentAuthor?.fid === cast.author?.fid
+			&& candidate.parentHash.toLowerCase().replace(/^0x/, '')
+				=== focalHash.toLowerCase().replace(/^0x/, '')
+		)),
+	}))(cast.hash)
+}
 
 /**
  * `GET /v1/channel-followers`

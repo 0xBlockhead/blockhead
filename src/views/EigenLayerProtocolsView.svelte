@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Eigen layer protocols',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EigenLayerProtocol>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EigenLayerProtocol>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EigenLayerProtocolView from '$/views/EigenLayerProtocolView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(eigenLayerProtocols) => [...new Map(eigenLayerProtocols.values.map((eigenLayerProtocol) => [eigenLayerProtocol[EntityMetaKey.SelectorKey], eigenLayerProtocol])).values()]}
 	getKey={(eigenLayerProtocol) => eigenLayerProtocol[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: eigenLayerProtocol })}
 		{@const eigenLayerProtocolFields = { ...eigenLayerProtocol[EntityMetaKey.Selector], ...eigenLayerProtocol }}
-		{@const selection = select(EntityType.EigenLayerProtocol, eigenLayerProtocol[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<EigenLayerProtocolView
-			selection={selection}
-			prefetched={eigenLayerProtocolFields}
+		<EntityView
+			entityType={EntityType.EigenLayerProtocol}
+			entitySelector={eigenLayerProtocol[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((eigenLayerProtocolFields.protocolName) ?? '')].filter(Boolean).join(' ') || 'eigen layer protocol'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((eigenLayerProtocolFields.$network.name) ?? '')].filter(Boolean).join(' ') || [eigenLayerProtocolFields.$network.caip2 == null ? '' : String(`${(eigenLayerProtocolFields.$network.caip2).namespace}:${(eigenLayerProtocolFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

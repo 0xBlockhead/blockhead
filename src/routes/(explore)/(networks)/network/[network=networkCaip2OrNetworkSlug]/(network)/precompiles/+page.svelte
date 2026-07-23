@@ -44,14 +44,14 @@
 				}
 				title='Precompiles'
 				selection={
-					projection.$$precompiles({
-						sources: [
-							Source.Constants_Internal,
-						],
-						count: true,
-					})
+					projection
+						.$$precompiles({
+							sources: [
+								Source.Constants_Internal,
+							],
+						})
 				}
-				id='precompiles'
+				id='account-evm-contract'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

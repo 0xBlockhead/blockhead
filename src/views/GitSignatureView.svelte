@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.GitSignature>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.GitSignature>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitSignature>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -38,7 +39,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitSignature = $derived(selection({
+	const gitSignature = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			verificationStatus: true,
+			signatureKind: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			verificationStatus: true,
@@ -46,7 +53,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.signatureId) ?? '')].filter(Boolean).join(' ') || 'Git signature')
-	const viewDomId = $derived('git-signature-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('git-signature-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,7 +74,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'verificationStatus') && Object.hasOwn(prefetched, 'signatureKind')}
 			{[String((pendingEntity.signatureId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={gitSignature}>
@@ -80,7 +87,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'verificationStatus') && Object.hasOwn(prefetched, 'signatureKind')}
 			{[String((pendingEntity.verificationStatus) ?? ''), String((pendingEntity.signatureKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.signatureId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={gitSignature}>

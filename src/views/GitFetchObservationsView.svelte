@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Git fetch observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.GitFetchObservation>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.GitFetchObservation>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GitFetchObservationView from '$/views/GitFetchObservationView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(gitFetchObservations) => [...new Map(gitFetchObservations.values.map((gitFetchObservation) => [gitFetchObservation[EntityMetaKey.SelectorKey], gitFetchObservation])).values()]}
 	getKey={(gitFetchObservation) => gitFetchObservation[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: gitFetchObservation })}
 		{@const gitFetchObservationFields = { ...gitFetchObservation[EntityMetaKey.Selector], ...gitFetchObservation }}
-		{@const selection = select(EntityType.GitFetchObservation, gitFetchObservation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<GitFetchObservationView
-			selection={selection}
-			prefetched={gitFetchObservationFields}
+		<EntityView
+			entityType={EntityType.GitFetchObservation}
+			entitySelector={gitFetchObservation[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((gitFetchObservationFields.remoteName) ?? '')].filter(Boolean).join(' ') || 'Git fetch observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((gitFetchObservationFields.status) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((gitFetchObservationFields.timestampMs) ?? ''), String((gitFetchObservationFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

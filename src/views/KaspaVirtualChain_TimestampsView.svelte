@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Kaspa virtual-chain observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.KaspaVirtualChain_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.KaspaVirtualChain_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import KaspaVirtualChain_TimestampView from '$/views/KaspaVirtualChain_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(kaspaVirtualChainTimestamps) => [...new Map(kaspaVirtualChainTimestamps.values.map((kaspaVirtualChainTimestamp) => [kaspaVirtualChainTimestamp[EntityMetaKey.SelectorKey], kaspaVirtualChainTimestamp])).values()]}
 	getKey={(kaspaVirtualChainTimestamp) => kaspaVirtualChainTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: kaspaVirtualChainTimestamp })}
 		{@const kaspaVirtualChainTimestampFields = { ...kaspaVirtualChainTimestamp[EntityMetaKey.Selector], ...kaspaVirtualChainTimestamp }}
-		{@const selection = select(EntityType.KaspaVirtualChain_Timestamp, kaspaVirtualChainTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<KaspaVirtualChain_TimestampView
-			selection={selection}
-			prefetched={kaspaVirtualChainTimestampFields}
+		<EntityView
+			entityType={EntityType.KaspaVirtualChain_Timestamp}
+			entitySelector={kaspaVirtualChainTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'kaspa virtual chain timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

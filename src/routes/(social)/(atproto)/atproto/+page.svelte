@@ -29,7 +29,6 @@
 			docsUrl: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.protocolName) ?? '')].filter(Boolean).join(' ') || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol')))
 
 
 	// Components
@@ -39,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • AT Protocol • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String('AT Protocol')].filter(Boolean).join(' ') || 'AT Protocol' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || [String('AT Protocol')].filter(Boolean).join(' ') || 'AT Protocol'))} • AT Protocol • Blockhead</title>
 </svelte:head>
 
 

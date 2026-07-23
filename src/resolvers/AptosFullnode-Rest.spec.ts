@@ -14,6 +14,10 @@ import { AptosTransaction_TimestampSelector } from '$/schema/AptosTransaction_Ti
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import {
+	SourceDelivery,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 
 const sourceFetch = vi.fn()
 
@@ -33,8 +37,20 @@ const resolverFor = (entityType: EntityType) => {
 	return resolver
 }
 
+const aptosFullnodeBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.AptosFullnode_Rest
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === 'aptos:1'
+	))
+const aptosFullnodeBinding = aptosFullnodeBindings[0]
+
 const canonicalNetwork = {
-	slug: 'ethereum',
+	caip2: {
+		namespace: 'aptos',
+		reference: '1',
+	},
 } as const
 
 const aptosNetwork = {
@@ -205,27 +221,23 @@ describe('Aptos Fullnode typed operations', () => {
 	})
 
 	it('addresses every core REST operation without a generic query surface', async () => {
-		const binding = sourceProviderDefinitions
-			.flatMap((provider) => provider.bindings)
-			.find((candidate) => candidate.source === Source.AptosFullnode_Rest)
-		if (binding == null)
-			throw new Error('Aptos Fullnode source binding is missing')
-
-		const ledgerResponse = await queries.getLedgerInfo(binding)
-		await queries.getAccount(binding, '0xa/b', 42n)
-		await queries.getAccountResources(binding, '0xa/b', 42n)
-		await queries.getAccountModules(binding, '0xa/b', 42n)
-		await queries.getBlockByHeight(binding, 9n)
-		await queries.getBlockByVersion(binding, 42n, false)
-		await queries.getEventsByEventHandle(binding, '0xa/b', '0x1::event::Handle', 'events', 2n, 10)
-		await queries.getTableItem(binding, '0xtable/handle', {
+		const ledgerResponse = await queries.getLedgerInfo(aptosFullnodeBinding)
+		await queries.getAccount(aptosFullnodeBinding, '0xa/b', 42n)
+		await queries.getAccountResources(aptosFullnodeBinding, '0xa/b', 42n)
+		await queries.getAccountModules(aptosFullnodeBinding, '0xa/b', 42n)
+		await queries.getBlockByHeight(aptosFullnodeBinding, 9n)
+		await queries.getBlockByVersion(aptosFullnodeBinding, 42n, false)
+		await queries.getEventsByEventHandle(aptosFullnodeBinding, '0xa/b', '0x1::event::Handle', 'events', 2n, 10)
+		await queries.getTableItem(aptosFullnodeBinding, '0xtable/handle', {
 			key_type: 'address',
 			value_type: 'u64',
 			key: '0xa11ce',
 		}, 42n)
-		await queries.getTransactionByHash(binding, '0xhash/value')
-		await queries.getTransactionByVersion(binding, 42n)
+		await queries.getTransactionByHash(aptosFullnodeBinding, '0xhash/value')
+		await queries.getTransactionByVersion(aptosFullnodeBinding, 42n)
 
+		expect(aptosFullnodeBindings).toHaveLength(1)
+		expect(aptosFullnodeBinding.delivery).toBe(SourceDelivery.HttpProxy)
 		expect(sourceFetch.mock.calls.map((call) => call[1])).toEqual([
 			'https://fullnode.test/v1/',
 			'https://fullnode.test/v1/accounts/0xa%2Fb?ledger_version=42',
@@ -262,9 +274,10 @@ describe('Aptos Fullnode resolver materialization', () => {
 	})
 
 	it('keys network observations by the source ledger version and maps only source time', async () => {
-		vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
+		const getLedgerInfo = vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
 		const networkResolver = resolverFor(EntityType.AptosNetwork)
 		const observations = await networkResolver.resolve[AptosNetworkSelector.Network].resolve(aptosNetwork, resolverContext)
+		expect(getLedgerInfo).toHaveBeenCalledWith(aptosFullnodeBinding)
 		expect(observations).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: aptosNetwork,
@@ -329,6 +342,58 @@ describe('Aptos Fullnode resolver materialization', () => {
 			blockHeight: 9n,
 			epoch: 7n,
 		})
+	})
+
+	it('accepts canonical Aptos identities and rejects unsupported networks before transport', async () => {
+		const resolveAccount = resolverFor(EntityType.AptosAccount).resolve[
+			AptosAccountSelector.NetworkAddress
+		]
+		expect(aptosFullnodeResolvers.resolvers
+			.flatMap((resolver) => Object.values(resolver.resolve))
+			.every((operation) => operation.appliesTo != null)).toBe(true)
+		expect(resolveAccount.appliesTo).toEqual([
+			{
+				$network: {
+					$network: canonicalNetwork,
+				},
+			},
+			{
+				$network: {
+					$network: {
+						slug: 'aptos',
+					},
+				},
+			},
+		])
+
+		const getAccount = vi.spyOn(queries, 'getAccount').mockResolvedValue(response({
+			authentication_key: '0xauth',
+			sequence_number: '8',
+		}))
+		for (const network of [
+			canonicalNetwork,
+			{ slug: 'aptos' } as const,
+		])
+			await expect(resolveAccount.resolve({
+				...aptosAccount,
+				$network: {
+					$network: network,
+				},
+			}, resolverContext)).resolves.toHaveLength(1)
+		expect(getAccount).toHaveBeenCalledTimes(2)
+
+		await expect(resolveAccount.resolve({
+			...aptosAccount,
+			$network: {
+				$network: {
+					caip2: {
+						namespace: 'aptos',
+						reference: '2',
+					},
+				},
+			},
+		}, resolverContext)).rejects.toThrow('unsupported network')
+		expect(getAccount).toHaveBeenCalledTimes(2)
 	})
 
 	it('converges block and transaction selector paths and materializes event and change children', async () => {

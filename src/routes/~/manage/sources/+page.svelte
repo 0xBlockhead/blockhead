@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$blockheadSources',
-			}).$$blockheadSources({
-				sources: [
-					Source.Local_Internal,
-				],
-				count: true,
 			})
+				.$$blockheadSources({
+					sources: [
+						Source.Local_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$blockheadSources',
+			})
+				.$$blockheadSources({
+					sources: [
+						Source.Local_Internal,
+					],
+				}).count
 		}
 		id='blockhead-sources'
 		data-column-item="flexible"

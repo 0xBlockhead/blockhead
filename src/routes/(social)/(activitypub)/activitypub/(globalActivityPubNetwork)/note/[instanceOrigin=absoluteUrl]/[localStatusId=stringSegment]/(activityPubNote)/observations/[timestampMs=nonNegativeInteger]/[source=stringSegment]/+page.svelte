@@ -39,7 +39,6 @@
 			replyCount: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'ActivityPub note observation' : 'ActivityPub note observation'))
 
 
 	// Components
@@ -49,7 +48,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ActivityPub note observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'ActivityPub note observation' : 'ActivityPub note observation')} • ActivityPub note observation • Blockhead</title>
 </svelte:head>
 
 

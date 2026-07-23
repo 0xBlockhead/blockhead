@@ -77,9 +77,7 @@ const youtubeVideoReference = (
 				channelId == null ?
 					undefined
 				:
-					{
-						[EntityMetaKey.Selector]: { channelId },
-					}
+					youtubeChannelReference(channelId, snippet)
 			),
 		},
 	}
@@ -102,9 +100,7 @@ const youtubePlaylistReference = (
 				channelId == null ?
 					undefined
 				:
-					{
-						[EntityMetaKey.Selector]: { channelId },
-					}
+					youtubeChannelReference(channelId, snippet)
 			),
 		},
 	}
@@ -129,7 +125,7 @@ const youtubeCommentReference = (
 			commentId,
 		},
 		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.YoutubeComment, [], 'text')]: optionalNonemptyString(comment.snippet?.textDisplay) ?? optionalNonemptyString(comment.snippet?.textOriginal),
+			[entityFieldAddressKey(EntityType.YoutubeComment, [], 'text')]: optionalNonemptyString(comment.snippet?.textOriginal) ?? optionalNonemptyString(comment.snippet?.textDisplay),
 			[entityFieldAddressKey(EntityType.YoutubeComment, [], 'authorDisplayName')]: optionalNonemptyString(comment.snippet?.authorDisplayName),
 			[entityFieldAddressKey(EntityType.YoutubeComment, [], 'publishedAt')]: optionalNonemptyString(comment.snippet?.publishedAt),
 			[entityFieldAddressKey(EntityType.YoutubeComment, [], 'publishedAtMs')]: optionalTimestampMs(comment.snippet?.publishedAt),
@@ -267,9 +263,7 @@ export default {
 								channelId == null ?
 									undefined
 								:
-									{
-										[EntityMetaKey.Selector]: { channelId },
-									}
+									youtubeChannelReference(channelId, d.snippet)
 							),
 							...(thumbnailUrlParsed != null && { thumbnailUrl: thumbnailUrlParsed }),
 							...(thumbnailMedia != null && { $thumbnail: thumbnailMedia }),
@@ -313,9 +307,7 @@ export default {
 								channelId == null ?
 									undefined
 								:
-									{
-										[EntityMetaKey.Selector]: { channelId },
-									}
+									youtubeChannelReference(channelId, d.snippet)
 							),
 							...(thumbnailMedia != null && { $thumbnail: thumbnailMedia }),
 						}
@@ -342,7 +334,9 @@ export default {
 							.items?.[0]
 						if (d == null) throw new Error('Youtube_Rest: comment not found')
 						const snippet = d.snippet
-						const videoId = optionalNonemptyString(snippet?.videoId) ?? videoIdSelector
+						const videoId = optionalNonemptyString(snippet?.videoId)
+						if (videoId != null && videoId !== videoIdSelector)
+							throw new Error('Youtube_Rest: comment does not belong to requested video')
 						const parentId = optionalNonemptyString(snippet?.parentId)
 						const authorChannelId = (
 							typeof snippet?.authorChannelId === 'string' ?
@@ -354,7 +348,7 @@ export default {
 						const publishedAt = optionalNonemptyString(snippet?.publishedAt)
 						const publishedAtMs = optionalTimestampMs(snippet?.publishedAt)
 						return {
-							text: optionalNonemptyString(snippet?.textDisplay) ?? optionalNonemptyString(snippet?.textOriginal),
+							text: optionalNonemptyString(snippet?.textOriginal) ?? optionalNonemptyString(snippet?.textDisplay),
 							...(authorDisplayName != null && { authorDisplayName }),
 							...(authorChannelId != null && {
 								$author: {
@@ -364,7 +358,7 @@ export default {
 							...(publishedAt != null && { publishedAt }),
 							...(publishedAtMs != null && { publishedAtMs }),
 							$video: {
-								[EntityMetaKey.Selector]: { videoId },
+								[EntityMetaKey.Selector]: { videoId: videoIdSelector },
 							},
 							$parentComment: (
 								parentId == null ?
@@ -436,7 +430,8 @@ export default {
 							return searchChannelVideos(
 								context.publicEnv,
 								channelId,
-								resolverContextRowLimit(context)
+								resolverContextRowLimit(context),
+								context.providerContinuationToken
 							)
 						},
 					}
@@ -450,6 +445,21 @@ export default {
 							:
 								[youtubeVideoReference(video.id.videoId, video.snippet)]
 						))
+					),
+					continuation: (page, { channelId }) => (
+						page.nextPageToken == null || page.nextPageToken === '' ?
+							{
+								operation: 'search.list:channel-videos',
+								target: channelId,
+								terminal: true,
+							}
+						:
+							{
+								operation: 'search.list:channel-videos',
+								target: channelId,
+								terminal: false,
+								token: page.nextPageToken,
+							}
 					),
 				},
 			}),
@@ -485,7 +495,8 @@ export default {
 							return listChannelPlaylists(
 								context.publicEnv,
 								channelId,
-								resolverContextRowLimit(context)
+								resolverContextRowLimit(context),
+								context.providerContinuationToken
 							)
 						},
 					}
@@ -499,6 +510,21 @@ export default {
 							:
 								[youtubePlaylistReference(playlist.id, playlist.snippet)]
 						))
+					),
+					continuation: (page, { channelId }) => (
+						page.nextPageToken == null || page.nextPageToken === '' ?
+							{
+								operation: 'playlists.list:channel',
+								target: channelId,
+								terminal: true,
+							}
+						:
+							{
+								operation: 'playlists.list:channel',
+								target: channelId,
+								terminal: false,
+								token: page.nextPageToken,
+							}
 					),
 				},
 			}),
@@ -542,7 +568,8 @@ export default {
 							return listPlaylistItems(
 								context.publicEnv,
 								playlistId,
-								resolverContextRowLimit(context)
+								resolverContextRowLimit(context),
+								context.providerContinuationToken
 							)
 						},
 					}
@@ -561,6 +588,21 @@ export default {
 								?? optionalNonemptyString(video.snippet?.resourceId?.videoId)
 							)
 						))
+					),
+					continuation: (page, { playlistId }) => (
+						page.nextPageToken == null || page.nextPageToken === '' ?
+							{
+								operation: 'playlistItems.list',
+								target: playlistId,
+								terminal: true,
+							}
+						:
+							{
+								operation: 'playlistItems.list',
+								target: playlistId,
+								terminal: false,
+								token: page.nextPageToken,
+							}
 					),
 				},
 			}),
@@ -741,20 +783,24 @@ export default {
 						resolve: async ({ commentId: commentIdSelector, videoId }, context) => {
 						const {
 							getComment,
-							listCommentReplies,
+							listCompleteCommentReplies,
 						} = await import('$/sources/Youtube/Rest/queries.ts')
 							const publicEnv = context.publicEnv
 							const parent = (await getComment(publicEnv, commentIdSelector))
 								.items?.[0]
+							if (parent == null) throw new Error('Youtube_Rest: comment not found')
+							if (parent.snippet?.videoId !== videoId)
+								throw new Error('Youtube_Rest: comment does not belong to requested video')
 							return (
-								parent?.snippet?.parentId != null && parent.snippet.parentId !== '' ?
+								parent.snippet.parentId != null && parent.snippet.parentId !== '' ?
 									{
 										items: [],
 										nextPageToken: undefined,
 									}
 								:
-									listCommentReplies(
+									listCompleteCommentReplies(
 										publicEnv,
+										videoId,
 										commentIdSelector,
 										resolverContextRowLimit(context),
 										context.providerContinuationToken
@@ -764,9 +810,9 @@ export default {
 					}
 				},
 			})({
-				$$replies: {
-					select: (page, { videoId }) => (
-						(page.items ?? []).flatMap((comment) => {
+					$$replies: {
+						select: (page, { videoId }) => (
+							page.items.flatMap((comment) => {
 							const commentId = optionalNonemptyString(comment.id)
 							return commentId == null ?
 								[]

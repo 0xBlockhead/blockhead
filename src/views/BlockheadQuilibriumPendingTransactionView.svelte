@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadQuilibriumPendingTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadQuilibriumPendingTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadQuilibriumPendingTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadQuilibriumPendingTransaction = $derived(selection({
+	const blockheadQuilibriumPendingTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			amount: true,
+			deliveryType: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			amount: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.transactionAddress) ?? '')].filter(Boolean).join(' ') || 'blockhead quilibrium pending transaction')
-	const viewDomId = $derived('blockhead-quilibrium-pending-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-quilibrium-pending-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,7 +79,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'deliveryType')}
 			{[String((pendingEntity.transactionAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
@@ -85,13 +92,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const amount0 = pendingEntity.amount}
-					{#if amount0 !== undefined && amount0 !== null}
-						<NumberValue
-							value={amount0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'deliveryType')}
+			{@const amount0 = pendingEntity.amount}
+			{#if amount0 !== undefined && amount0 !== null}
+				<NumberValue
+					value={amount0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
 				{#snippet children(entity)}
@@ -108,7 +115,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'deliveryType')}
 			{@const deliveryType0 = pendingEntity.deliveryType}
 			{#if deliveryType0 !== undefined && deliveryType0 !== null}
 				<span data-text="muted">
@@ -136,7 +143,7 @@
 				<dt>account state</dt>
 				<dd>
 					<BlockheadQuilibriumAccountStateView
-						selection={select(EntityType.BlockheadQuilibriumAccountState, selection.entitySelector.$accountState, {})}
+						selection={select(EntityType.BlockheadQuilibriumAccountState, selection.entitySelector.$accountState)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

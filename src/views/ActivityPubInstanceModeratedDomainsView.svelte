@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ActivityPub instance moderated domains',
 		typeAnnotationParagraphs = ['A domain that a declared ActivityPub instance reports in its public moderation-domain list.'],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ActivityPubInstanceModeratedDomain>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ActivityPubInstanceModeratedDomain>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubInstanceModeratedDomainView from '$/views/ActivityPubInstanceModeratedDomainView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -76,10 +69,17 @@
 				domain: true,
 				severity: true,
 				comment: true,
-				$observation: true,
+				$observation: {
+					fields: {
+						title: true,
+						$instance: true,
+						version: true,
+					},
+				},
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(activityPubInstanceModeratedDomains) => [...new Map(activityPubInstanceModeratedDomains.values.map((activityPubInstanceModeratedDomain) => [activityPubInstanceModeratedDomain[EntityMetaKey.SelectorKey], activityPubInstanceModeratedDomain])).values()]}
 	getKey={(activityPubInstanceModeratedDomain) => activityPubInstanceModeratedDomain[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +94,20 @@
 
 	{#snippet Item({ item: activityPubInstanceModeratedDomain })}
 		{@const activityPubInstanceModeratedDomainFields = { ...activityPubInstanceModeratedDomain[EntityMetaKey.Selector], ...activityPubInstanceModeratedDomain }}
-		{@const selection = select(EntityType.ActivityPubInstanceModeratedDomain, activityPubInstanceModeratedDomain[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ActivityPubInstanceModeratedDomainView
-			selection={selection}
-			prefetched={activityPubInstanceModeratedDomainFields}
+		<EntityView
+			entityType={EntityType.ActivityPubInstanceModeratedDomain}
+			entitySelector={activityPubInstanceModeratedDomain[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((activityPubInstanceModeratedDomainFields.domain) ?? ''), String((activityPubInstanceModeratedDomainFields.severity) ?? ''), String((activityPubInstanceModeratedDomainFields.comment) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((activityPubInstanceModeratedDomainFields.$observation.title) ?? ''), String((activityPubInstanceModeratedDomainFields.$observation.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance observation'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

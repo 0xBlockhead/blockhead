@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Nostr profiles',
 		typeAnnotationParagraphs = ['A Nostr profile is replaceable kind-0 metadata keyed by a 64-character lowercase hex public key.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrProfile>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NostrProfile>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrProfileView from '$/views/NostrProfileView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,11 +67,11 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				displayName: true,
 				pubkey: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nostrProfiles) => [...new Map(nostrProfiles.values.map((nostrProfile) => [nostrProfile[EntityMetaKey.SelectorKey], nostrProfile])).values()]}
 	getKey={(nostrProfile) => nostrProfile[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,18 +86,27 @@
 
 	{#snippet Item({ item: nostrProfile })}
 		{@const nostrProfileFields = { ...nostrProfile[EntityMetaKey.Selector], ...nostrProfile }}
-		{@const selection = select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const nostrProfileHrefFields = { ...nostrProfile, ...nostrProfile[EntityMetaKey.Selector] }}
-		<NostrProfileView
-			selection={selection}
-			prefetched={nostrProfileFields}
+		<EntityView
+			entityType={EntityType.NostrProfile}
+			entitySelector={nostrProfile[EntityMetaKey.Selector]}
 			href={
-				(nostrProfileHrefFields.pubkey !== undefined ? resolve('/nostr/profile/[pubkey=stringSegment]', {
-					pubkey: String(nostrProfileHrefFields.pubkey ?? ''),
-				}) : undefined)
+				(
+					nostrProfile[EntityMetaKey.Selector] != null && 'pubkey' in nostrProfile[EntityMetaKey.Selector]
+					&& nostrProfile[EntityMetaKey.Selector].pubkey != null ?
+						resolve('/nostr/profile/[pubkey=stringSegment]', {
+					pubkey: String(nostrProfile[EntityMetaKey.Selector].pubkey ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((nostrProfileFields.$latestMetadataEvent.displayName) ?? ''), String((nostrProfileFields.$latestMetadataEvent.nip05) ?? '')].filter(Boolean).join(' ') || [String((nostrProfileFields.$latestMetadataEvent.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile metadata event'].filter(Boolean).join(' ') || [String((nostrProfileFields.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

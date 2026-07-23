@@ -22,7 +22,7 @@
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: Number(params.chainId),
+					reference: params.chainId,
 				},
 			},
 			id: params.poolId,
@@ -44,7 +44,6 @@
 			observationCardinalityNext: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block'))
 
 
 	// Components
@@ -54,7 +53,29 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • liquidity pool block • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$liquidityPool: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			id: params.poolId,
+		},
+		blockNumber: BigInt(params.blockNumber),
+	}.blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block' : [String((({ ...{
+		$liquidityPool: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			id: params.poolId,
+		},
+		blockNumber: BigInt(params.blockNumber),
+	}, ...pageSelection.entity }).blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block')} • liquidity pool block • Blockhead</title>
 </svelte:head>
 
 

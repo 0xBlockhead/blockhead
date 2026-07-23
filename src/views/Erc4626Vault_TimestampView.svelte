@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Erc4626Vault_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Erc4626Vault_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Erc4626Vault_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const erc4626VaultTimestamp = $derived(selection({
+	const erc4626VaultTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			apyTotal: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			apyTotal: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'erc4626 vault timestamp')
-	const viewDomId = $derived('erc4626vault-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('erc4626vault-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,11 +76,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'apyTotal')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={erc4626VaultTimestamp}>
 				{#snippet children(entity)}
@@ -89,13 +95,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const apyTotal0 = pendingEntity.apyTotal}
-					{#if apyTotal0 !== undefined && apyTotal0 !== null}
-						<NumberValue
-							value={apyTotal0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'apyTotal')}
+			{@const apyTotal0 = pendingEntity.apyTotal}
+			{#if apyTotal0 !== undefined && apyTotal0 !== null}
+				<NumberValue
+					value={apyTotal0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={erc4626VaultTimestamp}>
 				{#snippet children(entity)}
@@ -117,7 +123,7 @@
 				<dt>Vault</dt>
 				<dd>
 					<Erc4626VaultView
-						selection={select(EntityType.Erc4626Vault, selection.entitySelector.$vault, {})}
+						selection={select(EntityType.Erc4626Vault, selection.entitySelector.$vault)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

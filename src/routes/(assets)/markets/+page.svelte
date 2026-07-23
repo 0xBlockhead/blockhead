@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$markets',
-			}).$$markets({
-				sources: [
-					Source.Constants_Internal,
-				],
-				count: true,
 			})
+				.$$markets({
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$markets',
+			})
+				.$$markets({
+					sources: [
+						Source.Constants_Internal,
+					],
+				}).count
 		}
 		id='markets'
 		data-column-item="flexible"

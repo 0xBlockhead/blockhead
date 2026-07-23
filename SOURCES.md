@@ -619,8 +619,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 10 | Amboss | Amboss_Graphql | Global | amboss-space | Graphql | GraphqlHttp | GenericRead | ServerOnly |
 | 11 | Anthropic | Anthropic_Rest | Global | anthropic-api | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog, GenericRead | RemoteQuery |
 | 12 | AptosAip62 | AptosAip62_WalletApi | LocalDevice | aptos-aip62-wallet | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
-| 13 | AptosFullnode | AptosFullnode_Rest | NetworkSlug | aptos | HttpRest | OpenApiHttp | GenericRead | RemoteQuery |
-| 14 | AptosIndexer | AptosIndexer_Graphql | NetworkSlug | aptos | Graphql | GraphqlHttp | GenericRead | RemoteQuery |
+| 13 | AptosFullnode | AptosFullnode_Rest | Caip2Network | aptos:1 | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
+| 14 | AptosIndexer | AptosIndexer_Graphql | Caip2Network | aptos:1 | Graphql | GraphqlHttp | GenericRead | HttpProxy |
 | 15 | Arweave | Arweave_Rest | ContentAddressScheme | arweave | HttpRest | ArweaveGateway | ContentGatewayRead | BrowserDirect |
 | 16 | Arweave | Arweave_Graphql | ContentAddressScheme | arweave | Graphql | GraphqlHttp | GenericRead | BrowserDirect |
 | 17 | AtprotoBsky | Atproto_Xrpc | Global | bsky-public-appview | Xrpc | XrpcLexicon | GenericRead | HttpProxy |
@@ -837,7 +837,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 228 | Nodely | Nodely_AlgorandIndexer_Rest | NetworkSlug | algorand | HttpRest | RestJson | GenericRead | HttpProxy |
 | 229 | NostrBand | NostrBand_Rest | Global | api | HttpRest | RestJson | GenericRead | HttpProxy |
 | 230 | NostrRelay | NostrRelay_Nip11_Http | Feed | nostr-relay-nip11 | HttpRest | NostrRelay | NostrRelayRead | RemoteQuery |
-| 231 | NostrRelay | NostrRelay_WebSocket | Feed | nostr-relay-websocket | JsonRpc2 | NostrRelay | NostrRelayRead, GenericSubscribe | RemoteLive |
+| 231 | NostrRelay | NostrRelay_WebSocket | Feed | nostr-relay-websocket | WebSocketMessages | NostrRelay | NostrRelayRead, GenericSubscribe | RemoteLive |
 | 232 | OciRegistry | OciRegistry_Distribution | Global | oci-registry | OciDistribution | OciDistributionApi | SoftwareArtifactRegistry, RepositoryMetadata | RemoteQuery |
 | 233 | Ogmios | Ogmios_JsonRpc | Caip2Network | cip34:1-764824073 | JsonRpc2 | JsonRpcApi | GenericRead | RemoteQuery |
 | 234 | OneInchSwap | OneInchSwap_Rest | Global | one-inch-swap-api | HttpRest | RestJson | GenericRead | ServerOnly |
@@ -918,9 +918,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 309 | TradingView | TradingView_Rest | Global | crypto-scanner | HttpRest | RestJson | GenericRead | HttpProxy |
 | 310 | Transmission | TransmissionRpc_JsonRpc | LocalDevice | transmission-client | HttpRest | BitTorrentClient | GenericRead | LocalOnly |
 | 311 | TronFullNode | TronFullNode_Rest | LocalDevice | tron-full-node | HttpRest | RestJson | GenericRead | HttpProxy |
-| 312 | TronGrid | TronGrid_Rest | NetworkSlug | tron | HttpRest | RestJson | GenericRead | HttpProxy |
+| 312 | TronGrid | TronGrid_Rest | Caip2Network | tron:0x2b6653dc | HttpRest | RestJson | GenericRead | HttpProxy |
 | 313 | TronLink | TronLink_WalletApi | LocalDevice | tronlink | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
-| 314 | TronScan | TronScan_Rest | NetworkSlug | tron | HttpRest | RestJson | GenericRead | BrowserDirect |
+| 314 | TronScan | TronScan_Rest | Caip2Network | tron:0x2b6653dc | HttpRest | RestJson | GenericRead | BrowserDirect |
 | 315 | TronSolidityNode | TronSolidityNode_Rest | LocalDevice | tron-solidity-node | HttpRest | RestJson | GenericRead | HttpProxy |
 | 316 | TronTip1193 | TronTip1193_WalletApi | LocalDevice | tron-tip1193 | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | 317 | TronTip6963 | TronTip6963_WalletApi | LocalDevice | tron-tip6963 | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
@@ -2095,6 +2095,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 278 | 1 | HandwrittenTypes | src/sources/Solana/JsonRpc/types.ts | no |  |  |
 | 281 | 1 | HandwrittenTypes | src/sources/Sourcify/Rest/types.ts | no |  |  |
 | 283 | 1 | HandwrittenTypes | src/sources/Sqd/Portal/types.ts | no |  |  |
+| 284 | 1 | HandwrittenTypes | src/sources/Starknet/JsonRpc/types.ts | no |  |  |
 | 291 | 1 | HandwrittenTypes | src/sources/Subscan/Rest/types.ts | no |  |  |
 | 292 | 1 | HandwrittenTypes | src/sources/SubstrateSidecar/Rest/types.ts | no |  |  |
 | 293 | 1 | HandwrittenTypes | src/sources/Sui/Graphql/types.ts | no |  |  |

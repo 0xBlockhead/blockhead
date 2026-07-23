@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NostrReaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NostrReaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NostrReaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -53,7 +54,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.content) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr reaction')
-	const viewDomId = $derived('nostr-reaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('nostr-reaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,9 +72,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.eventId !== undefined ? resolve('/nostr/reaction/[eventId=stringSegment]', {
-			eventId: String(pendingEntity.eventId ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'eventId' in selection.entitySelector
+			&& selection.entitySelector.eventId != null ?
+				resolve('/nostr/reaction/[eventId=stringSegment]', {
+			eventId: String(selection.entitySelector.eventId ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -105,26 +112,17 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const createdAt0 = pendingEntity.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nostrReaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt0 = resolvedEntity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nostrReaction}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const createdAt0 = resolvedEntity.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -238,11 +236,12 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection.$author({
-							sources: [
-								Source.NostrBand_Rest,
-							],
-						})
+						selection
+							.$author({
+								sources: [
+									Source.NostrBand_Rest,
+								],
+							})
 					}
 				>
 					{#snippet children(nostrProfile)}
@@ -254,9 +253,15 @@
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										prefetched={nostrProfile}
 										href={
-											(nostrProfile[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/nostr/profile/[pubkey=stringSegment]', {
+											(
+												nostrProfile[EntityMetaKey.Selector] != null && 'pubkey' in nostrProfile[EntityMetaKey.Selector]
+												&& nostrProfile[EntityMetaKey.Selector].pubkey != null ?
+													resolve('/nostr/profile/[pubkey=stringSegment]', {
 												pubkey: String(nostrProfile[EntityMetaKey.Selector].pubkey ?? ''),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -271,11 +276,12 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection.$targetNote({
-							sources: [
-								Source.NostrBand_Rest,
-							],
-						})
+						selection
+							.$targetNote({
+								sources: [
+									Source.NostrBand_Rest,
+								],
+							})
 					}
 				>
 					{#snippet children(nostrNote)}
@@ -287,9 +293,15 @@
 										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
 										href={
-											(nostrNote[EntityMetaKey.Selector].eventId !== undefined ? resolve('/nostr/note/[eventId=stringSegment]', {
+											(
+												nostrNote[EntityMetaKey.Selector] != null && 'eventId' in nostrNote[EntityMetaKey.Selector]
+												&& nostrNote[EntityMetaKey.Selector].eventId != null ?
+													resolve('/nostr/note/[eventId=stringSegment]', {
 												eventId: String(nostrNote[EntityMetaKey.Selector].eventId ?? ''),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -304,11 +316,12 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection.$targetArticle({
-							sources: [
-								Source.NostrBand_Rest,
-							],
-						})
+						selection
+							.$targetArticle({
+								sources: [
+									Source.NostrBand_Rest,
+								],
+							})
 					}
 				>
 					{#snippet children(nostrArticle)}
@@ -320,10 +333,19 @@
 										selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
 										prefetched={nostrArticle}
 										href={
-											(nostrArticle[EntityMetaKey.Selector].kind === 30023 && nostrArticle[EntityMetaKey.Selector].pubkey !== undefined && nostrArticle[EntityMetaKey.Selector].identifier !== undefined ? resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
+											(
+												nostrArticle[EntityMetaKey.Selector].kind === 30023
+												&& nostrArticle[EntityMetaKey.Selector] != null && 'pubkey' in nostrArticle[EntityMetaKey.Selector]
+												&& nostrArticle[EntityMetaKey.Selector].pubkey != null
+												&& nostrArticle[EntityMetaKey.Selector] != null && 'identifier' in nostrArticle[EntityMetaKey.Selector]
+												&& nostrArticle[EntityMetaKey.Selector].identifier != null ?
+													resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
 												pubkey: String(nostrArticle[EntityMetaKey.Selector].pubkey ?? ''),
 												identifier: String(nostrArticle[EntityMetaKey.Selector].identifier ?? ''),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Tezos token observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TezosToken_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TezosToken_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TezosToken_TimestampView from '$/views/TezosToken_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(tezosTokenTimestamps) => [...new Map(tezosTokenTimestamps.values.map((tezosTokenTimestamp) => [tezosTokenTimestamp[EntityMetaKey.SelectorKey], tezosTokenTimestamp])).values()]}
 	getKey={(tezosTokenTimestamp) => tezosTokenTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: tezosTokenTimestamp })}
 		{@const tezosTokenTimestampFields = { ...tezosTokenTimestamp[EntityMetaKey.Selector], ...tezosTokenTimestamp }}
-		{@const selection = select(EntityType.TezosToken_Timestamp, tezosTokenTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TezosToken_TimestampView
-			selection={selection}
-			prefetched={tezosTokenTimestampFields}
+		<EntityView
+			entityType={EntityType.TezosToken_Timestamp}
+			entitySelector={tezosTokenTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'tezos token timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Near receipts',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NearReceipt>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NearReceipt>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NearReceiptView from '$/views/NearReceiptView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nearReceipts) => [...new Map(nearReceipts.values.map((nearReceipt) => [nearReceipt[EntityMetaKey.SelectorKey], nearReceipt])).values()]}
 	getKey={(nearReceipt) => nearReceipt[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: nearReceipt })}
 		{@const nearReceiptFields = { ...nearReceipt[EntityMetaKey.Selector], ...nearReceipt }}
-		{@const selection = select(EntityType.NearReceipt, nearReceipt[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<NearReceiptView
-			selection={selection}
-			prefetched={nearReceiptFields}
+		<EntityView
+			entityType={EntityType.NearReceipt}
+			entitySelector={nearReceipt[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nearReceiptFields.receiptId) ?? '')].filter(Boolean).join(' ') || 'near receipt'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((nearReceiptFields.$receiver.accountId) ?? '')].filter(Boolean).join(' ') || 'near account'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((nearReceiptFields.$predecessor.accountId) ?? '')].filter(Boolean).join(' ') || 'near account'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

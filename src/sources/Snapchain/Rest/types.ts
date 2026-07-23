@@ -53,6 +53,7 @@ export type SnapchainReaction = {
 
 export type SnapchainVerification = {
 	data?: {
+		fid?: number
 		verificationAddAddressBody?: {
 			address?: string
 			protocol?: string
@@ -62,6 +63,7 @@ export type SnapchainVerification = {
 
 export type SnapchainUserData = {
 	data?: {
+		fid?: number
 		userDataBody?: {
 			type?: string | number
 			value?: string
@@ -81,6 +83,7 @@ export type SnapchainFidsPage = {
 
 export type SnapchainUsernameProofsResponse = {
 	proofs?: {
+		fid?: number
 		name?: string
 	}[]
 	nextPageToken?: string
@@ -88,6 +91,7 @@ export type SnapchainUsernameProofsResponse = {
 
 export type SnapchainLink = {
 	data?: {
+		fid?: number
 		linkBody?: {
 			type?: string
 			targetFid?: number

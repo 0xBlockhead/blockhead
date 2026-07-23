@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ElementsAsset_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ElementsAsset_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ElementsAsset_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const elementsAssetTimestamp = $derived(selection({
+	const elementsAssetTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			issuedAmount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			issuedAmount: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Elements asset observation')
-	const viewDomId = $derived('elements-asset-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('elements-asset-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,11 +75,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'issuedAmount')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={elementsAssetTimestamp}>
 				{#snippet children(entity)}
@@ -88,13 +94,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const issuedAmount0 = pendingEntity.issuedAmount}
-					{#if issuedAmount0 !== undefined && issuedAmount0 !== null}
-						<NumberValue
-							value={issuedAmount0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'issuedAmount')}
+			{@const issuedAmount0 = pendingEntity.issuedAmount}
+			{#if issuedAmount0 !== undefined && issuedAmount0 !== null}
+				<NumberValue
+					value={issuedAmount0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={elementsAssetTimestamp}>
 				{#snippet children(entity)}
@@ -116,7 +122,7 @@
 				<dt>Asset</dt>
 				<dd>
 					<ElementsAssetView
-						selection={select(EntityType.ElementsAsset, selection.entitySelector.$asset, {})}
+						selection={select(EntityType.ElementsAsset, selection.entitySelector.$asset)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

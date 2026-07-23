@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.PythPriceFeed_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.PythPriceFeed_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.PythPriceFeed_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const pythPriceFeedTimestamp = $derived(selection({
+	const pythPriceFeedTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			price: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			price: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.publishTimeMs) ?? '')].filter(Boolean).join(' ') || 'Pyth price feed timestamp')
-	const viewDomId = $derived('pyth-price-feed-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('pyth-price-feed-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,11 +77,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const publishTimeMs0 = pendingEntity.publishTimeMs}
-					{#if publishTimeMs0 !== undefined && publishTimeMs0 !== null}
-						<Timestamp timestamp={Number(publishTimeMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'price')}
+			{@const publishTimeMs0 = pendingEntity.publishTimeMs}
+			{#if publishTimeMs0 !== undefined && publishTimeMs0 !== null}
+				<Timestamp timestamp={Number(publishTimeMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={pythPriceFeedTimestamp}>
 				{#snippet children(entity)}
@@ -90,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'price')}
 			{[String((pendingEntity.price) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.publishTimeMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={pythPriceFeedTimestamp}>
@@ -103,7 +109,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'price')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -131,7 +137,7 @@
 				<dt>Feed</dt>
 				<dd>
 					<PythPriceFeedView
-						selection={select(EntityType.PythPriceFeed, selection.entitySelector.$feed, {})}
+						selection={select(EntityType.PythPriceFeed, selection.entitySelector.$feed)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

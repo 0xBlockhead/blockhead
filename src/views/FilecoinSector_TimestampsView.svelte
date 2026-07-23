@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Filecoin sector observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FilecoinSector_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FilecoinSector_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FilecoinSector_TimestampView from '$/views/FilecoinSector_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,11 +67,17 @@
 			sources: selection.sources,
 			fields: {
 				timestampMs: true,
-				$sector: true,
+				$sector: {
+					fields: {
+						$miner: true,
+						sealedCid: true,
+					},
+				},
 				height: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(filecoinSectorTimestamps) => [...new Map(filecoinSectorTimestamps.values.map((filecoinSectorTimestamp) => [filecoinSectorTimestamp[EntityMetaKey.SelectorKey], filecoinSectorTimestamp])).values()]}
 	getKey={(filecoinSectorTimestamp) => filecoinSectorTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +92,24 @@
 
 	{#snippet Item({ item: filecoinSectorTimestamp })}
 		{@const filecoinSectorTimestampFields = { ...filecoinSectorTimestamp[EntityMetaKey.Selector], ...filecoinSectorTimestamp }}
-		{@const selection = select(EntityType.FilecoinSector_Timestamp, filecoinSectorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<FilecoinSector_TimestampView
-			selection={selection}
-			prefetched={filecoinSectorTimestampFields}
+		<EntityView
+			entityType={EntityType.FilecoinSector_Timestamp}
+			entitySelector={filecoinSectorTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((filecoinSectorTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin sector timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((filecoinSectorTimestampFields.$sector.sectorNumber) ?? '')].filter(Boolean).join(' ') || 'filecoin sector'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((filecoinSectorTimestampFields.height) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -21,6 +21,7 @@ import {
 } from '$/sources/Beacon/Rest/constants.ts'
 import { pipedApiOrigins } from '$/sources/Piped/Rest/constants.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	evmExecutionOpenRpcArtifactFailures,
 	providerLocalBindingImportFailures,
@@ -43,6 +44,7 @@ import {
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceTargetKind,
 } from '$/sources/SourceBinding.ts'
 import {
 	zeroGMainnetRpcEndpoints,
@@ -113,6 +115,14 @@ const fixtureSourceProviders = [
 				source: 'OpenSource',
 				label: 'Open source',
 			},
+			{
+				provider: 'ProviderWithoutEnv',
+				source: 'OptionalEnvSource',
+				label: 'Optional-env source',
+				env: arktype({
+					PUBLIC_OPTIONAL_KEY: 'string > 0?',
+				}),
+			},
 		],
 	},
 	{
@@ -157,6 +167,7 @@ describe('source provider registry', () => {
 				PUBLIC_SOURCE_ONLY_KEY: 'source-only-secret',
 				PUBLIC_FAILING_SOURCE_KEY: '   ',
 				PUBLIC_FAILING_PROVIDER_KEY: '',
+				PUBLIC_OPTIONAL_KEY: '   ',
 				PUBLIC_EXTRA_KEY: 'extra-public',
 			}
 		)
@@ -166,9 +177,19 @@ describe('source provider registry', () => {
 			'ProviderAndSourceEnvSource',
 			'SourceOnlyEnvSource',
 			'OpenSource',
+			'OptionalEnvSource',
 		])
+		expect(indexed.resolverPublicEnvBySource.get('OptionalEnvSource')).toEqual({})
 		expect(indexed.resolverPublicEnvBySource.has('ProviderDisabledSource')).toBe(false)
 		expect(indexed.resolverPublicEnvBySource.has('FailingSourceEnvSource')).toBe(false)
+		expect(indexSourceProviders(
+			fixtureSourceProviders,
+			{
+				PUBLIC_OPTIONAL_KEY: 'optional-value',
+			}
+		).resolverPublicEnvBySource.get('OptionalEnvSource')).toEqual({
+			PUBLIC_OPTIONAL_KEY: 'optional-value',
+		})
 	})
 
 	it('keeps Voltaire transaction source narrowing from dropping signature and blob fields', () => {
@@ -306,6 +327,36 @@ describe('source provider registry', () => {
 				sourceProvidersBySource.set(sourceDefinition.source, sourceProvider.provider)
 			}
 		}
+	})
+
+	it('binds both public TRON REST sources to the canonical CAIP-2 mainnet', () => {
+		const bindings = sourceProviderDefinitions
+			.flatMap((provider) => provider.bindings)
+			.filter((binding) => (
+				binding.source === Source.TronGrid_Rest
+				|| binding.source === Source.TronScan_Rest
+			))
+			.map((binding) => ({
+				source: binding.source,
+				target: binding.target,
+			}))
+		expect(bindings).toHaveLength(2)
+		expect(bindings).toEqual(expect.arrayContaining([
+			{
+				source: Source.TronGrid_Rest,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'tron:0x2b6653dc',
+				},
+			},
+			{
+				source: Source.TronScan_Rest,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'tron:0x2b6653dc',
+				},
+			},
+		]))
 	})
 
 	it('keeps CORS-aware source callers backed by provider origins', () => {

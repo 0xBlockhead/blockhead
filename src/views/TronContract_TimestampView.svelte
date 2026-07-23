@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.TronContract_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TronContract_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TronContract_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,15 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tronContractTimestamp = $derived(selection({
+	const tronContractTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('tron contract timestamp')
-	const viewDomId = $derived('tron-contract-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'tron contract timestamp'
+	const viewDomId = $derived('tron-contract-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TronContractView from '$/views/TronContractView.svelte'
 </script>
 
@@ -65,12 +70,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={tronContractTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -83,7 +87,7 @@
 				<dt>Contract</dt>
 				<dd>
 					<TronContractView
-						selection={select(EntityType.TronContract, selection.entitySelector.$contract, {})}
+						selection={select(EntityType.TronContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -212,11 +216,12 @@
 
 			<ResourceBoundary
 				resource={
-					selection.$implementation({
-						sources: [
-							Source.TronScan_Rest,
-						],
-					})
+					selection
+						.$implementation({
+							sources: [
+								Source.TronScan_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(tronContract)}

@@ -2,22 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import BlockheadSessionCreateControl from '$/components/BlockheadSessionCreateControl.svelte'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Sessions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadSession>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadSession>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadSessions) => [...new Map(blockheadSessions.values.map((blockheadSession) => [blockheadSession[EntityMetaKey.SelectorKey], blockheadSession])).values()]}
 	getKey={(blockheadSession) => blockheadSession[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,18 +89,35 @@
 
 	{#snippet Item({ item: blockheadSession })}
 		{@const blockheadSessionFields = { ...blockheadSession[EntityMetaKey.Selector], ...blockheadSession }}
-		{@const selection = select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const blockheadSessionHrefFields = { ...blockheadSession, ...blockheadSession[EntityMetaKey.Selector] }}
-		<BlockheadSessionView
-			selection={selection}
-			prefetched={blockheadSessionFields}
+		<EntityView
+			entityType={EntityType.BlockheadSession}
+			entitySelector={blockheadSession[EntityMetaKey.Selector]}
 			href={
-				(blockheadSessionHrefFields.id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
-					sessionId: String(blockheadSessionHrefFields.id ?? ''),
-				}) : undefined)
+				(
+					blockheadSession[EntityMetaKey.Selector] != null && 'id' in blockheadSession[EntityMetaKey.Selector]
+					&& blockheadSession[EntityMetaKey.Selector].id != null ?
+						resolve('/~/session/[sessionId=stringSegment]', {
+					sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadSessionFields.name) ?? '')].filter(Boolean).join(' ') || [String((blockheadSessionFields.id) ?? '')].filter(Boolean).join(' ') || 'session'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadSessionFields.status) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadSessionFields.updatedAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'A2A push notification configs',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.A2aPushNotificationConfig>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.A2aPushNotificationConfig>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import A2aPushNotificationConfigView from '$/views/A2aPushNotificationConfigView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(a2aPushNotificationConfigs) => [...new Map(a2aPushNotificationConfigs.values.map((a2aPushNotificationConfig) => [a2aPushNotificationConfig[EntityMetaKey.SelectorKey], a2aPushNotificationConfig])).values()]}
 	getKey={(a2aPushNotificationConfig) => a2aPushNotificationConfig[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: a2aPushNotificationConfig })}
 		{@const a2aPushNotificationConfigFields = { ...a2aPushNotificationConfig[EntityMetaKey.Selector], ...a2aPushNotificationConfig }}
-		{@const selection = select(EntityType.A2aPushNotificationConfig, a2aPushNotificationConfig[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<A2aPushNotificationConfigView
-			selection={selection}
-			prefetched={a2aPushNotificationConfigFields}
+		<EntityView
+			entityType={EntityType.A2aPushNotificationConfig}
+			entitySelector={a2aPushNotificationConfig[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((a2aPushNotificationConfigFields.configId) ?? '')].filter(Boolean).join(' ') || 'A2A push notification config'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((a2aPushNotificationConfigFields.status) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((a2aPushNotificationConfigFields.url) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

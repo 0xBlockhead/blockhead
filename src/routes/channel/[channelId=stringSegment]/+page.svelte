@@ -32,7 +32,6 @@
 			$room: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel'))
 
 
 	// Components
@@ -42,7 +41,11 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • blockhead state channel • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		id: params.channelId,
+	}.id) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel' : [String((({ ...{
+		id: params.channelId,
+	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel')} • blockhead state channel • Blockhead</title>
 </svelte:head>
 
 

@@ -25,10 +25,10 @@
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: Number(params.chainId),
+					reference: params.chainId,
 				},
 			},
-			txHash: decodeURIComponent(params.sourceTxHash),
+			txHash: params.sourceTxHash,
 		},
 		createdAt: Number(params.createdAt),
 	}, {
@@ -39,7 +39,6 @@
 			$bridgeTransfer: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction'))
 
 
 	// Components
@@ -49,7 +48,35 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • bridge transaction • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$account: {
+			interopAddress: 'eip155:' + String(Number(params.chainId)) + ':' + String(params.address),
+		},
+		$sourceTx: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			txHash: params.sourceTxHash,
+		},
+		createdAt: Number(params.createdAt),
+	}.createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction' : [String((({ ...{
+		$account: {
+			interopAddress: 'eip155:' + String(Number(params.chainId)) + ':' + String(params.address),
+		},
+		$sourceTx: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			txHash: params.sourceTxHash,
+		},
+		createdAt: Number(params.createdAt),
+	}, ...pageSelection.entity }).createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction')} • bridge transaction • Blockhead</title>
 </svelte:head>
 
 

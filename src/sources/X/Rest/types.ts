@@ -65,9 +65,15 @@ export type XApiV2TweetResponse = {
 export type XApiV2UserTweetsResponse = {
 	data?: XApiV2Tweet[]
 	includes?: XApiV2TweetIncludes
+	meta?: {
+		next_token?: string
+	}
 }
 
 export type XApiV2SearchRecentTweetsResponse = {
 	data?: XApiV2Tweet[]
 	includes?: XApiV2TweetIncludes
+	meta?: {
+		next_token?: string
+	}
 }

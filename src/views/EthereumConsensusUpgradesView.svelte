@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Ethereum consensus upgrades',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EthereumConsensusUpgrade>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EthereumConsensusUpgrade>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EthereumConsensusUpgradeView from '$/views/EthereumConsensusUpgradeView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(ethereumConsensusUpgrades) => [...new Map(ethereumConsensusUpgrades.values.map((ethereumConsensusUpgrade) => [ethereumConsensusUpgrade[EntityMetaKey.SelectorKey], ethereumConsensusUpgrade])).values()]}
 	getKey={(ethereumConsensusUpgrade) => ethereumConsensusUpgrade[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,22 +90,44 @@
 
 	{#snippet Item({ item: ethereumConsensusUpgrade })}
 		{@const ethereumConsensusUpgradeFields = { ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }}
-		{@const selection = select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const ethereumConsensusUpgradeHrefFields = { ...ethereumConsensusUpgrade, ...ethereumConsensusUpgrade[EntityMetaKey.Selector] }}
-		<EthereumConsensusUpgradeView
-			selection={selection}
-			prefetched={ethereumConsensusUpgradeFields}
+		<EntityView
+			entityType={EntityType.EthereumConsensusUpgrade}
+			entitySelector={ethereumConsensusUpgrade[EntityMetaKey.Selector]}
 			href={
-				(ethereumConsensusUpgradeHrefFields.slug !== undefined && ethereumConsensusUpgradeHrefFields.$network !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
-					upgradeSlug: String(ethereumConsensusUpgradeHrefFields.slug ?? ''),
-					network: String(caip2StringFromValue(ethereumConsensusUpgradeHrefFields.$network.caip2) ?? ''),
-				}) : ethereumConsensusUpgradeHrefFields.slug !== undefined && ethereumConsensusUpgradeHrefFields.$network !== undefined && ethereumConsensusUpgradeHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
-					upgradeSlug: String(ethereumConsensusUpgradeHrefFields.slug ?? ''),
-					network: String(ethereumConsensusUpgradeHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					ethereumConsensusUpgrade[EntityMetaKey.Selector] != null && 'slug' in ethereumConsensusUpgrade[EntityMetaKey.Selector]
+					&& ethereumConsensusUpgrade[EntityMetaKey.Selector].slug != null
+					&& ethereumConsensusUpgrade[EntityMetaKey.Selector] != null && '$network' in ethereumConsensusUpgrade[EntityMetaKey.Selector] ?
+						ethereumConsensusUpgrade[EntityMetaKey.Selector].$network != null && 'caip2' in ethereumConsensusUpgrade[EntityMetaKey.Selector].$network
+						&& ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
+						upgradeSlug: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].slug ?? ''),
+						network: String(caip2StringFromValue(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							ethereumConsensusUpgrade[EntityMetaKey.Selector].$network != null && 'slug' in ethereumConsensusUpgrade[EntityMetaKey.Selector].$network
+							&& ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
+							upgradeSlug: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].slug ?? ''),
+							network: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((ethereumConsensusUpgradeFields.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((ethereumConsensusUpgradeFields.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((ethereumConsensusUpgradeFields.upgradeId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

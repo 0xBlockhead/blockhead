@@ -1,0 +1,715 @@
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
+
+import { Source } from '$/sources/Source.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import type { CardanoKoiosTransactionInfo } from '$/sources/CardanoKoios/Rest/types.ts'
+
+const {
+	sourceFetch,
+	sourceGetJson,
+} = vi.hoisted(() => ({
+	sourceFetch: vi.fn(),
+	sourceGetJson: vi.fn(),
+}))
+
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	sourceFetch,
+	sourceGetJson,
+}))
+
+const {
+	getCommittee,
+	getLatestProtocolParameters,
+	getTip,
+	getTransactionInfo,
+	listAssets,
+	listBlocks,
+	listDReps,
+	listGovernanceProposals,
+	listLatestBlockTransactions,
+	listStakePools,
+} = await import('$/sources/CardanoKoios/Rest/queries.ts')
+
+const binding = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.find((candidate) => candidate.source === Source.CardanoKoios_Rest)
+
+if (binding == null)
+	throw new Error('CardanoKoios_Rest spec missing source binding')
+
+const transactionInfo = {
+	tx_hash: 'transaction-hash',
+	epoch_no: 500,
+	absolute_slot: 130_000_000,
+	tx_timestamp: 1_700_000_000,
+	certificates: [],
+	native_scripts: [],
+	plutus_contracts: [],
+	voting_procedures: [],
+	proposal_procedures: [{
+		type: 'TreasuryWithdrawals',
+		index: 2,
+		deposit: '100000000000',
+		meta_url: 'ipfs://bafybeigdyrzt/proposal.json',
+		meta_hash: '9f01cafe',
+		description: {
+			tag: 'TreasuryWithdrawals',
+			contents: [{
+				rewardAccount: 'stake1u8example',
+				coin: 42_000_000,
+			}],
+		},
+		return_address: 'stake1u8return',
+	}],
+} satisfies CardanoKoiosTransactionInfo
+
+describe('Cardano Koios REST transaction transport', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('requests one decoded transaction snapshot with only relationship payloads enabled', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json([transactionInfo]))
+
+		await expect(getTransactionInfo(binding, transactionInfo.tx_hash)).resolves.toEqual(transactionInfo)
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			'https://api.koios.rest/api/v1/tx_info',
+			{
+				method: 'POST',
+				headers: {
+					'content-type': 'application/json',
+				},
+				body: JSON.stringify({
+					_tx_hashes: [transactionInfo.tx_hash],
+					_inputs: false,
+					_metadata: false,
+					_assets: false,
+					_withdrawals: false,
+					_certs: true,
+					_scripts: true,
+					_bytecode: false,
+					_governance: true,
+				}),
+			}
+		)
+	})
+
+	it('rejects an absent transaction instead of resolving authoritative emptiness', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json([]))
+
+		await expect(getTransactionInfo(binding, transactionInfo.tx_hash)).rejects.toThrow(
+			'CardanoKoios_Rest: transaction response is missing'
+		)
+	})
+
+	it.each([
+		{
+			field: 'proposal index',
+			proposal: {
+				...transactionInfo.proposal_procedures[0],
+				index: -1,
+			},
+		},
+		{
+			field: 'proposal deposit',
+			proposal: {
+				...transactionInfo.proposal_procedures[0],
+				deposit: '1.5',
+			},
+		},
+	])('rejects a malformed $field before resolver mapping', async ({ proposal }) => {
+		sourceFetch.mockResolvedValueOnce(Response.json([{
+			...transactionInfo,
+			proposal_procedures: [proposal],
+		}]))
+
+		await expect(getTransactionInfo(binding, transactionInfo.tx_hash)).rejects.toThrow()
+	})
+
+	it('retains pool ticker identity from the list response', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				pool_id_bech32: 'pool1example',
+				ticker: 'EXAMPLE',
+			},
+			{
+				pool_id_bech32: 'pool1null',
+				ticker: null,
+			},
+			{
+				pool_id_bech32: 'pool1absent',
+			},
+		])
+
+		await expect(listStakePools(binding, 3)).resolves.toEqual([
+			{
+				pool_id_bech32: 'pool1example',
+				ticker: 'EXAMPLE',
+			},
+			{
+				pool_id_bech32: 'pool1null',
+			},
+			{
+				pool_id_bech32: 'pool1absent',
+			},
+		])
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://api.koios.rest/api/v1/pool_list?limit=3'
+		)
+	})
+})
+
+describe('Cardano Koios REST network tip, block, and transaction wire validation', () => {
+	const tip = {
+		hash: 'block-hash-102',
+		epoch_no: 500,
+		era: 'Conway',
+		abs_slot: 130_000_102,
+		block_height: 102,
+		block_time: 1_700_000_102,
+	}
+	const blocks = [
+		{
+			...tip,
+			tx_count: 2,
+		},
+		{
+			...tip,
+			hash: 'block-hash-101',
+			abs_slot: tip.abs_slot - 1,
+			block_height: tip.block_height - 1,
+			block_time: tip.block_time - 1,
+			tx_count: 1,
+		},
+	]
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('preserves one exact tip and a strictly newest-first block page', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([tip])
+			.mockResolvedValueOnce(blocks)
+
+		await expect(getTip(binding)).resolves.toEqual([tip])
+		await expect(listBlocks(binding, 2)).resolves.toEqual(blocks)
+	})
+
+	it.each([
+		{
+			label: 'missing tip singleton',
+			load: () => getTip(binding),
+			response: [],
+			message: 'exactly one network observation',
+		},
+		{
+			label: 'duplicate tip singleton',
+			load: () => getTip(binding),
+			response: [tip, tip],
+			message: 'exactly one network observation',
+		},
+		{
+			label: 'malformed tip field',
+			load: () => getTip(binding),
+			response: [{
+				...tip,
+				era: 42,
+			}],
+			message: 'era',
+		},
+		{
+			label: 'unsafe tip number',
+			load: () => getTip(binding),
+			response: [{
+				...tip,
+				abs_slot: Number.MAX_SAFE_INTEGER + 1,
+			}],
+			message: 'unsafe integer',
+		},
+		{
+			label: 'missing block field',
+			load: () => listBlocks(binding, 1),
+			response: [{
+				...blocks[0],
+				tx_count: undefined,
+			}],
+			message: 'tx_count',
+		},
+		{
+			label: 'duplicate block identity',
+			load: () => listBlocks(binding, 2),
+			response: [
+				blocks[0],
+				{
+					...blocks[1],
+					hash: blocks[0].hash,
+				},
+			],
+			message: 'duplicate identities',
+		},
+		{
+			label: 'unsafe block number',
+			load: () => listBlocks(binding, 1),
+			response: [{
+				...blocks[0],
+				tx_count: Number.MAX_SAFE_INTEGER + 1,
+			}],
+			message: 'unsafe integer',
+		},
+		{
+			label: 'non-descending block height',
+			load: () => listBlocks(binding, 2),
+			response: [
+				blocks[0],
+				{
+					...blocks[1],
+					block_height: blocks[0].block_height,
+				},
+			],
+			message: 'strictly newest-first',
+		},
+		{
+			label: 'non-descending block slot',
+			load: () => listBlocks(binding, 2),
+			response: [
+				blocks[0],
+				{
+					...blocks[1],
+					abs_slot: blocks[0].abs_slot,
+				},
+			],
+			message: 'strictly newest-first',
+		},
+	])('rejects $label', async ({
+		load,
+		response,
+		message,
+	}) => {
+		sourceGetJson.mockResolvedValueOnce(response)
+
+		await expect(load()).rejects.toThrow(message)
+	})
+
+	it('preserves provider transaction order and the requested latest-block limit', async () => {
+		sourceGetJson.mockResolvedValueOnce([tip])
+		sourceFetch.mockResolvedValueOnce(Response.json([
+			{ tx_hash: 'transaction-0' },
+			{ tx_hash: 'transaction-1' },
+			{ tx_hash: 'transaction-2' },
+		]))
+
+		await expect(listLatestBlockTransactions(binding, 2)).resolves.toEqual([
+			{ tx_hash: 'transaction-0' },
+			{ tx_hash: 'transaction-1' },
+		])
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			'https://api.koios.rest/api/v1/block_txs',
+			{
+				method: 'POST',
+				headers: {
+					'content-type': 'application/json',
+				},
+				body: JSON.stringify({
+					_block_hashes: [tip.hash],
+				}),
+			}
+		)
+	})
+
+	it('rejects malformed and duplicate latest-block transactions', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([tip])
+			.mockResolvedValueOnce([tip])
+		sourceFetch
+			.mockResolvedValueOnce(Response.json([{ tx_hash: 42 }]))
+			.mockResolvedValueOnce(Response.json([
+				{ tx_hash: 'transaction-0' },
+				{ tx_hash: 'transaction-0' },
+			]))
+
+		await expect(listLatestBlockTransactions(binding, 1)).rejects.toThrow('tx_hash')
+		await expect(listLatestBlockTransactions(binding, 2)).rejects.toThrow('duplicate identities')
+	})
+
+	it('validates the latest-block limit before reading a tip', async () => {
+		await expect(listLatestBlockTransactions(
+			binding,
+			Number.MAX_SAFE_INTEGER + 1
+		)).rejects.toThrow('list count must be an integer from 0 through 100')
+		expect(sourceGetJson).not.toHaveBeenCalled()
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+})
+
+describe('Cardano Koios REST stake-pool wire validation', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it.each([
+		{
+			label: 'missing identity',
+			response: [{ ticker: 'POOL' }],
+			message: 'pool_id_bech32',
+		},
+		{
+			label: 'malformed ticker',
+			response: [{
+				pool_id_bech32: 'pool1fixture',
+				ticker: 42,
+			}],
+			message: 'ticker',
+		},
+		{
+			label: 'duplicate pool identity',
+			response: [
+				{
+					pool_id_bech32: 'pool1fixture',
+					ticker: 'ONE',
+				},
+				{
+					pool_id_bech32: 'pool1fixture',
+					ticker: 'TWO',
+				},
+			],
+			message: 'duplicate identities',
+		},
+	])('rejects $label', async ({
+		response,
+		message,
+	}) => {
+		sourceGetJson.mockResolvedValueOnce(response)
+
+		await expect(listStakePools(binding, response.length)).rejects.toThrow(message)
+	})
+})
+
+describe('Cardano Koios governance proposal pagination', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('preserves the exact provider offset and rejects malformed paging inputs', async () => {
+		sourceGetJson.mockResolvedValueOnce([{
+			proposal_tx_hash: 'proposal-hash',
+			proposal_index: 0,
+			proposal_type: 'InfoAction',
+		}])
+
+		await expect(listGovernanceProposals(binding, 16, 32)).resolves.toHaveLength(1)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://api.koios.rest/api/v1/proposal_list?limit=16&offset=32'
+		)
+		expect(() => listGovernanceProposals(binding, 16, -1)).toThrow(
+			'list offset must be a nonnegative integer'
+		)
+		expect(sourceGetJson).toHaveBeenCalledOnce()
+	})
+})
+
+describe('Cardano Koios REST committee transport', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('validates the real committee_info member shape including a resigned member', async () => {
+		const committee = {
+			proposal_id: 'gov_action1fixture',
+			proposal_tx_hash: 'proposal-hash',
+			proposal_index: 0,
+			quorum_numerator: 2,
+			quorum_denominator: 3,
+			members: [
+				{
+					status: 'authorized',
+					cc_hot_id: 'cc_hot1fixture',
+					cc_cold_id: 'cc_cold1fixture',
+					cc_hot_hex: '01',
+					cc_cold_hex: '02',
+					expiration_epoch: 726,
+					cc_hot_has_script: true,
+					cc_cold_has_script: true,
+				},
+				{
+					status: 'resigned',
+					cc_hot_id: null,
+					cc_cold_id: 'cc_cold1resigned',
+					cc_hot_hex: null,
+					cc_cold_hex: '03',
+					expiration_epoch: 653,
+					cc_hot_has_script: null,
+					cc_cold_has_script: true,
+				},
+			],
+		}
+		sourceGetJson.mockResolvedValueOnce([committee])
+
+		await expect(getCommittee(binding)).resolves.toEqual([committee])
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://api.koios.rest/api/v1/committee_info'
+		)
+	})
+
+	it('rejects malformed committee members before resolver materialization', async () => {
+		sourceGetJson.mockResolvedValueOnce([{
+			proposal_id: 'gov_action1fixture',
+			proposal_tx_hash: 'proposal-hash',
+			proposal_index: 0,
+			quorum_numerator: 2,
+			quorum_denominator: 3,
+			members: ['cc_cold1fixture'],
+		}])
+
+		await expect(getCommittee(binding)).rejects.toThrow('members[0]')
+	})
+
+	it.each([
+		{
+			label: 'missing singleton',
+			response: [],
+			message: 'exactly one committee',
+		},
+		{
+			label: 'duplicate singleton',
+			response: [
+				{
+					proposal_id: 'gov_action1fixture',
+					proposal_tx_hash: 'proposal-hash',
+					proposal_index: 0,
+					quorum_numerator: 2,
+					quorum_denominator: 3,
+					members: [],
+				},
+				{
+					proposal_id: 'gov_action1fixture',
+					proposal_tx_hash: 'proposal-hash',
+					proposal_index: 0,
+					quorum_numerator: 2,
+					quorum_denominator: 3,
+					members: [],
+				},
+			],
+			message: 'exactly one committee',
+		},
+		{
+			label: 'unsafe committee number',
+			response: [{
+				proposal_id: 'gov_action1fixture',
+				proposal_tx_hash: 'proposal-hash',
+				proposal_index: Number.MAX_SAFE_INTEGER + 1,
+				quorum_numerator: 2,
+				quorum_denominator: 3,
+				members: [],
+			}],
+			message: 'unsafe integer',
+		},
+		{
+			label: 'duplicate member',
+			response: [{
+				proposal_id: 'gov_action1fixture',
+				proposal_tx_hash: 'proposal-hash',
+				proposal_index: 0,
+				quorum_numerator: 2,
+				quorum_denominator: 3,
+				members: [
+					{
+						status: 'authorized',
+						cc_hot_id: 'cc_hot1fixture',
+						cc_cold_id: 'cc_cold1fixture',
+						cc_hot_hex: '01',
+						cc_cold_hex: '02',
+						expiration_epoch: 726,
+						cc_hot_has_script: true,
+						cc_cold_has_script: false,
+					},
+					{
+						status: 'authorized',
+						cc_hot_id: 'cc_hot1other',
+						cc_cold_id: 'cc_cold1fixture',
+						cc_hot_hex: '03',
+						cc_cold_hex: '02',
+						expiration_epoch: 727,
+						cc_hot_has_script: false,
+						cc_cold_has_script: false,
+					},
+				],
+			}],
+			message: 'duplicate member identities',
+		},
+	])('rejects $label', async ({
+		response,
+		message,
+	}) => {
+		sourceGetJson.mockResolvedValueOnce(response)
+
+		await expect(getCommittee(binding)).rejects.toThrow(message)
+	})
+})
+
+describe('Cardano Koios REST network collection wire validation', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('preserves valid DRep and native asset identities', async () => {
+		const dReps = [{
+			drep_id: 'drep1fixture',
+			has_script: false,
+		}]
+		const assets = [{
+			policy_id: 'policy-fixture',
+			asset_name: 'asset-fixture',
+		}]
+		sourceGetJson
+			.mockResolvedValueOnce(dReps)
+			.mockResolvedValueOnce(assets)
+
+		await expect(listDReps(binding, 1)).resolves.toEqual(dReps)
+		await expect(listAssets(binding, 1)).resolves.toEqual(assets)
+	})
+
+	it.each([
+		{
+			label: 'missing DRep field',
+			load: () => listDReps(binding, 1),
+			response: [{ drep_id: 'drep1fixture' }],
+			message: 'has_script',
+		},
+		{
+			label: 'duplicate DRep identity',
+			load: () => listDReps(binding, 2),
+			response: [
+				{
+					drep_id: 'drep1fixture',
+					has_script: false,
+				},
+				{
+					drep_id: 'drep1fixture',
+					has_script: true,
+				},
+			],
+			message: 'duplicate identities',
+		},
+		{
+			label: 'malformed asset field',
+			load: () => listAssets(binding, 1),
+			response: [{
+				policy_id: 'policy-fixture',
+				asset_name: 42,
+			}],
+			message: 'asset_name',
+		},
+		{
+			label: 'duplicate asset identity',
+			load: () => listAssets(binding, 2),
+			response: [
+				{
+					policy_id: 'policy-fixture',
+					asset_name: 'asset-fixture',
+				},
+				{
+					policy_id: 'policy-fixture',
+					asset_name: 'asset-fixture',
+				},
+			],
+			message: 'duplicate identities',
+		},
+	])('rejects $label', async ({
+		load,
+		response,
+		message,
+	}) => {
+		sourceGetJson.mockResolvedValueOnce(response)
+
+		await expect(load()).rejects.toThrow(message)
+	})
+})
+
+describe('Cardano Koios REST protocol parameter wire validation', () => {
+	const parameters = {
+		epoch_no: 500,
+		min_fee_a: 44,
+		min_fee_b: 155_381,
+		max_block_size: 90_112,
+		max_tx_size: 16_384,
+		max_bh_size: 1_100,
+		key_deposit: '2000000',
+		pool_deposit: '500000000',
+		max_epoch: 18,
+		optimal_pool_count: 500,
+		monetary_expand_rate: 0.003,
+		treasury_growth_rate: 0.2,
+		decentralisation: 0,
+		protocol_major: 9,
+		protocol_minor: 0,
+		min_pool_cost: '170000000',
+		coins_per_utxo_size: '4310',
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('preserves the latest parameter snapshot and its lossless units', async () => {
+		sourceGetJson.mockResolvedValueOnce([parameters])
+
+		await expect(getLatestProtocolParameters(binding)).resolves.toEqual([parameters])
+	})
+
+	it.each([
+		{
+			label: 'missing singleton',
+			response: [],
+			message: 'exactly one latest epoch',
+		},
+		{
+			label: 'duplicate singleton',
+			response: [parameters, parameters],
+			message: 'exactly one latest epoch',
+		},
+		{
+			label: 'missing field',
+			response: [{
+				...parameters,
+				coins_per_utxo_size: undefined,
+			}],
+			message: 'coins_per_utxo_size',
+		},
+		{
+			label: 'malformed lossless unit',
+			response: [{
+				...parameters,
+				key_deposit: '2.5',
+			}],
+			message: 'key_deposit',
+		},
+		{
+			label: 'unsafe integer',
+			response: [{
+				...parameters,
+				epoch_no: Number.MAX_SAFE_INTEGER + 1,
+			}],
+			message: 'unsafe integer',
+		},
+	])('rejects $label', async ({
+		response,
+		message,
+	}) => {
+		sourceGetJson.mockResolvedValueOnce(response)
+
+		await expect(getLatestProtocolParameters(binding)).rejects.toThrow(message)
+	})
+})

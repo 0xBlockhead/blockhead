@@ -35,7 +35,6 @@
 			tags: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.fromChainId) ?? ''), 'to', String((pageSelection.entitySelector.toChainId) ?? '')].filter(Boolean).join(' ') || 'bridge route' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).fromChainId) ?? ''), 'to', String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).toChainId) ?? '')].filter(Boolean).join(' ') || 'bridge route')))
 
 
 	// Components
@@ -45,7 +44,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • bridge route • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.fromChainId) ?? ''), 'to', String((data.selector.toChainId) ?? '')].filter(Boolean).join(' ') || 'bridge route' : [String((({ ...data.selector, ...pageSelection.entity }).fromChainId) ?? ''), 'to', String((({ ...data.selector, ...pageSelection.entity }).toChainId) ?? '')].filter(Boolean).join(' ') || 'bridge route'))} • bridge route • Blockhead</title>
 </svelte:head>
 
 

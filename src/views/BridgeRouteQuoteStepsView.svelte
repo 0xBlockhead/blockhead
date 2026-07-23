@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Quote steps',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BridgeRouteQuoteStep>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BridgeRouteQuoteStep>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BridgeRouteQuoteStepView from '$/views/BridgeRouteQuoteStepView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(bridgeRouteQuoteSteps) => [...new Map(bridgeRouteQuoteSteps.values.map((bridgeRouteQuoteStep) => [bridgeRouteQuoteStep[EntityMetaKey.SelectorKey], bridgeRouteQuoteStep])).values()]}
 	getKey={(bridgeRouteQuoteStep) => bridgeRouteQuoteStep[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: bridgeRouteQuoteStep })}
 		{@const bridgeRouteQuoteStepFields = { ...bridgeRouteQuoteStep[EntityMetaKey.Selector], ...bridgeRouteQuoteStep }}
-		{@const selection = select(EntityType.BridgeRouteQuoteStep, bridgeRouteQuoteStep[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BridgeRouteQuoteStepView
-			selection={selection}
-			prefetched={bridgeRouteQuoteStepFields}
+		<EntityView
+			entityType={EntityType.BridgeRouteQuoteStep}
+			entitySelector={bridgeRouteQuoteStep[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((bridgeRouteQuoteStepFields.indexInQuote) ?? '') ? 'Step #' + String((bridgeRouteQuoteStepFields.indexInQuote) ?? '') : '') || 'bridge route quote step'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((bridgeRouteQuoteStepFields.tool) ?? ''), String((bridgeRouteQuoteStepFields.stepType) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

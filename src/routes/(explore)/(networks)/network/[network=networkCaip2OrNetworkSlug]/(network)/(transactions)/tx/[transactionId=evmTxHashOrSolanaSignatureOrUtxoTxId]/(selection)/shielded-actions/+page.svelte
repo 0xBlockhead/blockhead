@@ -38,11 +38,8 @@
 			})
 		}
 		title='Zcash shielded actions'
-		selection={
-			select(EntityType.UtxoTransaction, data.selector).$$zcashShieldedActions({
-				count: true,
-			})
-		}
+		selection={select(EntityType.UtxoTransaction, data.selector).$$zcashShieldedActions}
+		countResource={select(EntityType.UtxoTransaction, data.selector).$$zcashShieldedActions.count}
 		id='zcash-shielded-actions'
 		data-column-item="flexible"
 		data-card

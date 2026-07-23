@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadWalletConnection>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadWalletConnection>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadWalletConnection>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadWalletConnection = $derived(selection({
+	const blockheadWalletConnection = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			status: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			status: true,
@@ -50,17 +56,17 @@
 			selected: true,
 		},
 	}))
-	const titleFallback = $derived('wallet connection')
-	const viewDomId = $derived('blockhead-wallet-connection-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'wallet connection'
+	const viewDomId = $derived('blockhead-wallet-connection-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import BlockheadWalletAccountsView from '$/views/BlockheadWalletAccountsView.svelte'
+	import AccountsView from '$/views/AccountsView.svelte'
 	import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
-	import BlockheadWalletAccountView from '$/views/BlockheadWalletAccountView.svelte'
+	import AccountView from '$/views/AccountView.svelte'
 </script>
 
 
@@ -70,36 +76,35 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.connectionKey !== undefined ? resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
-			connectionKey: String(pendingEntity.connectionKey ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'connectionKey' in selection.entitySelector
+			&& selection.entitySelector.connectionKey != null ?
+				resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
+			connectionKey: String(selection.entitySelector.connectionKey ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={selection.$wallet}
-					>
-						{#snippet children(blockheadWallet)}
-							{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
-							<BlockheadWalletView
-								selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
-								prefetched={blockheadWallet}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$wallet') && prefetched.$wallet != null && prefetched.$wallet[EntityMetaKey.Selector] != null && Object.hasOwn(prefetched.$wallet, 'name') && Object.hasOwn(prefetched.$wallet, 'protocol') && Object.hasOwn(prefetched, 'status')}
+			{@const blockheadWallet0 = pendingEntity.$wallet}
+			{#if blockheadWallet0 != null && blockheadWallet0[EntityMetaKey.Selector] != null}
+				<BlockheadWalletView
+					selection={select(EntityType.BlockheadWallet, blockheadWallet0[EntityMetaKey.Selector], { sources: selection.sources })}
+					prefetched={blockheadWallet0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadWalletConnection}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<ResourceBoundary
 						resource={selection.$wallet}
 					>
@@ -108,11 +113,10 @@
 							<BlockheadWalletView
 								selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 								prefetched={blockheadWallet}
+								href=""
 								layout={EntityLayout.Title}
 								open={false}
 							/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -122,13 +126,36 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$wallet') && prefetched.$wallet != null && prefetched.$wallet[EntityMetaKey.Selector] != null && Object.hasOwn(prefetched.$wallet, 'name') && Object.hasOwn(prefetched.$wallet, 'protocol') && Object.hasOwn(prefetched, 'status')}
 			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadWalletConnection}>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$wallet') && prefetched.$wallet != null && prefetched.$wallet[EntityMetaKey.Selector] != null && Object.hasOwn(prefetched.$wallet, 'name') && Object.hasOwn(prefetched.$wallet, 'protocol') && Object.hasOwn(prefetched, 'status')}
+			{@const status0 = pendingEntity.status}
+			{#if status0 !== undefined && status0 !== null}
+				<span data-text="muted">
+					{String((status0) ?? '')}
+				</span>
+			{/if}
+		{:else}
+			<ResourceBoundary resource={blockheadWalletConnection}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const status0 = resolvedEntity.status}
+					{#if status0 !== undefined && status0 !== null}
+						<span data-text="muted">
+							{String((status0) ?? '')}
+						</span>
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
@@ -401,14 +428,14 @@
 			<ResourceBoundary
 				resource={selection.$activeAccount}
 			>
-				{#snippet children(blockheadWalletAccount)}
-					{#if blockheadWalletAccount != null && blockheadWalletAccount[EntityMetaKey.Selector] != null}
+				{#snippet children(account)}
+					{#if account != null && account[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Active account</dt>
 							<dd>
-								<BlockheadWalletAccountView
-									selection={select(EntityType.BlockheadWalletAccount, blockheadWalletAccount[EntityMetaKey.Selector])}
-									prefetched={blockheadWalletAccount}
+								<AccountView
+									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
+									prefetched={account}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -421,17 +448,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadWalletAccountsView
-				selection={
-						selection.$$connectedAccounts({
-							count: true,
-						})
-					}
-				title='Connected accounts'
-				emptyText='No connected accounts yet.'
-				id='BlockheadWalletAccountsView-connected-accounts'
-			/>
-		{/if}
+		{@const blockheadWalletConnectionAccountsViewAccountsResource = selection.$$accounts}
+		<ResourceBoundary
+			resource={blockheadWalletConnectionAccountsViewAccountsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AccountsView
+					selection={blockheadWalletConnectionAccountsViewAccountsResource}
+					countResource={blockheadWalletConnectionAccountsViewAccountsResource.count}
+					title='Accounts'
+					id='AccountsView-accounts'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

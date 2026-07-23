@@ -34,7 +34,6 @@
 			code: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.precompileName) ?? ''), String((pageSelection.entitySelector.address) ?? '')].filter(Boolean).join(' ') || 'EVM contract' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).precompileName) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'EVM contract')))
 
 
 	// Components
@@ -44,7 +43,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM contract • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'EVM contract' : [String((({ ...data.selector, ...pageSelection.entity }).precompileName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'EVM contract'))} • EVM contract • Blockhead</title>
 </svelte:head>
 
 

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Celestia blobs',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CelestiaBlob>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CelestiaBlob>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CelestiaBlobView from '$/views/CelestiaBlobView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -75,10 +68,16 @@
 			fields: {
 				commitment: true,
 				height: true,
-				$namespace: true,
+				$namespace: {
+					fields: {
+						label: true,
+						namespaceVersion: true,
+					},
+				},
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(celestiaBlobs) => [...new Map(celestiaBlobs.values.map((celestiaBlob) => [celestiaBlob[EntityMetaKey.SelectorKey], celestiaBlob])).values()]}
 	getKey={(celestiaBlob) => celestiaBlob[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +92,24 @@
 
 	{#snippet Item({ item: celestiaBlob })}
 		{@const celestiaBlobFields = { ...celestiaBlob[EntityMetaKey.Selector], ...celestiaBlob }}
-		{@const selection = select(EntityType.CelestiaBlob, celestiaBlob[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CelestiaBlobView
-			selection={selection}
-			prefetched={celestiaBlobFields}
+		<EntityView
+			entityType={EntityType.CelestiaBlob}
+			entitySelector={celestiaBlob[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((celestiaBlobFields.commitment) ?? '')].filter(Boolean).join(' ') || 'celestia blob'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((celestiaBlobFields.height) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((celestiaBlobFields.$namespace.label) ?? '')].filter(Boolean).join(' ') || [String((celestiaBlobFields.$namespace.namespaceId) ?? '')].filter(Boolean).join(' ') || 'celestia namespace'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

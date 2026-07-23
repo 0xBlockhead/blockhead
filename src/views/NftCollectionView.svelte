@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NftCollection>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NftCollection>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NftCollection>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nftCollection = $derived(selection({
+	const nftCollection = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('NFT collection')
-	const viewDomId = $derived('nft-collection-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'NFT collection'
+	const viewDomId = $derived('nft-collection-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,12 +72,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={nftCollection}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -86,17 +89,34 @@
 				<dt>asset instance</dt>
 				<dd>
 					<AssetInstanceView
-						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance, {})}
+						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						href={
-							(selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-								network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$assetInstance != null && 'kind' in selection.entitySelector.$assetInstance
+								&& selection.entitySelector.$assetInstance.kind != null
+								&& selection.entitySelector.$assetInstance != null && 'assetKey' in selection.entitySelector.$assetInstance
+								&& selection.entitySelector.$assetInstance.assetKey != null
+								&& selection.entitySelector.$assetInstance != null && '$network' in selection.entitySelector.$assetInstance ?
+									selection.entitySelector.$assetInstance.$network != null && 'caip2' in selection.entitySelector.$assetInstance.$network
+									&& selection.entitySelector.$assetInstance.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+									kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+									assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$assetInstance.$network != null && 'slug' in selection.entitySelector.$assetInstance.$network
+										&& selection.entitySelector.$assetInstance.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+										kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+										assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+										network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -107,28 +127,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<NftTokensView
-				selection={
-						selection.$$tokens({
-							count: true,
-						})
-					}
-				title='tokens'
-				emptyText='No NFT tokens.'
-				id='NftTokensView-tokens'
-			/>
-
-			<RoyaltyRight_TimestampsView
-				selection={
-						selection.$$royaltyTimestamps({
-							count: true,
-						})
-					}
-				title='royalty timestamps'
-				emptyText='No royalty right observations.'
-				id='RoyaltyRight_TimestampsView-royalty-timestamps'
-			/>
-		{/if}
+		{@const nftCollectionNftTokensViewTokensResource = selection.$$tokens}
+		<ResourceBoundary
+			resource={nftCollectionNftTokensViewTokensResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<NftTokensView
+					selection={nftCollectionNftTokensViewTokensResource}
+					countResource={nftCollectionNftTokensViewTokensResource.count}
+					title='tokens'
+					id='NftTokensView-tokens'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const nftCollectionRoyaltyRightTimestampsViewRoyaltyTimestampsResource = selection.$$royaltyTimestamps}
+		<ResourceBoundary
+			resource={nftCollectionRoyaltyRightTimestampsViewRoyaltyTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<RoyaltyRight_TimestampsView
+					selection={nftCollectionRoyaltyRightTimestampsViewRoyaltyTimestampsResource}
+					countResource={nftCollectionRoyaltyRightTimestampsViewRoyaltyTimestampsResource.count}
+					title='royalty timestamps'
+					id='RoyaltyRight_TimestampsView-royalty-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

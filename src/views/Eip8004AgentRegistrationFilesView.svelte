@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EIP-8004 agent registration files',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.Eip8004AgentRegistrationFile>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Eip8004AgentRegistrationFile>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Eip8004AgentRegistrationFileView from '$/views/Eip8004AgentRegistrationFileView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(eip8004AgentRegistrationFiles) => [...new Map(eip8004AgentRegistrationFiles.values.map((eip8004AgentRegistrationFile) => [eip8004AgentRegistrationFile[EntityMetaKey.SelectorKey], eip8004AgentRegistrationFile])).values()]}
 	getKey={(eip8004AgentRegistrationFile) => eip8004AgentRegistrationFile[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: eip8004AgentRegistrationFile })}
 		{@const eip8004AgentRegistrationFileFields = { ...eip8004AgentRegistrationFile[EntityMetaKey.Selector], ...eip8004AgentRegistrationFile }}
-		{@const selection = select(EntityType.Eip8004AgentRegistrationFile, eip8004AgentRegistrationFile[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<Eip8004AgentRegistrationFileView
-			selection={selection}
-			prefetched={eip8004AgentRegistrationFileFields}
+		<EntityView
+			entityType={EntityType.Eip8004AgentRegistrationFile}
+			entitySelector={eip8004AgentRegistrationFile[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((eip8004AgentRegistrationFileFields.fileUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration file'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((eip8004AgentRegistrationFileFields.$registration.agentId) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

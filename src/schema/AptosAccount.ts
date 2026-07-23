@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum AptosAccountSelector {
@@ -33,24 +34,37 @@ export const AptosAccount = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AptosAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.AptosFullnode_Rest,
+		],
 	},
 	$$balances: {
 		label: 'balances',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AptosCoinBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.AptosIndexer_Graphql,
+		],
 	},
 	$$resources: {
 		label: 'resources',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AptosAccountResource,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.AptosFullnode_Rest,
+		],
 	},
 	$$transactions: {
 		label: 'transactions',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AptosTransaction,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.AptosIndexer_Graphql,
+			Source.AptosFullnode_Rest,
+		],
 	},
 })({
 	selectors: {

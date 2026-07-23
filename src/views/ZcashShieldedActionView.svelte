@@ -4,15 +4,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -31,7 +31,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ZcashShieldedAction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ZcashShieldedAction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZcashShieldedAction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -45,7 +45,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zcashShieldedAction = $derived(selection({
+	const zcashShieldedAction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			nullifier: true,
+			noteCommitment: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			nullifier: true,
@@ -53,7 +59,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.actionKind) ?? ''), String((pendingEntity.indexInTransaction) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action')
-	const viewDomId = $derived('zcash-shielded-action-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('zcash-shielded-action-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,26 +76,48 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.pool !== undefined && pendingEntity.actionKind !== undefined && pendingEntity.indexInTransaction !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.txId !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
-			pool: String(pendingEntity.pool ?? ''),
-			actionKind: String(pendingEntity.actionKind ?? ''),
-			actionIndex: String(pendingEntity.indexInTransaction ?? ''),
-			transactionId: String(pendingEntity.$transaction.txId ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$transaction.$network.caip2) ?? ''),
-		}) : pendingEntity.pool !== undefined && pendingEntity.actionKind !== undefined && pendingEntity.indexInTransaction !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.txId !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
-			pool: String(pendingEntity.pool ?? ''),
-			actionKind: String(pendingEntity.actionKind ?? ''),
-			actionIndex: String(pendingEntity.indexInTransaction ?? ''),
-			transactionId: String(pendingEntity.$transaction.txId ?? ''),
-			network: String(pendingEntity.$transaction.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'pool' in selection.entitySelector
+			&& selection.entitySelector.pool != null
+			&& selection.entitySelector != null && 'actionKind' in selection.entitySelector
+			&& selection.entitySelector.actionKind != null
+			&& selection.entitySelector != null && 'indexInTransaction' in selection.entitySelector
+			&& selection.entitySelector.indexInTransaction != null
+			&& selection.entitySelector != null && '$transaction' in selection.entitySelector
+			&& selection.entitySelector.$transaction != null && 'txId' in selection.entitySelector.$transaction
+			&& selection.entitySelector.$transaction.txId != null
+			&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
+				selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+				&& selection.entitySelector.$transaction.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
+				pool: String(selection.entitySelector.pool ?? ''),
+				actionKind: String(selection.entitySelector.actionKind ?? ''),
+				actionIndex: String(selection.entitySelector.indexInTransaction ?? ''),
+				transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+					&& selection.entitySelector.$transaction.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
+					pool: String(selection.entitySelector.pool ?? ''),
+					actionKind: String(selection.entitySelector.actionKind ?? ''),
+					actionIndex: String(selection.entitySelector.indexInTransaction ?? ''),
+					transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+					network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'nullifier') && Object.hasOwn(prefetched, 'noteCommitment')}
 			{[String((pendingEntity.actionKind) ?? ''), String((pendingEntity.indexInTransaction) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={zcashShieldedAction}>
@@ -102,7 +130,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'nullifier') && Object.hasOwn(prefetched, 'noteCommitment')}
 			{[String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.actionKind) ?? ''), String((pendingEntity.indexInTransaction) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={zcashShieldedAction}>
@@ -115,7 +143,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'nullifier') && Object.hasOwn(prefetched, 'noteCommitment')}
 			{@const nullifier0 = pendingEntity.nullifier}
 			{#if nullifier0 !== undefined && nullifier0 !== null}
 				<span data-text="muted">
@@ -239,13 +267,28 @@
 									selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector])}
 									prefetched={zcashShieldedPool}
 									href={
-										(zcashShieldedPool[EntityMetaKey.Selector].pool !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
-											pool: String(zcashShieldedPool[EntityMetaKey.Selector].pool ?? ''),
-											network: String(caip2StringFromValue(zcashShieldedPool[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : zcashShieldedPool[EntityMetaKey.Selector].pool !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
-											pool: String(zcashShieldedPool[EntityMetaKey.Selector].pool ?? ''),
-											network: String(zcashShieldedPool[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											zcashShieldedPool[EntityMetaKey.Selector] != null && 'pool' in zcashShieldedPool[EntityMetaKey.Selector]
+											&& zcashShieldedPool[EntityMetaKey.Selector].pool != null
+											&& zcashShieldedPool[EntityMetaKey.Selector] != null && '$network' in zcashShieldedPool[EntityMetaKey.Selector] ?
+												zcashShieldedPool[EntityMetaKey.Selector].$network != null && 'caip2' in zcashShieldedPool[EntityMetaKey.Selector].$network
+												&& zcashShieldedPool[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+												pool: String(zcashShieldedPool[EntityMetaKey.Selector].pool ?? ''),
+												network: String(caip2StringFromValue(zcashShieldedPool[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													zcashShieldedPool[EntityMetaKey.Selector].$network != null && 'slug' in zcashShieldedPool[EntityMetaKey.Selector].$network
+													&& zcashShieldedPool[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+													pool: String(zcashShieldedPool[EntityMetaKey.Selector].pool ?? ''),
+													network: String(zcashShieldedPool[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -332,21 +375,30 @@
 				<dt>Transaction</dt>
 				<dd>
 					<UtxoTransactionView
-						selection={
-							select(EntityType.UtxoTransaction, selection.entitySelector.$transaction, {
-								sources: [
-									Source.Zcashd_JsonRpc,
-								],
-							})
-						}
+						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction)}
 						href={
-							(selection.entitySelector.$transaction.txId !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$transaction.txId !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
-								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$transaction != null && 'txId' in selection.entitySelector.$transaction
+								&& selection.entitySelector.$transaction.txId != null
+								&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
+									selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+									&& selection.entitySelector.$transaction.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+									transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+										&& selection.entitySelector.$transaction.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+										transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+										network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

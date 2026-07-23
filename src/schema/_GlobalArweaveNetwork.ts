@@ -46,12 +46,6 @@ export const _GlobalArweaveNetwork = entity({
 		entityType: EntityType.ArweaveResource,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$timestamps: {
-		label: 'Timestamps',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType._GlobalArweaveNetwork_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		Scope: [

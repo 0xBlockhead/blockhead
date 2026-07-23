@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Cashu melt quotes',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadCashuMeltQuote>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadCashuMeltQuote>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadCashuMeltQuoteView from '$/views/BlockheadCashuMeltQuoteView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadCashuMeltQuotes) => [...new Map(blockheadCashuMeltQuotes.values.map((blockheadCashuMeltQuote) => [blockheadCashuMeltQuote[EntityMetaKey.SelectorKey], blockheadCashuMeltQuote])).values()]}
 	getKey={(blockheadCashuMeltQuote) => blockheadCashuMeltQuote[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: blockheadCashuMeltQuote })}
 		{@const blockheadCashuMeltQuoteFields = { ...blockheadCashuMeltQuote[EntityMetaKey.Selector], ...blockheadCashuMeltQuote }}
-		{@const selection = select(EntityType.BlockheadCashuMeltQuote, blockheadCashuMeltQuote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadCashuMeltQuoteView
-			selection={selection}
-			prefetched={blockheadCashuMeltQuoteFields}
+		<EntityView
+			entityType={EntityType.BlockheadCashuMeltQuote}
+			entitySelector={blockheadCashuMeltQuote[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadCashuMeltQuoteFields.quoteId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu melt quote'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadCashuMeltQuoteFields.amount) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmActorCoinAllowance_Block>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmActorCoinAllowance_Block>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmActorCoinAllowance_Block>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmActorCoinAllowanceBlock = $derived(selection({
+	const evmActorCoinAllowanceBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			allowance: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			allowance: true,
 		},
 	}))
 	const titleFallback = $derived([(String((pendingEntity.blockNumber) ?? '') ? 'Block ' + String((pendingEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || 'EVM actor coin allowance block')
-	const viewDomId = $derived('evm-actor-coin-allowance-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('evm-actor-coin-allowance-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,7 +75,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'allowance')}
 			{[(String((pendingEntity.blockNumber) ?? '') ? 'Block ' + String((pendingEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
@@ -82,7 +88,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'allowance')}
 			{[String((pendingEntity.allowance) ?? '')].filter(Boolean).join(' ') || [(String((pendingEntity.blockNumber) ?? '') ? 'Block ' + String((pendingEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
@@ -95,7 +101,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'allowance')}
 			{@const source0 = pendingEntity.source}
 			{#if source0 !== undefined && source0 !== null}
 				<span data-text="muted">
@@ -243,14 +249,31 @@
 				<dt>Allowance</dt>
 				<dd>
 					<EvmActorCoinAllowanceView
-						selection={select(EntityType.EvmActorCoinAllowance, selection.entitySelector.$allowance, {})}
+						selection={select(EntityType.EvmActorCoinAllowance, selection.entitySelector.$allowance)}
 						href={
-							(selection.entitySelector.$allowance.$actor !== undefined && selection.entitySelector.$allowance.$actor.address !== undefined && selection.entitySelector.$allowance.$contract !== undefined && selection.entitySelector.$allowance.$contract.$network !== undefined && selection.entitySelector.$allowance.$contract.$network.caip2 !== undefined && selection.entitySelector.$allowance.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$allowance.$contract.address !== undefined && selection.entitySelector.$allowance.$spender !== undefined && selection.entitySelector.$allowance.$spender.address !== undefined ? resolve('/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]', {
+							(
+								selection.entitySelector.$allowance != null && '$actor' in selection.entitySelector.$allowance
+								&& selection.entitySelector.$allowance.$actor != null && 'address' in selection.entitySelector.$allowance.$actor
+								&& selection.entitySelector.$allowance.$actor.address != null
+								&& selection.entitySelector.$allowance != null && '$contract' in selection.entitySelector.$allowance
+								&& selection.entitySelector.$allowance.$contract != null && '$network' in selection.entitySelector.$allowance.$contract
+								&& selection.entitySelector.$allowance.$contract.$network != null && 'caip2' in selection.entitySelector.$allowance.$contract.$network
+								&& selection.entitySelector.$allowance.$contract.$network.caip2 != null && 'reference' in selection.entitySelector.$allowance.$contract.$network.caip2
+								&& selection.entitySelector.$allowance.$contract.$network.caip2.reference != null
+								&& selection.entitySelector.$allowance.$contract != null && 'address' in selection.entitySelector.$allowance.$contract
+								&& selection.entitySelector.$allowance.$contract.address != null
+								&& selection.entitySelector.$allowance != null && '$spender' in selection.entitySelector.$allowance
+								&& selection.entitySelector.$allowance.$spender != null && 'address' in selection.entitySelector.$allowance.$spender
+								&& selection.entitySelector.$allowance.$spender.address != null ?
+									resolve('/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]', {
 								owner: String(selection.entitySelector.$allowance.$actor.address ?? ''),
 								chainId: String(selection.entitySelector.$allowance.$contract.$network.caip2.reference ?? ''),
 								coin: String(selection.entitySelector.$allowance.$contract.address ?? ''),
 								spender: String(selection.entitySelector.$allowance.$spender.address ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

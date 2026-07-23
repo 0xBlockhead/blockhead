@@ -21,7 +21,7 @@
 		$market: data.selector,
 		timeInterval: {
 			unit: params.timeIntervalUnit,
-			value: Number(params.timeIntervalValue),
+			value: params.timeIntervalValue,
 		},
 		timestampMs: Number(params.timestampMs),
 	}, {
@@ -34,7 +34,6 @@
 			$parentMarket: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [pageSelection.entitySelector.timeInterval == null ? '' : String((`${(pageSelection.entitySelector.timeInterval).value}${(pageSelection.entitySelector.timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || 'OHLC candle' : [({ ...pageSelection.entitySelector, ...pageSelection.entity }).timeInterval == null ? '' : String((`${(({ ...pageSelection.entitySelector, ...pageSelection.entity }).timeInterval).value}${(({ ...pageSelection.entitySelector, ...pageSelection.entity }).timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || 'OHLC candle')))
 
 
 	// Components
@@ -44,7 +43,49 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • OHLC candle • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [{
+		$market: data.selector,
+		timeInterval: {
+			unit: params.timeIntervalUnit,
+			value: params.timeIntervalValue,
+		},
+		timestampMs: Number(params.timestampMs),
+	}.timeInterval == null ? '' : String(`${({
+		$market: data.selector,
+		timeInterval: {
+			unit: params.timeIntervalUnit,
+			value: params.timeIntervalValue,
+		},
+		timestampMs: Number(params.timestampMs),
+	}.timeInterval).value}${({
+		$market: data.selector,
+		timeInterval: {
+			unit: params.timeIntervalUnit,
+			value: params.timeIntervalValue,
+		},
+		timestampMs: Number(params.timestampMs),
+	}.timeInterval).unit}`)].filter(Boolean).join(' ') || 'OHLC candle' : [({ ...{
+		$market: data.selector,
+		timeInterval: {
+			unit: params.timeIntervalUnit,
+			value: params.timeIntervalValue,
+		},
+		timestampMs: Number(params.timestampMs),
+	}, ...pageSelection.entity }).timeInterval == null ? '' : String(`${(({ ...{
+		$market: data.selector,
+		timeInterval: {
+			unit: params.timeIntervalUnit,
+			value: params.timeIntervalValue,
+		},
+		timestampMs: Number(params.timestampMs),
+	}, ...pageSelection.entity }).timeInterval).value}${(({ ...{
+		$market: data.selector,
+		timeInterval: {
+			unit: params.timeIntervalUnit,
+			value: params.timeIntervalValue,
+		},
+		timestampMs: Number(params.timestampMs),
+	}, ...pageSelection.entity }).timeInterval).unit}`)].filter(Boolean).join(' ') || 'OHLC candle'))} • OHLC candle • Blockhead</title>
 </svelte:head>
 
 

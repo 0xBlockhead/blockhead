@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ActivityPub instance observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ActivityPubInstance_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ActivityPubInstance_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubInstance_TimestampView from '$/views/ActivityPubInstance_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(activityPubInstanceTimestamps) => [...new Map(activityPubInstanceTimestamps.values.map((activityPubInstanceTimestamp) => [activityPubInstanceTimestamp[EntityMetaKey.SelectorKey], activityPubInstanceTimestamp])).values()]}
 	getKey={(activityPubInstanceTimestamp) => activityPubInstanceTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,20 +90,38 @@
 
 	{#snippet Item({ item: activityPubInstanceTimestamp })}
 		{@const activityPubInstanceTimestampFields = { ...activityPubInstanceTimestamp[EntityMetaKey.Selector], ...activityPubInstanceTimestamp }}
-		{@const selection = select(EntityType.ActivityPubInstance_Timestamp, activityPubInstanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const activityPubInstanceTimestampHrefFields = { ...activityPubInstanceTimestamp, ...activityPubInstanceTimestamp[EntityMetaKey.Selector] }}
-		<ActivityPubInstance_TimestampView
-			selection={selection}
-			prefetched={activityPubInstanceTimestampFields}
+		<EntityView
+			entityType={EntityType.ActivityPubInstance_Timestamp}
+			entitySelector={activityPubInstanceTimestamp[EntityMetaKey.Selector]}
 			href={
-				(activityPubInstanceTimestampHrefFields.timestampMs !== undefined && activityPubInstanceTimestampHrefFields.source !== undefined && activityPubInstanceTimestampHrefFields.$instance !== undefined && activityPubInstanceTimestampHrefFields.$instance.instanceOrigin !== undefined ? resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(activityPubInstanceTimestampHrefFields.timestampMs ?? ''),
-					source: String(activityPubInstanceTimestampHrefFields.source ?? ''),
-					instanceOrigin: encodeURIComponent(String(activityPubInstanceTimestampHrefFields.$instance.instanceOrigin ?? '')),
-				}) : undefined)
+				(
+					activityPubInstanceTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in activityPubInstanceTimestamp[EntityMetaKey.Selector]
+					&& activityPubInstanceTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& activityPubInstanceTimestamp[EntityMetaKey.Selector] != null && 'source' in activityPubInstanceTimestamp[EntityMetaKey.Selector]
+					&& activityPubInstanceTimestamp[EntityMetaKey.Selector].source != null
+					&& activityPubInstanceTimestamp[EntityMetaKey.Selector] != null && '$instance' in activityPubInstanceTimestamp[EntityMetaKey.Selector]
+					&& activityPubInstanceTimestamp[EntityMetaKey.Selector].$instance != null && 'instanceOrigin' in activityPubInstanceTimestamp[EntityMetaKey.Selector].$instance
+					&& activityPubInstanceTimestamp[EntityMetaKey.Selector].$instance.instanceOrigin != null ?
+						resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(activityPubInstanceTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(activityPubInstanceTimestamp[EntityMetaKey.Selector].source ?? ''),
+					instanceOrigin: encodeURIComponent(String(activityPubInstanceTimestamp[EntityMetaKey.Selector].$instance.instanceOrigin ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((activityPubInstanceTimestampFields.title) ?? ''), String((activityPubInstanceTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((activityPubInstanceTimestampFields.$instance.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance', String((activityPubInstanceTimestampFields.source) ?? ''), String((activityPubInstanceTimestampFields.version) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadWakuNodeState>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadWakuNodeState>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadWakuNodeState>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,14 +38,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadWakuNodeState = $derived(selection({
+	const blockheadWakuNodeState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			endpoint: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			endpoint: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead waku node state')
-	const viewDomId = $derived('blockhead-waku-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-waku-node-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,7 +72,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'endpoint')}
 			{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadWakuNodeState}>
@@ -79,7 +85,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'endpoint')}
 			{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadWakuNodeState}>
@@ -92,7 +98,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'endpoint')}
 			{@const endpoint0 = pendingEntity.endpoint}
 			{#if endpoint0 !== undefined && endpoint0 !== null}
 				<span data-text="muted">
@@ -212,28 +218,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadWakuNodeState_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No Waku node-state observations.'
-				id='BlockheadWakuNodeState_TimestampsView-timestamps'
-			/>
-
-			<BlockheadWakuMessageObservation_TimestampsView
-				selection={
-						selection.$$messageObservations({
-							count: true,
-						})
-					}
-				title='message observations'
-				emptyText='No Waku message observations.'
-				id='BlockheadWakuMessageObservation_TimestampsView-message-observations'
-			/>
-		{/if}
+		{@const blockheadWakuNodeStateBlockheadWakuNodeStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadWakuNodeStateBlockheadWakuNodeStateTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadWakuNodeState_TimestampsView
+					selection={blockheadWakuNodeStateBlockheadWakuNodeStateTimestampsViewTimestampsResource}
+					countResource={blockheadWakuNodeStateBlockheadWakuNodeStateTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadWakuNodeState_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const blockheadWakuNodeStateBlockheadWakuMessageObservationTimestampsViewMessageObservationsResource = selection.$$messageObservations}
+		<ResourceBoundary
+			resource={blockheadWakuNodeStateBlockheadWakuMessageObservationTimestampsViewMessageObservationsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadWakuMessageObservation_TimestampsView
+					selection={blockheadWakuNodeStateBlockheadWakuMessageObservationTimestampsViewMessageObservationsResource}
+					countResource={blockheadWakuNodeStateBlockheadWakuMessageObservationTimestampsViewMessageObservationsResource.count}
+					title='message observations'
+					id='BlockheadWakuMessageObservation_TimestampsView-message-observations'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

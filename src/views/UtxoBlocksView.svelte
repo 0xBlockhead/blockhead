@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'UTXO blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.UtxoBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.UtxoBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(utxoBlocks) => [...new Map(utxoBlocks.values.map((utxoBlock) => [utxoBlock[EntityMetaKey.SelectorKey], utxoBlock])).values()]}
 	getKey={(utxoBlock) => utxoBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,24 +90,48 @@
 
 	{#snippet Item({ item: utxoBlock })}
 		{@const utxoBlockFields = { ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }}
-		{@const selection = select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const utxoBlockHrefFields = { ...utxoBlock, ...utxoBlock[EntityMetaKey.Selector] }}
-		<UtxoBlockView
-			selection={selection}
-			prefetched={utxoBlockFields}
+		<EntityView
+			entityType={EntityType.UtxoBlock}
+			entitySelector={utxoBlock[EntityMetaKey.Selector]}
 			href={
-				(utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-					blockNumber: String(utxoBlockHrefFields.height ?? ''),
-					hash: String(utxoBlockHrefFields.hash ?? ''),
-					network: String(caip2StringFromValue(utxoBlockHrefFields.$network.caip2) ?? ''),
-				}) : utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-					blockNumber: String(utxoBlockHrefFields.height ?? ''),
-					hash: String(utxoBlockHrefFields.hash ?? ''),
-					network: String(utxoBlockHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					utxoBlock[EntityMetaKey.Selector] != null && 'height' in utxoBlock[EntityMetaKey.Selector]
+					&& utxoBlock[EntityMetaKey.Selector].height != null
+					&& utxoBlock[EntityMetaKey.Selector] != null && 'hash' in utxoBlock[EntityMetaKey.Selector]
+					&& utxoBlock[EntityMetaKey.Selector].hash != null
+					&& utxoBlock[EntityMetaKey.Selector] != null && '$network' in utxoBlock[EntityMetaKey.Selector] ?
+						utxoBlock[EntityMetaKey.Selector].$network != null && 'caip2' in utxoBlock[EntityMetaKey.Selector].$network
+						&& utxoBlock[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+						blockNumber: String(utxoBlock[EntityMetaKey.Selector].height ?? ''),
+						hash: String(utxoBlock[EntityMetaKey.Selector].hash ?? ''),
+						network: String(caip2StringFromValue(utxoBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							utxoBlock[EntityMetaKey.Selector].$network != null && 'slug' in utxoBlock[EntityMetaKey.Selector].$network
+							&& utxoBlock[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+							blockNumber: String(utxoBlock[EntityMetaKey.Selector].height ?? ''),
+							hash: String(utxoBlock[EntityMetaKey.Selector].hash ?? ''),
+							network: String(utxoBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((utxoBlockFields.height) ?? '') ? 'Block #' + String((utxoBlockFields.height) ?? '') : '') || [String((utxoBlockFields.hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((utxoBlockFields.transactionCount) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

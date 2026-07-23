@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { stringify } from 'devalue'
+import { type as arktype } from 'arktype'
 import {
 	WalletCapability,
 	WalletDiscoveryKind,
@@ -13,16 +14,21 @@ import {
 	localMutationAuthorityKey,
 } from '$/client/$client.svelte.ts'
 import {
+	deleteLocalBlockheadPanel,
 	deleteLocalBlockheadSession,
 	deleteLocalBlockheadWalletConnection,
 	type LocalMutationContext,
 	writeLocalBlockheadLocalMediaIngest,
+	writeLocalBlockheadPanel,
+	writeLocalBlockheadPanelTree,
 	writeLocalBlockheadSession,
 	writeLocalBlockheadSessionAction,
+	updateLocalBlockheadSessionActionType,
 	writeLocalBlockheadSocialPostSession,
 	writeLocalBlockheadWorkspace,
 	writeLocalBlockheadWallet,
 	writeLocalBlockheadWalletConnection,
+	writeLocalBlockheadWalletRequest,
 } from '$/collections/localMutations.ts'
 import { SocialProtocol } from '$/schema/BlockheadSocialPostSession.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
@@ -30,6 +36,7 @@ import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 	entitySelectorKey,
+	parseEntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { entityDefinitionByType, schema } from '$/schema/index.ts'
@@ -39,6 +46,10 @@ const source = readFileSync(resolve('src/collections/localMutations.ts'), 'utf8'
 const farcasterMutationSource = source.slice(
 	source.indexOf('export const writeLocalBlockheadFarcasterAccountConnection'),
 	source.indexOf('export const writeLocalBlockheadSocialPostSession')
+)
+const workspaceMutationSource = source.slice(
+	source.indexOf('export const writeLocalBlockheadWorkspace'),
+	source.indexOf('export const writeLocalBlockheadWallet')
 )
 
 describe('local Farcaster account connection mutations', () => {
@@ -56,7 +67,7 @@ describe('local Farcaster account connection mutations', () => {
 })
 
 describe('local mutation authority journal', () => {
-	it('records exact field, relationship, count, absence, and deletion authority', () => {
+	it('records exact field, relationship, count, absence, and deletion authority', async () => {
 		type MockRow = Record<string, object | string | number | boolean | bigint | undefined>
 		const events: {
 			selectorKey: string
@@ -66,7 +77,9 @@ describe('local mutation authority journal', () => {
 		type MockCollection = {
 			toArray: MockRow[]
 			delete(key: string): void
+			startSyncImmediate(): void
 			utils: {
+				waitForPersistence(): Promise<void>
 				replaceRows(predicate: (row: MockRow) => boolean, rows: readonly MockRow[]): void
 				replaceRowsWithAuthority(
 					predicate: (row: MockRow) => boolean,
@@ -102,7 +115,9 @@ describe('local mutation authority journal', () => {
 					if (index >= 0)
 						rows.splice(index, 1)
 				},
+				startSyncImmediate: () => {},
 				utils: {
+					waitForPersistence: async () => {},
 					replaceRows: (predicate, nextRows) => {
 						for (let index = rows.length - 1; index >= 0; index--)
 							if (predicate(rows[index]))
@@ -170,7 +185,7 @@ describe('local mutation authority journal', () => {
 		const walletSelectorKey = stringify({ id: 'wallet-1' })
 		const connectionSelectorKey = stringify({ connectionKey: 'connection-1' })
 
-		writeLocalBlockheadWallet(context, {
+		await writeLocalBlockheadWallet(context, {
 			id: 'wallet-1',
 			name: 'Example Wallet',
 			icon: 'data:image/svg+xml,example',
@@ -179,7 +194,7 @@ describe('local mutation authority journal', () => {
 			transportKind: WalletTransportKind.InjectedProvider,
 			capabilities: [WalletCapability.Connect],
 		})
-		writeLocalBlockheadWalletConnection(context, {
+		await writeLocalBlockheadWalletConnection(context, {
 			connectionKey: 'connection-1',
 			walletId: 'wallet-1',
 			status: BlockheadConnectionStatus.Connected,
@@ -219,8 +234,8 @@ describe('local mutation authority journal', () => {
 					source: Source.Local_Internal,
 					entityType: EntityType.BlockheadWalletConnection,
 					selectorKey: connectionSelectorKey,
-					fieldName: '$$connectedAccounts',
-					fieldAddressKey: entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], '$$connectedAccounts'),
+					fieldName: '$$accounts',
+					fieldAddressKey: entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], '$$accounts'),
 					facetPathKey: stringify([]),
 					filterKey: stringify({}),
 				}),
@@ -228,9 +243,17 @@ describe('local mutation authority journal', () => {
 			}),
 		]))
 
-		deleteLocalBlockheadWalletConnection(context, 'connection-1')
+		await deleteLocalBlockheadWalletConnection(context, 'connection-1')
 
-		expect(events.some((event) => event.selectorKey === connectionSelectorKey)).toBe(false)
+		expect(events).toContainEqual(expect.objectContaining({
+			selectorKey: connectionSelectorKey,
+			authorityKey: localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: EntityType.BlockheadWalletConnection,
+				selectorKey: connectionSelectorKey,
+			}),
+			resolution: 'deleted',
+		}))
 
 		expect(entityFieldCollections[EntityType._Global][entityFieldAddressKey(
 			EntityType._Global,
@@ -250,30 +273,102 @@ describe('local mutation authority journal', () => {
 		const sessionParentSelector = {
 			scope: '$$blockheadSessions',
 		}
-		const sessionSelector = writeLocalBlockheadSession(
+		const sessionSelector = await writeLocalBlockheadSession(
 			context,
 			sessionParentSelector,
 			'Authority session'
 		)
-		writeLocalBlockheadSessionAction(
+		const secondSessionSelector = await writeLocalBlockheadSession(
+			context,
+			sessionParentSelector,
+			'Second authority session'
+		)
+		expect(entityFieldCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadSessions'
+		)].toArray.map((row) => row.valueIndex)).toEqual([
+			0,
+			1,
+		])
+		await writeLocalBlockheadSessionAction(
 			context,
 			sessionSelector,
 			0,
 			ActionType.Transfer
 		)
-		const actionSelectorKey = entityCollections[EntityType.BlockheadSessionAction]
-			.toArray[0][EntityMetaKey.SelectorKey]
+		const actionRow = entityCollections[EntityType.BlockheadSessionAction].toArray[0]
+		const actionSelectorKey = actionRow[EntityMetaKey.SelectorKey]
+		const actionSelector = parseEntitySelector(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadSessionAction],
+			actionRow[EntityMetaKey.Selector]
+		)
+		if (actionSelector instanceof arktype.errors)
+			throw actionSelector
+		await updateLocalBlockheadSessionActionType(
+			context,
+			actionSelector,
+			sessionSelector,
+			0,
+			10,
+			ActionType.Bridge,
+			{
+				fromChainId: 1,
+				toChainId: 10,
+				tokenAddress: '0x0000000000000000000000000000000000000000',
+				amount: 2n,
+				slippage: 0.005,
+			}
+		)
+		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.SelectorKey]: actionSelectorKey,
+			}),
+		])
+		expect(entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+			EntityType.BlockheadSessionAction,
+			[],
+			'actionParams'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelectorKey]: actionSelectorKey,
+				[EntityMetaKey.Value]: expect.objectContaining({
+					amount: 2n,
+				}),
+			}),
+		])
+		expect(() => writeLocalBlockheadSessionAction(
+			context,
+			sessionSelector,
+			1,
+			ActionType.Transfer,
+			{
+				amount: 'invalid',
+			}
+		)).toThrow()
+		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toHaveLength(1)
 
 		deleteLocalBlockheadSession(context, sessionParentSelector, sessionSelector)
+		deleteLocalBlockheadSession(context, sessionParentSelector, secondSessionSelector)
 
 		expect(entityCollections[EntityType.BlockheadSession].toArray).toHaveLength(0)
 		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toHaveLength(0)
-		expect(events.some((event) => event.selectorKey === actionSelectorKey)).toBe(false)
+		expect(events).toContainEqual(expect.objectContaining({
+			selectorKey: actionSelectorKey,
+			authorityKey: localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: EntityType.BlockheadSessionAction,
+				selectorKey: actionSelectorKey,
+			}),
+			resolution: 'deleted',
+		}))
 	})
 
-	it('reconciles connection relationships before declaring count and absence authority', () => {
+	it('reconciles relationships before declaring count and absence authority', async () => {
 		type MockRow = Record<string, object | string | number | boolean | bigint | undefined>
 		const rowsByAddress = new Map<string, MockRow[]>()
+		const persistedAddresses: string[] = []
 		const events: {
 			selectorKey: string
 			authorityKey: string
@@ -287,7 +382,11 @@ describe('local mutation authority journal', () => {
 		const collectionFor = (address: string) => ({
 			toArray: rowsFor(address),
 			delete: () => {},
+			startSyncImmediate: () => {},
 			utils: {
+				waitForPersistence: async () => {
+					persistedAddresses.push(address)
+				},
 				replaceRows: (
 					predicate: (row: MockRow) => boolean,
 					nextRows: readonly MockRow[]
@@ -409,8 +508,77 @@ describe('local mutation authority journal', () => {
 			],
 			activeAccount: secondAccount,
 		}
+		await writeLocalBlockheadWallet(context, {
+			id: connection.walletId,
+			name: 'Wallet 1',
+			icon: '',
+			protocol: WalletProtocol.Eip6963,
+			discoveryKind: WalletDiscoveryKind.InjectedEvent,
+			transportKind: WalletTransportKind.InjectedProvider,
+			capabilities: [WalletCapability.Connect],
+		})
+		expect(persistedAddresses.indexOf(`field:${EntityType._Global}:${entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadWallets'
+		)}`)).toBeGreaterThan(persistedAddresses.indexOf(`entity:${EntityType.BlockheadWallet}`))
+		expect(persistedAddresses.indexOf(`field:${EntityType._Global}:${entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadWallets'
+		)}`)).toBeGreaterThan(persistedAddresses.indexOf(`field:${EntityType.BlockheadWallet}:${entityFieldAddressKey(
+			EntityType.BlockheadWallet,
+			[],
+			'name'
+		)}`))
+		expect(persistedAddresses.indexOf(`count:${EntityType._Global}:${entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadWallets'
+		)}`)).toBeGreaterThan(persistedAddresses.indexOf(`field:${EntityType.BlockheadWallet}:${entityFieldAddressKey(
+			EntityType.BlockheadWallet,
+			[],
+			'protocol'
+		)}`))
 
-		writeLocalBlockheadWalletConnection(context, connection)
+		expect(context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)]?.toArray).toEqual([])
+
+		await writeLocalBlockheadWalletConnection(context, connection)
+		expect(context.entityCollections[EntityType.Account].toArray).toHaveLength(0)
+		expect(context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)].toArray).toHaveLength(2)
+		expect(context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 2,
+				filterKey: stringify({}),
+			}),
+		])
+		expect(events).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				authorityKey: localMutationAuthorityKey({
+					source: Source.Local_Internal,
+					entityType: EntityType._Global,
+					selectorKey: stringify({
+						scope: '$$blockheadAccounts',
+					}),
+					fieldName: '$$blockheadAccounts',
+					fieldAddressKey: entityFieldAddressKey(EntityType._Global, [], '$$blockheadAccounts'),
+					facetPathKey: stringify([]),
+				}),
+				resolution: 'resolved',
+			}),
+		]))
 		const activeAccountRow = context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
 			EntityType.BlockheadWalletConnection,
 			[],
@@ -419,7 +587,7 @@ describe('local mutation authority journal', () => {
 		expect(activeAccountRow[EntityMetaKey.Value]).toMatchObject({
 			[EntityMetaKey.SelectorKey]: entitySelectorKey(
 			schema,
-			entityDefinitionByType[EntityType.BlockheadWalletAccount],
+			entityDefinitionByType[EntityType.Account],
 			{
 				caip10: {
 					namespace: secondAccount.namespace,
@@ -429,7 +597,7 @@ describe('local mutation authority journal', () => {
 			}
 			),
 		})
-		writeLocalBlockheadWalletConnection(context, {
+		await writeLocalBlockheadWalletConnection(context, {
 			...connection,
 			accounts: [firstAccount],
 			activeAccount: undefined,
@@ -438,12 +606,12 @@ describe('local mutation authority journal', () => {
 		expect(context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
 			EntityType.BlockheadWalletConnection,
 			[],
-			'$$connectedAccounts'
+			'$$accounts'
 		)].toArray).toHaveLength(1)
 		expect(context.entityFieldCountCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
 			EntityType.BlockheadWalletConnection,
 			[],
-			'$$connectedAccounts'
+			'$$accounts'
 		)]?.toArray)
 			.toEqual([
 				expect.objectContaining({
@@ -452,17 +620,71 @@ describe('local mutation authority journal', () => {
 				}),
 			])
 
-		writeLocalBlockheadWalletConnection(context, {
+		persistedAddresses.length = 0
+		await writeLocalBlockheadWalletConnection(context, {
 			...connection,
+			status: BlockheadConnectionStatus.Disconnected,
+			selected: false,
+			disconnectedAt: 2,
 			accounts: [],
 			activeAccount: undefined,
 		})
 
+		expect(context.entityCollections[EntityType.BlockheadWalletConnection].toArray).toHaveLength(1)
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
+			EntityType.BlockheadWalletConnection,
+			[],
+			'status'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: BlockheadConnectionStatus.Disconnected,
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadWalletConnections'
+		)].toArray).toHaveLength(1)
+		expect(context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadWalletConnections'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 1,
+				filterKey: stringify({}),
+			}),
+		])
+		expect(persistedAddresses).toContain(`field:${EntityType._Global}:${entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadWalletConnections'
+		)}`)
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
+			EntityType.BlockheadWalletConnection,
+			[],
+			'$$accounts'
+		)].toArray).toHaveLength(0)
+		expect(context.entityFieldCountCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
+			EntityType.BlockheadWalletConnection,
+			[],
+			'$$accounts'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 0,
+				filterKey: stringify({}),
+			}),
+		])
 		expect(context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
 			EntityType.BlockheadWalletConnection,
 			[],
 			'$activeAccount'
 		)].toArray).toHaveLength(0)
+		expect(persistedAddresses).toContain(`field:${EntityType.BlockheadWalletConnection}:${entityFieldAddressKey(
+			EntityType.BlockheadWalletConnection,
+			[],
+			'$activeAccount'
+		)}`)
 		expect(events).toEqual(expect.arrayContaining([
 			expect.objectContaining({
 				authorityKey: localMutationAuthorityKey({
@@ -484,14 +706,31 @@ describe('local mutation authority journal', () => {
 					selectorKey: stringify({
 						connectionKey: 'connection-1',
 					}),
-					fieldName: '$$connectedAccounts',
-					fieldAddressKey: entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], '$$connectedAccounts'),
+					fieldName: '$$accounts',
+					fieldAddressKey: entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], '$$accounts'),
 					facetPathKey: stringify([]),
 					filterKey: stringify({}),
 				}),
 				resolution: 'resolved',
 			}),
 		]))
+
+		await deleteLocalBlockheadWalletConnection(context, connection.connectionKey)
+		expect(context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)].toArray).toHaveLength(2)
+		expect(context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 2,
+				filterKey: stringify({}),
+			}),
+		])
 
 		writeLocalBlockheadSocialPostSession(context, {
 			id: 'social-session-1',
@@ -552,16 +791,118 @@ describe('local mutation authority journal', () => {
 
 		writeLocalBlockheadWorkspace(context, {
 			id: 'workspace-1',
+			name: 'Workspace',
 			activePanelTreeId: 'tree-1',
 		})
-		writeLocalBlockheadWorkspace(context, {
-			id: 'workspace-1',
+		writeLocalBlockheadPanelTree(context, {
+			id: 'tree-1',
+			workspaceId: 'workspace-1',
 		})
-		expect(context.entityFieldCollections[EntityType.BlockheadWorkspace][entityFieldAddressKey(
-			EntityType.BlockheadWorkspace,
+		writeLocalBlockheadPanel(context, {
+			treeId: 'tree-1',
+			panelId: 'root',
+			indexInParent: 0,
+			kind: 'split',
+		})
+		writeLocalBlockheadPanel(context, {
+			treeId: 'tree-1',
+			panelId: 'entity',
+			parentPanelId: 'root',
+			indexInParent: 1,
+			kind: 'entity',
+			entityType: EntityType.Network,
+			selector: {
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
+				},
+			},
+		})
+
+		expect(context.entityFieldCollections[EntityType.BlockheadPanelTree][entityFieldAddressKey(
+			EntityType.BlockheadPanelTree,
 			[],
-			'$activePanelTree'
-		)].toArray).toHaveLength(0)
+			'$$panels'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				valueIndex: 0,
+			}),
+			expect.objectContaining({
+				valueIndex: 1,
+			}),
+		])
+		expect(context.entityFieldCountCollections[EntityType.BlockheadPanelTree][entityFieldAddressKey(
+			EntityType.BlockheadPanelTree,
+			[],
+			'$$panels'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 2,
+			}),
+		])
+		for (const [fieldName, value] of [
+			[
+				'parentPanelId',
+				'root',
+			],
+			[
+				'entityType',
+				EntityType.Network,
+			],
+			[
+				'selector',
+				{
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+			],
+		] as const)
+			expect(context.entityFieldCollections[EntityType.BlockheadPanel][entityFieldAddressKey(
+				EntityType.BlockheadPanel,
+				[],
+				fieldName
+			)].toArray).toEqual([
+				expect.objectContaining({
+					[EntityMetaKey.Value]: value,
+				}),
+			])
+
+		writeLocalBlockheadPanel(context, {
+			treeId: 'tree-1',
+			panelId: 'entity',
+			parentPanelId: 'root',
+			indexInParent: 1,
+			kind: 'empty',
+		})
+		for (const fieldName of [
+			'entityType',
+			'selector',
+		])
+			expect(context.entityFieldCollections[EntityType.BlockheadPanel][entityFieldAddressKey(
+				EntityType.BlockheadPanel,
+				[],
+				fieldName
+			)].toArray).toHaveLength(0)
+
+		deleteLocalBlockheadPanel(context, 'tree-1', 'entity')
+		expect(context.entityCollections[EntityType.BlockheadPanel].toArray).toHaveLength(1)
+		expect(context.entityFieldCollections[EntityType.BlockheadPanelTree][entityFieldAddressKey(
+			EntityType.BlockheadPanelTree,
+			[],
+			'$$panels'
+		)].toArray).toHaveLength(1)
+		expect(context.entityFieldCountCollections[EntityType.BlockheadPanelTree][entityFieldAddressKey(
+			EntityType.BlockheadPanelTree,
+			[],
+			'$$panels'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 1,
+			}),
+		])
+		expect(workspaceMutationSource).not.toMatch(/\b(?:focus|hover)\w*/i)
 
 		writeLocalBlockheadLocalMediaIngest(context, {
 			ingestId: 'ingest-1',
@@ -593,5 +934,39 @@ describe('local mutation authority journal', () => {
 			[],
 			'$media'
 		)].toArray).toHaveLength(0)
+
+		await writeLocalBlockheadWalletRequest(context, {
+			id: 'wallet-request-1',
+			walletConnectionKey: 'wallet-session',
+			walletProtocol: WalletProtocol.Eip6963,
+			caip10: {
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+			},
+			requestKind: 'message-signature',
+			requestMethod: 'personal_sign',
+			requestPayloadHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+			requestedAt: 1,
+			timestamps: [{
+				timestampMs: 1,
+				source: Source.Local_Internal,
+				status: 'requested',
+			}],
+		})
+		expect(persistedAddresses).toEqual(expect.arrayContaining([
+			`entity:${EntityType.BlockheadWalletRequest}`,
+			`entity:${EntityType.BlockheadWalletRequest_Timestamp}`,
+			`field:${EntityType.BlockheadWalletRequest}:${entityFieldAddressKey(
+				EntityType.BlockheadWalletRequest,
+				[],
+				'$$timestamps'
+			)}`,
+			`field:${EntityType._Global}:${entityFieldAddressKey(
+				EntityType._Global,
+				[],
+				'$$blockheadWalletRequests'
+			)}`,
+		]))
 	})
 })

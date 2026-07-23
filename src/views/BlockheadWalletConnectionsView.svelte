@@ -2,25 +2,25 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Wallet connections',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
-		emptyText = undefined,
+		emptyText = 'No saved wallet connections.',
 		open = $bindable(true),
 		collapsible = true,
 		showTypeAnnotation = true,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadWalletConnection>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadWalletConnection>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadWalletConnectionView from '$/views/BlockheadWalletConnectionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,12 +67,18 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				$wallet: true,
+				$wallet: {
+					fields: {
+						name: true,
+						protocol: true,
+					},
+				},
 				status: true,
 				connectionKey: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadWalletConnections) => [...new Map(blockheadWalletConnections.values.map((blockheadWalletConnection) => [blockheadWalletConnection[EntityMetaKey.SelectorKey], blockheadWalletConnection])).values()]}
 	getKey={(blockheadWalletConnection) => blockheadWalletConnection[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,18 +93,35 @@
 
 	{#snippet Item({ item: blockheadWalletConnection })}
 		{@const blockheadWalletConnectionFields = { ...blockheadWalletConnection[EntityMetaKey.Selector], ...blockheadWalletConnection }}
-		{@const selection = select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const blockheadWalletConnectionHrefFields = { ...blockheadWalletConnection, ...blockheadWalletConnection[EntityMetaKey.Selector] }}
-		<BlockheadWalletConnectionView
-			selection={selection}
-			prefetched={blockheadWalletConnectionFields}
+		<EntityView
+			entityType={EntityType.BlockheadWalletConnection}
+			entitySelector={blockheadWalletConnection[EntityMetaKey.Selector]}
 			href={
-				(blockheadWalletConnectionHrefFields.connectionKey !== undefined ? resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
-					connectionKey: String(blockheadWalletConnectionHrefFields.connectionKey ?? ''),
-				}) : undefined)
+				(
+					blockheadWalletConnection[EntityMetaKey.Selector] != null && 'connectionKey' in blockheadWalletConnection[EntityMetaKey.Selector]
+					&& blockheadWalletConnection[EntityMetaKey.Selector].connectionKey != null ?
+						resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
+					connectionKey: String(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((blockheadWalletConnectionFields.$wallet.name) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet'].filter(Boolean).join(' ') || 'wallet connection'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadWalletConnectionFields.status) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadWalletConnectionFields.status) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

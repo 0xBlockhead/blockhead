@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Codex storage node states',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadCodexStorageNodeState>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadCodexStorageNodeState>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadCodexStorageNodeStateView from '$/views/BlockheadCodexStorageNodeStateView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadCodexStorageNodeStates) => [...new Map(blockheadCodexStorageNodeStates.values.map((blockheadCodexStorageNodeState) => [blockheadCodexStorageNodeState[EntityMetaKey.SelectorKey], blockheadCodexStorageNodeState])).values()]}
 	getKey={(blockheadCodexStorageNodeState) => blockheadCodexStorageNodeState[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadCodexStorageNodeState })}
 		{@const blockheadCodexStorageNodeStateFields = { ...blockheadCodexStorageNodeState[EntityMetaKey.Selector], ...blockheadCodexStorageNodeState }}
-		{@const selection = select(EntityType.BlockheadCodexStorageNodeState, blockheadCodexStorageNodeState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadCodexStorageNodeStateView
-			selection={selection}
-			prefetched={blockheadCodexStorageNodeStateFields}
+		<EntityView
+			entityType={EntityType.BlockheadCodexStorageNodeState}
+			entitySelector={blockheadCodexStorageNodeState[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadCodexStorageNodeStateFields.peerId) ?? '')].filter(Boolean).join(' ') || 'blockhead codex storage node state'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadCodexStorageNodeStateFields.connectionId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadCodexStorageNodeStateFields.endpoint) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Zero g storage node observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ZeroGStorageNode_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ZeroGStorageNode_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ZeroGStorageNode_TimestampView from '$/views/ZeroGStorageNode_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(zeroGStorageNodeTimestamps) => [...new Map(zeroGStorageNodeTimestamps.values.map((zeroGStorageNodeTimestamp) => [zeroGStorageNodeTimestamp[EntityMetaKey.SelectorKey], zeroGStorageNodeTimestamp])).values()]}
 	getKey={(zeroGStorageNodeTimestamp) => zeroGStorageNodeTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: zeroGStorageNodeTimestamp })}
 		{@const zeroGStorageNodeTimestampFields = { ...zeroGStorageNodeTimestamp[EntityMetaKey.Selector], ...zeroGStorageNodeTimestamp }}
-		{@const selection = select(EntityType.ZeroGStorageNode_Timestamp, zeroGStorageNodeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ZeroGStorageNode_TimestampView
-			selection={selection}
-			prefetched={zeroGStorageNodeTimestampFields}
+		<EntityView
+			entityType={EntityType.ZeroGStorageNode_Timestamp}
+			entitySelector={zeroGStorageNodeTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{['zero g storage node'].filter(Boolean).join(' ') || 'zero g storage node timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((zeroGStorageNodeTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

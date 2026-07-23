@@ -46,7 +46,6 @@
 			assetOutcome: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInRoute) ?? '') ? 'Step #' + String((pageSelection.entitySelector.indexInRoute) ?? '') : '') || 'bridge route step' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInRoute) ?? '') ? 'Step #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInRoute) ?? '') : '') || 'bridge route step'))
 
 
 	// Components
@@ -56,7 +55,55 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • bridge route step • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (String(({
+		$route: {
+			fromChainId: Number(params.fromChainId),
+			toChainId: Number(params.toChainId),
+			fromToken: params.fromToken,
+			toToken: params.toToken,
+			fromAmount: BigInt(params.fromAmount),
+			fromAddress: params.fromAddress,
+			slippage: Number(params.slippage),
+			toAddress: params.toAddress,
+		},
+		indexInRoute: Number(params.stepIndex),
+	}.indexInRoute) ?? '') ? 'Step #' + String(({
+		$route: {
+			fromChainId: Number(params.fromChainId),
+			toChainId: Number(params.toChainId),
+			fromToken: params.fromToken,
+			toToken: params.toToken,
+			fromAmount: BigInt(params.fromAmount),
+			fromAddress: params.fromAddress,
+			slippage: Number(params.slippage),
+			toAddress: params.toAddress,
+		},
+		indexInRoute: Number(params.stepIndex),
+	}.indexInRoute) ?? '') : '') || 'bridge route step' : (String((({ ...{
+		$route: {
+			fromChainId: Number(params.fromChainId),
+			toChainId: Number(params.toChainId),
+			fromToken: params.fromToken,
+			toToken: params.toToken,
+			fromAmount: BigInt(params.fromAmount),
+			fromAddress: params.fromAddress,
+			slippage: Number(params.slippage),
+			toAddress: params.toAddress,
+		},
+		indexInRoute: Number(params.stepIndex),
+	}, ...pageSelection.entity }).indexInRoute) ?? '') ? 'Step #' + String((({ ...{
+		$route: {
+			fromChainId: Number(params.fromChainId),
+			toChainId: Number(params.toChainId),
+			fromToken: params.fromToken,
+			toToken: params.toToken,
+			fromAmount: BigInt(params.fromAmount),
+			fromAddress: params.fromAddress,
+			slippage: Number(params.slippage),
+			toAddress: params.toAddress,
+		},
+		indexInRoute: Number(params.stepIndex),
+	}, ...pageSelection.entity }).indexInRoute) ?? '') : '') || 'bridge route step')} • bridge route step • Blockhead</title>
 </svelte:head>
 
 

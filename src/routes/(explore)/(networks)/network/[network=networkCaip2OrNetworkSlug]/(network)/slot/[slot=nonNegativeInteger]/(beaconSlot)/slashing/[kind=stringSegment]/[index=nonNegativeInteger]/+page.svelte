@@ -23,7 +23,6 @@
 		kind: params.kind,
 		indexInSlot: Number(params.index),
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInSlot) ?? '') ? 'Slashing #' + String((pageSelection.entitySelector.indexInSlot) ?? '') : '') || 'beacon slashing' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Slashing #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon slashing')))
 
 
 	// Components
@@ -33,7 +32,27 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • beacon slashing • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
+		$network: data.selector,
+		slot: Number(params.slot),
+		kind: params.kind,
+		indexInSlot: Number(params.index),
+	}.indexInSlot) ?? '') ? 'Slashing #' + String(({
+		$network: data.selector,
+		slot: Number(params.slot),
+		kind: params.kind,
+		indexInSlot: Number(params.index),
+	}.indexInSlot) ?? '') : '') || 'beacon slashing' : (String((({ ...{
+		$network: data.selector,
+		slot: Number(params.slot),
+		kind: params.kind,
+		indexInSlot: Number(params.index),
+	}, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Slashing #' + String((({ ...{
+		$network: data.selector,
+		slot: Number(params.slot),
+		kind: params.kind,
+		indexInSlot: Number(params.index),
+	}, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon slashing'))} • beacon slashing • Blockhead</title>
 </svelte:head>
 
 

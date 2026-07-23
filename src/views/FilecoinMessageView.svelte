@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FilecoinMessage>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FilecoinMessage>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FilecoinMessage>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,14 +44,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const filecoinMessage = $derived(selection({
+	const filecoinMessage = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			valueAttoFil: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			valueAttoFil: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'filecoin message')
-	const viewDomId = $derived('filecoin-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('filecoin-message-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,186 +79,83 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const cid0 = pendingEntity.cid}
-					{#if cid0 !== undefined && cid0 !== null}
-						<TruncatedValue value={String((cid0) ?? '')} />
-					{/if}
-		{:else}
-			<ResourceBoundary resource={filecoinMessage}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const cid0 = resolvedEntity.cid}
-					{#if cid0 !== undefined && cid0 !== null}
-						<TruncatedValue value={String((cid0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={filecoinMessage}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const cid0 = resolvedEntity.cid}
+				{#if cid0 !== undefined && cid0 !== null}
+					<TruncatedValue value={String((cid0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={
-						selection.$from({
-							sources: [
-								Source.Filfox_Rest,
-							],
-						})
+		<ResourceBoundary resource={filecoinMessage}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={
+						selection
+							.$from({
+								sources: [
+									Source.Filfox_Rest,
+								],
+							})
 					}
-					>
-						{#snippet children(filecoinActor)}
-							{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
-								<FilecoinActorView
-									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
-									prefetched={filecoinActor}
-									href={
-									(filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-										address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-										network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
-									}) : filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-										address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-										network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
-									}) : undefined)
-								}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+				>
+					{#snippet children(filecoinActor)}
+						{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
+							<FilecoinActorView
+								selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
+								prefetched={filecoinActor}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-					<ResourceBoundary
-						resource={
-						selection.$to({
-							sources: [
-								Source.Filfox_Rest,
-							],
-						})
+				<ResourceBoundary
+					resource={
+						selection
+							.$to({
+								sources: [
+									Source.Filfox_Rest,
+								],
+							})
 					}
-					>
-						{#snippet children(filecoinActor)}
-							{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
-								<FilecoinActorView
-									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
-									prefetched={filecoinActor}
-									href={
-									(filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-										address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-										network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
-									}) : filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-										address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-										network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
-									}) : undefined)
-								}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={filecoinMessage}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={
-						selection.$from({
-							sources: [
-								Source.Filfox_Rest,
-							],
-						})
-					}
-					>
-						{#snippet children(filecoinActor)}
-							{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
-								<FilecoinActorView
-									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
-									prefetched={filecoinActor}
-									href={
-									(filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-										address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-										network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
-									}) : filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-										address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-										network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
-									}) : undefined)
-								}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-
-					<ResourceBoundary
-						resource={
-						selection.$to({
-							sources: [
-								Source.Filfox_Rest,
-							],
-						})
-					}
-					>
-						{#snippet children(filecoinActor)}
-							{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
-								<FilecoinActorView
-									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
-									prefetched={filecoinActor}
-									href={
-									(filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-										address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-										network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
-									}) : filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-										address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-										network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
-									}) : undefined)
-								}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				>
+					{#snippet children(filecoinActor)}
+						{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
+							<FilecoinActorView
+								selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
+								prefetched={filecoinActor}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const valueAttoFil0 = pendingEntity.valueAttoFil}
-			{#if valueAttoFil0 !== undefined && valueAttoFil0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={valueAttoFil0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={filecoinMessage}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const valueAttoFil0 = resolvedEntity.valueAttoFil}
-					{#if valueAttoFil0 !== undefined && valueAttoFil0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={valueAttoFil0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={filecoinMessage}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const valueAttoFil0 = resolvedEntity.valueAttoFil}
+				{#if valueAttoFil0 !== undefined && valueAttoFil0 !== null}
+					<span data-text="muted">
+						<NumberValue
+							value={valueAttoFil0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -261,13 +164,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -301,11 +214,12 @@
 
 			<ResourceBoundary
 				resource={
-					selection.$from({
-						sources: [
-							Source.Filfox_Rest,
-						],
-					})
+					selection
+						.$from({
+							sources: [
+								Source.Filfox_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(filecoinActor)}
@@ -317,13 +231,28 @@
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
 									href={
-										(filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-											address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-											network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-											address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-											network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											filecoinActor[EntityMetaKey.Selector] != null && 'address' in filecoinActor[EntityMetaKey.Selector]
+											&& filecoinActor[EntityMetaKey.Selector].address != null
+											&& filecoinActor[EntityMetaKey.Selector] != null && '$network' in filecoinActor[EntityMetaKey.Selector] ?
+												filecoinActor[EntityMetaKey.Selector].$network != null && 'caip2' in filecoinActor[EntityMetaKey.Selector].$network
+												&& filecoinActor[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+												address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
+												network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													filecoinActor[EntityMetaKey.Selector].$network != null && 'slug' in filecoinActor[EntityMetaKey.Selector].$network
+													&& filecoinActor[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+													address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
+													network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -336,11 +265,12 @@
 
 			<ResourceBoundary
 				resource={
-					selection.$to({
-						sources: [
-							Source.Filfox_Rest,
-						],
-					})
+					selection
+						.$to({
+							sources: [
+								Source.Filfox_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(filecoinActor)}
@@ -352,13 +282,28 @@
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
 									href={
-										(filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-											address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-											network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : filecoinActor[EntityMetaKey.Selector].address !== undefined && filecoinActor[EntityMetaKey.Selector].$network !== undefined && filecoinActor[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-											address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-											network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											filecoinActor[EntityMetaKey.Selector] != null && 'address' in filecoinActor[EntityMetaKey.Selector]
+											&& filecoinActor[EntityMetaKey.Selector].address != null
+											&& filecoinActor[EntityMetaKey.Selector] != null && '$network' in filecoinActor[EntityMetaKey.Selector] ?
+												filecoinActor[EntityMetaKey.Selector].$network != null && 'caip2' in filecoinActor[EntityMetaKey.Selector].$network
+												&& filecoinActor[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+												address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
+												network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													filecoinActor[EntityMetaKey.Selector].$network != null && 'slug' in filecoinActor[EntityMetaKey.Selector].$network
+													&& filecoinActor[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
+													address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
+													network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}

@@ -17,13 +17,13 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data.selectorMapping.entityType === EntityType.PolkadotBlock && data.selectorMapping.selectorName === 'NetworkBlockNumberHash' ? select(EntityType.PolkadotBlock, data.selectorMapping.selector, {
+	const pageSelection = $derived(data.entityType === EntityType.PolkadotBlock && data.selectorName === 'NetworkBlockNumberHash' ? select(EntityType.PolkadotBlock, data.selector, {
 		fields: {
 			stateRoot: true,
 			extrinsicsRoot: true,
 			$parent: true,
 		},
-	}) : data.selectorMapping.entityType === EntityType.UtxoBlock && data.selectorMapping.selectorName === 'NetworkHeightHash' ? select(EntityType.UtxoBlock, data.selectorMapping.selector, {
+	}) : select(EntityType.UtxoBlock, data.selector, {
 		fields: {
 			transactionCount: true,
 			timestampMs: true,
@@ -34,23 +34,26 @@
 			weightUnits: true,
 			$parent: true,
 		},
-	}) : undefined)
-	const pageEntityTitle = $derived(data.selectorMapping.entityType === EntityType.PolkadotBlock && data.selectorMapping.selectorName === 'NetworkBlockNumberHash' ? (pageSelection.entity == null ? (String((pageSelection.entitySelector.blockNumber) ?? '') ? 'Block #' + String((pageSelection.entitySelector.blockNumber) ?? '') : '') || [String((pageSelection.entitySelector.hash) ?? '')].filter(Boolean).join(' ') || 'Polkadot block' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).blockNumber) ?? '') ? 'Block #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).blockNumber) ?? '') : '') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'Polkadot block') : data.selectorMapping.entityType === EntityType.UtxoBlock && data.selectorMapping.selectorName === 'NetworkHeightHash' ? (pageSelection.entity == null ? (String((pageSelection.entitySelector.height) ?? '') ? 'Block #' + String((pageSelection.entitySelector.height) ?? '') : '') || [String((pageSelection.entitySelector.hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).height) ?? '') ? 'Block #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).height) ?? '') : '') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block') : 'Blockhead')
-	const pageEntityTypeLabel = $derived(data.selectorMapping.entityType === EntityType.PolkadotBlock && data.selectorMapping.selectorName === 'NetworkBlockNumberHash' ? 'Polkadot block' : data.selectorMapping.entityType === EntityType.UtxoBlock && data.selectorMapping.selectorName === 'NetworkHeightHash' ? 'UTXO block' : 'Entity')
+	}))
+	const entityViewComponentByType = {
+		[EntityType.PolkadotBlock]: PolkadotBlockView,
+		[EntityType.UtxoBlock]: UtxoBlockView,
+	}
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import { entityViewComponentByType } from '$/views/index.ts'
+	import PolkadotBlockView from '$/views/PolkadotBlockView.svelte'
+	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • {pageEntityTypeLabel} • Blockhead</title>
+	<title>{data.entityType === EntityType.PolkadotBlock && data.selectorName === 'NetworkBlockNumberHash' ? (pageSelection.entity == null ? (String((data.selector.blockNumber) ?? '') ? 'Block #' + String((data.selector.blockNumber) ?? '') : '') || [String((data.selector.hash) ?? '')].filter(Boolean).join(' ') || 'Polkadot block' : (String((({ ...data.selector, ...pageSelection.entity }).blockNumber) ?? '') ? 'Block #' + String((({ ...data.selector, ...pageSelection.entity }).blockNumber) ?? '') : '') || [String((({ ...data.selector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'Polkadot block') : (pageSelection.entity == null ? (String((data.selector.height) ?? '') ? 'Block #' + String((data.selector.height) ?? '') : '') || [String((data.selector.hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block' : (String((({ ...data.selector, ...pageSelection.entity }).height) ?? '') ? 'Block #' + String((({ ...data.selector, ...pageSelection.entity }).height) ?? '') : '') || [String((({ ...data.selector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block')} • {data.entityType === EntityType.PolkadotBlock && data.selectorName === 'NetworkBlockNumberHash' ? 'Polkadot block' : 'UTXO block'} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewComponentByType[data.selectorMapping.entityType]}
+	{@const EntityView = entityViewComponentByType[data.entityType]}
 
 	<EntityView
 		href={

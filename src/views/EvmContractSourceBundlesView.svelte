@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Contract source bundles',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmContractSourceBundle>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmContractSourceBundle>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmContractSourceBundleView from '$/views/EvmContractSourceBundleView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,6 +70,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmContractSourceBundles) => [...new Map(evmContractSourceBundles.values.map((evmContractSourceBundle) => [evmContractSourceBundle[EntityMetaKey.SelectorKey], evmContractSourceBundle])).values()]}
 	getKey={(evmContractSourceBundle) => evmContractSourceBundle[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -91,12 +85,20 @@
 
 	{#snippet Item({ item: evmContractSourceBundle })}
 		{@const evmContractSourceBundleFields = { ...evmContractSourceBundle[EntityMetaKey.Selector], ...evmContractSourceBundle }}
-		{@const selection = select(EntityType.EvmContractSourceBundle, evmContractSourceBundle[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<EvmContractSourceBundleView
-			selection={selection}
-			prefetched={evmContractSourceBundleFields}
+		<EntityView
+			entityType={EntityType.EvmContractSourceBundle}
+			entitySelector={evmContractSourceBundle[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((evmContractSourceBundleFields.$contract.precompileName) ?? ''), String((evmContractSourceBundleFields.$contract.address) ?? '')].filter(Boolean).join(' ') || 'EVM contract'].filter(Boolean).join(' ') || 'EVM contract source bundle'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((evmContractSourceBundleFields.$contract.precompileName) ?? ''), String((evmContractSourceBundleFields.$contract.address) ?? '')].filter(Boolean).join(' ') || 'EVM contract'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

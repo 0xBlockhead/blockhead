@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ActivityPub hub observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalActivityPubNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalActivityPubNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalActivityPubNetwork_TimestampView from '$/views/_GlobalActivityPubNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalActivityPubNetworkTimestamps) => [...new Map(globalActivityPubNetworkTimestamps.values.map((globalActivityPubNetworkTimestamp) => [globalActivityPubNetworkTimestamp[EntityMetaKey.SelectorKey], globalActivityPubNetworkTimestamp])).values()]}
 	getKey={(globalActivityPubNetworkTimestamp) => globalActivityPubNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,12 +89,24 @@
 
 	{#snippet Item({ item: globalActivityPubNetworkTimestamp })}
 		{@const globalActivityPubNetworkTimestampFields = { ...globalActivityPubNetworkTimestamp[EntityMetaKey.Selector], ...globalActivityPubNetworkTimestamp }}
-		{@const selection = select(EntityType._GlobalActivityPubNetwork_Timestamp, globalActivityPubNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<GlobalActivityPubNetwork_TimestampView
-			selection={selection}
-			prefetched={globalActivityPubNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType._GlobalActivityPubNetwork_Timestamp}
+			entitySelector={globalActivityPubNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((globalActivityPubNetworkTimestampFields.instanceTitle) ?? ''), String((globalActivityPubNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global ActivityPub network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((globalActivityPubNetworkTimestampFields.instanceOrigin) ?? ''), String((globalActivityPubNetworkTimestampFields.source) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((globalActivityPubNetworkTimestampFields.reachable) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

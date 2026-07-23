@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AlgorandTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AlgorandTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AlgorandTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandTransaction = $derived(selection({
+	const algorandTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			transactionType: true,
+			sender: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			transactionType: true,
@@ -49,7 +56,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'algorand transaction')
-	const viewDomId = $derived('algorand-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('algorand-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,7 +78,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionType') && Object.hasOwn(prefetched, 'sender')}
 			{[String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={algorandTransaction}>
@@ -84,7 +91,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionType') && Object.hasOwn(prefetched, 'sender')}
 			{[String((pendingEntity.transactionType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={algorandTransaction}>
@@ -97,7 +104,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionType') && Object.hasOwn(prefetched, 'sender')}
 			{@const sender0 = pendingEntity.sender}
 			{#if sender0 !== undefined && sender0 !== null}
 				<span data-text="muted">
@@ -125,7 +132,7 @@
 				<dt>network</dt>
 				<dd>
 					<AlgorandNetworkView
-						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -375,17 +382,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AlgorandTransactionProofsView
-				selection={
-						selection.$$proofs({
-							count: true,
-						})
-					}
-				title='proofs'
-				emptyText='No Algorand transaction proofs.'
-				id='AlgorandTransactionProofsView-proofs'
-			/>
-		{/if}
+		{@const algorandTransactionAlgorandTransactionProofsViewProofsResource = selection.$$proofs}
+		<ResourceBoundary
+			resource={algorandTransactionAlgorandTransactionProofsViewProofsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AlgorandTransactionProofsView
+					selection={algorandTransactionAlgorandTransactionProofsViewProofsResource}
+					countResource={algorandTransactionAlgorandTransactionProofsViewProofsResource.count}
+					title='proofs'
+					id='AlgorandTransactionProofsView-proofs'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

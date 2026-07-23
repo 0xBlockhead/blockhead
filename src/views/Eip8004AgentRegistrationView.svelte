@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Eip8004AgentRegistration>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Eip8004AgentRegistration>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Eip8004AgentRegistration>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eip8004AgentRegistration = $derived(selection({
+	const eip8004AgentRegistration = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration')
-	const viewDomId = $derived('eip8004agent-registration-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('eip8004agent-registration-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,7 +73,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{[String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={eip8004AgentRegistration}>
@@ -82,7 +86,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{[String((pendingEntity.namespace) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={eip8004AgentRegistration}>
@@ -95,7 +99,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{@const chainId0 = pendingEntity.chainId}
 			{#if chainId0 !== undefined && chainId0 !== null}
 				<span data-text="muted">
@@ -231,11 +235,24 @@
 									selection={select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector])}
 									prefetched={evmNft}
 									href={
-										(evmNft[EntityMetaKey.Selector].tokenId !== undefined && evmNft[EntityMetaKey.Selector].$contract !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network.caip2 !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference !== undefined && evmNft[EntityMetaKey.Selector].$contract.address !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
+										(
+											evmNft[EntityMetaKey.Selector] != null && 'tokenId' in evmNft[EntityMetaKey.Selector]
+											&& evmNft[EntityMetaKey.Selector].tokenId != null
+											&& evmNft[EntityMetaKey.Selector] != null && '$contract' in evmNft[EntityMetaKey.Selector]
+											&& evmNft[EntityMetaKey.Selector].$contract != null && '$network' in evmNft[EntityMetaKey.Selector].$contract
+											&& evmNft[EntityMetaKey.Selector].$contract.$network != null && 'caip2' in evmNft[EntityMetaKey.Selector].$contract.$network
+											&& evmNft[EntityMetaKey.Selector].$contract.$network.caip2 != null && 'reference' in evmNft[EntityMetaKey.Selector].$contract.$network.caip2
+											&& evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference != null
+											&& evmNft[EntityMetaKey.Selector].$contract != null && 'address' in evmNft[EntityMetaKey.Selector].$contract
+											&& evmNft[EntityMetaKey.Selector].$contract.address != null ?
+												resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
 											tokenId: String(evmNft[EntityMetaKey.Selector].tokenId ?? ''),
 											chainId: String(evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference ?? ''),
 											contractAddress: String(evmNft[EntityMetaKey.Selector].$contract.address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -249,28 +266,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<Eip8004AgentRegistration_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Timestamps'
-				emptyText='No EIP-8004 registration observations.'
-				id='Eip8004AgentRegistration_TimestampsView-timestamps'
-			/>
-
-			<Eip8004AgentRegistrationFilesView
-				selection={
-						selection.$$files({
-							count: true,
-						})
-					}
-				title='Files'
-				emptyText='No EIP-8004 registration files.'
-				id='Eip8004AgentRegistrationFilesView-files'
-			/>
-		{/if}
+		{@const eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<Eip8004AgentRegistration_TimestampsView
+					selection={eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource}
+					countResource={eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource.count}
+					title='Timestamps'
+					id='Eip8004AgentRegistration_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource = selection.$$files}
+		<ResourceBoundary
+			resource={eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<Eip8004AgentRegistrationFilesView
+					selection={eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource}
+					countResource={eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource.count}
+					title='Files'
+					id='Eip8004AgentRegistrationFilesView-files'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

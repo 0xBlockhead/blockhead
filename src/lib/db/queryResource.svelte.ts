@@ -69,13 +69,11 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	#started = false
 
 	#then = $derived.by((): Promise<Data>['then'] => {
+		const promise = this.#promise
 		this.#raw
 		return (onFulfilled, onRejected) => {
 			const releaseSource = this.#acquireSource()
-			untrack(() => {
-				this.#apply(this.#query())
-			})
-			const result = this.#promise.then(tick).then(() => {
+			const result = promise.then(tick).then(() => {
 				if (!this.#ready || this.#raw === undefined)
 					throw new Error('TanStackLiveQueryResource resolved before current value was available')
 
@@ -103,11 +101,11 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			this.#sourceUpdates.add(update)
 		if (this.#sourceUnsubscribe === undefined)
 			this.#sourceUnsubscribe = this.#subscribeToSource(() => {
-			untrack(() => {
-				this.#apply(this.#query())
-			})
-			for (const sourceUpdate of this.#sourceUpdates)
-				sourceUpdate()
+				untrack(() => {
+					this.#apply(this.#query())
+				})
+				for (const sourceUpdate of this.#sourceUpdates)
+					sourceUpdate()
 			})
 
 		let released = false
@@ -115,11 +113,11 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			if (released)
 				return
 
-		released = true
-		this.#sourceReferenceCount -= 1
-		if (update != null)
-			this.#sourceUpdates.delete(update)
-		if (this.#sourceReferenceCount === 0) {
+			released = true
+			this.#sourceReferenceCount -= 1
+			if (update != null)
+				this.#sourceUpdates.delete(update)
+			if (this.#sourceReferenceCount === 0) {
 				this.#sourceUnsubscribe?.()
 				this.#sourceUnsubscribe = undefined
 			}
@@ -245,6 +243,12 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	get ready() {
 		this.#read()
 		return this.#ready
+	}
+
+	subscribe(
+		update: () => void
+	) {
+		return this.#acquireSource(update)
 	}
 
 	set(

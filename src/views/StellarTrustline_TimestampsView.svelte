@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Stellar trustline observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.StellarTrustline_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.StellarTrustline_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import StellarTrustline_TimestampView from '$/views/StellarTrustline_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(stellarTrustlineTimestamps) => [...new Map(stellarTrustlineTimestamps.values.map((stellarTrustlineTimestamp) => [stellarTrustlineTimestamp[EntityMetaKey.SelectorKey], stellarTrustlineTimestamp])).values()]}
 	getKey={(stellarTrustlineTimestamp) => stellarTrustlineTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: stellarTrustlineTimestamp })}
 		{@const stellarTrustlineTimestampFields = { ...stellarTrustlineTimestamp[EntityMetaKey.Selector], ...stellarTrustlineTimestamp }}
-		{@const selection = select(EntityType.StellarTrustline_Timestamp, stellarTrustlineTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<StellarTrustline_TimestampView
-			selection={selection}
-			prefetched={stellarTrustlineTimestampFields}
+		<EntityView
+			entityType={EntityType.StellarTrustline_Timestamp}
+			entitySelector={stellarTrustlineTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'stellar trustline timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -24,7 +24,7 @@
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: Number(params.chainId),
+					reference: params.chainId,
 				},
 			},
 			address: params.contractAddress,
@@ -55,7 +55,6 @@
 			description: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT'))
 
 
 	// Components
@@ -65,7 +64,40 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM NFT • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		$contract: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			address: params.contractAddress,
+		},
+		tokenId: params.tokenId,
+	}.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT' : [String((({ ...{
+		$contract: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			address: params.contractAddress,
+		},
+		tokenId: params.tokenId,
+	}, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
+		$contract: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			address: params.contractAddress,
+		},
+		tokenId: params.tokenId,
+	}, ...pageSelection.entity }).tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT')} • EVM NFT • Blockhead</title>
 </svelte:head>
 
 

@@ -136,13 +136,47 @@ export const getAccountTransactions = (
 	accountAddress: string,
 	limit = 100,
 	offset = 0
-): Promise<ResultOf<typeof accountTransactionsDocument>['account_transactions']> => (
-	executeAptosIndexer(accountTransactionsDocument, {
+): Promise<ResultOf<typeof accountTransactionsDocument>['account_transactions']> => {
+	if (accountAddress.length === 0)
+		throw new Error('AptosIndexer_Graphql: account address must not be empty')
+	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 100)
+		throw new Error('AptosIndexer_Graphql: transaction limit must be an integer from 0 through 100')
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error('AptosIndexer_Graphql: transaction offset must be a nonnegative safe integer')
+	if (limit === 0)
+		return Promise.resolve([])
+
+	return executeAptosIndexer(accountTransactionsDocument, {
 		accountAddress,
 		limit,
 		offset,
-	}).then((data) => data.account_transactions)
-)
+	}).then((data) => {
+		if (data.account_transactions.length > limit)
+			throw new Error('AptosIndexer_Graphql: transaction page exceeds requested limit')
+
+		const versions = new Set<string>()
+		for (const transaction of data.account_transactions) {
+			if (transaction.account_address !== accountAddress)
+				throw new Error('AptosIndexer_Graphql: transaction page contains a foreign account row')
+			try {
+				if (
+					BigInt(transaction.transaction_version) < 0n
+					|| (
+						transaction.user_transaction != null
+						&& transaction.user_transaction.version !== transaction.transaction_version
+					)
+				)
+					throw new Error()
+			} catch {
+				throw new Error('AptosIndexer_Graphql: invalid transaction version')
+			}
+			if (versions.has(transaction.transaction_version))
+				throw new Error('AptosIndexer_Graphql: duplicate transaction version')
+			versions.add(transaction.transaction_version)
+		}
+		return data.account_transactions
+	})
+}
 
 export const getTransaction = (
 	version: bigint
@@ -156,13 +190,47 @@ export const getCurrentFungibleAssetBalances = (
 	ownerAddress: string,
 	limit = 100,
 	offset = 0
-): Promise<ResultOf<typeof currentFungibleAssetBalancesDocument>['current_fungible_asset_balances']> => (
-	executeAptosIndexer(currentFungibleAssetBalancesDocument, {
+): Promise<ResultOf<typeof currentFungibleAssetBalancesDocument>['current_fungible_asset_balances']> => {
+	if (ownerAddress.length === 0)
+		throw new Error('AptosIndexer_Graphql: owner address must not be empty')
+	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 100)
+		throw new Error('AptosIndexer_Graphql: balance limit must be an integer from 0 through 100')
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error('AptosIndexer_Graphql: balance offset must be a nonnegative safe integer')
+	if (limit === 0)
+		return Promise.resolve([])
+
+	return executeAptosIndexer(currentFungibleAssetBalancesDocument, {
 		ownerAddress,
 		limit,
 		offset,
-	}).then((data) => data.current_fungible_asset_balances)
-)
+	}).then((data) => {
+		if (data.current_fungible_asset_balances.length > limit)
+			throw new Error('AptosIndexer_Graphql: balance page exceeds requested limit')
+
+		const storageIds = new Set<string>()
+		for (const balance of data.current_fungible_asset_balances) {
+			if (balance.owner_address !== ownerAddress)
+				throw new Error('AptosIndexer_Graphql: balance page contains a foreign owner row')
+			try {
+				if (
+					BigInt(balance.amount) < 0n
+					|| (
+						balance.last_transaction_version != null
+						&& BigInt(balance.last_transaction_version) < 0n
+					)
+				)
+					throw new Error()
+			} catch {
+				throw new Error('AptosIndexer_Graphql: invalid balance amount or version')
+			}
+			if (balance.storage_id.length === 0 || storageIds.has(balance.storage_id))
+				throw new Error('AptosIndexer_Graphql: invalid or duplicate balance storage ID')
+			storageIds.add(balance.storage_id)
+		}
+		return data.current_fungible_asset_balances
+	})
+}
 
 export const getCurrentFungibleAssetBalance = (
 	storageId: string

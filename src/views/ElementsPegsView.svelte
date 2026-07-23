@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Elements pegs',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ElementsPeg>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ElementsPeg>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ElementsPegView from '$/views/ElementsPegView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(elementsPegs) => [...new Map(elementsPegs.values.map((elementsPeg) => [elementsPeg[EntityMetaKey.SelectorKey], elementsPeg])).values()]}
 	getKey={(elementsPeg) => elementsPeg[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: elementsPeg })}
 		{@const elementsPegFields = { ...elementsPeg[EntityMetaKey.Selector], ...elementsPeg }}
-		{@const selection = select(EntityType.ElementsPeg, elementsPeg[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ElementsPegView
-			selection={selection}
-			prefetched={elementsPegFields}
+		<EntityView
+			entityType={EntityType.ElementsPeg}
+			entitySelector={elementsPeg[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((elementsPegFields.direction) ?? ''), String((elementsPegFields.pegTransactionId) ?? '')].filter(Boolean).join(' ') || 'Elements peg'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((elementsPegFields.amountSats) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

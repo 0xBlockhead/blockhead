@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ArweaveBlock>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ArweaveBlock>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ArweaveBlock>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const arweaveBlock = $derived(selection({
+	const arweaveBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			timestampMs: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			timestampMs: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.indepHash) ?? '')].filter(Boolean).join(' ') || 'arweave block')
-	const viewDomId = $derived('arweave-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('arweave-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,13 +77,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const height0 = pendingEntity.height}
-					{#if height0 !== undefined && height0 !== null}
-						<NumberValue
-							value={height0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'indepHash')}
+			{@const height0 = pendingEntity.height}
+			{#if height0 !== undefined && height0 !== null}
+				<NumberValue
+					value={height0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={arweaveBlock}>
 				{#snippet children(entity)}
@@ -94,11 +100,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'indepHash')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={arweaveBlock}>
 				{#snippet children(entity)}
@@ -118,7 +124,7 @@
 				<dt>network</dt>
 				<dd>
 					<ArweaveNetworkView
-						selection={select(EntityType.ArweaveNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.ArweaveNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -456,17 +462,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<ArweaveTransactionsView
-				selection={
-						selection.$$transactions({
-							count: true,
-						})
-					}
-				title='transactions'
-				emptyText='No transactions found.'
-				id='ArweaveTransactionsView-transactions'
-			/>
-		{/if}
+		{@const arweaveBlockArweaveTransactionsViewTransactionsResource = selection.$$transactions}
+		<ResourceBoundary
+			resource={arweaveBlockArweaveTransactionsViewTransactionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<ArweaveTransactionsView
+					selection={arweaveBlockArweaveTransactionsViewTransactionsResource}
+					countResource={arweaveBlockArweaveTransactionsViewTransactionsResource.count}
+					title='transactions'
+					id='ArweaveTransactionsView-transactions'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

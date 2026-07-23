@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.McpServerPackageVersion>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.McpServerPackageVersion>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.McpServerPackageVersion>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,14 +42,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const mcpServerPackageVersion = $derived(selection({
+	const mcpServerPackageVersion = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			registryStatus: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			registryStatus: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || 'mcp server package version')
-	const viewDomId = $derived('mcp-server-package-version-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('mcp-server-package-version-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,82 +77,48 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={mcpServerPackageVersion}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpServerPackageVersion}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ResourceBoundary
-						resource={selection.$package}
-					>
-						{#snippet children(mcpServerPackage)}
-							{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
-								<McpServerPackageView
-									selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
-									prefetched={mcpServerPackage}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={mcpServerPackageVersion}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$package}
-					>
-						{#snippet children(mcpServerPackage)}
-							{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
-								<McpServerPackageView
-									selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
-									prefetched={mcpServerPackage}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">Unavailable</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpServerPackageVersion}>
+			{#snippet children(entity)}
+				<ResourceBoundary
+					resource={selection.$package}
+				>
+					{#snippet children(mcpServerPackage)}
+						{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
+							<McpServerPackageView
+								selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
+								prefetched={mcpServerPackage}
+								href=""
+								layout={EntityLayout.Value}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const registryStatus0 = pendingEntity.registryStatus}
-			{#if registryStatus0 !== undefined && registryStatus0 !== null}
-				<span data-text="muted">
-					{String((registryStatus0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={mcpServerPackageVersion}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registryStatus0 = resolvedEntity.registryStatus}
-					{#if registryStatus0 !== undefined && registryStatus0 !== null}
-						<span data-text="muted">
-							{String((registryStatus0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpServerPackageVersion}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const registryStatus0 = resolvedEntity.registryStatus}
+				{#if registryStatus0 !== undefined && registryStatus0 !== null}
+					<span data-text="muted">
+						{String((registryStatus0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hedera network exchange rate observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HederaNetworkExchangeRate_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HederaNetworkExchangeRate_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HederaNetworkExchangeRate_TimestampView from '$/views/HederaNetworkExchangeRate_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(hederaNetworkExchangeRateTimestamps) => [...new Map(hederaNetworkExchangeRateTimestamps.values.map((hederaNetworkExchangeRateTimestamp) => [hederaNetworkExchangeRateTimestamp[EntityMetaKey.SelectorKey], hederaNetworkExchangeRateTimestamp])).values()]}
 	getKey={(hederaNetworkExchangeRateTimestamp) => hederaNetworkExchangeRateTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: hederaNetworkExchangeRateTimestamp })}
 		{@const hederaNetworkExchangeRateTimestampFields = { ...hederaNetworkExchangeRateTimestamp[EntityMetaKey.Selector], ...hederaNetworkExchangeRateTimestamp }}
-		{@const selection = select(EntityType.HederaNetworkExchangeRate_Timestamp, hederaNetworkExchangeRateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HederaNetworkExchangeRate_TimestampView
-			selection={selection}
-			prefetched={hederaNetworkExchangeRateTimestampFields}
+		<EntityView
+			entityType={EntityType.HederaNetworkExchangeRate_Timestamp}
+			entitySelector={hederaNetworkExchangeRateTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'hedera network exchange rate timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

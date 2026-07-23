@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.Coin_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Coin_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Coin_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const coinTimestamp = $derived(selection({
+	const coinTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			marketCap: true,
+			marketCapUsd: true,
+			change24hPercent: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			marketCap: true,
@@ -49,8 +57,8 @@
 			change24hPercent: true,
 		},
 	}))
-	const titleFallback = $derived('coin timestamp')
-	const viewDomId = $derived('coin-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'coin timestamp'
+	const viewDomId = $derived('coin-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,83 +75,62 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$coin !== undefined && pendingEntity.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			coinId: String(pendingEntity.$coin.coinId ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$coin' in selection.entitySelector
+			&& selection.entitySelector.$coin != null && 'coinId' in selection.entitySelector.$coin
+			&& selection.entitySelector.$coin.coinId != null ?
+				resolve('/coin/[coinId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			coinId: String(selection.entitySelector.$coin.coinId ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<CoinView
-						selection={select(EntityType.Coin, selection.entitySelector.$coin)}
-						href={
-						(selection.entitySelector.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
-							coinId: String(selection.entitySelector.$coin.coinId ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={coinTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<CoinView
-						selection={select(EntityType.Coin, selection.entitySelector.$coin)}
-						href={
-						(selection.entitySelector.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
-							coinId: String(selection.entitySelector.$coin.coinId ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={coinTimestamp}>
+			{#snippet children(entity)}
+				<CoinView
+					selection={select(EntityType.Coin, selection.entitySelector.$coin)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.marketCap) ?? ''), String((pendingEntity.marketCapUsd) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={coinTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.marketCap) ?? ''), String((resolvedEntity.marketCapUsd) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={coinTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.marketCap) ?? ''), String((resolvedEntity.marketCapUsd) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const change24hPercent0 = pendingEntity.change24hPercent}
-			{#if change24hPercent0 !== undefined && change24hPercent0 !== null}
-				<span data-text="muted">
-					{String((change24hPercent0) ?? '')}
-					<span>%</span>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={coinTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const change24hPercent0 = resolvedEntity.change24hPercent}
-					{#if change24hPercent0 !== undefined && change24hPercent0 !== null}
-						<span data-text="muted">
-							{String((change24hPercent0) ?? '')}
-							<span>%</span>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={coinTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const change24hPercent0 = resolvedEntity.change24hPercent}
+				{#if change24hPercent0 !== undefined && change24hPercent0 !== null}
+					<span data-text="muted">
+						{String((change24hPercent0) ?? '')}
+						<span>%</span>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -377,11 +364,17 @@
 				<dt>Coin</dt>
 				<dd>
 					<CoinView
-						selection={select(EntityType.Coin, selection.entitySelector.$coin, {})}
+						selection={select(EntityType.Coin, selection.entitySelector.$coin)}
 						href={
-							(selection.entitySelector.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
+							(
+								selection.entitySelector.$coin != null && 'coinId' in selection.entitySelector.$coin
+								&& selection.entitySelector.$coin.coinId != null ?
+									resolve('/coin/[coinId=stringSegment]', {
 								coinId: String(selection.entitySelector.$coin.coinId ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

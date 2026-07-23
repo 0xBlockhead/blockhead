@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,7 +25,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AtprotoActor>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AtprotoActor>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AtprotoActor>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,7 @@
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account')
-	const viewDomId = $derived('atproto-actor-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('atproto-actor-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -59,9 +60,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
-			did: encodeURIComponent(String(pendingEntity.did ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'did' in selection.entitySelector
+			&& selection.entitySelector.did != null ?
+				resolve('/atproto/actor/[did=stringSegment]', {
+			did: encodeURIComponent(String(selection.entitySelector.did ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -139,68 +146,81 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<ResourceBoundary
-				resource={
-						selection({
-							fields: {
-								did: true,
-							},
-						})
-					}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<AtprotoPostsView
-						selection={
-								selection.$$posts({
-									sources: [
-										Source.Atproto_Xrpc,
-									],
-									count: true,
-								})
-							}
-						title='Posts'
-						href={
-								(entity.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]/posts', {
-									did: encodeURIComponent(String(entity.did ?? '')),
-								}) : undefined)
-							}
-						id='AtprotoPostsView-posts'
-					/>
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-						selection({
-							fields: {
-								did: true,
-							},
-						})
-					}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<AtprotoActor_TimestampsView
-						selection={
-								selection.$$timestamps({
-									sources: [
-										Source.Atproto_Xrpc,
-									],
-									count: true,
-								})
-							}
-						title='Metric observations'
-						href={
-								(entity.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]/observations', {
-									did: encodeURIComponent(String(entity.did ?? '')),
-								}) : undefined)
-							}
-						id='AtprotoActor_TimestampsView-timestamps'
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				{@const atprotoActorAtprotoPostsViewPostsResource = selection
+		.$$posts({
+			sources: [
+				Source.Atproto_Xrpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={atprotoActorAtprotoPostsViewPostsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<ResourceBoundary
+							resource={
+									selection({
+										fields: {
+											did: true,
+										},
+									})
+								}
+						>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								<AtprotoPostsView
+									selection={atprotoActorAtprotoPostsViewPostsResource}
+									countResource={atprotoActorAtprotoPostsViewPostsResource.count}
+									title='Posts'
+									href={
+											(entity != null && 'did' in entity && entity.did != null ? resolve('/atproto/actor/[did=stringSegment]/posts', {
+												did: encodeURIComponent(String(entity.did ?? '')),
+											}) : undefined)
+										}
+									id='AtprotoPostsView-posts'
+								/>
+							{/snippet}
+						</ResourceBoundary>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const atprotoActorAtprotoActorTimestampsViewTimestampsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.Atproto_Xrpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={atprotoActorAtprotoActorTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<ResourceBoundary
+							resource={
+									selection({
+										fields: {
+											did: true,
+										},
+									})
+								}
+						>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								<AtprotoActor_TimestampsView
+									selection={atprotoActorAtprotoActorTimestampsViewTimestampsResource}
+									countResource={atprotoActorAtprotoActorTimestampsViewTimestampsResource.count}
+									title='Metric observations'
+									href={
+											(entity != null && 'did' in entity && entity.did != null ? resolve('/atproto/actor/[did=stringSegment]/observations', {
+												did: encodeURIComponent(String(entity.did ?? '')),
+											}) : undefined)
+										}
+									id='AtprotoActor_TimestampsView-timestamps'
+								/>
+							{/snippet}
+						</ResourceBoundary>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

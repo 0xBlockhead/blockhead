@@ -11,10 +11,14 @@ import { Source } from '$/sources/Source.ts'
 
 const getActor = vi.fn()
 const getHead = vi.fn()
+const getIdAddress = vi.fn()
+const getTipSetByHeight = vi.fn()
 
 vi.mock('$/sources/Lotus/JsonRpc/queries.ts', () => ({
 	getActor,
 	getHead,
+	getIdAddress,
+	getTipSetByHeight,
 }))
 
 const context = {
@@ -54,6 +58,8 @@ if (indexedActorResolver == null || actorResolver == null || actorTimestampResol
 beforeEach(() => {
 	getActor.mockReset()
 	getHead.mockReset()
+	getIdAddress.mockReset()
+	getTipSetByHeight.mockReset()
 })
 
 it('indexes only the clocked Lotus observation relation on the stable actor', () => {
@@ -69,10 +75,17 @@ it('indexes only the clocked Lotus observation relation on the stable actor', ()
 	))).toBe(false)
 })
 
-it('materializes the exact-head selector from the parent and mutable zero values only on that observation', async () => {
+it('materializes current and historical actor state only at the exact selected tipset', async () => {
 	getHead.mockResolvedValue({
 		Height: 123,
 		Cids: [{ '/': 'bafy-head' }],
+	})
+	getTipSetByHeight.mockResolvedValue({
+		Height: 123,
+		Cids: [{ '/': 'bafy-head' }],
+		Blocks: [{
+			Timestamp: 1_750_000_000,
+		}],
 	})
 	getActor.mockResolvedValue({
 		Code: { '/': 'bafy-code' },
@@ -80,6 +93,7 @@ it('materializes the exact-head selector from the parent and mutable zero values
 		Balance: '0',
 		Head: { '/': 'bafy-state' },
 	})
+	getIdAddress.mockResolvedValue('f01234')
 
 	await expect(actorResolver.resolve[FilecoinActorSelector.NetworkAddress].resolve(
 		actorSelector,
@@ -100,14 +114,21 @@ it('materializes the exact-head selector from the parent and mutable zero values
 		tipsetKey: 'bafy-head',
 		source: Source.Lotus_JsonRpc,
 	}, context)).resolves.toMatchObject({
+		timestampMs: 1_750_000_000_000,
 		height: 123n,
 		tipsetKey: 'bafy-head',
+		idAddress: 'f01234',
 		actorCodeCid: 'bafy-code',
 		nonce: 0n,
 		balanceAttoFil: 0n,
 		stateRootCid: 'bafy-state',
 	})
 	expect(getActor).toHaveBeenCalledWith({
+		rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+		address: actorSelector.address,
+		tipsetKey: [{ '/': 'bafy-head' }],
+	})
+	expect(getIdAddress).toHaveBeenCalledWith({
 		rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
 		address: actorSelector.address,
 		tipsetKey: [{ '/': 'bafy-head' }],
@@ -128,25 +149,29 @@ it.each([
 		source: Source.Lotus_JsonRpc,
 	},
 ])('rejects a mixed-head $name without reading mutable actor state', async ({ name: _name, ...selector }) => {
-	getHead.mockResolvedValue({
+	getTipSetByHeight.mockResolvedValue({
 		Height: 123,
 		Cids: [{ '/': 'bafy-head' }],
+		Blocks: [{
+			Timestamp: 1_750_000_000,
+		}],
 	})
 
 	await expect(actorTimestampResolver.resolve[FilecoinActor_TimestampSelector.ActorHeightTipsetKeySource].resolve({
 		$actor: actorSelector,
 		...selector,
-	}, context)).rejects.toThrow('is not the current head')
+	}, context)).rejects.toThrow('actor observation does not match')
 	expect(getActor).not.toHaveBeenCalled()
+	expect(getIdAddress).not.toHaveBeenCalled()
 })
 
-it('rejects another source before reading the head or actor', async () => {
+it('rejects another source before reading the tipset or actor', async () => {
 	await expect(actorTimestampResolver.resolve[FilecoinActor_TimestampSelector.ActorHeightTipsetKeySource].resolve({
 		$actor: actorSelector,
 		height: 123n,
 		tipsetKey: 'bafy-head',
 		source: Source.Filfox_Rest,
 	}, context)).rejects.toThrow('unsupported actor observation source')
-	expect(getHead).not.toHaveBeenCalled()
+	expect(getTipSetByHeight).not.toHaveBeenCalled()
 	expect(getActor).not.toHaveBeenCalled()
 })

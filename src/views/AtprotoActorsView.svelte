@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'AT Protocol accounts',
 		typeAnnotationParagraphs = ['An AT Protocol actor is a DID-addressed repository identity. Handles, display names, avatars, banners, and counts are mutable appview observations over that identity.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AtprotoActor>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AtprotoActor>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			limit: 12,
 		})
 	}
+	{countResource}
 	getResourceItems={(atprotoActors) => [...new Map(atprotoActors.values.map((atprotoActor) => [atprotoActor[EntityMetaKey.SelectorKey], atprotoActor])).values()]}
 	getKey={(atprotoActor) => atprotoActor[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,18 +87,27 @@
 
 	{#snippet Item({ item: atprotoActor })}
 		{@const atprotoActorFields = { ...atprotoActor[EntityMetaKey.Selector], ...atprotoActor }}
-		{@const selection = select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const atprotoActorHrefFields = { ...atprotoActor, ...atprotoActor[EntityMetaKey.Selector] }}
-		<AtprotoActorView
-			selection={selection}
-			prefetched={atprotoActorFields}
+		<EntityView
+			entityType={EntityType.AtprotoActor}
+			entitySelector={atprotoActor[EntityMetaKey.Selector]}
 			href={
-				(atprotoActorHrefFields.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
-					did: encodeURIComponent(String(atprotoActorHrefFields.did ?? '')),
-				}) : undefined)
+				(
+					atprotoActor[EntityMetaKey.Selector] != null && 'did' in atprotoActor[EntityMetaKey.Selector]
+					&& atprotoActor[EntityMetaKey.Selector].did != null ?
+						resolve('/atproto/actor/[did=stringSegment]', {
+					did: encodeURIComponent(String(atprotoActor[EntityMetaKey.Selector].did ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((atprotoActorFields.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

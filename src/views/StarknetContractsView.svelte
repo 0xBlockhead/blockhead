@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Starknet contracts',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.StarknetContract>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.StarknetContract>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import StarknetContractView from '$/views/StarknetContractView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -78,6 +71,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(starknetContracts) => [...new Map(starknetContracts.values.map((starknetContract) => [starknetContract[EntityMetaKey.SelectorKey], starknetContract])).values()]}
 	getKey={(starknetContract) => starknetContract[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -92,12 +86,20 @@
 
 	{#snippet Item({ item: starknetContract })}
 		{@const starknetContractFields = { ...starknetContract[EntityMetaKey.Selector], ...starknetContract }}
-		{@const selection = select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<StarknetContractView
-			selection={selection}
-			prefetched={starknetContractFields}
+		<EntityView
+			entityType={EntityType.StarknetContract}
+			entitySelector={starknetContract[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((starknetContractFields.address) ?? '')].filter(Boolean).join(' ') || 'starknet contract'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[[String((starknetContractFields.$network.$network.name) ?? '')].filter(Boolean).join(' ') || [starknetContractFields.$network.$network.caip2 == null ? '' : String(`${(starknetContractFields.$network.$network.caip2).namespace}:${(starknetContractFields.$network.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'starknet network'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

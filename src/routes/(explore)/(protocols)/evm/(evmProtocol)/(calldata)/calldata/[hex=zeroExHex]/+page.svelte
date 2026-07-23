@@ -20,7 +20,6 @@
 	const pageSelection = $derived(select(EntityType.EvmCalldata, {
 		hex: params.hex,
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata'))
 
 
 	// Components
@@ -30,7 +29,11 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM calldata • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		hex: params.hex,
+	}.hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata' : [String((({ ...{
+		hex: params.hex,
+	}, ...pageSelection.entity }).hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata')} • EVM calldata • Blockhead</title>
 </svelte:head>
 
 

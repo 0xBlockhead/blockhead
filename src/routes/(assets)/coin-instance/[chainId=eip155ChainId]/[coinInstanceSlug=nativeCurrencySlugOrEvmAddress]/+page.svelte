@@ -19,7 +19,37 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data.selectorMapping.entityType === EntityType.EvmCoinInstance && data.selectorMapping.selectorName === 'NetworkType' ? select(EntityType.EvmCoinInstance, data.selectorMapping.selector, {
+	const pageSelection = $derived(data.entityType === EntityType.EvmCoinInstance && data.selectorName === 'NetworkType' ? select(EntityType.EvmCoinInstance, data.selector, {
+		fields: {
+			$contract: true,
+			NativeCurrency: {
+				fields: {
+					symbol: true,
+					name: true,
+					coinId: true,
+					decimals: true,
+					caip19: true,
+					representation: true,
+					iconUrl: true,
+					$canonicalInstance: true,
+					$icon: true,
+				},
+			},
+			Erc20Token: {
+				fields: {
+					symbol: true,
+					name: true,
+					coinId: true,
+					decimals: true,
+					caip19: true,
+					representation: true,
+					iconUrl: true,
+					$canonicalInstance: true,
+					$icon: true,
+				},
+			},
+		},
+	}) : select(EntityType.EvmCoinInstance, data.selector, {
 		fields: {
 			NativeCurrency: {
 				fields: {
@@ -48,52 +78,24 @@
 				},
 			},
 		},
-	}) : data.selectorMapping.entityType === EntityType.EvmCoinInstance && data.selectorMapping.selectorName === 'NetworkTypeContract' ? select(EntityType.EvmCoinInstance, data.selectorMapping.selector, {
-		fields: {
-			NativeCurrency: {
-				fields: {
-					symbol: true,
-					name: true,
-					coinId: true,
-					decimals: true,
-					caip19: true,
-					representation: true,
-					iconUrl: true,
-					$canonicalInstance: true,
-					$icon: true,
-				},
-			},
-			Erc20Token: {
-				fields: {
-					symbol: true,
-					name: true,
-					coinId: true,
-					decimals: true,
-					caip19: true,
-					representation: true,
-					iconUrl: true,
-					$canonicalInstance: true,
-					$icon: true,
-				},
-			},
-		},
-	}) : undefined)
-	const pageEntityTitle = $derived(data.selectorMapping.entityType === EntityType.EvmCoinInstance && data.selectorMapping.selectorName === 'NetworkType' ? (pageSelection.entity == null ? 'EVM coin instance' : 'EVM coin instance') : data.selectorMapping.entityType === EntityType.EvmCoinInstance && data.selectorMapping.selectorName === 'NetworkTypeContract' ? (pageSelection.entity == null ? 'EVM coin instance' : 'EVM coin instance') : 'Blockhead')
-	const pageEntityTypeLabel = $derived(data.selectorMapping.entityType === EntityType.EvmCoinInstance && data.selectorMapping.selectorName === 'NetworkType' ? 'EVM coin instance' : data.selectorMapping.entityType === EntityType.EvmCoinInstance && data.selectorMapping.selectorName === 'NetworkTypeContract' ? 'EVM coin instance' : 'Entity')
+	}))
+	const entityViewComponentByType = {
+		[EntityType.EvmCoinInstance]: EvmCoinInstanceView,
+	}
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import { entityViewComponentByType } from '$/views/index.ts'
+	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • {pageEntityTypeLabel} • Blockhead</title>
+	<title>{data.entityType === EntityType.EvmCoinInstance && data.selectorName === 'NetworkType' ? (pageSelection.entity == null ? 'EVM coin instance' : 'EVM coin instance') : (pageSelection.entity == null ? 'EVM coin instance' : 'EVM coin instance')} • EVM coin instance • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewComponentByType[data.selectorMapping.entityType]}
+	{@const EntityView = entityViewComponentByType[data.entityType]}
 
 	<EntityView
 		href={

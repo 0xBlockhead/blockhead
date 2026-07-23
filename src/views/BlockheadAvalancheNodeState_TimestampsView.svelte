@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Avalanche node state observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadAvalancheNodeState_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadAvalancheNodeState_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadAvalancheNodeState_TimestampView from '$/views/BlockheadAvalancheNodeState_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadAvalancheNodeStateTimestamps) => [...new Map(blockheadAvalancheNodeStateTimestamps.values.map((blockheadAvalancheNodeStateTimestamp) => [blockheadAvalancheNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadAvalancheNodeStateTimestamp])).values()]}
 	getKey={(blockheadAvalancheNodeStateTimestamp) => blockheadAvalancheNodeStateTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: blockheadAvalancheNodeStateTimestamp })}
 		{@const blockheadAvalancheNodeStateTimestampFields = { ...blockheadAvalancheNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadAvalancheNodeStateTimestamp }}
-		{@const selection = select(EntityType.BlockheadAvalancheNodeState_Timestamp, blockheadAvalancheNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadAvalancheNodeState_TimestampView
-			selection={selection}
-			prefetched={blockheadAvalancheNodeStateTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadAvalancheNodeState_Timestamp}
+			entitySelector={blockheadAvalancheNodeStateTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadAvalancheNodeStateTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead avalanche node state timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadAvalancheNodeStateTimestampFields.nodeVersion) ?? ''), String((blockheadAvalancheNodeStateTimestampFields.networkName) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadAvalancheNodeStateTimestampFields.connectedPeerCount) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

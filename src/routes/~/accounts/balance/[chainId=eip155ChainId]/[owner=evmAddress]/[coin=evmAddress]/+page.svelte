@@ -25,7 +25,7 @@
 			$network: {
 				caip2: {
 					namespace: 'eip155',
-					reference: Number(params.chainId),
+					reference: params.chainId,
 				},
 			},
 			address: params.coin,
@@ -35,12 +35,12 @@
 			Source.Constants_Internal,
 		],
 		fields: {
+			$network: true,
 			symbol: true,
 			$coinInstance: true,
 			decimals: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.symbol) ?? '')].filter(Boolean).join(' ') || 'balance' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).symbol) ?? '')].filter(Boolean).join(' ') || 'balance'))
 
 
 	// Components
@@ -50,7 +50,20 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • balance • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'balance' : [String((({ ...{
+		$actor: {
+			interopAddress: 'eip155:' + String(Number(params.chainId)) + ':' + String(params.owner),
+		},
+		$contract: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			address: params.coin,
+		},
+	}, ...pageSelection.entity }).symbol) ?? '')].filter(Boolean).join(' ') || 'balance')} • balance • Blockhead</title>
 </svelte:head>
 
 

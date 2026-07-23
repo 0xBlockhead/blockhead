@@ -35,7 +35,6 @@
 			$parentMarket: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.feedKey) ?? '')].filter(Boolean).join(' ') || 'market derivative timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).feedKey) ?? '')].filter(Boolean).join(' ') || 'market derivative timestamp')))
 
 
 	// Components
@@ -45,7 +44,15 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • market derivative timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
+		$market: data.selector,
+		timestampMs: Number(params.timestampMs),
+		feedKey: decodeURIComponent(params.feedKey),
+	}.feedKey) ?? '')].filter(Boolean).join(' ') || 'market derivative timestamp' : [String((({ ...{
+		$market: data.selector,
+		timestampMs: Number(params.timestampMs),
+		feedKey: decodeURIComponent(params.feedKey),
+	}, ...pageSelection.entity }).feedKey) ?? '')].filter(Boolean).join(' ') || 'market derivative timestamp'))} • market derivative timestamp • Blockhead</title>
 </svelte:head>
 
 

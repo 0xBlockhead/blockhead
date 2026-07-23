@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { bridgeRouteTagByTag } from '$/constants/Bridge.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
@@ -32,7 +33,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BridgeRoute>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BridgeRoute>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BridgeRoute>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -46,7 +47,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bridgeRoute = $derived(selection({
+	const bridgeRoute = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			estimatedCostUsd: true,
+			estimatedDurationSeconds: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			estimatedCostUsd: true,
@@ -54,7 +61,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.fromChainId) ?? ''), 'to', String((pendingEntity.toChainId) ?? '')].filter(Boolean).join(' ') || 'bridge route')
-	const viewDomId = $derived('bridge-route-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bridge-route-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,23 +79,43 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.fromChainId !== undefined && pendingEntity.toChainId !== undefined && pendingEntity.fromToken !== undefined && pendingEntity.toToken !== undefined && pendingEntity.fromAmount !== undefined && pendingEntity.fromAddress !== undefined && pendingEntity.slippage !== undefined && pendingEntity.toAddress !== undefined ? resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]', {
-			fromChainId: String(pendingEntity.fromChainId ?? ''),
-			toChainId: String(pendingEntity.toChainId ?? ''),
-			fromToken: String(pendingEntity.fromToken ?? ''),
-			toToken: String(pendingEntity.toToken ?? ''),
-			fromAmount: String(pendingEntity.fromAmount ?? ''),
-			fromAddress: String(pendingEntity.fromAddress ?? ''),
-			slippage: String(pendingEntity.slippage ?? ''),
-			toAddress: String(pendingEntity.toAddress ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'fromChainId' in selection.entitySelector
+			&& selection.entitySelector.fromChainId != null
+			&& selection.entitySelector != null && 'toChainId' in selection.entitySelector
+			&& selection.entitySelector.toChainId != null
+			&& selection.entitySelector != null && 'fromToken' in selection.entitySelector
+			&& selection.entitySelector.fromToken != null
+			&& selection.entitySelector != null && 'toToken' in selection.entitySelector
+			&& selection.entitySelector.toToken != null
+			&& selection.entitySelector != null && 'fromAmount' in selection.entitySelector
+			&& selection.entitySelector.fromAmount != null
+			&& selection.entitySelector != null && 'fromAddress' in selection.entitySelector
+			&& selection.entitySelector.fromAddress != null
+			&& selection.entitySelector != null && 'slippage' in selection.entitySelector
+			&& selection.entitySelector.slippage != null
+			&& selection.entitySelector != null && 'toAddress' in selection.entitySelector
+			&& selection.entitySelector.toAddress != null ?
+				resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]', {
+			fromChainId: String(selection.entitySelector.fromChainId ?? ''),
+			toChainId: String(selection.entitySelector.toChainId ?? ''),
+			fromToken: String(selection.entitySelector.fromToken ?? ''),
+			toToken: String(selection.entitySelector.toToken ?? ''),
+			fromAmount: String(selection.entitySelector.fromAmount ?? ''),
+			fromAddress: String(selection.entitySelector.fromAddress ?? ''),
+			slippage: String(selection.entitySelector.slippage ?? ''),
+			toAddress: String(selection.entitySelector.toAddress ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'estimatedCostUsd') && Object.hasOwn(prefetched, 'estimatedDurationSeconds')}
 			{[String((pendingEntity.fromChainId) ?? ''), 'to', String((pendingEntity.toChainId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={bridgeRoute}>
@@ -101,7 +128,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'estimatedCostUsd') && Object.hasOwn(prefetched, 'estimatedDurationSeconds')}
 			{['LI.FI quote'].filter(Boolean).join(' ') || [String((pendingEntity.fromChainId) ?? ''), 'to', String((pendingEntity.toChainId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={bridgeRoute}>
@@ -114,7 +141,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'estimatedCostUsd') && Object.hasOwn(prefetched, 'estimatedDurationSeconds')}
 			{@const estimatedCostUsd0 = pendingEntity.estimatedCostUsd}
 			{#if estimatedCostUsd0 !== undefined && estimatedCostUsd0 !== null}
 				<span data-text="muted">
@@ -162,11 +189,21 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+										(
+											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
+											&& network[EntityMetaKey.Selector].caip2 != null ?
+												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : undefined)
+										})
+										:
+												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
+												&& network[EntityMetaKey.Selector].slug != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+												network: String(network[EntityMetaKey.Selector].slug ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -189,11 +226,21 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+										(
+											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
+											&& network[EntityMetaKey.Selector].caip2 != null ?
+												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : undefined)
+										})
+										:
+												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
+												&& network[EntityMetaKey.Selector].slug != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+												network: String(network[EntityMetaKey.Selector].slug ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -479,20 +526,25 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BridgeRouteStepsView
-				selection={
-						selection.$$steps({
-							sources: [
-								Source.Lifi_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Steps'
-				emptyText='No steps on this route.'
-				id='BridgeRouteStepsView-steps'
-			/>
-		{/if}
+				{@const bridgeRouteBridgeRouteStepsViewStepsResource = selection
+		.$$steps({
+			sources: [
+				Source.Lifi_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={bridgeRouteBridgeRouteStepsViewStepsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<BridgeRouteStepsView
+							selection={bridgeRouteBridgeRouteStepsViewStepsResource}
+							countResource={bridgeRouteBridgeRouteStepsViewStepsResource.count}
+							title='Steps'
+							id='BridgeRouteStepsView-steps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

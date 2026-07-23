@@ -2,22 +2,23 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'User operations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +30,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmUserOperation>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmUserOperation>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +41,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmUserOperationView from '$/views/EvmUserOperationView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +73,9 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
 	resource={
 		selection({
+			sources: selection.sources ?? [
+				Source.Blockscout_Rest,
+			],
 			fields: {
 				hash: true,
 				successful: true,
@@ -87,6 +84,7 @@
 			limit: 16,
 		})
 	}
+	{countResource}
 	getResourceItems={(evmUserOperations) => [...new Map(evmUserOperations.values.map((evmUserOperation) => [evmUserOperation[EntityMetaKey.SelectorKey], evmUserOperation])).values()]}
 	getKey={(evmUserOperation) => evmUserOperation[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -101,22 +99,48 @@
 
 	{#snippet Item({ item: evmUserOperation })}
 		{@const evmUserOperationFields = { ...evmUserOperation[EntityMetaKey.Selector], ...evmUserOperation }}
-		{@const selection = select(EntityType.EvmUserOperation, evmUserOperation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmUserOperationHrefFields = { ...evmUserOperation, ...evmUserOperation[EntityMetaKey.Selector] }}
-		<EvmUserOperationView
-			selection={selection}
-			prefetched={evmUserOperationFields}
+		<EntityView
+			entityType={EntityType.EvmUserOperation}
+			entitySelector={evmUserOperation[EntityMetaKey.Selector]}
 			href={
-				(evmUserOperationHrefFields.hash !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
-					userOperationHash: String(evmUserOperationHrefFields.hash ?? ''),
-					network: String(caip2StringFromValue(evmUserOperationHrefFields.$network.caip2) ?? ''),
-				}) : evmUserOperationHrefFields.hash !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
-					userOperationHash: String(evmUserOperationHrefFields.hash ?? ''),
-					network: String(evmUserOperationHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					evmUserOperation[EntityMetaKey.Selector] != null && 'hash' in evmUserOperation[EntityMetaKey.Selector]
+					&& evmUserOperation[EntityMetaKey.Selector].hash != null
+					&& evmUserOperation[EntityMetaKey.Selector] != null && '$network' in evmUserOperation[EntityMetaKey.Selector] ?
+						evmUserOperation[EntityMetaKey.Selector].$network != null && 'caip2' in evmUserOperation[EntityMetaKey.Selector].$network
+						&& evmUserOperation[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
+						userOperationHash: String(evmUserOperation[EntityMetaKey.Selector].hash ?? ''),
+						network: String(caip2StringFromValue(evmUserOperation[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							evmUserOperation[EntityMetaKey.Selector].$network != null && 'slug' in evmUserOperation[EntityMetaKey.Selector].$network
+							&& evmUserOperation[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
+							userOperationHash: String(evmUserOperation[EntityMetaKey.Selector].hash ?? ''),
+							network: String(evmUserOperation[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((evmUserOperationFields.hash) ?? '')].filter(Boolean).join(' ') || 'User operation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((evmUserOperationFields.hash) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((evmUserOperationFields.successful) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

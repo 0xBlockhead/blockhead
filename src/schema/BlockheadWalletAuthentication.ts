@@ -30,7 +30,7 @@ export const BlockheadWalletAuthentication = entity({
 	$account: {
 		label: 'account',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.BlockheadWalletAccount,
+		entityType: EntityType.Account,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	protocol: {

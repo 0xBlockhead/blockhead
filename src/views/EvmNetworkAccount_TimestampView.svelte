@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmNetworkAccount_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmNetworkAccount_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmNetworkAccount_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmNetworkAccountTimestamp = $derived(selection({
+	const evmNetworkAccountTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			transactionCount: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			transactionCount: true,
 		},
 	}))
-	const titleFallback = $derived('EVM network account timestamp')
-	const viewDomId = $derived('evm-network-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'EVM network account timestamp'
+	const viewDomId = $derived('evm-network-account-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,88 +78,44 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
-						href={
-						(selection.entitySelector.$account.$actor !== undefined && selection.entitySelector.$account.$actor.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$account.$actor.address ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$account.$actor !== undefined && selection.entitySelector.$account.$actor.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$account.$actor.address ?? ''),
-							network: String(selection.entitySelector.$account.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={evmNetworkAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
-						href={
-						(selection.entitySelector.$account.$actor !== undefined && selection.entitySelector.$account.$actor.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$account.$actor.address ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$account.$actor !== undefined && selection.entitySelector.$account.$actor.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(selection.entitySelector.$account.$actor.address ?? ''),
-							network: String(selection.entitySelector.$account.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmNetworkAccountTimestamp}>
+			{#snippet children(entity)}
+				<EvmNetworkAccountView
+					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const transactionCount0 = pendingEntity.transactionCount}
-					{#if transactionCount0 !== undefined && transactionCount0 !== null}
-						<NumberValue
-							value={transactionCount0}
-						/>
-					{/if}
-		{:else}
-			<ResourceBoundary resource={evmNetworkAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionCount0 = resolvedEntity.transactionCount}
-					{#if transactionCount0 !== undefined && transactionCount0 !== null}
-						<NumberValue
-							value={transactionCount0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmNetworkAccountTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const transactionCount0 = resolvedEntity.transactionCount}
+				{#if transactionCount0 !== undefined && transactionCount0 !== null}
+					<NumberValue
+						value={transactionCount0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(timestampMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmNetworkAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmNetworkAccountTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestampMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -162,15 +124,31 @@
 				<dt>account</dt>
 				<dd>
 					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account, {})}
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
 						href={
-							(selection.entitySelector.$account.$actor !== undefined && selection.entitySelector.$account.$actor.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(selection.entitySelector.$account.$actor.address ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$account.$actor !== undefined && selection.entitySelector.$account.$actor.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(selection.entitySelector.$account.$actor.address ?? ''),
-								network: String(selection.entitySelector.$account.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$account != null && '$actor' in selection.entitySelector.$account
+								&& selection.entitySelector.$account.$actor != null && 'address' in selection.entitySelector.$account.$actor
+								&& selection.entitySelector.$account.$actor.address != null
+								&& selection.entitySelector.$account != null && '$network' in selection.entitySelector.$account ?
+									selection.entitySelector.$account.$network != null && 'caip2' in selection.entitySelector.$account.$network
+									&& selection.entitySelector.$account.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+									accountId: String(selection.entitySelector.$account.$actor.address ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$account.$network != null && 'slug' in selection.entitySelector.$account.$network
+										&& selection.entitySelector.$account.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+										accountId: String(selection.entitySelector.$account.$actor.address ?? ''),
+										network: String(selection.entitySelector.$account.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,15 +27,9 @@
 			Source.Primal_Rest,
 		],
 		fields: {
-			title: true,
-			publishedAt: true,
-			summary: true,
-			imageUrl: true,
-			$author: true,
-			content: true,
+			$latestEvent: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.title) ?? ''), String((pageSelection.entitySelector.identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).title) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article'))
 
 
 	// Components
@@ -46,7 +39,15 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Nostr article • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		kind: 30023,
+		pubkey: params.pubkey,
+		identifier: params.identifier,
+	}.identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article' : [String((({ ...{
+		kind: 30023,
+		pubkey: params.pubkey,
+		identifier: params.identifier,
+	}, ...pageSelection.entity }).identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article')} • Nostr article • Blockhead</title>
 </svelte:head>
 
 

@@ -47,7 +47,6 @@
 			description: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? ''), String((pageSelection.entitySelector.source) ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp')))
 
 
 	// Components
@@ -57,7 +56,19 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Nostr relay timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
+		$relay: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.source) ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp' : [String((({ ...{
+		$relay: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).name) ?? ''), String((({ ...{
+		$relay: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp'))} • Nostr relay timestamp • Blockhead</title>
 </svelte:head>
 
 

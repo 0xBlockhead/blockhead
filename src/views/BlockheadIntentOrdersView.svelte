@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead intent orders',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadIntentOrder>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadIntentOrder>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadIntentOrderView from '$/views/BlockheadIntentOrderView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadIntentOrders) => [...new Map(blockheadIntentOrders.values.map((blockheadIntentOrder) => [blockheadIntentOrder[EntityMetaKey.SelectorKey], blockheadIntentOrder])).values()]}
 	getKey={(blockheadIntentOrder) => blockheadIntentOrder[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadIntentOrder })}
 		{@const blockheadIntentOrderFields = { ...blockheadIntentOrder[EntityMetaKey.Selector], ...blockheadIntentOrder }}
-		{@const selection = select(EntityType.BlockheadIntentOrder, blockheadIntentOrder[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadIntentOrderView
-			selection={selection}
-			prefetched={blockheadIntentOrderFields}
+		<EntityView
+			entityType={EntityType.BlockheadIntentOrder}
+			entitySelector={blockheadIntentOrder[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadIntentOrderFields.orderId) ?? '')].filter(Boolean).join(' ') || 'blockhead intent order'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadIntentOrderFields.providerProtocol) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadIntentOrderFields.submittedAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

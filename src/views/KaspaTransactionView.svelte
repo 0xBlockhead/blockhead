@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.KaspaTransaction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.KaspaTransaction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.KaspaTransaction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaTransaction = $derived(selection({
+	const kaspaTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('kaspa transaction')
-	const viewDomId = $derived('kaspa-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'kaspa transaction'
+	const viewDomId = $derived('kaspa-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,12 +75,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails}
 			{title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={kaspaTransaction}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					{title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
@@ -89,7 +92,7 @@
 				<dt>network</dt>
 				<dd>
 					<KaspaNetworkView
-						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -247,99 +250,253 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-kaspa-tx-io'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'kaspa-tx-inputs',
-							label: 'Inputs',
-						},
-						{
-							id: 'kaspa-tx-outputs',
-							label: 'Outputs',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-io'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Inputs and outputs</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-kaspa-tx-io'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'kaspa-tx-inputs',
+						label: 'Inputs',
+						ownsSection: true,
+					},
+					{
+						id: 'kaspa-tx-outputs',
+						label: 'Outputs',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-io'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Inputs and outputs</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionKaspaTxInputs({ id, label, open })}
-					<UtxoInputsView
-						selection={selection.$$inputs}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No UTXO inputs.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerKaspaTxInputs(_context, Content)}
+				{@const kaspaTxIoKaspaTxInputsResource = selection.$$inputs}
+				<ResourceBoundary
+					resource={kaspaTxIoKaspaTxInputsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionKaspaTxOutputs({ id, label, open })}
-					<UtxoOutputsView
-						selection={selection.$$outputs}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No UTXO outputs.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-kaspa-tx-acceptance'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'kaspa-tx-acceptances',
-							label: 'Acceptances',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-acceptance'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Acceptance</HeadingComponent>
-					</header>
-				{/snippet}
+			{#snippet SectionKaspaTxInputs({ id, label, open, active })}
+				{@const kaspaTxIoKaspaTxInputsResource = selection.$$inputs}
+				<ResourceBoundary
+					resource={kaspaTxIoKaspaTxInputsResource}
+				>
+					{#snippet children(utxoInput)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<UtxoInputsView
+								selection={kaspaTxIoKaspaTxInputsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No UTXO inputs.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-				{#snippet SectionKaspaTxAcceptances({ id, label, open })}
-					<KaspaAcceptedTransactionsView
-						selection={selection.$$acceptances}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No Kaspa acceptances.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerKaspaTxOutputs(_context, Content)}
+				{@const kaspaTxIoKaspaTxOutputsResource = selection.$$outputs}
+				<ResourceBoundary
+					resource={kaspaTxIoKaspaTxOutputsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionKaspaTxOutputs({ id, label, open, active })}
+				{@const kaspaTxIoKaspaTxOutputsResource = selection.$$outputs}
+				<ResourceBoundary
+					resource={kaspaTxIoKaspaTxOutputsResource}
+				>
+					{#snippet children(utxoOutput)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<UtxoOutputsView
+								selection={kaspaTxIoKaspaTxOutputsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No UTXO outputs.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-kaspa-tx-acceptance'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'kaspa-tx-acceptances',
+						label: 'Acceptances',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-acceptance'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Acceptance</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerKaspaTxAcceptances(_context, Content)}
+				{@const kaspaTxAcceptanceKaspaTxAcceptancesResource = selection.$$acceptances}
+				<ResourceBoundary
+					resource={kaspaTxAcceptanceKaspaTxAcceptancesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionKaspaTxAcceptances({ id, label, open, active })}
+				{@const kaspaTxAcceptanceKaspaTxAcceptancesResource = selection.$$acceptances}
+				<ResourceBoundary
+					resource={kaspaTxAcceptanceKaspaTxAcceptancesResource}
+				>
+					{#snippet children(kaspaAcceptedTransaction)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<KaspaAcceptedTransactionsView
+								selection={kaspaTxAcceptanceKaspaTxAcceptancesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No Kaspa acceptances.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

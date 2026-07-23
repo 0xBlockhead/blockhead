@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadCodexStoredData>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadCodexStoredData>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadCodexStoredData>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,14 +41,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadCodexStoredData = $derived(selection({
+	const blockheadCodexStoredData = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			firstSeenAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			firstSeenAt: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'blockhead codex stored data')
-	const viewDomId = $derived('blockhead-codex-stored-data-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-codex-stored-data-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,7 +76,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$nodeState') && prefetched.$nodeState != null && Object.hasOwn(prefetched.$nodeState, 'endpoint') && Object.hasOwn(prefetched, 'firstSeenAt')}
 			{[String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadCodexStoredData}>
@@ -83,18 +89,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<BlockheadCodexStorageNodeStateView
-						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$nodeState') && prefetched.$nodeState != null && Object.hasOwn(prefetched.$nodeState, 'endpoint') && Object.hasOwn(prefetched, 'firstSeenAt')}
+			{@const blockheadCodexStorageNodeState0 = pendingEntity.$nodeState}
+			{#if blockheadCodexStorageNodeState0 != null && selection.entitySelector.$nodeState != null}
+				<BlockheadCodexStorageNodeStateView
+					selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState, { sources: selection.sources })}
+					prefetched={blockheadCodexStorageNodeState0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={blockheadCodexStoredData}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<BlockheadCodexStorageNodeStateView
 						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -104,7 +115,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$nodeState') && prefetched.$nodeState != null && Object.hasOwn(prefetched.$nodeState, 'endpoint') && Object.hasOwn(prefetched, 'firstSeenAt')}
 			{@const firstSeenAt0 = pendingEntity.firstSeenAt}
 			{#if firstSeenAt0 !== undefined && firstSeenAt0 !== null}
 				<span data-text="muted">
@@ -132,7 +143,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadCodexStorageNodeStateView
-						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState, {})}
+						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -210,17 +221,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadCodexStoredData_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No availability observations.'
-				id='BlockheadCodexStoredData_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadCodexStoredDataBlockheadCodexStoredDataTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadCodexStoredDataBlockheadCodexStoredDataTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadCodexStoredData_TimestampsView
+					selection={blockheadCodexStoredDataBlockheadCodexStoredDataTimestampsViewTimestampsResource}
+					countResource={blockheadCodexStoredDataBlockheadCodexStoredDataTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadCodexStoredData_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

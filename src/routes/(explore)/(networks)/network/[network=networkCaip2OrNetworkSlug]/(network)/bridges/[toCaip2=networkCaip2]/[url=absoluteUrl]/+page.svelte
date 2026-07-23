@@ -23,7 +23,6 @@
 			relationshipType: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.url) ?? '')].filter(Boolean).join(' ') || 'EVM network bridge' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).url) ?? '')].filter(Boolean).join(' ') || 'EVM network bridge')))
 
 
 	// Components
@@ -33,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM network bridge • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.url) ?? '')].filter(Boolean).join(' ') || 'EVM network bridge' : [String((({ ...data.selector, ...pageSelection.entity }).url) ?? '')].filter(Boolean).join(' ') || 'EVM network bridge'))} • EVM network bridge • Blockhead</title>
 </svelte:head>
 
 

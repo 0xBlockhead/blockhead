@@ -41,7 +41,6 @@
 			<DetailView
 				selection={select(EntityType.FarcasterUser, data.selector, { sources: [
 		Source.Snapchain_Rest,
-		Source.Neynar_Rest,
 	] })}
 				href={
 					resolve('/farcaster/user/[userId=farcasterFid]', {

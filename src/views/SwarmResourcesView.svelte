@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Swarm resources',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.SwarmResource>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SwarmResource>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import SwarmResourceView from '$/views/SwarmResourceView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,6 +75,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(swarmResources) => [...new Map(swarmResources.values.map((swarmResource) => [swarmResource[EntityMetaKey.SelectorKey], swarmResource])).values()]}
 	getKey={(swarmResource) => swarmResource[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -96,21 +90,42 @@
 
 	{#snippet Item({ item: swarmResource })}
 		{@const swarmResourceFields = { ...swarmResource[EntityMetaKey.Selector], ...swarmResource }}
-		{@const selection = select(EntityType.SwarmResource, swarmResource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const swarmResourceHrefFields = { ...swarmResource, ...swarmResource[EntityMetaKey.Selector] }}
-		<SwarmResourceView
-			selection={selection}
-			prefetched={swarmResourceFields}
+		<EntityView
+			entityType={EntityType.SwarmResource}
+			entitySelector={swarmResource[EntityMetaKey.Selector]}
 			href={
-				(swarmResource[EntityMetaKey.Selector].contentPath === '' && swarmResourceHrefFields.reference !== undefined ? resolve('/swarm/[reference=stringSegment]', {
-					reference: String(swarmResourceHrefFields.reference ?? ''),
-				}) : swarmResource[EntityMetaKey.Selector].contentPath !== '' && swarmResourceHrefFields.reference !== undefined && swarmResourceHrefFields.contentPath !== undefined ? resolve('/swarm/[reference=stringSegment]/path/[...contentPath=stringSegment]', {
-					reference: String(swarmResourceHrefFields.reference ?? ''),
-					contentPath: String(swarmResourceHrefFields.contentPath ?? ''),
-				}) : undefined)
+				(
+					swarmResource[EntityMetaKey.Selector] != null && 'reference' in swarmResource[EntityMetaKey.Selector]
+					&& swarmResource[EntityMetaKey.Selector].reference != null ?
+						swarmResource[EntityMetaKey.Selector].reference != null ?
+							resolve('/swarm/[reference=stringSegment]', {
+						reference: String(swarmResource[EntityMetaKey.Selector].reference ?? ''),
+					})
+					:
+							swarmResource[EntityMetaKey.Selector].reference != null
+							&& swarmResource[EntityMetaKey.Selector] != null && 'contentPath' in swarmResource[EntityMetaKey.Selector]
+							&& swarmResource[EntityMetaKey.Selector].contentPath != null ?
+								resolve('/swarm/[reference=stringSegment]/path/[...contentPath=stringSegment]', {
+							reference: String(swarmResource[EntityMetaKey.Selector].reference ?? ''),
+							contentPath: String(swarmResource[EntityMetaKey.Selector].contentPath ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((swarmResourceFields.canonicalUri) ?? '')].filter(Boolean).join(' ') || 'Swarm resource'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((swarmResourceFields.contentType) ?? ''), String((swarmResourceFields.displayType) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

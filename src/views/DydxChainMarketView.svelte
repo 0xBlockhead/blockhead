@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.DydxChainMarket>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.DydxChainMarket>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.DydxChainMarket>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const dydxChainMarket = $derived(selection({
+	const dydxChainMarket = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			marketKind: true,
+			baseAsset: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			marketKind: true,
@@ -48,7 +55,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || 'dydx chain market')
-	const viewDomId = $derived('dydx-chain-market-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('dydx-chain-market-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,7 +76,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'marketKind') && Object.hasOwn(prefetched, 'baseAsset')}
 			{[String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={dydxChainMarket}>
@@ -82,7 +89,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'marketKind') && Object.hasOwn(prefetched, 'baseAsset')}
 			{[String((pendingEntity.marketKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={dydxChainMarket}>
@@ -95,7 +102,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'marketKind') && Object.hasOwn(prefetched, 'baseAsset')}
 			{@const baseAsset0 = pendingEntity.baseAsset}
 			{#if baseAsset0 !== undefined && baseAsset0 !== null}
 				<span data-text="muted">
@@ -123,7 +130,7 @@
 				<dt>network</dt>
 				<dd>
 					<DydxChainNetworkView
-						selection={select(EntityType.DydxChainNetwork, selection.entitySelector.$network, {})}
+						selection={select(EntityType.DydxChainNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -229,17 +236,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<DydxChainMarket_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No dYdX market observations.'
-				id='DydxChainMarket_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const dydxChainMarketDydxChainMarketTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={dydxChainMarketDydxChainMarketTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<DydxChainMarket_TimestampsView
+					selection={dydxChainMarketDydxChainMarketTimestampsViewTimestampsResource}
+					countResource={dydxChainMarketDydxChainMarketTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='DydxChainMarket_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

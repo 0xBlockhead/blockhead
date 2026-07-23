@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.TronAccountTokenBalance_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TronAccountTokenBalance_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TronAccountTokenBalance_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,18 +41,34 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tronAccountTokenBalanceTimestamp = $derived(selection({
+	const tronAccountTokenBalanceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
 		sources: selection.sources,
+		fields: {
+			tokenSymbol: true,
+			balance: true,
+			tokenName: true,
+			tokenId: true,
+		},
+	} : {
+		sources: selection.sources,
+		fields: {
+			tokenSymbol: true,
+			balance: true,
+			tokenName: true,
+			tokenId: true,
+		},
 	}))
-	const titleFallback = $derived('tron account token balance timestamp')
-	const viewDomId = $derived('tron-account-token-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.tokenSymbol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.tokenName) ?? ''), String((pendingEntity.tokenId) ?? '')].filter(Boolean).join(' ') || 'tron account token balance timestamp')
+	const viewDomId = $derived('tron-account-token-balance-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import TronAccountView from '$/views/TronAccountView.svelte'
 	import TronTokenView from '$/views/TronTokenView.svelte'
+	import TronAccountView from '$/views/TronAccountView.svelte'
 </script>
 
 
@@ -66,36 +83,50 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tronAccountTokenBalanceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={tronAccountTokenBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.tokenSymbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={tronAccountTokenBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const balance0 = resolvedEntity.balance}
+				{#if balance0 !== undefined && balance0 !== null}
+					<NumberValue
+						value={balance0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={tronAccountTokenBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<TronAccountView
+						selection={select(EntityType.TronAccount, selection.entitySelector.$account)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
-				<dt>Account</dt>
-				<dd>
-					<TronAccountView
-						selection={select(EntityType.TronAccount, selection.entitySelector.$account, {})}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				</dd>
-			</div>
-
-			<div>
 				<dt>Token</dt>
 				<dd>
 					<TronTokenView
-						selection={select(EntityType.TronToken, selection.entitySelector.$token, {})}
+						selection={select(EntityType.TronToken, selection.entitySelector.$token)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -198,30 +229,6 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							balance: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const balance = resolvedEntity.balance}
-					{#if balance !== undefined && balance !== null}
-						<div>
-							<dt>Balance</dt>
-							<dd>
-								{String((balance) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
 			<div>
 				<dt>Owned serial numbers</dt>
 				<dd>
@@ -245,78 +252,6 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							tokenId: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenId = resolvedEntity.tokenId}
-					{#if tokenId !== undefined && tokenId !== null}
-						<div>
-							<dt>Token ID</dt>
-							<dd>
-								{String((tokenId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							tokenName: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenName = resolvedEntity.tokenName}
-					{#if tokenName !== undefined && tokenName !== null}
-						<div>
-							<dt>Token name</dt>
-							<dd>
-								{String((tokenName) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							tokenSymbol: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenSymbol = resolvedEntity.tokenSymbol}
-					{#if tokenSymbol !== undefined && tokenSymbol !== null}
-						<div>
-							<dt>Token symbol</dt>
-							<dd>
-								{String((tokenSymbol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={

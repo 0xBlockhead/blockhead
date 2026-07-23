@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'A2A agent services',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.A2aAgentService>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.A2aAgentService>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import A2aAgentServiceView from '$/views/A2aAgentServiceView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(a2aAgentServices) => [...new Map(a2aAgentServices.values.map((a2aAgentService) => [a2aAgentService[EntityMetaKey.SelectorKey], a2aAgentService])).values()]}
 	getKey={(a2aAgentService) => a2aAgentService[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: a2aAgentService })}
 		{@const a2aAgentServiceFields = { ...a2aAgentService[EntityMetaKey.Selector], ...a2aAgentService }}
-		{@const selection = select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<A2aAgentServiceView
-			selection={selection}
-			prefetched={a2aAgentServiceFields}
+		<EntityView
+			entityType={EntityType.A2aAgentService}
+			entitySelector={a2aAgentService[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((a2aAgentServiceFields.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent service'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((a2aAgentServiceFields.protocolBinding) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((a2aAgentServiceFields.transportKind) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

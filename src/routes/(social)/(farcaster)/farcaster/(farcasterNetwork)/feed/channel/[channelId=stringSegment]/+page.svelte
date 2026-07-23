@@ -41,14 +41,27 @@
 			select(EntityType.FarcasterFeed, {
 				variant: 'byChannel',
 				channelId: params.channelId,
-			}).$$entries({
-				sources: [
-					Source.Neynar_Rest,
-					Source.Farcaster_Rest,
-					Source.Snapchain_Rest,
-				],
-				count: true,
 			})
+				.$$entries({
+					sources: [
+						Source.Neynar_Rest,
+						Source.Farcaster_Rest,
+						Source.Snapchain_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.FarcasterFeed, {
+				variant: 'byChannel',
+				channelId: params.channelId,
+			})
+				.$$entries({
+					sources: [
+						Source.Neynar_Rest,
+						Source.Farcaster_Rest,
+						Source.Snapchain_Rest,
+					],
+				}).count
 		}
 		id='entries'
 		data-column-item="flexible"

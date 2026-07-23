@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -28,9 +29,22 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$specificationRealms',
-			}).$$specificationRealms({
-				count: true,
 			})
+				.$$specificationRealms({
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+		}
+		countResource={
+			select(EntityType._Global, {
+				scope: '$$specificationRealms',
+			})
+				.$$specificationRealms({
+					sources: [
+						Source.Constants_Internal,
+					],
+				}).count
 		}
 		id='specification-realms'
 		data-column-item="flexible"

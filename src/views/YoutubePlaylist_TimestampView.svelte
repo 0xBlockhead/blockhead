@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.YoutubePlaylist_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.YoutubePlaylist_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.YoutubePlaylist_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const youtubePlaylistTimestamp = $derived(selection({
+	const youtubePlaylistTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist observation')
-	const viewDomId = $derived('youtube-playlist-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('youtube-playlist-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,61 +65,47 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$playlist !== undefined && pendingEntity.$playlist.playlistId !== undefined ? resolve('/youtube/playlist/[playlistId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			playlistId: encodeURIComponent(String(pendingEntity.$playlist.playlistId ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$playlist' in selection.entitySelector
+			&& selection.entitySelector.$playlist != null && 'playlistId' in selection.entitySelector.$playlist
+			&& selection.entitySelector.$playlist.playlistId != null ?
+				resolve('/youtube/playlist/[playlistId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			playlistId: encodeURIComponent(String(selection.entitySelector.$playlist.playlistId ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<YoutubePlaylistView
-						selection={select(EntityType.YoutubePlaylist, selection.entitySelector.$playlist)}
-						href={
-						(selection.entitySelector.$playlist.playlistId !== undefined ? resolve('/youtube/playlist/[playlistId=stringSegment]', {
-							playlistId: encodeURIComponent(String(selection.entitySelector.$playlist.playlistId ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-					{@const timestampMs1 = pendingEntity.timestampMs}
-					{#if timestampMs1 !== undefined && timestampMs1 !== null}
-						<Timestamp timestamp={Number(timestampMs1)} />
-					{/if}
-					{@const source2 = pendingEntity.source}
-					{#if source2 !== undefined && source2 !== null}
-						{String((source2) ?? '')}
-					{/if}
-		{:else}
-			<ResourceBoundary resource={youtubePlaylistTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<YoutubePlaylistView
-						selection={select(EntityType.YoutubePlaylist, selection.entitySelector.$playlist)}
-						href={
-						(selection.entitySelector.$playlist.playlistId !== undefined ? resolve('/youtube/playlist/[playlistId=stringSegment]', {
-							playlistId: encodeURIComponent(String(selection.entitySelector.$playlist.playlistId ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-					{@const timestampMs1 = resolvedEntity.timestampMs}
-					{#if timestampMs1 !== undefined && timestampMs1 !== null}
-						<Timestamp timestamp={Number(timestampMs1)} />
-					{/if}
-					{@const source2 = resolvedEntity.source}
-					{#if source2 !== undefined && source2 !== null}
-						{String((source2) ?? '')}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={youtubePlaylistTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<YoutubePlaylistView
+					selection={select(EntityType.YoutubePlaylist, selection.entitySelector.$playlist)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+				{@const timestampMs1 = resolvedEntity.timestampMs}
+				{#if timestampMs1 !== undefined && timestampMs1 !== null}
+					<Timestamp timestamp={Number(timestampMs1)} />
+				{/if}
+				{@const source2 = resolvedEntity.source}
+				{#if source2 !== undefined && source2 !== null}
+					{String((source2) ?? '')}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

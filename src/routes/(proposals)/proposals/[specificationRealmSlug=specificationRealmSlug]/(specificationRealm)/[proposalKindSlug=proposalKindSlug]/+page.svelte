@@ -30,7 +30,6 @@
 			$specificationRealm: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.labelPlural) ?? '')].filter(Boolean).join(' ') || [String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.labelPlural ?? (String((pageSelection.entitySelector.category) ?? ''))) ?? '')].filter(Boolean).join(' ') || 'Specification proposal kind' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).labelPlural) ?? '')].filter(Boolean).join(' ') || [String((proposalCategoryById[String(({ ...pageSelection.entitySelector, ...pageSelection.entity }).category)]?.labelPlural ?? (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).category) ?? ''))) ?? '')].filter(Boolean).join(' ') || 'Specification proposal kind')))
 
 
 	// Components
@@ -40,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Specification proposal kind • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((proposalCategoryById[String(data.selector.category)]?.labelPlural ?? (String((data.selector.category) ?? ''))) ?? '')].filter(Boolean).join(' ') || 'Specification proposal kind' : [String((({ ...data.selector, ...pageSelection.entity }).labelPlural) ?? '')].filter(Boolean).join(' ') || [String((proposalCategoryById[String(({ ...data.selector, ...pageSelection.entity }).category)]?.labelPlural ?? (String((({ ...data.selector, ...pageSelection.entity }).category) ?? ''))) ?? '')].filter(Boolean).join(' ') || 'Specification proposal kind'))} • Specification proposal kind • Blockhead</title>
 </svelte:head>
 
 

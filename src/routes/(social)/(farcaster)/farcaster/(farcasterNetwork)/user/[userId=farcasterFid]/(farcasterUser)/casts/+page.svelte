@@ -40,12 +40,22 @@
 		selection={
 			select(EntityType.FarcasterUser, {
 				fid: Number(params.userId),
-			}).$$casts({
-				sources: [
-					Source.Snapchain_Rest,
-				],
-				count: true,
 			})
+				.$$casts({
+					sources: [
+						Source.Snapchain_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.FarcasterUser, {
+				fid: Number(params.userId),
+			})
+				.$$casts({
+					sources: [
+						Source.Snapchain_Rest,
+					],
+				}).count
 		}
 		id='casts'
 		data-column-item="flexible"

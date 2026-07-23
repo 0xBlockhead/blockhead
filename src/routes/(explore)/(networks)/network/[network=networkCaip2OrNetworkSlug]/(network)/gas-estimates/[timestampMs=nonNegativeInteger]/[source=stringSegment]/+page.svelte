@@ -26,7 +26,6 @@
 			transport: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [(String((pageSelection.entitySelector.fastGwei) ?? '') ? String((pageSelection.entitySelector.fastGwei) ?? '') + ' gwei' : ''), String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp' : [(String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).fastGwei) ?? '') ? String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).fastGwei) ?? '') + ' gwei' : ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp')))
 
 
 	// Components
@@ -36,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM network gas estimate timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp' : [(String((({ ...data.selector, ...pageSelection.entity }).fastGwei) ?? '') ? String((({ ...data.selector, ...pageSelection.entity }).fastGwei) ?? '') + ' gwei' : ''), String((({ ...data.selector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp'))} • EVM network gas estimate timestamp • Blockhead</title>
 </svelte:head>
 
 

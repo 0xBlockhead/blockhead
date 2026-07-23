@@ -40,13 +40,24 @@
 		selection={
 			select(EntityType.YoutubeVideo, {
 				videoId: decodeURIComponent(params.videoId),
-			}).$$comments({
-				sources: [
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-				],
-				count: true,
 			})
+				.$$comments({
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.YoutubeVideo, {
+				videoId: decodeURIComponent(params.videoId),
+			})
+				.$$comments({
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					],
+				}).count
 		}
 		id='comments'
 		data-column-item="flexible"

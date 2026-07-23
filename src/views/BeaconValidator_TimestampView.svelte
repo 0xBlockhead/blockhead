@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BeaconValidator_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BeaconValidator_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BeaconValidator_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const beaconValidatorTimestamp = $derived(selection({
+	const beaconValidatorTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			status: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			status: true,
 		},
 	}))
 	const titleFallback = $derived((String((pendingEntity.slot) ?? '') ? 'Slot #' + String((pendingEntity.slot) ?? '') : '') || 'beacon validator timestamp')
-	const viewDomId = $derived('beacon-validator-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('beacon-validator-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,17 +74,37 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.slot ?? '')}
 	href={
-		href ?? (pendingEntity.slot !== undefined && pendingEntity.source !== undefined && pendingEntity.$validator !== undefined && pendingEntity.$validator.indexInNetwork !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
-			slot: String(pendingEntity.slot ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			validatorId: String(pendingEntity.$validator.indexInNetwork ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$validator.$network.caip2) ?? ''),
-		}) : pendingEntity.slot !== undefined && pendingEntity.source !== undefined && pendingEntity.$validator !== undefined && pendingEntity.$validator.indexInNetwork !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
-			slot: String(pendingEntity.slot ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			validatorId: String(pendingEntity.$validator.indexInNetwork ?? ''),
-			network: String(pendingEntity.$validator.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'slot' in selection.entitySelector
+			&& selection.entitySelector.slot != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$validator' in selection.entitySelector
+			&& selection.entitySelector.$validator != null && 'indexInNetwork' in selection.entitySelector.$validator
+			&& selection.entitySelector.$validator.indexInNetwork != null
+			&& selection.entitySelector.$validator != null && '$network' in selection.entitySelector.$validator ?
+				selection.entitySelector.$validator.$network != null && 'caip2' in selection.entitySelector.$validator.$network
+				&& selection.entitySelector.$validator.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
+				slot: String(selection.entitySelector.slot ?? ''),
+				source: String(selection.entitySelector.source ?? ''),
+				validatorId: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$validator.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$validator.$network != null && 'slug' in selection.entitySelector.$validator.$network
+					&& selection.entitySelector.$validator.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
+					slot: String(selection.entitySelector.slot ?? ''),
+					source: String(selection.entitySelector.source ?? ''),
+					validatorId: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
+					network: String(selection.entitySelector.$validator.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -106,7 +132,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
 			{@const status0 = pendingEntity.status}
 			{#if status0 !== undefined && status0 !== null}
 				<span data-text="muted">
@@ -474,15 +500,30 @@
 				<dt>Validator</dt>
 				<dd>
 					<BeaconValidatorView
-						selection={select(EntityType.BeaconValidator, selection.entitySelector.$validator, {})}
+						selection={select(EntityType.BeaconValidator, selection.entitySelector.$validator)}
 						href={
-							(selection.entitySelector.$validator.indexInNetwork !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								validatorId: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$validator.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$validator.indexInNetwork !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								validatorId: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
-								network: String(selection.entitySelector.$validator.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$validator != null && 'indexInNetwork' in selection.entitySelector.$validator
+								&& selection.entitySelector.$validator.indexInNetwork != null
+								&& selection.entitySelector.$validator != null && '$network' in selection.entitySelector.$validator ?
+									selection.entitySelector.$validator.$network != null && 'caip2' in selection.entitySelector.$validator.$network
+									&& selection.entitySelector.$validator.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+									validatorId: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$validator.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$validator.$network != null && 'slug' in selection.entitySelector.$validator.$network
+										&& selection.entitySelector.$validator.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+										validatorId: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
+										network: String(selection.entitySelector.$validator.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

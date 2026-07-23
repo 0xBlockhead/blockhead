@@ -40,12 +40,22 @@
 		selection={
 			select(EntityType.AtprotoPost, {
 				uri: decodeURIComponent(params.uri),
-			}).$$timestamps({
-				sources: [
-					Source.Atproto_Xrpc,
-				],
-				count: true,
 			})
+				.$$timestamps({
+					sources: [
+						Source.Atproto_Xrpc,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.AtprotoPost, {
+				uri: decodeURIComponent(params.uri),
+			})
+				.$$timestamps({
+					sources: [
+						Source.Atproto_Xrpc,
+					],
+				}).count
 		}
 		id='timestamps'
 		data-column-item="flexible"

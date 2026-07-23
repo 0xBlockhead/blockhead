@@ -37,6 +37,15 @@ export const CardanoDRep = entity({
 			Source.Blockfrost_Rest,
 		],
 	},
+	displayName: {
+		label: 'display name',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
 	anchorUrl: {
 		label: 'anchor URL',
 		type: EntityFieldType.Primitive,

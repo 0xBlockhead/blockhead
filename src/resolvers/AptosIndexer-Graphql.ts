@@ -1,13 +1,65 @@
+import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, type EntitySelector } from '$/schema/$schema.ts'
 import { AptosAccountSelector } from '$/schema/AptosAccount.ts'
 import { AptosCoinBalance_TimestampSelector } from '$/schema/AptosCoinBalance_Timestamp.ts'
 import { AptosTableItemSelector } from '$/schema/AptosTableItem.ts'
 import { AptosTableItem_TimestampSelector } from '$/schema/AptosTableItem_Timestamp.ts'
 import { AptosTransactionSelector } from '$/schema/AptosTransaction.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const aptosNetworkApplicability = [
+	{
+		$network: {
+			caip2: networkBySlug.aptos.caip2,
+		},
+	},
+	{
+		$network: {
+			slug: networkBySlug.aptos.slug,
+		},
+	},
+] as const
+
+const aptosNetworkReferenceApplicability = [
+	{
+		$network: aptosNetworkApplicability[0],
+	},
+	{
+		$network: aptosNetworkApplicability[1],
+	},
+] as const
+
+const aptosAccountObservationApplicability = [
+	{
+		$account: aptosNetworkReferenceApplicability[0],
+		source: Source.AptosIndexer_Graphql,
+	},
+	{
+		$account: aptosNetworkReferenceApplicability[1],
+		source: Source.AptosIndexer_Graphql,
+	},
+] as const
+
+const assertAptosMainnet = (network: NetworkId) => {
+	if (
+		!(
+			'slug' in network
+			&& network.slug === networkBySlug.aptos.slug
+		)
+		&& !(
+			'caip2' in network
+			&& network.caip2.namespace === networkBySlug.aptos.caip2.namespace
+			&& network.caip2.reference === networkBySlug.aptos.caip2.reference
+		)
+	)
+		throw new Error('AptosIndexer_Graphql: unsupported network')
+}
 
 const bigintFromWire = (
 	value: string,
@@ -49,7 +101,9 @@ export const aptosAccountTransactionsResolver = aptosIndexerResolver(
 		entityType: EntityType.AptosAccount,
 		resolve: {
 			[AptosAccountSelector.NetworkAddress]: {
+				appliesTo: aptosNetworkReferenceApplicability,
 				resolve: async (entitySelector, context) => {
+					assertAptosMainnet(entitySelector.$network.$network)
 					const { getAccountTransactions } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 
 					return (await getAccountTransactions(
@@ -75,7 +129,9 @@ export const aptosAccountBalancesResolver = aptosIndexerResolver(
 		entityType: EntityType.AptosAccount,
 		resolve: {
 			[AptosAccountSelector.NetworkAddress]: {
+				appliesTo: aptosNetworkReferenceApplicability,
 				resolve: async (entitySelector, context) => {
+					assertAptosMainnet(entitySelector.$network.$network)
 					const { getCurrentFungibleAssetBalances } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 
 					return (await getCurrentFungibleAssetBalances(
@@ -109,12 +165,14 @@ export const aptosCoinBalanceResolver = aptosIndexerResolver(
 		entityType: EntityType.AptosCoinBalance_Timestamp,
 		resolve: {
 			[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource]: {
+				appliesTo: aptosAccountObservationApplicability,
 				resolve: async ({
 					$account,
 					storageId,
 					ledgerVersion,
 					source,
 				}) => {
+					assertAptosMainnet($account.$network.$network)
 					assertSource(source)
 					const { getCurrentFungibleAssetBalance } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 					const balance = await getCurrentFungibleAssetBalance(storageId)
@@ -153,7 +211,9 @@ export const aptosTransactionResolver = aptosIndexerResolver(
 		entityType: EntityType.AptosTransaction,
 		resolve: {
 			[AptosTransactionSelector.NetworkVersion]: {
-				resolve: async ({ version }) => {
+				appliesTo: aptosNetworkReferenceApplicability,
+				resolve: async ({ $network, version }) => {
+					assertAptosMainnet($network.$network)
 					const { getTransaction } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 					const transaction = await getTransaction(version)
 					if (transaction == null || bigintFromWire(transaction.version, 'transaction version') !== version)
@@ -179,7 +239,9 @@ export const aptosTableItemResolver = aptosIndexerResolver(
 		entityType: EntityType.AptosTableItem,
 		resolve: {
 			[AptosTableItemSelector.NetworkTableHandleKeyHash]: {
+				appliesTo: aptosNetworkReferenceApplicability,
 				resolve: async (entitySelector) => {
+					assertAptosMainnet(entitySelector.$network.$network)
 					const { getTableItem } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 					const { current } = await getTableItem(
 						entitySelector.tableHandle,
@@ -208,11 +270,22 @@ export const aptosTableItemTimestampResolver = aptosIndexerResolver(
 		entityType: EntityType.AptosTableItem_Timestamp,
 		resolve: {
 			[AptosTableItem_TimestampSelector.TableItemLedgerVersionSource]: {
+				appliesTo: [
+					{
+						$tableItem: aptosNetworkReferenceApplicability[0],
+						source: Source.AptosIndexer_Graphql,
+					},
+					{
+						$tableItem: aptosNetworkReferenceApplicability[1],
+						source: Source.AptosIndexer_Graphql,
+					},
+				],
 				resolve: async ({
 					$tableItem,
 					ledgerVersion,
 					source,
 				}) => {
+					assertAptosMainnet($tableItem.$network.$network)
 					assertSource(source)
 					const { getTableItem } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 					const { versioned } = await getTableItem(

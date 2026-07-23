@@ -25,12 +25,6 @@ export const navigationItems = [
 				icon: '🔌',
 			},
 			{
-				id: 'local-watched-accounts',
-				title: 'Watched accounts',
-				href: '/~/accounts/watched-accounts',
-				icon: '👛',
-			},
-			{
 				id: 'local-balances',
 				title: 'Balances',
 				href: '/~/accounts/balances',

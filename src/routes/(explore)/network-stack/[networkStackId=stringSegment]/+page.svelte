@@ -27,7 +27,6 @@
 			label: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.label) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).label) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack'))
 
 
 	// Components
@@ -37,7 +36,13 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • network stack • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		networkStackId: params.networkStackId,
+	}.networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack' : [String((({ ...{
+		networkStackId: params.networkStackId,
+	}, ...pageSelection.entity }).label) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
+		networkStackId: params.networkStackId,
+	}, ...pageSelection.entity }).networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack')} • network stack • Blockhead</title>
 </svelte:head>
 
 

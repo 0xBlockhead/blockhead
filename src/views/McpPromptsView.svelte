@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'MCP prompts',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.McpPrompt>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.McpPrompt>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import McpPromptView from '$/views/McpPromptView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,11 +67,17 @@
 			sources: selection.sources,
 			fields: {
 				title: true,
-				$server: true,
+				$server: {
+					fields: {
+						transportKind: true,
+						endpointUrl: true,
+					},
+				},
 				name: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(mcpPrompts) => [...new Map(mcpPrompts.values.map((mcpPrompt) => [mcpPrompt[EntityMetaKey.SelectorKey], mcpPrompt])).values()]}
 	getKey={(mcpPrompt) => mcpPrompt[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +92,20 @@
 
 	{#snippet Item({ item: mcpPrompt })}
 		{@const mcpPromptFields = { ...mcpPrompt[EntityMetaKey.Selector], ...mcpPrompt }}
-		{@const selection = select(EntityType.McpPrompt, mcpPrompt[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<McpPromptView
-			selection={selection}
-			prefetched={mcpPromptFields}
+		<EntityView
+			entityType={EntityType.McpPrompt}
+			entitySelector={mcpPrompt[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((mcpPromptFields.title) ?? '')].filter(Boolean).join(' ') || [String((mcpPromptFields.name) ?? '')].filter(Boolean).join(' ') || 'mcp prompt'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((mcpPromptFields.$server.serverKey) ?? '')].filter(Boolean).join(' ') || 'mcp server'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

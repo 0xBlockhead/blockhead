@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadLocalMediaIngest>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadLocalMediaIngest>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLocalMediaIngest>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLocalMediaIngest = $derived(selection({
+	const blockheadLocalMediaIngest = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			createdAt: true,
+			fileName: true,
+			mimeType: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			createdAt: true,
@@ -51,7 +59,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.fileName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ingestId) ?? '')].filter(Boolean).join(' ') || 'local media ingest')
-	const viewDomId = $derived('blockhead-local-media-ingest-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-local-media-ingest-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -75,7 +83,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'fileName') && Object.hasOwn(prefetched, 'mimeType') && Object.hasOwn(prefetched, 'createdAt')}
 			{[String((pendingEntity.fileName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadLocalMediaIngest}>
@@ -88,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'fileName') && Object.hasOwn(prefetched, 'mimeType') && Object.hasOwn(prefetched, 'createdAt')}
 			{[String((pendingEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.fileName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadLocalMediaIngest}>
@@ -101,7 +109,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'fileName') && Object.hasOwn(prefetched, 'mimeType') && Object.hasOwn(prefetched, 'createdAt')}
 			{@const createdAt0 = pendingEntity.createdAt}
 			{#if createdAt0 !== undefined && createdAt0 !== null}
 				<span data-text="muted">
@@ -259,9 +267,15 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
+										(
+											media[EntityMetaKey.Selector] != null && 'url' in media[EntityMetaKey.Selector]
+											&& media[EntityMetaKey.Selector].url != null ?
+												resolve('/media/[url=absoluteUrl]', {
 											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -301,17 +315,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadLocalMediaIngest_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No local media ingest observations.'
-				id='BlockheadLocalMediaIngest_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadLocalMediaIngestBlockheadLocalMediaIngestTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadLocalMediaIngestBlockheadLocalMediaIngestTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadLocalMediaIngest_TimestampsView
+					selection={blockheadLocalMediaIngestBlockheadLocalMediaIngestTimestampsViewTimestampsResource}
+					countResource={blockheadLocalMediaIngestBlockheadLocalMediaIngestTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadLocalMediaIngest_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

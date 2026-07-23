@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'SIWE challenges',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadSiweChallenge>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadSiweChallenge>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadSiweChallengeView from '$/views/BlockheadSiweChallengeView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadSiweChallenges) => [...new Map(blockheadSiweChallenges.values.map((blockheadSiweChallenge) => [blockheadSiweChallenge[EntityMetaKey.SelectorKey], blockheadSiweChallenge])).values()]}
 	getKey={(blockheadSiweChallenge) => blockheadSiweChallenge[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadSiweChallenge })}
 		{@const blockheadSiweChallengeFields = { ...blockheadSiweChallenge[EntityMetaKey.Selector], ...blockheadSiweChallenge }}
-		{@const selection = select(EntityType.BlockheadSiweChallenge, blockheadSiweChallenge[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadSiweChallengeView
-			selection={selection}
-			prefetched={blockheadSiweChallengeFields}
+		<EntityView
+			entityType={EntityType.BlockheadSiweChallenge}
+			entitySelector={blockheadSiweChallenge[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadSiweChallengeFields.domain) ?? '')].filter(Boolean).join(' ') || 'blockhead siwe challenge'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadSiweChallengeFields.verified) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadSiweChallengeFields.issuedAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

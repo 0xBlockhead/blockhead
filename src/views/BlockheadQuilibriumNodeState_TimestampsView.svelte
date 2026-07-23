@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead Quilibrium node state observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadQuilibriumNodeState_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadQuilibriumNodeState_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadQuilibriumNodeState_TimestampView from '$/views/BlockheadQuilibriumNodeState_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadQuilibriumNodeStateTimestamps) => [...new Map(blockheadQuilibriumNodeStateTimestamps.values.map((blockheadQuilibriumNodeStateTimestamp) => [blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadQuilibriumNodeStateTimestamp])).values()]}
 	getKey={(blockheadQuilibriumNodeStateTimestamp) => blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadQuilibriumNodeStateTimestamp })}
 		{@const blockheadQuilibriumNodeStateTimestampFields = { ...blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadQuilibriumNodeStateTimestamp }}
-		{@const selection = select(EntityType.BlockheadQuilibriumNodeState_Timestamp, blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadQuilibriumNodeState_TimestampView
-			selection={selection}
-			prefetched={blockheadQuilibriumNodeStateTimestampFields}
+		<EntityView
+			entityType={EntityType.BlockheadQuilibriumNodeState_Timestamp}
+			entitySelector={blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadQuilibriumNodeStateTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead quilibrium node state timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadQuilibriumNodeStateTimestampFields.engineState) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadQuilibriumNodeStateTimestampFields.latestFrameNumber) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.OracleFeed_Round>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.OracleFeed_Round>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.OracleFeed_Round>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const oracleFeedRound = $derived(selection({
+	const oracleFeedRound = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			answer: true,
+			updatedAtMs: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			answer: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.roundId) ?? '')].filter(Boolean).join(' ') || 'oracle feed round')
-	const viewDomId = $derived('oracle-feed-round-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('oracle-feed-round-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,13 +81,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const roundId0 = pendingEntity.roundId}
-					{#if roundId0 !== undefined && roundId0 !== null}
-						<NumberValue
-							value={roundId0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'answer') && Object.hasOwn(prefetched, 'updatedAtMs')}
+			{@const roundId0 = pendingEntity.roundId}
+			{#if roundId0 !== undefined && roundId0 !== null}
+				<NumberValue
+					value={roundId0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={oracleFeedRound}>
 				{#snippet children(entity)}
@@ -97,13 +104,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const answer0 = pendingEntity.answer}
-					{#if answer0 !== undefined && answer0 !== null}
-						<NumberValue
-							value={answer0}
-						/>
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'answer') && Object.hasOwn(prefetched, 'updatedAtMs')}
+			{@const answer0 = pendingEntity.answer}
+			{#if answer0 !== undefined && answer0 !== null}
+				<NumberValue
+					value={answer0}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={oracleFeedRound}>
 				{#snippet children(entity)}
@@ -120,7 +127,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'answer') && Object.hasOwn(prefetched, 'updatedAtMs')}
 			{@const updatedAtMs0 = pendingEntity.updatedAtMs}
 			{#if updatedAtMs0 !== undefined && updatedAtMs0 !== null}
 				<span data-text="muted">
@@ -148,7 +155,7 @@
 				<dt>oracle feed</dt>
 				<dd>
 					<OracleFeedView
-						selection={select(EntityType.OracleFeed, selection.entitySelector.$oracleFeed, {})}
+						selection={select(EntityType.OracleFeed, selection.entitySelector.$oracleFeed)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -317,11 +324,21 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+										(
+											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
+											&& network[EntityMetaKey.Selector].caip2 != null ?
+												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : undefined)
+										})
+										:
+												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
+												&& network[EntityMetaKey.Selector].slug != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+												network: String(network[EntityMetaKey.Selector].slug ?? ''),
+											})
+											:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}

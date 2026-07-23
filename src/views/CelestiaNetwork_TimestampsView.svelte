@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Celestia network observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CelestiaNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CelestiaNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CelestiaNetwork_TimestampView from '$/views/CelestiaNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(celestiaNetworkTimestamps) => [...new Map(celestiaNetworkTimestamps.values.map((celestiaNetworkTimestamp) => [celestiaNetworkTimestamp[EntityMetaKey.SelectorKey], celestiaNetworkTimestamp])).values()]}
 	getKey={(celestiaNetworkTimestamp) => celestiaNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: celestiaNetworkTimestamp })}
 		{@const celestiaNetworkTimestampFields = { ...celestiaNetworkTimestamp[EntityMetaKey.Selector], ...celestiaNetworkTimestamp }}
-		{@const selection = select(EntityType.CelestiaNetwork_Timestamp, celestiaNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CelestiaNetwork_TimestampView
-			selection={selection}
-			prefetched={celestiaNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType.CelestiaNetwork_Timestamp}
+			entitySelector={celestiaNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((celestiaNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'celestia network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((celestiaNetworkTimestampFields.latestHeight) ?? ''), String((celestiaNetworkTimestampFields.health) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((celestiaNetworkTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

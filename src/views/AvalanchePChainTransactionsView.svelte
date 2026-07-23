@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Avalanche p chain transactions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AvalanchePChainTransaction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AvalanchePChainTransaction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AvalanchePChainTransactionView from '$/views/AvalanchePChainTransactionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(avalanchePChainTransactions) => [...new Map(avalanchePChainTransactions.values.map((avalanchePChainTransaction) => [avalanchePChainTransaction[EntityMetaKey.SelectorKey], avalanchePChainTransaction])).values()]}
 	getKey={(avalanchePChainTransaction) => avalanchePChainTransaction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: avalanchePChainTransaction })}
 		{@const avalanchePChainTransactionFields = { ...avalanchePChainTransaction[EntityMetaKey.Selector], ...avalanchePChainTransaction }}
-		{@const selection = select(EntityType.AvalanchePChainTransaction, avalanchePChainTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AvalanchePChainTransactionView
-			selection={selection}
-			prefetched={avalanchePChainTransactionFields}
+		<EntityView
+			entityType={EntityType.AvalanchePChainTransaction}
+			entitySelector={avalanchePChainTransaction[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((avalanchePChainTransactionFields.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche p chain transaction'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((avalanchePChainTransactionFields.txType) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((avalanchePChainTransactionFields.$block.height) ?? '')].filter(Boolean).join(' ') || [String((avalanchePChainTransactionFields.$block.blockId) ?? '')].filter(Boolean).join(' ') || 'avalanche p chain block'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

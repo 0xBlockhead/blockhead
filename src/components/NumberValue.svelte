@@ -69,7 +69,10 @@
 		]
 	}
 
-	const scaledIntegerParts = (value: number | bigint, decimalPlaces: number) => {
+	const scaledIntegerParts = (
+		value: number | bigint,
+		decimalPlaces: number
+	): Intl.NumberFormatPart[] => {
 		const normalizedDecimalPlaces = Math.max(0, Math.trunc(decimalPlaces))
 		const divisor = 10n ** BigInt(normalizedDecimalPlaces)
 		const scaledValue = BigInt(value)
@@ -79,7 +82,10 @@
 			.replace(/0+$/, '')
 
 		return [
-			...(scaledValue < 0n ? [{ type: 'minusSign', value: '-' }] : []),
+			...(scaledValue < 0n ? [{
+				type: 'minusSign' as const,
+				value: '-',
+			}] : []),
 			...new Intl.NumberFormat(locales, {
 				...options,
 				minimumFractionDigits: 0,
@@ -87,7 +93,7 @@
 			}).formatToParts(absoluteValue / divisor),
 			...(fraction === '' ? [] : [
 				{
-					type: 'decimal',
+					type: 'decimal' as const,
 					value: (
 						new Intl.NumberFormat(locales)
 							.formatToParts(1.1)
@@ -97,11 +103,11 @@
 					),
 				},
 				{
-					type: 'fraction',
+					type: 'fraction' as const,
 					value: fraction,
 				},
 			]),
-		] satisfies Intl.NumberFormatPart[]
+		]
 	}
 
 

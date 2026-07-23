@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AiDataset>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AiDataset>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiDataset>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiDataset = $derived(selection({
+	const aiDataset = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			label: true,
+			modality: true,
+			license: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			label: true,
@@ -50,7 +58,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.datasetUri) ?? ''), String((pendingEntity.datasetName) ?? ''), String((pendingEntity.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset')
-	const viewDomId = $derived('ai-dataset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('ai-dataset-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,7 +80,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'modality') && Object.hasOwn(prefetched, 'datasetUri') && Object.hasOwn(prefetched, 'datasetName') && Object.hasOwn(prefetched, 'huggingFaceDatasetId') && Object.hasOwn(prefetched, 'license')}
 			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={aiDataset}>
@@ -85,7 +93,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'modality') && Object.hasOwn(prefetched, 'datasetUri') && Object.hasOwn(prefetched, 'datasetName') && Object.hasOwn(prefetched, 'huggingFaceDatasetId') && Object.hasOwn(prefetched, 'license')}
 			{[String((pendingEntity.modality) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={aiDataset}>
@@ -98,7 +106,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'modality') && Object.hasOwn(prefetched, 'datasetUri') && Object.hasOwn(prefetched, 'datasetName') && Object.hasOwn(prefetched, 'huggingFaceDatasetId') && Object.hasOwn(prefetched, 'license')}
 			{@const license0 = pendingEntity.license}
 			{#if license0 !== undefined && license0 !== null}
 				<span data-text="muted">
@@ -418,17 +426,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<AiDocumentsView
-				selection={
-						selection.$$documents({
-							count: true,
-						})
-					}
-				title='documents'
-				emptyText='No linked documents.'
-				id='AiDocumentsView-documents'
-			/>
-		{/if}
+		{@const aiDatasetAiDocumentsViewDocumentsResource = selection.$$documents}
+		<ResourceBoundary
+			resource={aiDatasetAiDocumentsViewDocumentsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<AiDocumentsView
+					selection={aiDatasetAiDocumentsViewDocumentsResource}
+					countResource={aiDatasetAiDocumentsViewDocumentsResource.count}
+					title='documents'
+					id='AiDocumentsView-documents'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

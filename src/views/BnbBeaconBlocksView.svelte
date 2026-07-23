@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Bnb beacon blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BnbBeaconBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BnbBeaconBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BnbBeaconBlockView from '$/views/BnbBeaconBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(bnbBeaconBlocks) => [...new Map(bnbBeaconBlocks.values.map((bnbBeaconBlock) => [bnbBeaconBlock[EntityMetaKey.SelectorKey], bnbBeaconBlock])).values()]}
 	getKey={(bnbBeaconBlock) => bnbBeaconBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: bnbBeaconBlock })}
 		{@const bnbBeaconBlockFields = { ...bnbBeaconBlock[EntityMetaKey.Selector], ...bnbBeaconBlock }}
-		{@const selection = select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BnbBeaconBlockView
-			selection={selection}
-			prefetched={bnbBeaconBlockFields}
+		<EntityView
+			entityType={EntityType.BnbBeaconBlock}
+			entitySelector={bnbBeaconBlock[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((bnbBeaconBlockFields.height) ?? '')].filter(Boolean).join(' ') || [String((bnbBeaconBlockFields.hash) ?? '')].filter(Boolean).join(' ') || 'bnb beacon block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((bnbBeaconBlockFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

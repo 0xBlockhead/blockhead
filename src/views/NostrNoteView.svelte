@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -29,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NostrNote>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NostrNote>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NostrNote>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -45,7 +45,15 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	let revealedContentWarningSelectorKey = $state<string>()
 	const contentWarningSelectorKey = $derived(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector]))
-	const nostrNote = $derived(selection({
+	const nostrNote = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			content: true,
+			createdAt: true,
+			sensitive: true,
+			contentWarning: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			kind: true,
@@ -57,7 +65,7 @@
 		},
 	}))
 	const titleFallback = $derived((pendingEntity.sensitive === true || String(pendingEntity.contentWarning ?? '').trim() !== '' ? [String(pendingEntity.contentWarning ?? '').trim() || 'Sensitive content', [String((pendingEntity.eventId) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((pendingEntity.content) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note'))
-	const viewDomId = $derived('nostr-note-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('nostr-note-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -78,48 +86,41 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.eventId !== undefined ? resolve('/nostr/note/[eventId=stringSegment]', {
-			eventId: String(pendingEntity.eventId ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'eventId' in selection.entitySelector
+			&& selection.entitySelector.eventId != null ?
+				resolve('/nostr/note/[eventId=stringSegment]', {
+			eventId: String(selection.entitySelector.eventId ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{(pendingEntity.sensitive === true || String(pendingEntity.contentWarning ?? '').trim() !== '' ? [String(pendingEntity.contentWarning ?? '').trim() || 'Sensitive content', [String((pendingEntity.eventId) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((pendingEntity.content) ?? '')].filter(Boolean).join(' ') || title || titleFallback)}
-		{:else}
-			<ResourceBoundary resource={nostrNote}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{(resolvedEntity.sensitive === true || String(resolvedEntity.contentWarning ?? '').trim() !== '' ? [String(resolvedEntity.contentWarning ?? '').trim() || 'Sensitive content', [String((resolvedEntity.eventId) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((resolvedEntity.content) ?? '')].filter(Boolean).join(' ') || title || titleFallback)}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nostrNote}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{(resolvedEntity.sensitive === true || String(resolvedEntity.contentWarning ?? '').trim() !== '' ? [String(resolvedEntity.contentWarning ?? '').trim() || 'Sensitive content', [String((resolvedEntity.eventId) ?? '')].filter(Boolean).join(' ')].filter(Boolean).join(' ') : [String((resolvedEntity.content) ?? '')].filter(Boolean).join(' ') || title || titleFallback)}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const createdAt0 = pendingEntity.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nostrNote}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt0 = resolvedEntity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nostrNote}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const createdAt0 = resolvedEntity.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -241,12 +242,13 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection.$author({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
-						})
+						selection
+							.$author({
+								sources: [
+									Source.Constants_Internal,
+									Source.NostrBand_Rest,
+								],
+							})
 					}
 				>
 					{#snippet children(nostrProfile)}
@@ -258,9 +260,15 @@
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										prefetched={nostrProfile}
 										href={
-											(nostrProfile[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/nostr/profile/[pubkey=stringSegment]', {
+											(
+												nostrProfile[EntityMetaKey.Selector] != null && 'pubkey' in nostrProfile[EntityMetaKey.Selector]
+												&& nostrProfile[EntityMetaKey.Selector].pubkey != null ?
+													resolve('/nostr/profile/[pubkey=stringSegment]', {
 												pubkey: String(nostrProfile[EntityMetaKey.Selector].pubkey ?? ''),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -275,12 +283,13 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection.$replyToNote({
-							sources: [
-								Source.NostrBand_Rest,
-								Source.Primal_Rest,
-							],
-						})
+						selection
+							.$replyToNote({
+								sources: [
+									Source.NostrBand_Rest,
+									Source.Primal_Rest,
+								],
+							})
 					}
 				>
 					{#snippet children(nostrNote)}
@@ -292,9 +301,15 @@
 										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
 										href={
-											(nostrNote[EntityMetaKey.Selector].eventId !== undefined ? resolve('/nostr/note/[eventId=stringSegment]', {
+											(
+												nostrNote[EntityMetaKey.Selector] != null && 'eventId' in nostrNote[EntityMetaKey.Selector]
+												&& nostrNote[EntityMetaKey.Selector].eventId != null ?
+													resolve('/nostr/note/[eventId=stringSegment]', {
 												eventId: String(nostrNote[EntityMetaKey.Selector].eventId ?? ''),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -309,12 +324,13 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection.$rootNote({
-							sources: [
-								Source.NostrBand_Rest,
-								Source.Primal_Rest,
-							],
-						})
+						selection
+							.$rootNote({
+								sources: [
+									Source.NostrBand_Rest,
+									Source.Primal_Rest,
+								],
+							})
 					}
 				>
 					{#snippet children(nostrNote)}
@@ -326,9 +342,15 @@
 										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
 										href={
-											(nostrNote[EntityMetaKey.Selector].eventId !== undefined ? resolve('/nostr/note/[eventId=stringSegment]', {
+											(
+												nostrNote[EntityMetaKey.Selector] != null && 'eventId' in nostrNote[EntityMetaKey.Selector]
+												&& nostrNote[EntityMetaKey.Selector].eventId != null ?
+													resolve('/nostr/note/[eventId=stringSegment]', {
 												eventId: String(nostrNote[EntityMetaKey.Selector].eventId ?? ''),
-											}) : undefined)
+											})
+											:
+													undefined
+											)
 										}
 										layout={EntityLayout.Value}
 										open={false}
@@ -371,7 +393,10 @@
 								<span data-text="annotation">Show content</span>
 							</header>
 						{/snippet}
-						{@render ContentWarningContent(content)}
+
+						{#if revealedContentWarningSelectorKey === contentWarningSelectorKey}
+							{@render ContentWarningContent(content)}
+						{/if}
 					</Collapsible>
 				{:else}
 					{@render ContentWarningContent(content)}
@@ -381,38 +406,47 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<NostrNotesView
-				selection={
-						selection.$$replies({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Replies'
-				href={resolve('/nostr/notes')}
-				emptyText='No replies in this observed.'
-				id='NostrNotesView-replies'
-			/>
-
-			<NostrReactionsView
-				selection={
-						selection.$$reactions({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Reactions'
-				href={resolve('/nostr/reactions')}
-				emptyText='No reactions in this observed.'
-				id='NostrReactionsView-reactions'
-			/>
-		{/if}
+				{@const nostrNoteNostrNotesViewRepliesResource = selection
+		.$$replies({
+			sources: [
+				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={nostrNoteNostrNotesViewRepliesResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<NostrNotesView
+							selection={nostrNoteNostrNotesViewRepliesResource}
+							countResource={nostrNoteNostrNotesViewRepliesResource.count}
+							title='Replies'
+							id='NostrNotesView-replies'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const nostrNoteNostrReactionsViewReactionsResource = selection
+		.$$reactions({
+			sources: [
+				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={nostrNoteNostrReactionsViewReactionsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<NostrReactionsView
+							selection={nostrNoteNostrReactionsViewReactionsResource}
+							countResource={nostrNoteNostrReactionsViewReactionsResource.count}
+							title='Reactions'
+							id='NostrReactionsView-reactions'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

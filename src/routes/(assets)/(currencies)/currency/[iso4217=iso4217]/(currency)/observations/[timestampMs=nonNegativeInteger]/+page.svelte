@@ -26,7 +26,6 @@
 			marketCap: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'currency timestamp' : 'currency timestamp'))
 
 
 	// Components
@@ -36,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • currency timestamp • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'currency timestamp' : 'currency timestamp')} • currency timestamp • Blockhead</title>
 </svelte:head>
 
 

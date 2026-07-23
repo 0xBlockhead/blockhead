@@ -27,7 +27,6 @@
 			previousJustifiedCheckpointRoot: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [(String((pageSelection.entitySelector.finalizedCheckpointEpoch) ?? '') ? 'Finalized epoch ' + String((pageSelection.entitySelector.finalizedCheckpointEpoch) ?? '') : '')].filter(Boolean).join(' ') || 'ethereum beacon finality timestamp' : [(String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).finalizedCheckpointEpoch) ?? '') ? 'Finalized epoch ' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).finalizedCheckpointEpoch) ?? '') : '')].filter(Boolean).join(' ') || 'ethereum beacon finality timestamp')))
 
 
 	// Components
@@ -37,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ethereum beacon finality timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'ethereum beacon finality timestamp' : [(String((({ ...data.selector, ...pageSelection.entity }).finalizedCheckpointEpoch) ?? '') ? 'Finalized epoch ' + String((({ ...data.selector, ...pageSelection.entity }).finalizedCheckpointEpoch) ?? '') : '')].filter(Boolean).join(' ') || 'ethereum beacon finality timestamp'))} • ethereum beacon finality timestamp • Blockhead</title>
 </svelte:head>
 
 

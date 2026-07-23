@@ -38,10 +38,10 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.PolkadotBlock && data.selectorMapping.selectorName === 'NetworkBlockNumberHash' ? PolkadotBlockView : UtxoBlockView}
+			{@const DetailView = data.entityType === EntityType.PolkadotBlock && data.selectorName === 'NetworkBlockNumberHash' ? PolkadotBlockView : UtxoBlockView}
 
 			<DetailView
-				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}
+				selection={select(data.entityType, data.selector)}
 				href={
 					resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
 						network: params.network,

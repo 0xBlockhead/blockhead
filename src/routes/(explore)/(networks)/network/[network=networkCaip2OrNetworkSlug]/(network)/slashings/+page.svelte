@@ -44,14 +44,14 @@
 				}
 				title='Beacon slashings'
 				selection={
-					projection.$$beaconSlashings({
-						sources: [
-							Source.Beacon_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$beaconSlashings({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
 				}
-				id='beacon-slashings'
+				id='account-beacon-slashing'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

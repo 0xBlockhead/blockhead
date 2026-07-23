@@ -20,11 +20,12 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data.selectorMapping.entityType === EntityType.Network && data.selectorMapping.selectorName === 'Caip2' ? select(EntityType.Network, data.selectorMapping.selector, {
+	const pageSelection = $derived(data.entityType === EntityType.Network && data.selectorName === 'Caip2' ? select(EntityType.Network, data.selector, {
 		sources: [
 			Source.Constants_Internal,
 		],
 		fields: {
+			slug: true,
 			$icon: true,
 			name: true,
 			namespace: true,
@@ -62,11 +63,12 @@
 				},
 			},
 		},
-	}) : data.selectorMapping.entityType === EntityType.Network && data.selectorMapping.selectorName === 'Slug' ? select(EntityType.Network, data.selectorMapping.selector, {
+	}) : select(EntityType.Network, data.selector, {
 		sources: [
 			Source.Constants_Internal,
 		],
 		fields: {
+			caip2: true,
 			$icon: true,
 			name: true,
 			namespace: true,
@@ -104,23 +106,24 @@
 				},
 			},
 		},
-	}) : undefined)
-	const pageEntityTitle = $derived(data.selectorMapping.entityType === EntityType.Network && data.selectorMapping.selectorName === 'Caip2' ? (pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || [pageSelection.entitySelector.caip2 == null ? '' : String((`${(pageSelection.entitySelector.caip2).namespace}:${(pageSelection.entitySelector.caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'Network' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [({ ...pageSelection.entitySelector, ...pageSelection.entity }).caip2 == null ? '' : String((`${(({ ...pageSelection.entitySelector, ...pageSelection.entity }).caip2).namespace}:${(({ ...pageSelection.entitySelector, ...pageSelection.entity }).caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'Network') : data.selectorMapping.entityType === EntityType.Network && data.selectorMapping.selectorName === 'Slug' ? (pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || [pageSelection.entitySelector.caip2 == null ? '' : String((`${(pageSelection.entitySelector.caip2).namespace}:${(pageSelection.entitySelector.caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'Network' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [({ ...pageSelection.entitySelector, ...pageSelection.entity }).caip2 == null ? '' : String((`${(({ ...pageSelection.entitySelector, ...pageSelection.entity }).caip2).namespace}:${(({ ...pageSelection.entitySelector, ...pageSelection.entity }).caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'Network') : 'Blockhead')
-	const pageEntityTypeLabel = $derived(data.selectorMapping.entityType === EntityType.Network && data.selectorMapping.selectorName === 'Caip2' ? 'Network' : data.selectorMapping.entityType === EntityType.Network && data.selectorMapping.selectorName === 'Slug' ? 'Network' : 'Entity')
+	}))
+	const entityViewComponentByType = {
+		[EntityType.Network]: NetworkView,
+	}
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import { entityViewComponentByType } from '$/views/index.ts'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • {pageEntityTypeLabel} • Blockhead</title>
+	<title>{data.entityType === EntityType.Network && data.selectorName === 'Caip2' ? (pageSelection.entity == null ? [data.selector.caip2 == null ? '' : String(`${(data.selector.caip2).namespace}:${(data.selector.caip2).reference}`)].filter(Boolean).join(' ') || 'Network' : [String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [({ ...data.selector, ...pageSelection.entity }).caip2 == null ? '' : String(`${(({ ...data.selector, ...pageSelection.entity }).caip2).namespace}:${(({ ...data.selector, ...pageSelection.entity }).caip2).reference}`)].filter(Boolean).join(' ') || 'Network') : (pageSelection.entity == null ? 'Network' : [String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [({ ...data.selector, ...pageSelection.entity }).caip2 == null ? '' : String(`${(({ ...data.selector, ...pageSelection.entity }).caip2).namespace}:${(({ ...data.selector, ...pageSelection.entity }).caip2).reference}`)].filter(Boolean).join(' ') || 'Network')} • Network • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewComponentByType[data.selectorMapping.entityType]}
+	{@const EntityView = entityViewComponentByType[data.entityType]}
 
 	<EntityView
 		href={

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Starknet events',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.StarknetEvent>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.StarknetEvent>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import StarknetEventView from '$/views/StarknetEventView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(starknetEvents) => [...new Map(starknetEvents.values.map((starknetEvent) => [starknetEvent[EntityMetaKey.SelectorKey], starknetEvent])).values()]}
 	getKey={(starknetEvent) => starknetEvent[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: starknetEvent })}
 		{@const starknetEventFields = { ...starknetEvent[EntityMetaKey.Selector], ...starknetEvent }}
-		{@const selection = select(EntityType.StarknetEvent, starknetEvent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<StarknetEventView
-			selection={selection}
-			prefetched={starknetEventFields}
+		<EntityView
+			entityType={EntityType.StarknetEvent}
+			entitySelector={starknetEvent[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((starknetEventFields.eventIndex) ?? '')].filter(Boolean).join(' ') || 'starknet event'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((starknetEventFields.$transaction.transactionHash) ?? '')].filter(Boolean).join(' ') || 'starknet transaction'].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((starknetEventFields.$fromContract.address) ?? '')].filter(Boolean).join(' ') || 'starknet contract'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

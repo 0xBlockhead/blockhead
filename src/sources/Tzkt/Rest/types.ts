@@ -3,6 +3,20 @@ export type TzktAddress = {
 	alias?: string
 }
 
+export type TzktAccount = {
+	address: string
+	type: string
+	balance: number
+	counter?: number
+	delegate?: TzktAddress
+	revealed?: boolean
+	publicKey?: string
+	firstLevel: number
+	lastLevel: number
+	firstActivity: string
+	lastActivity: string
+}
+
 export type TzktBigMap = {
 	ptr: number
 	contract: TzktAddress
@@ -75,4 +89,32 @@ export type TzktOperation = {
 	parameter?: {
 		entrypoint?: string
 	}
+}
+
+export type TzktToken = {
+	id: number
+	contract: TzktAddress
+	tokenId: string
+	standard?: string
+}
+
+export type TzktTokenBalance = {
+	id: number
+	account: TzktAddress
+	token: TzktToken
+	balance: string
+	firstLevel: number
+	lastLevel: number
+	transfersCount: number
+}
+
+export type TzktTokenTransfer = {
+	id: number
+	level: number
+	timestamp: string
+	token: TzktToken
+	from?: TzktAddress
+	to?: TzktAddress
+	amount: string
+	transactionId?: number
 }

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.ActivityPubNote_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ActivityPubNote_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ActivityPubNote_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const activityPubNoteTimestamp = $derived(selection({
+	const activityPubNoteTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('ActivityPub note observation')
-	const viewDomId = $derived('activity-pub-note-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'ActivityPub note observation'
+	const viewDomId = $derived('activity-pub-note-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,42 +66,48 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$note !== undefined && pendingEntity.$note.instanceOrigin !== undefined && pendingEntity.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			instanceOrigin: encodeURIComponent(String(pendingEntity.$note.instanceOrigin ?? '')),
-			localStatusId: String(pendingEntity.$note.localStatusId ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$note' in selection.entitySelector
+			&& selection.entitySelector.$note != null && 'instanceOrigin' in selection.entitySelector.$note
+			&& selection.entitySelector.$note.instanceOrigin != null
+			&& selection.entitySelector.$note != null && 'localStatusId' in selection.entitySelector.$note
+			&& selection.entitySelector.$note.localStatusId != null ?
+				resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			instanceOrigin: encodeURIComponent(String(selection.entitySelector.$note.instanceOrigin ?? '')),
+			localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<ActivityPubNoteView
-						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
-						href={
-						(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-							instanceOrigin: encodeURIComponent(String(selection.entitySelector.$note.instanceOrigin ?? '')),
-							localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$note') && prefetched.$note != null && Object.hasOwn(prefetched.$note, 'content') && Object.hasOwn(prefetched.$note, 'localStatusId') && Object.hasOwn(prefetched.$note, 'createdAt')}
+			{@const activityPubNote0 = pendingEntity.$note}
+			{#if activityPubNote0 != null && selection.entitySelector.$note != null}
+				<ActivityPubNoteView
+					selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note, { sources: selection.sources })}
+					prefetched={activityPubNote0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={activityPubNoteTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<ActivityPubNoteView
 						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
-						href={
-						(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-							instanceOrigin: encodeURIComponent(String(selection.entitySelector.$note.instanceOrigin ?? '')),
-							localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -107,11 +117,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$note') && prefetched.$note != null && Object.hasOwn(prefetched.$note, 'content') && Object.hasOwn(prefetched.$note, 'localStatusId') && Object.hasOwn(prefetched.$note, 'createdAt')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={activityPubNoteTimestamp}>
 				{#snippet children(entity)}
@@ -131,12 +141,20 @@
 				<dt>Note</dt>
 				<dd>
 					<ActivityPubNoteView
-						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note, {})}
+						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
 						href={
-							(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
+							(
+								selection.entitySelector.$note != null && 'instanceOrigin' in selection.entitySelector.$note
+								&& selection.entitySelector.$note.instanceOrigin != null
+								&& selection.entitySelector.$note != null && 'localStatusId' in selection.entitySelector.$note
+								&& selection.entitySelector.$note.localStatusId != null ?
+									resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
 								instanceOrigin: encodeURIComponent(String(selection.entitySelector.$note.instanceOrigin ?? '')),
 								localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

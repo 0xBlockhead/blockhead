@@ -1,11 +1,33 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 
 const attach = { timeout: 120_000 }
 const proposalPath = '/proposals/ethereum/eip/EIP-1559'
 const contentsUrl = 'https://api.github.com/repos/ethereum/EIPs/contents/EIPS?ref=master'
 const markdownUrl = 'https://raw.githubusercontent.com/ethereum/EIPs/master/EIPS/eip-1559.md'
+const ethereumEipsBinding = sourceProviderDefinitions
+	.find(({ provider }) => provider === SourceProvider.EthereumEips)
+	?.bindings.find(({ target }) => (
+		target.kind === SourceTargetKind.GitRepository
+		&& target.key === 'ethereum/EIPs@master:EIPS'
+	))
+if (ethereumEipsBinding?.proxyId == null)
+	throw new Error('Ethereum EIPs Git repository proxy binding is missing')
+
+const githubApiEndpointIndex = ethereumEipsBinding.endpoints
+	.findIndex(({ origin }) => origin === 'https://api.github.com')
+const githubRawEndpointIndex = ethereumEipsBinding.endpoints
+	.findIndex(({ origin }) => origin === 'https://raw.githubusercontent.com')
+if (
+	githubApiEndpointIndex < 0
+	|| githubRawEndpointIndex < 0
+)
+	throw new Error('Ethereum EIPs Git repository endpoints are missing')
+
 const proposalMarkdown = [
 	'---',
 	'eip: 1559',
@@ -22,6 +44,13 @@ const proposalMarkdown = [
 	'',
 	'Wallets can provide more predictable transaction fee estimates.',
 ].join('\n')
+
+const getProposalCard = (page: Page) => page.locator('#main article').filter({
+	has: page.getByRole('heading', {
+		name: 'EIP-1559: Fee market change for ETH 1.0 chain',
+		exact: true,
+	}),
+}).first()
 
 const installEthereumProposalFixtures = async (
 	page: Page,
@@ -49,7 +78,7 @@ const installEthereumProposalFixtures = async (
 			const decodedUrl = decodeURIComponent(request.url())
 			if (
 				request.method() === 'GET'
-				&& decodedUrl.endsWith(`/api-proxy/EthereumEips_Github-124/0/${contentsUrl}`)
+				&& decodedUrl.endsWith(`/api-proxy/${ethereumEipsBinding.proxyId}/${githubApiEndpointIndex}/${contentsUrl}`)
 			) {
 				requests.contents += 1
 				return route.fulfill({
@@ -64,7 +93,7 @@ const installEthereumProposalFixtures = async (
 			}
 			if (
 				request.method() === 'GET'
-				&& decodedUrl.endsWith(`/api-proxy/EthereumEips_Github-124/1/${markdownUrl}`)
+				&& decodedUrl.endsWith(`/api-proxy/${ethereumEipsBinding.proxyId}/${githubRawEndpointIndex}/${markdownUrl}`)
 			) {
 				requests.markdown += 1
 				return route.fulfill({
@@ -101,21 +130,27 @@ test.describe('proposal catalog journey', () => {
 		await expect(page).toHaveURL(/\/proposals\/ethereum\/?$/)
 		await expect(page.getByRole('heading', { name: 'Ethereum' }).first()).toBeVisible(attach)
 
-		const eipKind = page.locator('#main #specification-realm-ethereum a[href="/proposals/ethereum/eip"]')
+		const eipKind = page.locator('#main').getByRole('link', {
+			name: 'EIPs',
+			exact: true,
+		})
 		await expect(eipKind).toBeVisible(attach)
 		await expect(eipKind).toContainText('EIPs')
 		await eipKind.click()
 		await expect(page).toHaveURL(/\/proposals\/ethereum\/eip\/?$/)
 		await expect(page.getByRole('heading', { name: 'EIPs' }).first()).toBeVisible(attach)
 
-		const proposalLink = page.locator(`#main #specification-proposal-kind-eips a[href="${proposalPath}"]`)
+		const proposalLink = page.locator('#main').getByRole('link', {
+			name: 'EIP-1559',
+			exact: true,
+		})
 		await expect(proposalLink).toBeVisible(attach)
 		await expect(proposalLink).toContainText('EIP-1559')
 		await expect(proposalLink).toHaveAttribute('href', proposalPath)
 		await proposalLink.click()
 		await expect(page).toHaveURL((url) => url.pathname === proposalPath)
 
-		const proposal = page.locator('#specification-proposal-eip-1559')
+		const proposal = getProposalCard(page)
 		await expect(proposal).toBeVisible(attach)
 		await expect(proposal.getByText('EIP-1559: Fee market change for ETH 1.0 chain', { exact: true }).first()).toBeVisible(attach)
 		expect(fixtureRequests.contents).toBeGreaterThan(0)
@@ -130,7 +165,7 @@ test.describe('proposal catalog journey', () => {
 		await page.goto(proposalPath, { waitUntil: 'domcontentloaded' })
 		await expect(page).toHaveURL((url) => url.pathname === proposalPath)
 
-		const proposal = page.locator('#specification-proposal-eip-1559')
+		const proposal = getProposalCard(page)
 		await expect(proposal).toBeVisible(attach)
 		await expect(proposal.getByText('EIP-1559: Fee market change for ETH 1.0 chain', { exact: true }).first()).toBeVisible(attach)
 		await expect(proposal.getByText('Status', { exact: true })).toBeVisible(attach)
@@ -154,7 +189,7 @@ test.describe('proposal catalog journey', () => {
 
 		await page.goto(proposalPath, { waitUntil: 'domcontentloaded' })
 
-		const proposal = page.locator('#specification-proposal-eip-1559')
+		const proposal = getProposalCard(page)
 		await expect(proposal).toBeVisible(attach)
 		const typeAnnotation = proposal.locator('.tooltip-trigger').filter({
 			hasText: 'Specification proposal',

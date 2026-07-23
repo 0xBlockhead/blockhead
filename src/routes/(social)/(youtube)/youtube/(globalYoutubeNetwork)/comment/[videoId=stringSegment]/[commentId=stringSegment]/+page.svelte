@@ -32,7 +32,6 @@
 			$parentComment: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.text) ?? '')].filter(Boolean).join(' ') || 'YouTube comment' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).text) ?? '')].filter(Boolean).join(' ') || 'YouTube comment')))
 
 
 	// Components
@@ -42,7 +41,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • YouTube comment • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'YouTube comment' : [String((({ ...data.selector, ...pageSelection.entity }).text) ?? '')].filter(Boolean).join(' ') || 'YouTube comment'))} • YouTube comment • Blockhead</title>
 </svelte:head>
 
 

@@ -2,20 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Cardano transaction inputs',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CardanoTxInput>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CardanoTxInput>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CardanoTxInputView from '$/views/CardanoTxInputView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,8 +67,15 @@
 	resource={
 		selection({
 			sources: selection.sources,
+			fields: {
+				inputIndex: true,
+				inputKind: true,
+				spentTxHash: true,
+				$transaction: true,
+			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cardanoTxInputs) => [...new Map(cardanoTxInputs.values.map((cardanoTxInput) => [cardanoTxInput[EntityMetaKey.SelectorKey], cardanoTxInput])).values()]}
 	getKey={(cardanoTxInput) => cardanoTxInput[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +90,53 @@
 
 	{#snippet Item({ item: cardanoTxInput })}
 		{@const cardanoTxInputFields = { ...cardanoTxInput[EntityMetaKey.Selector], ...cardanoTxInput }}
-		{@const selection = select(EntityType.CardanoTxInput, cardanoTxInput[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CardanoTxInputView
-			selection={selection}
-			prefetched={cardanoTxInputFields}
+		<EntityView
+			entityType={EntityType.CardanoTxInput}
+			entitySelector={cardanoTxInput[EntityMetaKey.Selector]}
+			href={
+				(
+					cardanoTxInput[EntityMetaKey.Selector] != null && 'inputIndex' in cardanoTxInput[EntityMetaKey.Selector]
+					&& cardanoTxInput[EntityMetaKey.Selector].inputIndex != null
+					&& cardanoTxInput[EntityMetaKey.Selector] != null && '$transaction' in cardanoTxInput[EntityMetaKey.Selector]
+					&& cardanoTxInput[EntityMetaKey.Selector].$transaction != null && 'hash' in cardanoTxInput[EntityMetaKey.Selector].$transaction
+					&& cardanoTxInput[EntityMetaKey.Selector].$transaction.hash != null
+					&& cardanoTxInput[EntityMetaKey.Selector].$transaction != null && '$network' in cardanoTxInput[EntityMetaKey.Selector].$transaction ?
+						cardanoTxInput[EntityMetaKey.Selector].$transaction.$network != null && 'caip2' in cardanoTxInput[EntityMetaKey.Selector].$transaction.$network
+						&& cardanoTxInput[EntityMetaKey.Selector].$transaction.$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/input/[inputIndex=nonNegativeInteger]', {
+						inputIndex: String(cardanoTxInput[EntityMetaKey.Selector].inputIndex ?? ''),
+						transactionId: String(cardanoTxInput[EntityMetaKey.Selector].$transaction.hash ?? ''),
+						network: String(caip2StringFromValue(cardanoTxInput[EntityMetaKey.Selector].$transaction.$network.caip2) ?? ''),
+					})
+					:
+							cardanoTxInput[EntityMetaKey.Selector].$transaction.$network != null && 'slug' in cardanoTxInput[EntityMetaKey.Selector].$transaction.$network
+							&& cardanoTxInput[EntityMetaKey.Selector].$transaction.$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/input/[inputIndex=nonNegativeInteger]', {
+							inputIndex: String(cardanoTxInput[EntityMetaKey.Selector].inputIndex ?? ''),
+							transactionId: String(cardanoTxInput[EntityMetaKey.Selector].$transaction.hash ?? ''),
+							network: String(cardanoTxInput[EntityMetaKey.Selector].$transaction.$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[(String((cardanoTxInputFields.inputIndex) ?? '') ? 'Input ' + String((cardanoTxInputFields.inputIndex) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano transaction input'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((cardanoTxInputFields.inputKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((cardanoTxInputFields.spentTxHash) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

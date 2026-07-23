@@ -34,7 +34,6 @@
 			disconnectedAt: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.displayName) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.peerId) ?? '')].filter(Boolean).join(' ') || 'contact' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).displayName) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).peerId) ?? '')].filter(Boolean).join(' ') || 'contact'))
 
 
 	// Components
@@ -44,7 +43,11 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • contact • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'contact' : [String((({ ...{
+		id: params.contactId,
+	}, ...pageSelection.entity }).displayName) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
+		id: params.contactId,
+	}, ...pageSelection.entity }).peerId) ?? '')].filter(Boolean).join(' ') || 'contact')} • contact • Blockhead</title>
 </svelte:head>
 
 

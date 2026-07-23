@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'YouTube playlist observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.YoutubePlaylist_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.YoutubePlaylist_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import YoutubePlaylist_TimestampView from '$/views/YoutubePlaylist_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(youtubePlaylistTimestamps) => [...new Map(youtubePlaylistTimestamps.values.map((youtubePlaylistTimestamp) => [youtubePlaylistTimestamp[EntityMetaKey.SelectorKey], youtubePlaylistTimestamp])).values()]}
 	getKey={(youtubePlaylistTimestamp) => youtubePlaylistTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,20 +88,34 @@
 
 	{#snippet Item({ item: youtubePlaylistTimestamp })}
 		{@const youtubePlaylistTimestampFields = { ...youtubePlaylistTimestamp[EntityMetaKey.Selector], ...youtubePlaylistTimestamp }}
-		{@const selection = select(EntityType.YoutubePlaylist_Timestamp, youtubePlaylistTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const youtubePlaylistTimestampHrefFields = { ...youtubePlaylistTimestamp, ...youtubePlaylistTimestamp[EntityMetaKey.Selector] }}
-		<YoutubePlaylist_TimestampView
-			selection={selection}
-			prefetched={youtubePlaylistTimestampFields}
+		<EntityView
+			entityType={EntityType.YoutubePlaylist_Timestamp}
+			entitySelector={youtubePlaylistTimestamp[EntityMetaKey.Selector]}
 			href={
-				(youtubePlaylistTimestampHrefFields.timestampMs !== undefined && youtubePlaylistTimestampHrefFields.source !== undefined && youtubePlaylistTimestampHrefFields.$playlist !== undefined && youtubePlaylistTimestampHrefFields.$playlist.playlistId !== undefined ? resolve('/youtube/playlist/[playlistId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
-					timestampMs: String(youtubePlaylistTimestampHrefFields.timestampMs ?? ''),
-					source: String(youtubePlaylistTimestampHrefFields.source ?? ''),
-					playlistId: encodeURIComponent(String(youtubePlaylistTimestampHrefFields.$playlist.playlistId ?? '')),
-				}) : undefined)
+				(
+					youtubePlaylistTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in youtubePlaylistTimestamp[EntityMetaKey.Selector]
+					&& youtubePlaylistTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& youtubePlaylistTimestamp[EntityMetaKey.Selector] != null && 'source' in youtubePlaylistTimestamp[EntityMetaKey.Selector]
+					&& youtubePlaylistTimestamp[EntityMetaKey.Selector].source != null
+					&& youtubePlaylistTimestamp[EntityMetaKey.Selector] != null && '$playlist' in youtubePlaylistTimestamp[EntityMetaKey.Selector]
+					&& youtubePlaylistTimestamp[EntityMetaKey.Selector].$playlist != null && 'playlistId' in youtubePlaylistTimestamp[EntityMetaKey.Selector].$playlist
+					&& youtubePlaylistTimestamp[EntityMetaKey.Selector].$playlist.playlistId != null ?
+						resolve('/youtube/playlist/[playlistId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
+					timestampMs: String(youtubePlaylistTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(youtubePlaylistTimestamp[EntityMetaKey.Selector].source ?? ''),
+					playlistId: encodeURIComponent(String(youtubePlaylistTimestamp[EntityMetaKey.Selector].$playlist.playlistId ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((youtubePlaylistTimestampFields.$playlist.title) ?? '')].filter(Boolean).join(' ') || [String((youtubePlaylistTimestampFields.$playlist.playlistId) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist', String((youtubePlaylistTimestampFields.timestampMs) ?? ''), String((youtubePlaylistTimestampFields.source) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist observation'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -23,12 +23,12 @@
 			Source.Blockfrost_Rest,
 		],
 		fields: {
+			displayName: true,
 			credentialKind: true,
 			anchorUrl: true,
 			anchorHash: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.drepCredential) ?? '')].filter(Boolean).join(' ') || 'Cardano DRep' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).drepCredential) ?? '')].filter(Boolean).join(' ') || 'Cardano DRep')))
 
 
 	// Components
@@ -38,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Cardano DRep • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.drepCredential) ?? '')].filter(Boolean).join(' ') || 'Cardano DRep' : [String((({ ...data.selector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).drepCredential) ?? '')].filter(Boolean).join(' ') || 'Cardano DRep'))} • Cardano DRep • Blockhead</title>
 </svelte:head>
 
 

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.FarcasterCast_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterCast_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FarcasterCast_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const farcasterCastTimestamp = $derived(selection({
+	const farcasterCastTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
-	const titleFallback = $derived('Farcaster cast observation')
-	const viewDomId = $derived('farcaster-cast-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'Farcaster cast observation'
+	const viewDomId = $derived('farcaster-cast-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,47 +66,45 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$cast !== undefined && pendingEntity.$cast.fid !== undefined && pendingEntity.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			fid: String(pendingEntity.$cast.fid ?? ''),
-			hash: String(pendingEntity.$cast.hash ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && '$cast' in selection.entitySelector
+			&& selection.entitySelector.$cast != null && 'fid' in selection.entitySelector.$cast
+			&& selection.entitySelector.$cast.fid != null
+			&& selection.entitySelector.$cast != null && 'hash' in selection.entitySelector.$cast
+			&& selection.entitySelector.$cast.hash != null ?
+				resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			fid: String(selection.entitySelector.$cast.fid ?? ''),
+			hash: String(selection.entitySelector.$cast.hash ?? ''),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<FarcasterCastView
-						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
-						href={
-						(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
-							fid: String(selection.entitySelector.$cast.fid ?? ''),
-							hash: String(selection.entitySelector.$cast.hash ?? ''),
-						}) : selection.entitySelector.$cast.username !== undefined && selection.entitySelector.$cast.hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-							fname: String(selection.entitySelector.$cast.username ?? ''),
-							hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$cast') && prefetched.$cast != null && Object.hasOwn(prefetched.$cast, 'text') && Object.hasOwn(prefetched.$cast, 'hash') && Object.hasOwn(prefetched.$cast, 'fid') && Object.hasOwn(prefetched.$cast, 'timestamp')}
+			{@const farcasterCast0 = pendingEntity.$cast}
+			{#if farcasterCast0 != null && selection.entitySelector.$cast != null}
+				<FarcasterCastView
+					selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast, { sources: selection.sources })}
+					prefetched={farcasterCast0}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={farcasterCastTimestamp}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<FarcasterCastView
 						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
-						href={
-						(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
-							fid: String(selection.entitySelector.$cast.fid ?? ''),
-							hash: String(selection.entitySelector.$cast.hash ?? ''),
-						}) : selection.entitySelector.$cast.username !== undefined && selection.entitySelector.$cast.hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-							fname: String(selection.entitySelector.$cast.username ?? ''),
-							hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -112,11 +114,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const timestampMs0 = pendingEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$cast') && prefetched.$cast != null && Object.hasOwn(prefetched.$cast, 'text') && Object.hasOwn(prefetched.$cast, 'hash') && Object.hasOwn(prefetched.$cast, 'fid') && Object.hasOwn(prefetched.$cast, 'timestamp')}
+			{@const timestampMs0 = pendingEntity.timestampMs}
+			{#if timestampMs0 !== undefined && timestampMs0 !== null}
+				<Timestamp timestamp={Number(timestampMs0)} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={farcasterCastTimestamp}>
 				{#snippet children(entity)}
@@ -136,15 +138,29 @@
 				<dt>Cast</dt>
 				<dd>
 					<FarcasterCastView
-						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast, {})}
+						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
 						href={
-							(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
+							(
+								selection.entitySelector.$cast != null && 'fid' in selection.entitySelector.$cast
+								&& selection.entitySelector.$cast.fid != null
+								&& selection.entitySelector.$cast != null && 'hash' in selection.entitySelector.$cast
+								&& selection.entitySelector.$cast.hash != null ?
+									resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 								fid: String(selection.entitySelector.$cast.fid ?? ''),
 								hash: String(selection.entitySelector.$cast.hash ?? ''),
-							}) : selection.entitySelector.$cast.username !== undefined && selection.entitySelector.$cast.hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-								fname: String(selection.entitySelector.$cast.username ?? ''),
-								hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$cast != null && 'username' in selection.entitySelector.$cast
+									&& selection.entitySelector.$cast.username != null
+									&& selection.entitySelector.$cast != null && 'hashPrefix' in selection.entitySelector.$cast
+									&& selection.entitySelector.$cast.hashPrefix != null ?
+										resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+									fname: String(selection.entitySelector.$cast.username ?? ''),
+									hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

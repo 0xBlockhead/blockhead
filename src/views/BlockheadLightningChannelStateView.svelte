@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadLightningChannelState>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadLightningChannelState>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLightningChannelState>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLightningChannelState = $derived(selection({
+	const blockheadLightningChannelState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			private: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			private: true,
 		},
 	}))
-	const titleFallback = $derived('blockhead Lightning channel state')
-	const viewDomId = $derived('blockhead-lightning-channel-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'blockhead Lightning channel state'
+	const viewDomId = $derived('blockhead-lightning-channel-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,86 +78,43 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<LightningChannelView
-						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
-						href={
-						(selection.entitySelector.$channel.channelId !== undefined && selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-							channelId: String(selection.entitySelector.$channel.channelId ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$channel.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$channel.channelId !== undefined && selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-							channelId: String(selection.entitySelector.$channel.channelId ?? ''),
-							network: String(selection.entitySelector.$channel.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={blockheadLightningChannelState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<LightningChannelView
-						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
-						href={
-						(selection.entitySelector.$channel.channelId !== undefined && selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-							channelId: String(selection.entitySelector.$channel.channelId ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$channel.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$channel.channelId !== undefined && selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-							channelId: String(selection.entitySelector.$channel.channelId ?? ''),
-							network: String(selection.entitySelector.$channel.$network.slug ?? ''),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadLightningChannelState}>
+			{#snippet children(entity)}
+				<LightningChannelView
+					selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<BlockheadLightningNodeStateView
-						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={blockheadLightningChannelState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<BlockheadLightningNodeStateView
-						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadLightningChannelState}>
+			{#snippet children(entity)}
+				<BlockheadLightningNodeStateView
+					selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const privateValue0 = pendingEntity.private}
-			{#if privateValue0 !== undefined && privateValue0 !== null}
-				<span data-text="muted">
-					{privateValue0 ? 'Yes' : 'No'}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadLightningChannelState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const privateValue0 = resolvedEntity.private}
-					{#if privateValue0 !== undefined && privateValue0 !== null}
-						<span data-text="muted">
-							{privateValue0 ? 'Yes' : 'No'}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadLightningChannelState}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const privateValue0 = resolvedEntity.private}
+				{#if privateValue0 !== undefined && privateValue0 !== null}
+					<span data-text="muted">
+						{privateValue0 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -160,7 +123,7 @@
 				<dt>local node state</dt>
 				<dd>
 					<BlockheadLightningNodeStateView
-						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState, {})}
+						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -171,15 +134,30 @@
 				<dt>channel</dt>
 				<dd>
 					<LightningChannelView
-						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel, {})}
+						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
 						href={
-							(selection.entitySelector.$channel.channelId !== undefined && selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-								channelId: String(selection.entitySelector.$channel.channelId ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$channel.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$channel.channelId !== undefined && selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-								channelId: String(selection.entitySelector.$channel.channelId ?? ''),
-								network: String(selection.entitySelector.$channel.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$channel != null && 'channelId' in selection.entitySelector.$channel
+								&& selection.entitySelector.$channel.channelId != null
+								&& selection.entitySelector.$channel != null && '$network' in selection.entitySelector.$channel ?
+									selection.entitySelector.$channel.$network != null && 'caip2' in selection.entitySelector.$channel.$network
+									&& selection.entitySelector.$channel.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+									channelId: String(selection.entitySelector.$channel.channelId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$channel.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$channel.$network != null && 'slug' in selection.entitySelector.$channel.$network
+										&& selection.entitySelector.$channel.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+										channelId: String(selection.entitySelector.$channel.channelId ?? ''),
+										network: String(selection.entitySelector.$channel.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -238,28 +216,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadLightningChannelState_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No state observations.'
-				id='BlockheadLightningChannelState_TimestampsView-timestamps'
-			/>
-
-			<BlockheadLightningHtlcsView
-				selection={
-						selection.$$htlcs({
-							count: true,
-						})
-					}
-				title='htlcs'
-				emptyText='No pending HTLCs.'
-				id='BlockheadLightningHtlcsView-htlcs'
-			/>
-		{/if}
+		{@const blockheadLightningChannelStateBlockheadLightningChannelStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadLightningChannelStateBlockheadLightningChannelStateTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadLightningChannelState_TimestampsView
+					selection={blockheadLightningChannelStateBlockheadLightningChannelStateTimestampsViewTimestampsResource}
+					countResource={blockheadLightningChannelStateBlockheadLightningChannelStateTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadLightningChannelState_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const blockheadLightningChannelStateBlockheadLightningHtlcsViewHtlcsResource = selection.$$htlcs}
+		<ResourceBoundary
+			resource={blockheadLightningChannelStateBlockheadLightningHtlcsViewHtlcsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadLightningHtlcsView
+					selection={blockheadLightningChannelStateBlockheadLightningHtlcsViewHtlcsResource}
+					countResource={blockheadLightningChannelStateBlockheadLightningHtlcsViewHtlcsResource.count}
+					title='htlcs'
+					id='BlockheadLightningHtlcsView-htlcs'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

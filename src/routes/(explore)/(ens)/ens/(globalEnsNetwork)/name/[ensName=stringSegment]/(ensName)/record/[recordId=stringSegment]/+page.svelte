@@ -28,7 +28,6 @@
 			coinType: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record')))
 
 
 	// Components
@@ -38,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ENS record • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record' : [String((({ ...data.selector, ...pageSelection.entity }).recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record'))} • ENS record • Blockhead</title>
 </svelte:head>
 
 

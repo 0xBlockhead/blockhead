@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Filecoin network observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FilecoinNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FilecoinNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FilecoinNetwork_TimestampView from '$/views/FilecoinNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(filecoinNetworkTimestamps) => [...new Map(filecoinNetworkTimestamps.values.map((filecoinNetworkTimestamp) => [filecoinNetworkTimestamp[EntityMetaKey.SelectorKey], filecoinNetworkTimestamp])).values()]}
 	getKey={(filecoinNetworkTimestamp) => filecoinNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: filecoinNetworkTimestamp })}
 		{@const filecoinNetworkTimestampFields = { ...filecoinNetworkTimestamp[EntityMetaKey.Selector], ...filecoinNetworkTimestamp }}
-		{@const selection = select(EntityType.FilecoinNetwork_Timestamp, filecoinNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<FilecoinNetwork_TimestampView
-			selection={selection}
-			prefetched={filecoinNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType.FilecoinNetwork_Timestamp}
+			entitySelector={filecoinNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((filecoinNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((filecoinNetworkTimestampFields.headHeight) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((filecoinNetworkTimestampFields.headTipsetKey) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

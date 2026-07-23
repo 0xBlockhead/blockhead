@@ -1,43 +1,237 @@
 import { expect, test } from '@playwright/test'
 
+import {
+	expectMainVisible,
+	installChainlistRpcsJsonStub,
+} from '../../../../../tests/_e2eBrowserHelpers.ts'
+import { routeViewSmokeTimeoutsMs } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
 
-test.describe('Lens reading journey', () => {
-	test('latest posts lead to a readable post and author account', async ({ page }) => {
-		test.setTimeout(180_000)
-		await page.goto('/lens/observations/posts', {
-			waitUntil: 'domcontentloaded',
-		})
 
-		await expect(page).toHaveURL((url) => url.pathname === '/lens/observations/posts')
-		await expect(page.locator('#main')).toContainText('Lens posts')
-
-		const post = page.locator('#main a[href^="/lens/post/"]').first()
-		const failure = page.locator('#main').getByText(/error|failed|unavailable/i).first()
-		await expect(post.or(failure)).toBeAttached({
-			timeout: 120_000,
-		})
-		if (await failure.isVisible())
-			return
-
-		const postPath = await post.getAttribute('href')
-		expect(postPath).not.toBeNull()
-		await post.click()
-
-		await expect(page).toHaveURL((url) => url.pathname === postPath)
-		await expect(page.locator('#main')).toContainText('Lens post')
-
-		const author = page.locator('#main a[href^="/lens/account/"]').first()
-		await expect(author.or(failure)).toBeAttached({
-			timeout: 120_000,
-		})
-		if (await failure.isVisible())
-			return
-
-		const accountPath = await author.getAttribute('href')
-		expect(accountPath).not.toBeNull()
-		await author.click()
-
-		await expect(page).toHaveURL((url) => url.pathname === accountPath)
-		await expect(page.locator('#main')).toContainText('Lens account')
+const authorAddress = '0x1111111111111111111111111111111111111111'
+const postId = 'deterministic-lens-post'
+const postText = 'A deterministic Lens post keeps the social graph readable.'
+const author = {
+	address: authorAddress,
+	createdAt: '2026-07-20T12:00:00.000Z',
+	username: {
+		localName: 'protocol-reader',
+	},
+	metadata: {
+		name: 'Protocol Reader',
+		bio: 'Reads and explains open social protocols.',
+		picture: null,
+	},
+}
+const post = {
+	__typename: 'Post',
+	slug: postId,
+	timestamp: '2026-07-20T12:30:00.000Z',
+	isEdited: false,
+	isDeleted: false,
+	author,
+	commentOn: null,
+	quoteOf: null,
+	root: null,
+	stats: {
+		comments: 1,
+		reposts: 2,
+		quotes: 3,
+		bookmarks: 4,
+		collects: 5,
+		reactions: 6,
+	},
+	metadata: {
+		__typename: 'TextOnlyMetadata',
+		content: postText,
+	},
+}
+test.beforeEach(async ({ page }, testInfo) => {
+	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test * 3)
+	await page.addInitScript(({ name, schemaVersion }) => {
+		window.__blockheadClientProbeEnabled = true
+		window.__blockheadWaSqliteDatabaseNameOverride = name
+		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
+		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
+	}, {
+		name: `blockhead-lens-reading-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
+		schemaVersion: Date.now(),
 	})
+	await installChainlistRpcsJsonStub(page)
+})
+
+
+test('latest posts lead to a readable post, author, comments, and observations', async ({ page }) => {
+	const lensOperations: string[] = []
+	const unexpectedOperations: string[] = []
+	const consoleErrors: string[] = []
+	const pageErrors: string[] = []
+	page.on('console', (message) => {
+		if (message.type() === 'error')
+			consoleErrors.push(message.text())
+	})
+	page.on('pageerror', (error) => pageErrors.push(error.message))
+	await page.route('https://api.lens.xyz/graphql', async (route) => {
+		expect(route.request().method()).toBe('POST')
+		const body = route.request().postData() ?? ''
+
+		if (body.includes('query LensLatestPosts')) {
+			lensOperations.push('LensLatestPosts')
+			await route.fulfill({
+				json: {
+					data: {
+						posts: {
+							items: [{
+								...post,
+								author: { address: authorAddress },
+							}],
+						},
+					},
+				},
+			})
+			return
+		}
+
+		if (body.includes('query LensPostComments')) {
+			lensOperations.push('LensPostComments')
+			await route.fulfill({ json: { data: { postReferences: { items: [] } } } })
+			return
+		}
+
+		if (body.includes('query LensPostsByAuthor')) {
+			lensOperations.push('LensPostsByAuthor')
+			await route.fulfill({
+				json: {
+					data: {
+						posts: {
+							items: [{
+								...post,
+								author: { address: authorAddress },
+							}],
+						},
+					},
+				},
+			})
+			return
+		}
+
+		if (body.includes('query LensPost')) {
+			lensOperations.push('LensPost')
+			await route.fulfill({ json: { data: { post } } })
+			return
+		}
+
+		if (body.includes('query LensAccountStats')) {
+			lensOperations.push('LensAccountStats')
+			await route.fulfill({
+				json: {
+					data: {
+						accountStats: {
+							graphFollowStats: {
+								followers: 42,
+								following: 7,
+							},
+						},
+					},
+				},
+			})
+			return
+		}
+
+		if (body.includes('query LensAccountByAddress')) {
+			lensOperations.push('LensAccountByAddress')
+			await route.fulfill({
+				json: {
+					data: {
+						account: author,
+						accountStats: {
+							graphFollowStats: {
+								followers: 42,
+								following: 7,
+							},
+						},
+					},
+				},
+			})
+			return
+		}
+
+		unexpectedOperations.push(body)
+		await route.fulfill({
+			status: 501,
+			json: {
+				errors: [{ message: 'Unexpected Lens GraphQL operation' }],
+			},
+		})
+	})
+
+	await page.goto('/lens/observations/posts', {
+		waitUntil: 'load',
+		timeout: routeViewSmokeTimeoutsMs.goto,
+	})
+	await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector)
+	const postList = page.locator('#main article#lens-posts[data-card][data-scroll-container]')
+	await expect(postList).toHaveCount(1)
+	const postLink = postList.locator(`a[href="/lens/post/${postId}"]`).first()
+	await expect(postLink).toContainText(postText, {
+		timeout: routeViewSmokeTimeoutsMs.settle,
+	})
+	await postLink.click()
+
+	await expect(page).toHaveURL(`/lens/post/${postId}`)
+	const main = page.locator('#main')
+	await expect(main).toContainText(postText)
+	await expect(main.locator(`a[href="/lens/account/${authorAddress}"]`).first()).toBeAttached()
+	const observationLink = main.locator(`a[href^="/lens/post/${postId}/observations/"]`).first()
+	await expect(observationLink).toBeAttached({
+		timeout: routeViewSmokeTimeoutsMs.settle,
+	})
+	await observationLink.click()
+	await expect(page).toHaveURL(new RegExp(`/lens/post/${postId}/observations/[0-9]+$`))
+	const commentMetric = main.locator('dt').filter({ hasText: /^Comments$/ }).locator('..')
+	await expect(commentMetric).toContainText('1', {
+		timeout: routeViewSmokeTimeoutsMs.settle,
+	})
+	await expect(main.locator('dt').filter({ hasText: /^Reactions$/ }).locator('..')).toContainText('6')
+	await expect(main.locator('[data-error], [role="alert"]')).toHaveCount(0)
+
+	await page.goBack()
+	await main.locator(`a[href="/lens/account/${authorAddress}"]`).first().click()
+	await expect(page).toHaveURL(`/lens/account/${authorAddress}`)
+	await expect(main).toContainText('Protocol Reader')
+	await expect(main).toContainText('protocol-reader')
+	await expect(main).toContainText('Reads and explains open social protocols.')
+	await expect(main.locator('[data-error], [role="alert"]')).toHaveCount(0)
+
+	expect(lensOperations).toEqual(expect.arrayContaining([
+		'LensLatestPosts',
+		'LensPost',
+		'LensPostComments',
+		'LensAccountByAddress',
+	]))
+	expect(unexpectedOperations).toEqual([])
+	expect(consoleErrors).toEqual([])
+	expect(pageErrors).toEqual([])
+})
+
+test('provider failure renders through the resource boundary', async ({ page }) => {
+	await page.route('https://api.lens.xyz/graphql', async (route) => {
+		await route.fulfill({
+			json: {
+				data: {},
+				errors: [{ message: 'Deterministic Lens provider failure' }],
+			},
+		})
+	})
+
+	await page.goto('/lens/observations/posts', {
+		waitUntil: 'load',
+		timeout: routeViewSmokeTimeoutsMs.goto,
+	})
+	await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector)
+	const failure = page.locator('#main [data-error][role="alert"]')
+	await expect(failure).toHaveCount(1, {
+		timeout: routeViewSmokeTimeoutsMs.settle,
+	})
+	await expect(failure).toContainText('Deterministic Lens provider failure')
+	await expect(page.locator('#main article#lens-posts[data-card][data-scroll-container]')).toHaveCount(1)
 })

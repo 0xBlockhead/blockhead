@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'A2A agent skills',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.A2aAgentSkill>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.A2aAgentSkill>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import A2aAgentSkillView from '$/views/A2aAgentSkillView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,11 +67,18 @@
 			sources: selection.sources,
 			fields: {
 				name: true,
-				$cardSnapshot: true,
+				$cardSnapshot: {
+					fields: {
+						name: true,
+						version: true,
+						protocolVersion: true,
+					},
+				},
 				skillId: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(a2aAgentSkills) => [...new Map(a2aAgentSkills.values.map((a2aAgentSkill) => [a2aAgentSkill[EntityMetaKey.SelectorKey], a2aAgentSkill])).values()]}
 	getKey={(a2aAgentSkill) => a2aAgentSkill[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +93,20 @@
 
 	{#snippet Item({ item: a2aAgentSkill })}
 		{@const a2aAgentSkillFields = { ...a2aAgentSkill[EntityMetaKey.Selector], ...a2aAgentSkill }}
-		{@const selection = select(EntityType.A2aAgentSkill, a2aAgentSkill[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<A2aAgentSkillView
-			selection={selection}
-			prefetched={a2aAgentSkillFields}
+		<EntityView
+			entityType={EntityType.A2aAgentSkill}
+			entitySelector={a2aAgentSkill[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((a2aAgentSkillFields.name) ?? '')].filter(Boolean).join(' ') || [String((a2aAgentSkillFields.skillId) ?? '')].filter(Boolean).join(' ') || 'A2A agent skill'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((a2aAgentSkillFields.$cardSnapshot.name) ?? '')].filter(Boolean).join(' ') || [String((a2aAgentSkillFields.$cardSnapshot.contentHash) ?? '')].filter(Boolean).join(' ') || 'A2A agent card snapshot'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

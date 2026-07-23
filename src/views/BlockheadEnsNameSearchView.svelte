@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -22,7 +23,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadEnsNameSearch>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadEnsNameSearch>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadEnsNameSearch>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -36,7 +37,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadEnsNameSearch = $derived(selection({
+	const blockheadEnsNameSearch = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			resultLimit: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			createdAt: true,
@@ -44,7 +50,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.query) ?? '')].filter(Boolean).join(' ') || 'blockhead ENS name search')
-	const viewDomId = $derived('blockhead-ens-name-search-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-ens-name-search-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,7 +71,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'resultLimit')}
 			{[String((pendingEntity.query) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadEnsNameSearch}>
@@ -78,7 +84,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'resultLimit')}
 			{[String((pendingEntity.resultLimit) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.query) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadEnsNameSearch}>
@@ -167,17 +173,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<EnsNamesView
-				selection={
-						selection.$$matchingNames({
-							count: true,
-						})
-					}
-				title='matching names'
-				emptyText='No matching ENS names.'
-				id='EnsNamesView-matching-names'
-			/>
-		{/if}
+		{@const blockheadEnsNameSearchEnsNamesViewMatchingNamesResource = selection.$$matchingNames}
+		<ResourceBoundary
+			resource={blockheadEnsNameSearchEnsNamesViewMatchingNamesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<EnsNamesView
+					selection={blockheadEnsNameSearchEnsNamesViewMatchingNamesResource}
+					countResource={blockheadEnsNameSearchEnsNamesViewMatchingNamesResource.count}
+					title='matching names'
+					id='EnsNamesView-matching-names'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'EVM selector observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmSelector_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmSelector_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmSelector_TimestampView from '$/views/EvmSelector_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,7 +66,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.Openchain_Rest,
 			],
 			fields: {
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(evmSelectorTimestamps) => [...new Map(evmSelectorTimestamps.values.map((evmSelectorTimestamp) => [evmSelectorTimestamp[EntityMetaKey.SelectorKey], evmSelectorTimestamp])).values()]}
 	getKey={(evmSelectorTimestamp) => evmSelectorTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,20 +91,42 @@
 
 	{#snippet Item({ item: evmSelectorTimestamp })}
 		{@const evmSelectorTimestampFields = { ...evmSelectorTimestamp[EntityMetaKey.Selector], ...evmSelectorTimestamp }}
-		{@const selection = select(EntityType.EvmSelector_Timestamp, evmSelectorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const evmSelectorTimestampHrefFields = { ...evmSelectorTimestamp, ...evmSelectorTimestamp[EntityMetaKey.Selector] }}
-		<EvmSelector_TimestampView
-			selection={selection}
-			prefetched={evmSelectorTimestampFields}
+		<EntityView
+			entityType={EntityType.EvmSelector_Timestamp}
+			entitySelector={evmSelectorTimestamp[EntityMetaKey.Selector]}
 			href={
-				(evmSelectorTimestampHrefFields.timestampMs !== undefined && evmSelectorTimestampHrefFields.source !== undefined && evmSelectorTimestampHrefFields.$selector !== undefined && evmSelectorTimestampHrefFields.$selector.hex !== undefined ? resolve('/evm/selector/[hex=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(evmSelectorTimestampHrefFields.timestampMs ?? ''),
-					source: String(evmSelectorTimestampHrefFields.source ?? ''),
-					hex: String(evmSelectorTimestampHrefFields.$selector.hex ?? ''),
-				}) : undefined)
+				(
+					evmSelectorTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in evmSelectorTimestamp[EntityMetaKey.Selector]
+					&& evmSelectorTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& evmSelectorTimestamp[EntityMetaKey.Selector] != null && 'source' in evmSelectorTimestamp[EntityMetaKey.Selector]
+					&& evmSelectorTimestamp[EntityMetaKey.Selector].source != null
+					&& evmSelectorTimestamp[EntityMetaKey.Selector] != null && '$selector' in evmSelectorTimestamp[EntityMetaKey.Selector]
+					&& evmSelectorTimestamp[EntityMetaKey.Selector].$selector != null && 'hex' in evmSelectorTimestamp[EntityMetaKey.Selector].$selector
+					&& evmSelectorTimestamp[EntityMetaKey.Selector].$selector.hex != null ?
+						resolve('/evm/selector/[hex=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(evmSelectorTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(evmSelectorTimestamp[EntityMetaKey.Selector].source ?? ''),
+					hex: String(evmSelectorTimestamp[EntityMetaKey.Selector].$selector.hex ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'EVM selector observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((evmSelectorTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((evmSelectorTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

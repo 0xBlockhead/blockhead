@@ -44,14 +44,14 @@
 				}
 				title='ERC-4337 account factories'
 				selection={
-					projection.$$erc4337AccountFactories({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$erc4337AccountFactories({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
-				id='erc4337-account-factories'
+				id='account-erc4337-account-factory'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

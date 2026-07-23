@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.PolkadotAssetBalance_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.PolkadotAssetBalance_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.PolkadotAssetBalance_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,15 +43,21 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const polkadotAssetBalanceTimestamp = $derived(selection({
+	const polkadotAssetBalanceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			freeBalancePlancks: true,
+			status: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			freeBalancePlancks: true,
 			status: true,
 		},
 	}))
-	const titleFallback = $derived('Polkadot asset balance timestamp')
-	const viewDomId = $derived('polkadot-asset-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = 'Polkadot asset balance timestamp'
+	const viewDomId = $derived('polkadot-asset-balance-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,70 +81,44 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<PolkadotAssetView
-						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-		{:else}
-			<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<PolkadotAssetView
-						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
+			{#snippet children(entity)}
+				<PolkadotAssetView
+					selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const freeBalancePlancks0 = pendingEntity.freeBalancePlancks}
-					{#if freeBalancePlancks0 !== undefined && freeBalancePlancks0 !== null}
-						<NumberValue
-							value={freeBalancePlancks0}
-						/>
-					{/if}
-		{:else}
-			<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const freeBalancePlancks0 = resolvedEntity.freeBalancePlancks}
-					{#if freeBalancePlancks0 !== undefined && freeBalancePlancks0 !== null}
-						<NumberValue
-							value={freeBalancePlancks0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const freeBalancePlancks0 = resolvedEntity.freeBalancePlancks}
+				{#if freeBalancePlancks0 !== undefined && freeBalancePlancks0 !== null}
+					<NumberValue
+						value={freeBalancePlancks0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const status0 = pendingEntity.status}
-			{#if status0 !== undefined && status0 !== null}
-				<span data-text="muted">
-					{String((status0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status0 = resolvedEntity.status}
-					{#if status0 !== undefined && status0 !== null}
-						<span data-text="muted">
-							{String((status0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const status0 = resolvedEntity.status}
+				{#if status0 !== undefined && status0 !== null}
+					<span data-text="muted">
+						{String((status0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -146,15 +127,30 @@
 				<dt>Account</dt>
 				<dd>
 					<PolkadotAccountView
-						selection={select(EntityType.PolkadotAccount, selection.entitySelector.$account, {})}
+						selection={select(EntityType.PolkadotAccount, selection.entitySelector.$account)}
 						href={
-							(selection.entitySelector.$account.accountId !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(selection.entitySelector.$account.accountId ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$account.accountId !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-								accountId: String(selection.entitySelector.$account.accountId ?? ''),
-								network: String(selection.entitySelector.$account.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$account != null && 'accountId' in selection.entitySelector.$account
+								&& selection.entitySelector.$account.accountId != null
+								&& selection.entitySelector.$account != null && '$network' in selection.entitySelector.$account ?
+									selection.entitySelector.$account.$network != null && 'caip2' in selection.entitySelector.$account.$network
+									&& selection.entitySelector.$account.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+									accountId: String(selection.entitySelector.$account.accountId ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$account.$network != null && 'slug' in selection.entitySelector.$account.$network
+										&& selection.entitySelector.$account.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+										accountId: String(selection.entitySelector.$account.accountId ?? ''),
+										network: String(selection.entitySelector.$account.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -166,7 +162,7 @@
 				<dt>Asset</dt>
 				<dd>
 					<PolkadotAssetView
-						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset, {})}
+						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -34,48 +34,153 @@ export type CosmosSdkSyncingResponse = {
 	syncing: boolean
 }
 
-export type CosmosSdkTxResponse = {
-	tx?: {
-		body?: {
-			memo?: string
-			messages?: {
-				'@type'?: string
-				signer?: string
-				sender?: string
-				contract?: string
+export type CosmosSdkTx = {
+	body?: {
+		memo?: string
+		timeout_height?: string
+		messages?: {
+			'@type'?: string
+			signer?: string
+			sender?: string
+			from_address?: string
+			contract?: string
+		}[]
+	}
+	auth_info?: {
+		fee?: {
+			amount?: {
+				denom: string
+				amount: string
 			}[]
+			gas_limit?: string
 		}
 	}
+	signatures?: string[]
+}
+
+export type CosmosSdkTxResponse = {
+	tx?: CosmosSdkTx
 	tx_response: {
 		height: string
 		txhash: string
 		code: number
+		codespace?: string
 		gas_wanted: string
 		gas_used: string
 		raw_log: string
-	}
-}
-
-export type CosmosSdkProposalResponse = {
-	proposal: {
-		id: string
-		title?: string
-		summary?: string
-		status: string
-		messages?: {
-			content?: {
-				title?: string
-				description?: string
-			}
+		timestamp?: string
+		events?: {
+			type: string
 		}[]
 	}
 }
 
+export type CosmosSdkTxsEventResponse = {
+	txs: CosmosSdkTx[]
+	tx_responses: CosmosSdkTxResponse['tx_response'][]
+	pagination?: {
+		next_key?: string | null
+		total?: string
+	}
+	total: string
+}
+
+export type CosmosSdkCoin = {
+	denom: string
+	amount: string
+}
+
+export type CosmosSdkPagination = {
+	next_key?: string | null
+	total?: string
+}
+
+export type CosmosSdkGovernanceAny = {
+	'@type': string
+	[key: string]: JsonValue
+}
+
+export type CosmosSdkTally = {
+	yes_count: string
+	abstain_count: string
+	no_count: string
+	no_with_veto_count: string
+}
+
+export type CosmosSdkProposal = {
+	id: string
+	messages: CosmosSdkGovernanceAny[]
+	status: string
+	final_tally_result?: CosmosSdkTally
+	submit_time?: string
+	deposit_end_time?: string
+	total_deposit: CosmosSdkCoin[]
+	voting_start_time?: string
+	voting_end_time?: string
+	metadata: string
+	title: string
+	summary: string
+	proposer?: string
+	expedited?: boolean
+	failed_reason?: string
+}
+
+export type CosmosSdkProposalResponse = {
+	proposal: CosmosSdkProposal
+}
+
+export type CosmosSdkWeightedVoteOption = {
+	option: string
+	weight: string
+}
+
+export type CosmosSdkVote = {
+	proposal_id: string
+	voter: string
+	options: CosmosSdkWeightedVoteOption[]
+	metadata?: string
+}
+
+export type CosmosSdkVoteResponse = {
+	vote: CosmosSdkVote
+}
+
+export type CosmosSdkVotesResponse = {
+	votes: CosmosSdkVote[]
+	pagination?: CosmosSdkPagination
+}
+
+export type CosmosSdkDeposit = {
+	proposal_id: string
+	depositor: string
+	amount: CosmosSdkCoin[]
+}
+
+export type CosmosSdkDepositResponse = {
+	deposit: CosmosSdkDeposit
+}
+
+export type CosmosSdkDepositsResponse = {
+	deposits: CosmosSdkDeposit[]
+	pagination?: CosmosSdkPagination
+}
+
+export type CosmosSdkTallyResponse = {
+	tally: CosmosSdkTally
+}
+
 export type CosmosSdkDenomMetadataResponse = {
 	metadata: {
+		name: string
+		description: string
 		base: string
 		display: string
 		symbol: string
+		denom_units: {
+			denom: string
+			exponent: number
+			aliases: string[]
+		}[]
 	}
 }
 
@@ -154,18 +259,38 @@ export type CosmosSdkStakingPoolResponse = {
 }
 
 export type CosmosSdkProposalsResponse = {
-	proposals: CosmosSdkProposalResponse['proposal'][]
-	pagination?: {
-		total?: string
-	}
+	proposals: CosmosSdkProposal[]
+	pagination?: CosmosSdkPagination
 }
 
 export type CosmosSdkBalancesResponse = {
 	balances: {
 		denom: string
-		amount: string
+		amount: bigint
 	}[]
-	pagination?: {
-		total?: string
+	blockHeight: bigint
+	continuationToken?: string
+	total?: bigint
+}
+
+export type CosmosSdkDelegationResponse = {
+	delegation: {
+		delegator_address: string
+		validator_address: string
+		shares: string
 	}
+	balance: CosmosSdkCoin
+}
+
+export type CosmosSdkDelegationsResponse = {
+	delegation_responses: CosmosSdkDelegationResponse[]
+	pagination?: CosmosSdkPagination
+}
+
+export type CosmosSdkDelegationRewardsResponse = {
+	rewards: {
+		validator_address: string
+		reward: CosmosSdkCoin[]
+	}[]
+	total: CosmosSdkCoin[]
 }

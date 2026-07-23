@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmNetworkActorCoinBalance_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmNetworkActorCoinBalance_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmNetworkActorCoinBalance_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,20 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmNetworkActorCoinBalanceTimestamp = $derived(selection({
+	const evmNetworkActorCoinBalanceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			balance: true,
+			$actorCoin: {
+				fields: {
+					decimals: true,
+					symbol: true,
+				},
+			},
+			usdValue: true,
+			blockNumber: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			balance: true,
@@ -56,7 +70,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'EVM network actor coin balance timestamp')
-	const viewDomId = $derived('evm-network-actor-coin-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('evm-network-actor-coin-balance-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -78,76 +92,47 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const balance0 = pendingEntity.balance}
-					{#if balance0 !== undefined && balance0 !== null}
-						<NumberValue
-							value={balance0}
-							decimalPlaces={pendingEntity.$actorCoin.decimals}
-						/>
+		<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const balance0 = resolvedEntity.balance}
+				{#if balance0 !== undefined && balance0 !== null}
+					<NumberValue
+						value={balance0}
+						decimalPlaces={resolvedEntity.$actorCoin.decimals}
+					/>
 
-						<span>{pendingEntity.$actorCoin.symbol == null ? '' : ` ${String(pendingEntity.$actorCoin.symbol)}`}</span>
-					{/if}
-					{@const usdValue1 = pendingEntity.usdValue}
-					{#if usdValue1 !== undefined && usdValue1 !== null}
-						{String((usdValue1) ?? '')}
-					{/if}
-		{:else}
-			<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const balance0 = resolvedEntity.balance}
-					{#if balance0 !== undefined && balance0 !== null}
-						<NumberValue
-							value={balance0}
-							decimalPlaces={resolvedEntity.$actorCoin.decimals}
-						/>
-
-						<span>{resolvedEntity.$actorCoin.symbol == null ? '' : ` ${String(resolvedEntity.$actorCoin.symbol)}`}</span>
-					{/if}
-					{@const usdValue1 = resolvedEntity.usdValue}
-					{#if usdValue1 !== undefined && usdValue1 !== null}
-						{String((usdValue1) ?? '')}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+					<span>{resolvedEntity.$actorCoin.symbol == null ? '' : ` ${String(resolvedEntity.$actorCoin.symbol)}`}</span>
+				{/if}
+				{@const usdValue1 = resolvedEntity.usdValue}
+				{#if usdValue1 !== undefined && usdValue1 !== null}
+					{String((usdValue1) ?? '')}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const blockNumber0 = pendingEntity.blockNumber}
-			{#if blockNumber0 !== undefined && blockNumber0 !== null}
-				<span data-text="muted">
-					{String((blockNumber0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber0 = resolvedEntity.blockNumber}
-					{#if blockNumber0 !== undefined && blockNumber0 !== null}
-						<span data-text="muted">
-							{String((blockNumber0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const blockNumber0 = resolvedEntity.blockNumber}
+				{#if blockNumber0 !== undefined && blockNumber0 !== null}
+					<span data-text="muted">
+						{String((blockNumber0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -313,13 +298,27 @@
 				<dt>Actor coin</dt>
 				<dd>
 					<EvmNetworkActorCoinBalanceView
-						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin, {})}
+						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin)}
 						href={
-							(selection.entitySelector.$actorCoin.$actor !== undefined && selection.entitySelector.$actorCoin.$actor.address !== undefined && selection.entitySelector.$actorCoin.$contract !== undefined && selection.entitySelector.$actorCoin.$contract.$network !== undefined && selection.entitySelector.$actorCoin.$contract.$network.caip2 !== undefined && selection.entitySelector.$actorCoin.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$actorCoin.$contract.address !== undefined ? resolve('/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', {
+							(
+								selection.entitySelector.$actorCoin != null && '$actor' in selection.entitySelector.$actorCoin
+								&& selection.entitySelector.$actorCoin.$actor != null && 'address' in selection.entitySelector.$actorCoin.$actor
+								&& selection.entitySelector.$actorCoin.$actor.address != null
+								&& selection.entitySelector.$actorCoin != null && '$contract' in selection.entitySelector.$actorCoin
+								&& selection.entitySelector.$actorCoin.$contract != null && '$network' in selection.entitySelector.$actorCoin.$contract
+								&& selection.entitySelector.$actorCoin.$contract.$network != null && 'caip2' in selection.entitySelector.$actorCoin.$contract.$network
+								&& selection.entitySelector.$actorCoin.$contract.$network.caip2 != null && 'reference' in selection.entitySelector.$actorCoin.$contract.$network.caip2
+								&& selection.entitySelector.$actorCoin.$contract.$network.caip2.reference != null
+								&& selection.entitySelector.$actorCoin.$contract != null && 'address' in selection.entitySelector.$actorCoin.$contract
+								&& selection.entitySelector.$actorCoin.$contract.address != null ?
+									resolve('/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', {
 								owner: String(selection.entitySelector.$actorCoin.$actor.address ?? ''),
 								chainId: String(selection.entitySelector.$actorCoin.$contract.$network.caip2.reference ?? ''),
 								coin: String(selection.entitySelector.$actorCoin.$contract.address ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

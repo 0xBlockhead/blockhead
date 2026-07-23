@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Arweave blocks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ArweaveBlock>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ArweaveBlock>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ArweaveBlockView from '$/views/ArweaveBlockView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(arweaveBlocks) => [...new Map(arweaveBlocks.values.map((arweaveBlock) => [arweaveBlock[EntityMetaKey.SelectorKey], arweaveBlock])).values()]}
 	getKey={(arweaveBlock) => arweaveBlock[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: arweaveBlock })}
 		{@const arweaveBlockFields = { ...arweaveBlock[EntityMetaKey.Selector], ...arweaveBlock }}
-		{@const selection = select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ArweaveBlockView
-			selection={selection}
-			prefetched={arweaveBlockFields}
+		<EntityView
+			entityType={EntityType.ArweaveBlock}
+			entitySelector={arweaveBlock[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((arweaveBlockFields.height) ?? '')].filter(Boolean).join(' ') || [String((arweaveBlockFields.indepHash) ?? '')].filter(Boolean).join(' ') || 'arweave block'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((arweaveBlockFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

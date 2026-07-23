@@ -44,14 +44,14 @@
 				}
 				title='Beacon finality'
 				selection={
-					projection.$$beaconFinalityTimestamps({
-						sources: [
-							Source.Beacon_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$beaconFinalityTimestamps({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
 				}
-				id='beacon-finality-timestamps'
+				id='account-ethereum-beacon-finality-timestamp'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

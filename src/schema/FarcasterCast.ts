@@ -4,6 +4,7 @@ import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum FarcasterCastSelector {
@@ -90,6 +91,16 @@ export const FarcasterCast = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number').array(),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$directReplies: {
+		label: 'Direct replies',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.FarcasterCast,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Neynar_Rest,
+			Source.Farcaster_Rest,
+		],
 	},
 	$$embeds: {
 		label: 'Embeds',

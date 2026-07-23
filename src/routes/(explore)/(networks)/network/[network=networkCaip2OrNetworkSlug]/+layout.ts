@@ -5,18 +5,33 @@ import { error } from '@sveltejs/kit'
 import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 import { match as matchNetworkCaip2 } from '$/params/networkCaip2.ts'
 import { match as matchNetworkSlug } from '$/params/networkSlug.ts'
-import { parseEntitySelector, type EntitySelector } from '$/schema/$schema.ts'
+import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Network as NetworkSchema } from '$/schema/Network.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	const selectorMappings: {
-		entityType: EntityType
-		selectorName: string
-		selector: EntitySelector<typeof schema, EntityType>
-	}[] = []
+	const routeCandidates: (
+		| {
+			readonly entityType: EntityType.Network
+			readonly selectorName: 'Caip2'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.Network,
+				'Caip2'
+			>
+		}
+		| {
+			readonly entityType: EntityType.Network
+			readonly selectorName: 'Slug'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.Network,
+				'Slug'
+			>
+		}
+	)[] = []
 
 	if (matchNetworkCaip2(params.network)) {
 		const networkCaip2Selector = parseEntitySelector(
@@ -26,8 +41,8 @@ export const load: LayoutLoad = ({ params }) => {
 				caip2: caip2SelectorValueFromString(params.network),
 			}
 		)
-		if (!(networkCaip2Selector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.Network, selectorName: 'Caip2', selector: networkCaip2Selector })
+		if (!(networkCaip2Selector instanceof arktype.errors) && 'caip2' in networkCaip2Selector)
+			routeCandidates.push({ entityType: EntityType.Network, selectorName: 'Caip2', selector: networkCaip2Selector })
 	}
 
 	if (matchNetworkSlug(params.network)) {
@@ -38,13 +53,12 @@ export const load: LayoutLoad = ({ params }) => {
 				slug: params.network,
 			}
 		)
-		if (!(networkSlugSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.Network, selectorName: 'Slug', selector: networkSlugSelector })
+		if (!(networkSlugSelector instanceof arktype.errors) && 'slug' in networkSlugSelector)
+			routeCandidates.push({ entityType: EntityType.Network, selectorName: 'Slug', selector: networkSlugSelector })
 	}
 
-	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')
-	if (selectorMappings.length > 1) error(500, 'Route selector is ambiguous')
-	const selectorMapping = selectorMappings[0]
+	if (routeCandidates.length === 0) error(404, 'Route selector not applicable')
+	if (routeCandidates.length > 1) error(500, 'Route selector is ambiguous')
 
-	return { selector: selectorMapping.selector, selectorMapping, selectorMappings }
+	return routeCandidates[0]
 }

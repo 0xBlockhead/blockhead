@@ -35,7 +35,6 @@
 			$createdContract: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInTransaction) ?? '') ? 'Internal #' + String((pageSelection.entitySelector.indexInTransaction) ?? '') : '') || 'EVM internal transfer' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Internal #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'EVM internal transfer')))
 
 
 	// Components
@@ -45,7 +44,19 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM internal transfer • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
+		$transaction: data.selector,
+		indexInTransaction: Number(params.indexInTransaction),
+	}.indexInTransaction) ?? '') ? 'Internal #' + String(({
+		$transaction: data.selector,
+		indexInTransaction: Number(params.indexInTransaction),
+	}.indexInTransaction) ?? '') : '') || 'EVM internal transfer' : (String((({ ...{
+		$transaction: data.selector,
+		indexInTransaction: Number(params.indexInTransaction),
+	}, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Internal #' + String((({ ...{
+		$transaction: data.selector,
+		indexInTransaction: Number(params.indexInTransaction),
+	}, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'EVM internal transfer'))} • EVM internal transfer • Blockhead</title>
 </svelte:head>
 
 

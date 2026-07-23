@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Social post sessions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadSocialPostSession>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadSocialPostSession>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadSocialPostSessionView from '$/views/BlockheadSocialPostSessionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadSocialPostSessions) => [...new Map(blockheadSocialPostSessions.values.map((blockheadSocialPostSession) => [blockheadSocialPostSession[EntityMetaKey.SelectorKey], blockheadSocialPostSession])).values()]}
 	getKey={(blockheadSocialPostSession) => blockheadSocialPostSession[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,12 +89,24 @@
 
 	{#snippet Item({ item: blockheadSocialPostSession })}
 		{@const blockheadSocialPostSessionFields = { ...blockheadSocialPostSession[EntityMetaKey.Selector], ...blockheadSocialPostSession }}
-		{@const selection = select(EntityType.BlockheadSocialPostSession, blockheadSocialPostSession[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadSocialPostSessionView
-			selection={selection}
-			prefetched={blockheadSocialPostSessionFields}
+		<EntityView
+			entityType={EntityType.BlockheadSocialPostSession}
+			entitySelector={blockheadSocialPostSession[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadSocialPostSessionFields.name) ?? '')].filter(Boolean).join(' ') || [String((blockheadSocialPostSessionFields.id) ?? '')].filter(Boolean).join(' ') || 'blockhead social post session'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadSocialPostSessionFields.status) ?? ''), String((blockheadSocialPostSessionFields.protocol) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadSocialPostSessionFields.updatedAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

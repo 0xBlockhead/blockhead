@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadSessionAction>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadSessionAction>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSessionAction>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSessionAction = $derived(selection({
+	const blockheadSessionAction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			indexInSequence: true,
+			actionType: true,
+			selectedProtocol: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			indexInSequence: true,
@@ -52,7 +60,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.actionType) ?? '')].filter(Boolean).join(' ') || 'blockhead session action')
-	const viewDomId = $derived('blockhead-session-action-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-session-action-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -82,7 +90,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'actionType') && Object.hasOwn(prefetched, 'selectedProtocol') && Object.hasOwn(prefetched, 'indexInSequence')}
 			{[String((pendingEntity.actionType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadSessionAction}>
@@ -95,7 +103,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'actionType') && Object.hasOwn(prefetched, 'selectedProtocol') && Object.hasOwn(prefetched, 'indexInSequence')}
 			{[String((pendingEntity.selectedProtocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.actionType) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadSessionAction}>
@@ -108,7 +116,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'actionType') && Object.hasOwn(prefetched, 'selectedProtocol') && Object.hasOwn(prefetched, 'indexInSequence')}
 			{@const indexInSequence0 = pendingEntity.indexInSequence}
 			{#if indexInSequence0 !== undefined && indexInSequence0 !== null}
 				<span data-text="muted">
@@ -148,9 +156,15 @@
 									selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
 									prefetched={blockheadSession}
 									href={
-										(blockheadSession[EntityMetaKey.Selector].id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
+										(
+											blockheadSession[EntityMetaKey.Selector] != null && 'id' in blockheadSession[EntityMetaKey.Selector]
+											&& blockheadSession[EntityMetaKey.Selector].id != null ?
+												resolve('/~/session/[sessionId=stringSegment]', {
 											sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -332,137 +346,395 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-session-action-planning'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'session-action-readiness',
-							label: 'Readiness checks',
-						},
-						{
-							id: 'session-action-quotes',
-							label: 'Quotes',
-						},
-						{
-							id: 'session-action-orders',
-							label: 'Orders',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-planning'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Planning</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-session-action-planning'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'session-action-readiness',
+						label: 'Readiness checks',
+						ownsSection: true,
+					},
+					{
+						id: 'session-action-quotes',
+						label: 'Quotes',
+						ownsSection: true,
+					},
+					{
+						id: 'session-action-orders',
+						label: 'Orders',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-planning'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Planning</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionSessionActionReadiness({ id, label, open })}
-					<BlockheadActionReadinessChecksView
-						selection={selection.$$readinessChecks}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No readiness checks.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerSessionActionReadiness(_context, Content)}
+				{@const sessionActionPlanningSessionActionReadinessResource = selection.$$readinessChecks}
+				<ResourceBoundary
+					resource={sessionActionPlanningSessionActionReadinessResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionSessionActionQuotes({ id, label, open })}
-					<BlockheadIntentQuotesView
-						selection={selection.$$quotes}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No quotes.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionSessionActionOrders({ id, label, open })}
-					<BlockheadIntentOrdersView
-						selection={selection.$$orders}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No orders.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			</CollapsibleTabs>
+			{#snippet SectionSessionActionReadiness({ id, label, open, active })}
+				{@const sessionActionPlanningSessionActionReadinessResource = selection.$$readinessChecks}
+				<ResourceBoundary
+					resource={sessionActionPlanningSessionActionReadinessResource}
+				>
+					{#snippet children(blockheadActionReadinessCheck)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BlockheadActionReadinessChecksView
+								selection={sessionActionPlanningSessionActionReadinessResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No readiness checks.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-session-action-execution'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'session-action-wallet-requests',
-							label: 'Wallet requests',
-						},
-						{
-							id: 'session-action-outcomes',
-							label: 'Outcomes',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-execution'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Execution</HeadingComponent>
-					</header>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-				{#snippet SectionSessionActionWalletRequests({ id, label, open })}
-					<BlockheadWalletRequestsView
-						selection={selection.$$walletRequests}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No wallet requests.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionSessionActionOutcomes({ id, label, open })}
-					<BlockheadActionOutcomesView
-						selection={selection.$$outcomes}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No outcomes.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerSessionActionQuotes(_context, Content)}
+				{@const sessionActionPlanningSessionActionQuotesResource = selection.$$quotes}
+				<ResourceBoundary
+					resource={sessionActionPlanningSessionActionQuotesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionSessionActionQuotes({ id, label, open, active })}
+				{@const sessionActionPlanningSessionActionQuotesResource = selection.$$quotes}
+				<ResourceBoundary
+					resource={sessionActionPlanningSessionActionQuotesResource}
+				>
+					{#snippet children(blockheadIntentQuote)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BlockheadIntentQuotesView
+								selection={sessionActionPlanningSessionActionQuotesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No quotes.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerSessionActionOrders(_context, Content)}
+				{@const sessionActionPlanningSessionActionOrdersResource = selection.$$orders}
+				<ResourceBoundary
+					resource={sessionActionPlanningSessionActionOrdersResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionSessionActionOrders({ id, label, open, active })}
+				{@const sessionActionPlanningSessionActionOrdersResource = selection.$$orders}
+				<ResourceBoundary
+					resource={sessionActionPlanningSessionActionOrdersResource}
+				>
+					{#snippet children(blockheadIntentOrder)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BlockheadIntentOrdersView
+								selection={sessionActionPlanningSessionActionOrdersResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No orders.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-session-action-execution'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'session-action-wallet-requests',
+						label: 'Wallet requests',
+						ownsSection: true,
+					},
+					{
+						id: 'session-action-outcomes',
+						label: 'Outcomes',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-execution'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Execution</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerSessionActionWalletRequests(_context, Content)}
+				{@const sessionActionExecutionSessionActionWalletRequestsResource = selection.$$walletRequests}
+				<ResourceBoundary
+					resource={sessionActionExecutionSessionActionWalletRequestsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionSessionActionWalletRequests({ id, label, open, active })}
+				{@const sessionActionExecutionSessionActionWalletRequestsResource = selection.$$walletRequests}
+				<ResourceBoundary
+					resource={sessionActionExecutionSessionActionWalletRequestsResource}
+				>
+					{#snippet children(blockheadWalletRequest)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BlockheadWalletRequestsView
+								selection={sessionActionExecutionSessionActionWalletRequestsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No wallet requests.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerSessionActionOutcomes(_context, Content)}
+				{@const sessionActionExecutionSessionActionOutcomesResource = selection.$$outcomes}
+				<ResourceBoundary
+					resource={sessionActionExecutionSessionActionOutcomesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionSessionActionOutcomes({ id, label, open, active })}
+				{@const sessionActionExecutionSessionActionOutcomesResource = selection.$$outcomes}
+				<ResourceBoundary
+					resource={sessionActionExecutionSessionActionOutcomesResource}
+				>
+					{#snippet children(blockheadActionOutcome)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BlockheadActionOutcomesView
+								selection={sessionActionExecutionSessionActionOutcomesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								emptyText='No outcomes.'
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

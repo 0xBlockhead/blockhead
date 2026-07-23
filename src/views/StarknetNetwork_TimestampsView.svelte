@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Starknet network observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.StarknetNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.StarknetNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import StarknetNetwork_TimestampView from '$/views/StarknetNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(starknetNetworkTimestamps) => [...new Map(starknetNetworkTimestamps.values.map((starknetNetworkTimestamp) => [starknetNetworkTimestamp[EntityMetaKey.SelectorKey], starknetNetworkTimestamp])).values()]}
 	getKey={(starknetNetworkTimestamp) => starknetNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: starknetNetworkTimestamp })}
 		{@const starknetNetworkTimestampFields = { ...starknetNetworkTimestamp[EntityMetaKey.Selector], ...starknetNetworkTimestamp }}
-		{@const selection = select(EntityType.StarknetNetwork_Timestamp, starknetNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<StarknetNetwork_TimestampView
-			selection={selection}
-			prefetched={starknetNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType.StarknetNetwork_Timestamp}
+			entitySelector={starknetNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[[String((starknetNetworkTimestampFields.$network.$network.name) ?? '')].filter(Boolean).join(' ') || [starknetNetworkTimestampFields.$network.$network.caip2 == null ? '' : String(`${(starknetNetworkTimestampFields.$network.$network.caip2).namespace}:${(starknetNetworkTimestampFields.$network.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'starknet network'].filter(Boolean).join(' ') || 'starknet network timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((starknetNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((starknetNetworkTimestampFields.latestBlockNumber) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

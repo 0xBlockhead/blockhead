@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Lightning payments',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadLightningPayment>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadLightningPayment>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadLightningPaymentView from '$/views/BlockheadLightningPaymentView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadLightningPayments) => [...new Map(blockheadLightningPayments.values.map((blockheadLightningPayment) => [blockheadLightningPayment[EntityMetaKey.SelectorKey], blockheadLightningPayment])).values()]}
 	getKey={(blockheadLightningPayment) => blockheadLightningPayment[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,22 +89,44 @@
 
 	{#snippet Item({ item: blockheadLightningPayment })}
 		{@const blockheadLightningPaymentFields = { ...blockheadLightningPayment[EntityMetaKey.Selector], ...blockheadLightningPayment }}
-		{@const selection = select(EntityType.BlockheadLightningPayment, blockheadLightningPayment[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const blockheadLightningPaymentHrefFields = { ...blockheadLightningPayment, ...blockheadLightningPayment[EntityMetaKey.Selector] }}
-		<BlockheadLightningPaymentView
-			selection={selection}
-			prefetched={blockheadLightningPaymentFields}
+		<EntityView
+			entityType={EntityType.BlockheadLightningPayment}
+			entitySelector={blockheadLightningPayment[EntityMetaKey.Selector]}
 			href={
-				(blockheadLightningPaymentHrefFields.paymentHash !== undefined && blockheadLightningPaymentHrefFields.$network !== undefined && blockheadLightningPaymentHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
-					paymentHash: String(blockheadLightningPaymentHrefFields.paymentHash ?? ''),
-					network: String(caip2StringFromValue(blockheadLightningPaymentHrefFields.$network.caip2) ?? ''),
-				}) : blockheadLightningPaymentHrefFields.paymentHash !== undefined && blockheadLightningPaymentHrefFields.$network !== undefined && blockheadLightningPaymentHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
-					paymentHash: String(blockheadLightningPaymentHrefFields.paymentHash ?? ''),
-					network: String(blockheadLightningPaymentHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					blockheadLightningPayment[EntityMetaKey.Selector] != null && 'paymentHash' in blockheadLightningPayment[EntityMetaKey.Selector]
+					&& blockheadLightningPayment[EntityMetaKey.Selector].paymentHash != null
+					&& blockheadLightningPayment[EntityMetaKey.Selector] != null && '$network' in blockheadLightningPayment[EntityMetaKey.Selector] ?
+						blockheadLightningPayment[EntityMetaKey.Selector].$network != null && 'caip2' in blockheadLightningPayment[EntityMetaKey.Selector].$network
+						&& blockheadLightningPayment[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
+						paymentHash: String(blockheadLightningPayment[EntityMetaKey.Selector].paymentHash ?? ''),
+						network: String(caip2StringFromValue(blockheadLightningPayment[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							blockheadLightningPayment[EntityMetaKey.Selector].$network != null && 'slug' in blockheadLightningPayment[EntityMetaKey.Selector].$network
+							&& blockheadLightningPayment[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
+							paymentHash: String(blockheadLightningPayment[EntityMetaKey.Selector].paymentHash ?? ''),
+							network: String(blockheadLightningPayment[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadLightningPaymentFields.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning payment'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadLightningPaymentFields.valueMsat) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

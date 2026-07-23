@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead session simulation calls',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadSessionSimulationCall>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadSessionSimulationCall>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadSessionSimulationCallView from '$/views/BlockheadSessionSimulationCallView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadSessionSimulationCalls) => [...new Map(blockheadSessionSimulationCalls.values.map((blockheadSessionSimulationCall) => [blockheadSessionSimulationCall[EntityMetaKey.SelectorKey], blockheadSessionSimulationCall])).values()]}
 	getKey={(blockheadSessionSimulationCall) => blockheadSessionSimulationCall[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: blockheadSessionSimulationCall })}
 		{@const blockheadSessionSimulationCallFields = { ...blockheadSessionSimulationCall[EntityMetaKey.Selector], ...blockheadSessionSimulationCall }}
-		{@const selection = select(EntityType.BlockheadSessionSimulationCall, blockheadSessionSimulationCall[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadSessionSimulationCallView
-			selection={selection}
-			prefetched={blockheadSessionSimulationCallFields}
+		<EntityView
+			entityType={EntityType.BlockheadSessionSimulationCall}
+			entitySelector={blockheadSessionSimulationCall[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadSessionSimulationCallFields.callPath) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation call'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadSessionSimulationCallFields.callType) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((blockheadSessionSimulationCallFields.depth) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

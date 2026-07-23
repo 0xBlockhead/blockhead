@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Blockhead agent credential states',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadAgentCredentialState>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadAgentCredentialState>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadAgentCredentialStateView from '$/views/BlockheadAgentCredentialStateView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadAgentCredentialStates) => [...new Map(blockheadAgentCredentialStates.values.map((blockheadAgentCredentialState) => [blockheadAgentCredentialState[EntityMetaKey.SelectorKey], blockheadAgentCredentialState])).values()]}
 	getKey={(blockheadAgentCredentialState) => blockheadAgentCredentialState[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,24 @@
 
 	{#snippet Item({ item: blockheadAgentCredentialState })}
 		{@const blockheadAgentCredentialStateFields = { ...blockheadAgentCredentialState[EntityMetaKey.Selector], ...blockheadAgentCredentialState }}
-		{@const selection = select(EntityType.BlockheadAgentCredentialState, blockheadAgentCredentialState[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<BlockheadAgentCredentialStateView
-			selection={selection}
-			prefetched={blockheadAgentCredentialStateFields}
+		<EntityView
+			entityType={EntityType.BlockheadAgentCredentialState}
+			entitySelector={blockheadAgentCredentialState[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadAgentCredentialStateFields.label) ?? '')].filter(Boolean).join(' ') || [String((blockheadAgentCredentialStateFields.credentialId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent credential state'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadAgentCredentialStateFields.credentialKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[[String((blockheadAgentCredentialStateFields.$connection.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent connection'].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

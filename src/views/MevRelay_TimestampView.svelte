@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.MevRelay_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MevRelay_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MevRelay_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const mevRelayTimestamp = $derived(selection({
+	const mevRelayTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			reachable: true,
+			statusCode: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			reachable: true,
@@ -50,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.reachable) ?? ''), String((pendingEntity.statusCode) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp')
-	const viewDomId = $derived('mev-relay-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('mev-relay-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -67,89 +74,97 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$relay !== undefined && pendingEntity.$relay.host !== undefined && pendingEntity.$relay.$network !== undefined && pendingEntity.$relay.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			host: String(pendingEntity.$relay.host ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$relay.$network.caip2) ?? ''),
-		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$relay !== undefined && pendingEntity.$relay.host !== undefined && pendingEntity.$relay.$network !== undefined && pendingEntity.$relay.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			host: String(pendingEntity.$relay.host ?? ''),
-			network: String(pendingEntity.$relay.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$relay' in selection.entitySelector
+			&& selection.entitySelector.$relay != null && 'host' in selection.entitySelector.$relay
+			&& selection.entitySelector.$relay.host != null
+			&& selection.entitySelector.$relay != null && '$network' in selection.entitySelector.$relay ?
+				selection.entitySelector.$relay.$network != null && 'caip2' in selection.entitySelector.$relay.$network
+				&& selection.entitySelector.$relay.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+				timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+				source: String(selection.entitySelector.source ?? ''),
+				host: String(selection.entitySelector.$relay.host ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$relay.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$relay.$network != null && 'slug' in selection.entitySelector.$relay.$network
+					&& selection.entitySelector.$relay.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+					source: String(selection.entitySelector.source ?? ''),
+					host: String(selection.entitySelector.$relay.host ?? ''),
+					network: String(selection.entitySelector.$relay.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.reachable) ?? ''), String((pendingEntity.statusCode) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={mevRelayTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.reachable) ?? ''), String((resolvedEntity.statusCode) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mevRelayTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.reachable) ?? ''), String((resolvedEntity.statusCode) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.reachable) ?? ''), String((pendingEntity.statusCode) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.reachable) ?? ''), String((pendingEntity.statusCode) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={mevRelayTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.reachable) ?? ''), String((resolvedEntity.statusCode) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.reachable) ?? ''), String((resolvedEntity.statusCode) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mevRelayTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.reachable) ?? ''), String((resolvedEntity.statusCode) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.reachable) ?? ''), String((resolvedEntity.statusCode) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<span data-text="muted">
-				<MevRelayView
-					selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
-					href={
-						(selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-							host: String(selection.entitySelector.$relay.host ?? ''),
-							network: String(caip2StringFromValue(selection.entitySelector.$relay.$network.caip2) ?? ''),
-						}) : selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-							host: String(selection.entitySelector.$relay.host ?? ''),
-							network: String(selection.entitySelector.$relay.$network.slug ?? ''),
-						}) : undefined)
-					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={mevRelayTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<span data-text="muted">
-						<MevRelayView
-							selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
-							href={
-								(selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+		<ResourceBoundary resource={mevRelayTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<MevRelayView
+						selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
+						href={
+							(
+								selection.entitySelector.$relay != null && 'host' in selection.entitySelector.$relay
+								&& selection.entitySelector.$relay.host != null
+								&& selection.entitySelector.$relay != null && '$network' in selection.entitySelector.$relay ?
+									selection.entitySelector.$relay.$network != null && 'caip2' in selection.entitySelector.$relay.$network
+									&& selection.entitySelector.$relay.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
 									host: String(selection.entitySelector.$relay.host ?? ''),
 									network: String(caip2StringFromValue(selection.entitySelector.$relay.$network.caip2) ?? ''),
-								}) : selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-									host: String(selection.entitySelector.$relay.host ?? ''),
-									network: String(selection.entitySelector.$relay.$network.slug ?? ''),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+								})
+								:
+										selection.entitySelector.$relay.$network != null && 'slug' in selection.entitySelector.$relay.$network
+										&& selection.entitySelector.$relay.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+										host: String(selection.entitySelector.$relay.host ?? ''),
+										network: String(selection.entitySelector.$relay.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -412,15 +427,30 @@
 				<dt>Relay</dt>
 				<dd>
 					<MevRelayView
-						selection={select(EntityType.MevRelay, selection.entitySelector.$relay, {})}
+						selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
 						href={
-							(selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-								host: String(selection.entitySelector.$relay.host ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$relay.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-								host: String(selection.entitySelector.$relay.host ?? ''),
-								network: String(selection.entitySelector.$relay.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$relay != null && 'host' in selection.entitySelector.$relay
+								&& selection.entitySelector.$relay.host != null
+								&& selection.entitySelector.$relay != null && '$network' in selection.entitySelector.$relay ?
+									selection.entitySelector.$relay.$network != null && 'caip2' in selection.entitySelector.$relay.$network
+									&& selection.entitySelector.$relay.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+									host: String(selection.entitySelector.$relay.host ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$relay.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$relay.$network != null && 'slug' in selection.entitySelector.$relay.$network
+										&& selection.entitySelector.$relay.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+										host: String(selection.entitySelector.$relay.host ?? ''),
+										network: String(selection.entitySelector.$relay.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

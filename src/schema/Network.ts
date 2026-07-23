@@ -1034,7 +1034,7 @@ export const Network = entity({
 				entityType: EntityType.CardanoTransaction,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Blockfrost_Rest,
+					Source.CardanoKoios_Rest,
 				],
 			},
 			$$stakePools: {
@@ -1043,7 +1043,7 @@ export const Network = entity({
 				entityType: EntityType.CardanoStakePool,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Blockfrost_Rest,
+					Source.CardanoKoios_Rest,
 				],
 			},
 			$$dReps: {
@@ -1052,7 +1052,7 @@ export const Network = entity({
 				entityType: EntityType.CardanoDRep,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Blockfrost_Rest,
+					Source.CardanoKoios_Rest,
 				],
 			},
 			$$governanceProposals: {
@@ -1070,7 +1070,7 @@ export const Network = entity({
 				entityType: EntityType.CardanoNativeAsset,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Blockfrost_Rest,
+					Source.CardanoKoios_Rest,
 				],
 			},
 			$$protocolParameterEpochs: {
@@ -1079,7 +1079,7 @@ export const Network = entity({
 				entityType: EntityType.CardanoProtocolParameters_Epoch,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Blockfrost_Rest,
+					Source.CardanoKoios_Rest,
 				],
 			},
 			$$committeeEpochs: {
@@ -1088,7 +1088,7 @@ export const Network = entity({
 				entityType: EntityType.CardanoCommittee_Epoch,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Blockfrost_Rest,
+					Source.CardanoKoios_Rest,
 				],
 			},
 		}),
@@ -1206,6 +1206,9 @@ export const Network = entity({
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.TonNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.TonApi_Rest,
+				],
 			},
 		}),
 		Xrpl: facet({

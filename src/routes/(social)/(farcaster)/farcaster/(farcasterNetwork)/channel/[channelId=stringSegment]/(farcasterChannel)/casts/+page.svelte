@@ -40,14 +40,26 @@
 		selection={
 			select(EntityType.FarcasterChannel, {
 				id: params.channelId,
-			}).$$casts({
-				sources: [
-					Source.Farcaster_Rest,
-					Source.Neynar_Rest,
-					Source.Snapchain_Rest,
-				],
-				count: true,
 			})
+				.$$casts({
+					sources: [
+						Source.Farcaster_Rest,
+						Source.Neynar_Rest,
+						Source.Snapchain_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.FarcasterChannel, {
+				id: params.channelId,
+			})
+				.$$casts({
+					sources: [
+						Source.Farcaster_Rest,
+						Source.Neynar_Rest,
+						Source.Snapchain_Rest,
+					],
+				}).count
 		}
 		id='casts'
 		data-column-item="flexible"

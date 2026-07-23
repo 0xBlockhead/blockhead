@@ -2,20 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Cardano transactions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CardanoTransaction>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CardanoTransaction>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CardanoTransactionView from '$/views/CardanoTransactionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,8 +67,15 @@
 	resource={
 		selection({
 			sources: selection.sources,
+			fields: {
+				hash: true,
+				blockSlot: true,
+				fee: true,
+				$network: true,
+			},
 		})
 	}
+	{countResource}
 	getResourceItems={(cardanoTransactions) => [...new Map(cardanoTransactions.values.map((cardanoTransaction) => [cardanoTransaction[EntityMetaKey.SelectorKey], cardanoTransaction])).values()]}
 	getKey={(cardanoTransaction) => cardanoTransaction[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +90,48 @@
 
 	{#snippet Item({ item: cardanoTransaction })}
 		{@const cardanoTransactionFields = { ...cardanoTransaction[EntityMetaKey.Selector], ...cardanoTransaction }}
-		{@const selection = select(EntityType.CardanoTransaction, cardanoTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CardanoTransactionView
-			selection={selection}
-			prefetched={cardanoTransactionFields}
+		<EntityView
+			entityType={EntityType.CardanoTransaction}
+			entitySelector={cardanoTransaction[EntityMetaKey.Selector]}
+			href={
+				(
+					cardanoTransaction[EntityMetaKey.Selector] != null && 'hash' in cardanoTransaction[EntityMetaKey.Selector]
+					&& cardanoTransaction[EntityMetaKey.Selector].hash != null
+					&& cardanoTransaction[EntityMetaKey.Selector] != null && '$network' in cardanoTransaction[EntityMetaKey.Selector] ?
+						cardanoTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in cardanoTransaction[EntityMetaKey.Selector].$network
+						&& cardanoTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+						transactionId: String(cardanoTransaction[EntityMetaKey.Selector].hash ?? ''),
+						network: String(caip2StringFromValue(cardanoTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							cardanoTransaction[EntityMetaKey.Selector].$network != null && 'slug' in cardanoTransaction[EntityMetaKey.Selector].$network
+							&& cardanoTransaction[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+							transactionId: String(cardanoTransaction[EntityMetaKey.Selector].hash ?? ''),
+							network: String(cardanoTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
+			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((cardanoTransactionFields.hash) ?? '')].filter(Boolean).join(' ') || 'Cardano transaction'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((cardanoTransactionFields.blockSlot) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((cardanoTransactionFields.fee) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

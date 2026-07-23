@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Cardano stake pool observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.CardanoStakePool_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CardanoStakePool_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CardanoStakePool_TimestampView from '$/views/CardanoStakePool_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(cardanoStakePoolTimestamps) => [...new Map(cardanoStakePoolTimestamps.values.map((cardanoStakePoolTimestamp) => [cardanoStakePoolTimestamp[EntityMetaKey.SelectorKey], cardanoStakePoolTimestamp])).values()]}
 	getKey={(cardanoStakePoolTimestamp) => cardanoStakePoolTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: cardanoStakePoolTimestamp })}
 		{@const cardanoStakePoolTimestampFields = { ...cardanoStakePoolTimestamp[EntityMetaKey.Selector], ...cardanoStakePoolTimestamp }}
-		{@const selection = select(EntityType.CardanoStakePool_Timestamp, cardanoStakePoolTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<CardanoStakePool_TimestampView
-			selection={selection}
-			prefetched={cardanoStakePoolTimestampFields}
+		<EntityView
+			entityType={EntityType.CardanoStakePool_Timestamp}
+			entitySelector={cardanoStakePoolTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'Cardano stake pool timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

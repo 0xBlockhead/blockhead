@@ -24,20 +24,25 @@ test('mounts every declared section before selection', async () => {
 				id: 'transactions',
 				label: 'Transactions',
 			},
-			{
-				id: 'missing-content',
-				label: 'Missing content',
-			},
 		] as const,
 		SectionBlocks: section('Block rows'),
 		SectionTransactions: section('Transaction rows'),
 	})
 
-	expect(container.querySelectorAll('[data-carousel-markers] a')).toHaveLength(3)
-	expect(container.querySelectorAll('[data-collapsible-tabs-pane-host] > section')).toHaveLength(3)
+	expect(container.querySelectorAll('[data-carousel-markers] a')).toHaveLength(2)
+	expect(container.querySelectorAll('[data-collapsible-tabs-pane-host] > section')).toHaveLength(2)
 	await expect.element(page.getByText('Block rows')).toBeInTheDocument()
 	await expect.element(page.getByText('Transaction rows')).toBeInTheDocument()
-	expect(container.querySelector('#networks\\:missing-content')?.textContent).toBe('')
+})
+
+test('rejects a declared section without content', async () => {
+	await expect(render(CollapsibleTabs, {
+		sectionIdPrefix: 'network',
+		sections: [{
+			id: 'missing-content',
+			label: 'Missing content',
+		}] as const,
+	})).rejects.toThrow('CollapsibleTabs section missing-content has no content snippet')
 })
 
 test('keeps fragment navigation and accessible marker relationships usable', async () => {

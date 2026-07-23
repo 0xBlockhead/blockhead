@@ -1,19 +1,17 @@
 import {
 	type Eip1193Provider,
-	getChainId,
-	onAccountsChanged,
-	onChainChanged,
 	personalSign,
-	requestAccounts,
 } from './eip1193.ts'
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
 
 type EipConnectionState = {
 	accounts: `0x${string}`[]
-	chainId: number | null
+	chainReference: string | null
 	connectedAt: number
 }
 
@@ -43,6 +41,41 @@ const EIP6963_ANNOUNCE_PROVIDER_EVENT = 'eip6963:announceProvider'
 const EIP6963_REQUEST_PROVIDER_EVENT = 'eip6963:requestProvider'
 const LEGACY_INJECTED_PROVIDER_RDNS = 'legacy.injected.provider'
 
+const normalizeEipAccounts = (value: JsonValue) => {
+	// oxlint-disable-next-line no-runtime-shape-guards/guards -- EIP-1193 provider output is an untrusted JSON wire boundary.
+	if (!Array.isArray(value))
+		throw new Error('Provider did not return an accounts array')
+
+	try {
+		return [...new Set(value.map((account) => (
+			EvmAddress.assert(EvmAddress.assert(account).toLowerCase())
+		)))]
+	} catch {
+		throw new Error('Provider returned an invalid EVM account')
+	}
+}
+
+const normalizeEipChainReference = (value: JsonValue) => {
+	// oxlint-disable-next-line no-runtime-shape-guards/guards -- EIP-1193 provider output is an untrusted JSON wire boundary.
+	if (typeof value !== 'string'
+		|| !/^0x[1-9a-fA-F][0-9a-fA-F]*$/.test(value)
+	)
+		throw new Error('Provider returned an invalid chain ID')
+
+	const chainId = BigInt(value)
+	if (chainId.toString().length > 32)
+		throw new Error('Provider returned an invalid chain ID')
+
+	return chainId.toString()
+}
+
+const getChainReference = async (provider: Eip1193Provider) => (
+	normalizeEipChainReference(await provider.request({
+		method: 'eth_chainId',
+		params: [],
+	}))
+)
+
 const eipCapabilities = [
 	WalletCapability.Connect,
 	WalletCapability.Reconnect,
@@ -58,7 +91,7 @@ const eipCapabilities = [
 export const eipCandidateFromDetail = (
 	detail: Eip6963ProviderDetail
 ): WalletCandidate => ({
-	id: `eip6963:${detail.info.rdns}`,
+	id: `eip6963:${detail.info.uuid}`,
 	name: detail.info.name,
 	icon: detail.info.icon,
 	protocol: WalletProtocol.Eip6963,
@@ -71,7 +104,7 @@ export const eipCandidateFromDetail = (
 export const eipConnectionFromAccounts = (
 	walletId: string,
 	accounts: `0x${string}`[],
-	chainId: number | null,
+	chainReference: string | number | null,
 	status: BlockheadConnectionStatus,
 	connectedAt?: number,
 	error?: string
@@ -80,13 +113,13 @@ export const eipConnectionFromAccounts = (
 	status,
 	protocol: WalletProtocol.Eip6963,
 	transportKind: WalletTransportKind.InjectedProvider,
-	scopes: chainId == null ?
+	scopes: chainReference == null ?
 		[]
 	:
 		[
 			{
 				namespace: 'eip155',
-				reference: String(chainId),
+				reference: String(chainReference),
 				methods: [
 					'eth_accounts',
 					'eth_requestAccounts',
@@ -96,24 +129,29 @@ export const eipConnectionFromAccounts = (
 				events: [
 					'accountsChanged',
 					'chainChanged',
+					'disconnect',
 				],
 			},
 		],
-	accounts: accounts.map((accountAddress) => ({
-		namespace: 'eip155',
-		reference: String(chainId ?? 1),
-		accountAddress,
-		capabilities: eipCapabilities,
-	})),
-	selected: status === BlockheadConnectionStatus.Connected,
+	accounts: chainReference == null ?
+		[]
+	:
+		accounts.map((accountAddress) => ({
+			namespace: 'eip155',
+			reference: String(chainReference),
+			accountAddress,
+			capabilities: eipCapabilities,
+		})),
+	selected: status === BlockheadConnectionStatus.Connected && chainReference != null,
 	...(connectedAt != null && { connectedAt }),
+	...(status === BlockheadConnectionStatus.Disconnected && { disconnectedAt: Date.now() }),
 	...(error != null && { error }),
 })
 
 export const createEip6963Adapter = (): WalletAdapter => {
 	const providerByWalletId = new SvelteMap<string, Eip1193Provider>()
 	const eipStateByWalletId = new SvelteMap<string, EipConnectionState>()
-	const providerByRdns = new Map<string, Eip6963ProviderDetail>()
+	const providerByUuid = new Map<string, Eip6963ProviderDetail>()
 	let legacyInjectedFallbackTimeout: number | null = null
 
 	const updateProvider = (
@@ -121,11 +159,11 @@ export const createEip6963Adapter = (): WalletAdapter => {
 		updateCandidates: (candidates: WalletCandidate[]) => void
 	) => {
 		if (detail.info.rdns !== LEGACY_INJECTED_PROVIDER_RDNS)
-			providerByRdns.delete(LEGACY_INJECTED_PROVIDER_RDNS)
+			providerByUuid.delete(LEGACY_INJECTED_PROVIDER_RDNS)
 
-		providerByRdns.set(detail.info.rdns, detail)
+		providerByUuid.set(detail.info.uuid, detail)
 
-		const providers = [...providerByRdns.values()]
+		const providers = [...providerByUuid.values()]
 
 		for (const provider of providers)
 			providerByWalletId.set(eipCandidateFromDetail(provider).id, provider.provider)
@@ -154,7 +192,7 @@ export const createEip6963Adapter = (): WalletAdapter => {
 			legacyInjectedFallbackTimeout = window.setTimeout(() => {
 				legacyInjectedFallbackTimeout = null
 
-				if (providerByRdns.size > 0 || window.ethereum == null) return
+				if (providerByUuid.size > 0 || window.ethereum == null) return
 
 				updateProvider(
 					{
@@ -170,7 +208,7 @@ export const createEip6963Adapter = (): WalletAdapter => {
 				)
 			}, 0)
 
-			updateCandidates([...providerByRdns.values()].map(eipCandidateFromDetail))
+			updateCandidates([...providerByUuid.values()].map(eipCandidateFromDetail))
 
 			return () => {
 				window.removeEventListener(
@@ -182,7 +220,7 @@ export const createEip6963Adapter = (): WalletAdapter => {
 					window.clearTimeout(legacyInjectedFallbackTimeout)
 
 				legacyInjectedFallbackTimeout = null
-				providerByRdns.clear()
+				providerByUuid.clear()
 				providerByWalletId.clear()
 			}
 		},
@@ -190,22 +228,25 @@ export const createEip6963Adapter = (): WalletAdapter => {
 			const provider = providerByWalletId.get(walletId)
 			if (provider == null) return undefined
 
-			const accounts = await requestAccounts(provider)
+			const accounts = normalizeEipAccounts(await provider.request({
+				method: 'eth_requestAccounts',
+				params: [],
+			}))
 			if (!accounts.length)
 				throw new Error('Provider did not return any accounts')
 
-			const chainId = await getChainId(provider)
+			const chainReference = await getChainReference(provider)
 
 			eipStateByWalletId.set(walletId, {
 				accounts,
-				chainId,
+				chainReference,
 				connectedAt: Date.now(),
 			})
 
 			return eipConnectionFromAccounts(
 				walletId,
 				accounts,
-				chainId,
+				chainReference,
 				BlockheadConnectionStatus.Connected,
 				eipStateByWalletId.get(walletId)?.connectedAt
 			)
@@ -223,50 +264,121 @@ export const createEip6963Adapter = (): WalletAdapter => {
 		subscribeConnection: (walletId, updateConnection) => {
 			const provider = providerByWalletId.get(walletId)
 			if (provider == null) return () => {}
+			let subscribed = true
 
-			const unsubscribeAccountsChanged = onAccountsChanged(provider, (accounts) => {
+			const onProviderAccountsChanged = (payload: JsonValue) => {
+				let accounts: `0x${string}`[]
+				try {
+					accounts = normalizeEipAccounts(payload)
+				} catch {
+					return
+				}
+
+				const connectedAt = eipStateByWalletId.get(walletId)?.connectedAt ?? Date.now()
+				const chainReference = eipStateByWalletId.get(walletId)?.chainReference ?? null
+
 				eipStateByWalletId.set(walletId, {
 					accounts,
-					chainId: eipStateByWalletId.get(walletId)?.chainId ?? null,
-					connectedAt: eipStateByWalletId.get(walletId)?.connectedAt ?? Date.now(),
+					chainReference,
+					connectedAt,
 				})
 
-				updateConnection(eipConnectionFromAccounts(
-					walletId,
-					accounts,
-					eipStateByWalletId.get(walletId)?.chainId ?? null,
-					accounts.length ?
-						BlockheadConnectionStatus.Connected
-					:
-						BlockheadConnectionStatus.Disconnected,
-					eipStateByWalletId.get(walletId)?.connectedAt
-				))
-			})
+				if (!accounts.length || chainReference != null) {
+					updateConnection(eipConnectionFromAccounts(
+						walletId,
+						accounts,
+						chainReference,
+						accounts.length ?
+							BlockheadConnectionStatus.Connected
+						:
+							BlockheadConnectionStatus.Disconnected,
+						connectedAt
+					))
+					return
+				}
 
-			const unsubscribeChainChanged = onChainChanged(provider, (chainId) => {
+				void getChainReference(provider).then((providerChainReference) => {
+					const state = eipStateByWalletId.get(walletId)
+					if (!subscribed || state == null || state.accounts !== accounts) return
+
+					const currentChainReference = state.chainReference ?? providerChainReference
+					eipStateByWalletId.set(walletId, {
+						...state,
+						chainReference: currentChainReference,
+					})
+					updateConnection(eipConnectionFromAccounts(
+						walletId,
+						accounts,
+						currentChainReference,
+						BlockheadConnectionStatus.Connected,
+						connectedAt
+					))
+				}).catch((error) => {
+					const state = eipStateByWalletId.get(walletId)
+					if (
+						!subscribed
+						|| state?.accounts !== accounts
+						|| state.chainReference != null
+					) return
+
+					updateConnection(eipConnectionFromAccounts(
+						walletId,
+						[],
+						null,
+						BlockheadConnectionStatus.Error,
+						connectedAt,
+						error instanceof Error ? error.message : String(error)
+					))
+				})
+			}
+			provider.on?.('accountsChanged', onProviderAccountsChanged)
+
+			const onProviderChainChanged = (payload: JsonValue) => {
+				let chainReference: string
+				try {
+					chainReference = normalizeEipChainReference(payload)
+				} catch {
+					return
+				}
+
 				const accounts = eipStateByWalletId.get(walletId)?.accounts ?? []
 
 				eipStateByWalletId.set(walletId, {
 					accounts,
-					chainId,
+					chainReference,
 					connectedAt: eipStateByWalletId.get(walletId)?.connectedAt ?? Date.now(),
 				})
 
 				updateConnection(eipConnectionFromAccounts(
 					walletId,
 					accounts,
-					chainId,
+					chainReference,
 					accounts.length ?
 						BlockheadConnectionStatus.Connected
 					:
 						BlockheadConnectionStatus.Disconnected,
 					eipStateByWalletId.get(walletId)?.connectedAt
 				))
-			})
+			}
+			provider.on?.('chainChanged', onProviderChainChanged)
+			const onProviderDisconnect = () => {
+				const state = eipStateByWalletId.get(walletId)
+				eipStateByWalletId.delete(walletId)
+				updateConnection(eipConnectionFromAccounts(
+					walletId,
+					[],
+					state?.chainReference ?? null,
+					BlockheadConnectionStatus.Disconnected,
+					state?.connectedAt
+				))
+			}
+			provider.on?.('disconnect', onProviderDisconnect)
 
 			return () => {
-				unsubscribeAccountsChanged()
-				unsubscribeChainChanged()
+				subscribed = false
+				provider.removeListener?.('accountsChanged', onProviderAccountsChanged)
+				provider.removeListener?.('chainChanged', onProviderChainChanged)
+				provider.removeListener?.('disconnect', onProviderDisconnect)
 			}
 		},
 	}

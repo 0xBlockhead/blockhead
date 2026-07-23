@@ -44,14 +44,14 @@
 				}
 				title='MEV builders'
 				selection={
-					projection.$$mevBuilders({
-						sources: [
-							Source.MevRelay_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$mevBuilders({
+							sources: [
+								Source.MevRelay_Rest,
+							],
+						})
 				}
-				id='mev-builders'
+				id='account-mev-builder'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

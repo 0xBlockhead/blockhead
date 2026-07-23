@@ -35,7 +35,6 @@
 			sourceUpdatedAt: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.listingStage) ?? ''), String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).listingStage) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp')))
 
 
 	// Components
@@ -45,7 +44,19 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM rollup timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
+		$rollup: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp' : [String((({ ...{
+		$rollup: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).listingStage) ?? ''), String((({ ...{
+		$rollup: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp'))} • EVM rollup timestamp • Blockhead</title>
 </svelte:head>
 
 

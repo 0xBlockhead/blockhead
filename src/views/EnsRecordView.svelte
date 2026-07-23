@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EnsRecord>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EnsRecord>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EnsRecord>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ensRecord = $derived(selection({
+	const ensRecord = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record')
-	const viewDomId = $derived('ens-record-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('ens-record-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,17 +66,26 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.recordKey !== undefined && pendingEntity.$name !== undefined && pendingEntity.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
-			recordId: encodeURIComponent(String(pendingEntity.recordKey ?? '')),
-			ensName: encodeURIComponent(String(pendingEntity.$name.name ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'recordKey' in selection.entitySelector
+			&& selection.entitySelector.recordKey != null
+			&& selection.entitySelector != null && '$name' in selection.entitySelector
+			&& selection.entitySelector.$name != null && 'name' in selection.entitySelector.$name
+			&& selection.entitySelector.$name.name != null ?
+				resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
+			recordId: encodeURIComponent(String(selection.entitySelector.recordKey ?? '')),
+			ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$name') && prefetched.$name != null}
 			{[String((pendingEntity.recordKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={ensRecord}>
@@ -85,28 +98,23 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<EnsNameView
-						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-						href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$name') && prefetched.$name != null}
+			{@const ensName0 = pendingEntity.$name}
+			{#if ensName0 != null && selection.entitySelector.$name != null}
+				<EnsNameView
+					selection={select(EntityType.EnsName, selection.entitySelector.$name, { sources: selection.sources })}
+					prefetched={ensName0}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={ensRecord}>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<EnsNameView
 						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-						href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
-							ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
-						}) : undefined)
-					}
+						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -121,11 +129,17 @@
 				<dt>Name</dt>
 				<dd>
 					<EnsNameView
-						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
+						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 						href={
-							(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
+							(
+								selection.entitySelector.$name != null && 'name' in selection.entitySelector.$name
+								&& selection.entitySelector.$name.name != null ?
+									resolve('/ens/name/[ensName=stringSegment]', {
 								ensName: encodeURIComponent(String(selection.entitySelector.$name.name ?? '')),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -216,17 +230,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<EnsRecord_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='Observations'
-				emptyText='No ENS record observations yet.'
-				id='EnsRecord_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const ensRecordEnsRecordTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={ensRecordEnsRecordTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<EnsRecord_TimestampsView
+					selection={ensRecordEnsRecordTimestampsViewTimestampsResource}
+					countResource={ensRecordEnsRecordTimestampsViewTimestampsResource.count}
+					title='Observations'
+					id='EnsRecord_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

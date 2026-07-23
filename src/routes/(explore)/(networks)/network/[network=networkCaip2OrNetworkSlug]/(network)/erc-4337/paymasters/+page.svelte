@@ -44,14 +44,14 @@
 				}
 				title='ERC-4337 paymasters'
 				selection={
-					projection.$$erc4337Paymasters({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$erc4337Paymasters({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
-				id='erc4337-paymasters'
+				id='account-erc4337-paymaster'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

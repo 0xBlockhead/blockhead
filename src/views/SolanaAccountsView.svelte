@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Accounts',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.SolanaAccount>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SolanaAccount>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(solanaAccounts) => [...new Map(solanaAccounts.values.map((solanaAccount) => [solanaAccount[EntityMetaKey.SelectorKey], solanaAccount])).values()]}
 	getKey={(solanaAccount) => solanaAccount[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,22 +88,44 @@
 
 	{#snippet Item({ item: solanaAccount })}
 		{@const solanaAccountFields = { ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }}
-		{@const selection = select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const solanaAccountHrefFields = { ...solanaAccount, ...solanaAccount[EntityMetaKey.Selector] }}
-		<SolanaAccountView
-			selection={selection}
-			prefetched={solanaAccountFields}
+		<EntityView
+			entityType={EntityType.SolanaAccount}
+			entitySelector={solanaAccount[EntityMetaKey.Selector]}
 			href={
-				(solanaAccountHrefFields.pubkey !== undefined && solanaAccountHrefFields.$network !== undefined && solanaAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-					accountId: String(solanaAccountHrefFields.pubkey ?? ''),
-					network: String(caip2StringFromValue(solanaAccountHrefFields.$network.caip2) ?? ''),
-				}) : solanaAccountHrefFields.pubkey !== undefined && solanaAccountHrefFields.$network !== undefined && solanaAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-					accountId: String(solanaAccountHrefFields.pubkey ?? ''),
-					network: String(solanaAccountHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					solanaAccount[EntityMetaKey.Selector] != null && 'pubkey' in solanaAccount[EntityMetaKey.Selector]
+					&& solanaAccount[EntityMetaKey.Selector].pubkey != null
+					&& solanaAccount[EntityMetaKey.Selector] != null && '$network' in solanaAccount[EntityMetaKey.Selector] ?
+						solanaAccount[EntityMetaKey.Selector].$network != null && 'caip2' in solanaAccount[EntityMetaKey.Selector].$network
+						&& solanaAccount[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+						accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+						network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							solanaAccount[EntityMetaKey.Selector].$network != null && 'slug' in solanaAccount[EntityMetaKey.Selector].$network
+							&& solanaAccount[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+							network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((solanaAccountFields.pubkey) ?? '')].filter(Boolean).join(' ') || 'solana account'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[[String((solanaAccountFields.$network.name) ?? '')].filter(Boolean).join(' ') || [solanaAccountFields.$network.caip2 == null ? '' : String(`${(solanaAccountFields.$network.caip2).namespace}:${(solanaAccountFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

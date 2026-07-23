@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Git forge pull requests',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.GitForgePullRequest>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.GitForgePullRequest>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GitForgePullRequestView from '$/views/GitForgePullRequestView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(gitForgePullRequests) => [...new Map(gitForgePullRequests.values.map((gitForgePullRequest) => [gitForgePullRequest[EntityMetaKey.SelectorKey], gitForgePullRequest])).values()]}
 	getKey={(gitForgePullRequest) => gitForgePullRequest[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,20 @@
 
 	{#snippet Item({ item: gitForgePullRequest })}
 		{@const gitForgePullRequestFields = { ...gitForgePullRequest[EntityMetaKey.Selector], ...gitForgePullRequest }}
-		{@const selection = select(EntityType.GitForgePullRequest, gitForgePullRequest[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<GitForgePullRequestView
-			selection={selection}
-			prefetched={gitForgePullRequestFields}
+		<EntityView
+			entityType={EntityType.GitForgePullRequest}
+			entitySelector={gitForgePullRequest[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((gitForgePullRequestFields.title) ?? '')].filter(Boolean).join(' ') || [String((gitForgePullRequestFields.pullRequestNumber) ?? '')].filter(Boolean).join(' ') || 'Git forge pull request'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((gitForgePullRequestFields.state) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

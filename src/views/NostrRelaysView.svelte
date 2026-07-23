@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Nostr relays',
 		typeAnnotationParagraphs = ['A Nostr relay is a WebSocket endpoint that can publish, store, and serve signed events; relay metadata is optional NIP-11 source data.'],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrRelay>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NostrRelay>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrRelayView from '$/views/NostrRelayView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -73,7 +66,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.Constants_Internal,
 			],
 			fields: {
@@ -81,6 +74,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nostrRelays) => [...new Map(nostrRelays.values.map((nostrRelay) => [nostrRelay[EntityMetaKey.SelectorKey], nostrRelay])).values()]}
 	getKey={(nostrRelay) => nostrRelay[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -95,18 +89,27 @@
 
 	{#snippet Item({ item: nostrRelay })}
 		{@const nostrRelayFields = { ...nostrRelay[EntityMetaKey.Selector], ...nostrRelay }}
-		{@const selection = select(EntityType.NostrRelay, nostrRelay[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const nostrRelayHrefFields = { ...nostrRelay, ...nostrRelay[EntityMetaKey.Selector] }}
-		<NostrRelayView
-			selection={selection}
-			prefetched={nostrRelayFields}
+		<EntityView
+			entityType={EntityType.NostrRelay}
+			entitySelector={nostrRelay[EntityMetaKey.Selector]}
 			href={
-				(nostrRelayHrefFields.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]', {
-					relayKey: encodeURIComponent(String(nostrRelayHrefFields.relayUrl ?? '')),
-				}) : undefined)
+				(
+					nostrRelay[EntityMetaKey.Selector] != null && 'relayUrl' in nostrRelay[EntityMetaKey.Selector]
+					&& nostrRelay[EntityMetaKey.Selector].relayUrl != null ?
+						resolve('/nostr/relay/[relayKey=stringSegment]', {
+					relayKey: encodeURIComponent(String(nostrRelay[EntityMetaKey.Selector].relayUrl ?? '')),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nostrRelayFields.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

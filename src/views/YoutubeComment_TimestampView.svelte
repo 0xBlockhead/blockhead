@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.YoutubeComment_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.YoutubeComment_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.YoutubeComment_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const youtubeCommentTimestamp = $derived(selection({
+	const youtubeCommentTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation')
-	const viewDomId = $derived('youtube-comment-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('youtube-comment-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,64 +65,50 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$comment !== undefined && pendingEntity.$comment.videoId !== undefined && pendingEntity.$comment.commentId !== undefined ? resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			videoId: encodeURIComponent(String(pendingEntity.$comment.videoId ?? '')),
-			commentId: encodeURIComponent(String(pendingEntity.$comment.commentId ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$comment' in selection.entitySelector
+			&& selection.entitySelector.$comment != null && 'videoId' in selection.entitySelector.$comment
+			&& selection.entitySelector.$comment.videoId != null
+			&& selection.entitySelector.$comment != null && 'commentId' in selection.entitySelector.$comment
+			&& selection.entitySelector.$comment.commentId != null ?
+				resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			videoId: encodeURIComponent(String(selection.entitySelector.$comment.videoId ?? '')),
+			commentId: encodeURIComponent(String(selection.entitySelector.$comment.commentId ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<YoutubeCommentView
-						selection={select(EntityType.YoutubeComment, selection.entitySelector.$comment)}
-						href={
-						(selection.entitySelector.$comment.videoId !== undefined && selection.entitySelector.$comment.commentId !== undefined ? resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]', {
-							videoId: encodeURIComponent(String(selection.entitySelector.$comment.videoId ?? '')),
-							commentId: encodeURIComponent(String(selection.entitySelector.$comment.commentId ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-					{@const timestampMs1 = pendingEntity.timestampMs}
-					{#if timestampMs1 !== undefined && timestampMs1 !== null}
-						<Timestamp timestamp={Number(timestampMs1)} />
-					{/if}
-					{@const source2 = pendingEntity.source}
-					{#if source2 !== undefined && source2 !== null}
-						{String((source2) ?? '')}
-					{/if}
-		{:else}
-			<ResourceBoundary resource={youtubeCommentTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<YoutubeCommentView
-						selection={select(EntityType.YoutubeComment, selection.entitySelector.$comment)}
-						href={
-						(selection.entitySelector.$comment.videoId !== undefined && selection.entitySelector.$comment.commentId !== undefined ? resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]', {
-							videoId: encodeURIComponent(String(selection.entitySelector.$comment.videoId ?? '')),
-							commentId: encodeURIComponent(String(selection.entitySelector.$comment.commentId ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-					{@const timestampMs1 = resolvedEntity.timestampMs}
-					{#if timestampMs1 !== undefined && timestampMs1 !== null}
-						<Timestamp timestamp={Number(timestampMs1)} />
-					{/if}
-					{@const source2 = resolvedEntity.source}
-					{#if source2 !== undefined && source2 !== null}
-						{String((source2) ?? '')}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={youtubeCommentTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<YoutubeCommentView
+					selection={select(EntityType.YoutubeComment, selection.entitySelector.$comment)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+				{@const timestampMs1 = resolvedEntity.timestampMs}
+				{#if timestampMs1 !== undefined && timestampMs1 !== null}
+					<Timestamp timestamp={Number(timestampMs1)} />
+				{/if}
+				{@const source2 = resolvedEntity.source}
+				{#if source2 !== undefined && source2 !== null}
+					{String((source2) ?? '')}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

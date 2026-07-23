@@ -29,7 +29,6 @@
 			relationshipModel: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.protocolName) ?? '')].filter(Boolean).join(' ') || 'Farcaster' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'Farcaster')))
 
 
 	// Components
@@ -39,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Farcaster • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Farcaster' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'Farcaster'))} • Farcaster • Blockhead</title>
 </svelte:head>
 
 

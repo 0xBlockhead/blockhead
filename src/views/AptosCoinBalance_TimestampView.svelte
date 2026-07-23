@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -26,7 +27,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.AptosCoinBalance_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AptosCoinBalance_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AptosCoinBalance_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,7 +41,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosCoinBalanceTimestamp = $derived(selection({
+	const aptosCoinBalanceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			assetType: true,
+			amount: true,
+			unit: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			assetType: true,
@@ -49,7 +57,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || 'current Aptos coin balance observation')
-	const viewDomId = $derived('aptos-coin-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('aptos-coin-balance-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -72,70 +80,44 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const amount0 = pendingEntity.amount}
-					{#if amount0 !== undefined && amount0 !== null}
-						<NumberValue
-							value={amount0}
-						/>
+		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const amount0 = resolvedEntity.amount}
+				{#if amount0 !== undefined && amount0 !== null}
+					<NumberValue
+						value={amount0}
+					/>
 
-						<span>{pendingEntity.unit == null ? '' : ` ${String(pendingEntity.unit)}`}</span>
-					{/if}
-		{:else}
-			<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount0 = resolvedEntity.amount}
-					{#if amount0 !== undefined && amount0 !== null}
-						<NumberValue
-							value={amount0}
-						/>
-
-						<span>{resolvedEntity.unit == null ? '' : ` ${String(resolvedEntity.unit)}`}</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+					<span>{resolvedEntity.unit == null ? '' : ` ${String(resolvedEntity.unit)}`}</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const ledgerVersion0 = pendingEntity.ledgerVersion}
-			{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={ledgerVersion0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerVersion0 = resolvedEntity.ledgerVersion}
-					{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={ledgerVersion0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const ledgerVersion0 = resolvedEntity.ledgerVersion}
+				{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
+					<span data-text="muted">
+						<NumberValue
+							value={ledgerVersion0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -150,7 +132,7 @@
 				<dt>account</dt>
 				<dd>
 					<AptosAccountView
-						selection={select(EntityType.AptosAccount, selection.entitySelector.$account, {})}
+						selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

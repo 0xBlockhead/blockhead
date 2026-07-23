@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { QueryClient } from '@tanstack/query-core'
+import type { PersistenceAdapter } from '@tanstack/db-sqlite-persistence-core'
 
+import { client } from '$/client/$client.svelte.ts'
+import { subscribeEntity } from '$/client/$subscribe.svelte.ts'
 import {
 	entityFieldAddressKey,
 	entitySelectorsFromFields,
@@ -12,6 +16,7 @@ import {
 	entityDefinitionByType,
 	schema,
 } from '$/schema/index.ts'
+import { sourceProviders } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -191,6 +196,65 @@ describe.each([
 		})
 	})
 
+	it('creates a distinct source-keyed observation on explicit refresh', async () => {
+		vi.spyOn(Date, 'now')
+			.mockReturnValueOnce(1_700_000_000_000)
+			.mockReturnValueOnce(1_700_000_001_000)
+		getProfile.mockResolvedValue({
+			did: 'did:plc:alice',
+			handle: 'alice.test',
+			followersCount: 0,
+			followsCount: 0,
+			postsCount: 0,
+		})
+		const actorObservations = resolver(
+			EntityType.AtprotoActor,
+			'$$timestamps',
+			AtprotoActorSelector.Did
+		).resolve[AtprotoActorSelector.Did]
+
+		const first = await actorObservations.resolve({
+			did: 'did:plc:alice',
+		}, context)
+		const refreshed = await actorObservations.resolve({
+			did: 'did:plc:alice',
+		}, context)
+
+		expect([
+			first[0][EntityMetaKey.Selector],
+			refreshed[0][EntityMetaKey.Selector],
+		]).toEqual([
+			{
+				$actor: {
+					did: 'did:plc:alice',
+				},
+				timestampMs: 1_700_000_000_000,
+				source,
+			},
+			{
+				$actor: {
+					did: 'did:plc:alice',
+				},
+				timestampMs: 1_700_000_001_000,
+				source,
+			},
+		])
+		expect(getProfile).toHaveBeenCalledTimes(2)
+	})
+
+	it('preserves app-view failure instead of fabricating an observation', async () => {
+		getProfile.mockRejectedValueOnce(new Error('profile unavailable'))
+
+		await expect(resolver(
+			EntityType.AtprotoActor,
+			'$$timestamps',
+			AtprotoActorSelector.Did
+		).resolve[AtprotoActorSelector.Did].resolve({
+			did: 'did:plc:alice',
+		}, context)).rejects.toThrow('profile unavailable')
+		expect(getProfile).toHaveBeenCalledTimes(1)
+	})
+
 	it('rejects another source and never refreshes a historical observation', async () => {
 		const historical = resolver(
 			EntityType.AtprotoActor_Timestamp,
@@ -254,4 +318,143 @@ describe.each([
 		expect(posts.resolve[AtprotoActorSelector.Did]).toBeDefined()
 		expect(posts.resolve[AtprotoActorSelector.Handle]).toBeUndefined()
 	})
+})
+
+it('persists source-scoped handle and DID equivalence across restart', async () => {
+	bskyResolveHandle.mockResolvedValue({
+		did: 'did:plc:alice',
+	})
+	bskySocialResolveHandle.mockResolvedValue({
+		did: 'did:plc:alice',
+	})
+	const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
+	const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
+	const persistence = {
+		adapter: {
+			loadSubset: async (collectionId) => [
+				...(collectionRowsByCollectionId.get(collectionId) ?? new Map()),
+			].map(([key, value]) => ({
+				key,
+				value,
+			})),
+			applyCommittedTx: async (collectionId, transaction) => {
+				const collectionRows = collectionRowsByCollectionId.get(collectionId) ?? new Map()
+				for (const mutation of transaction.mutations) {
+					if (mutation.type === 'delete')
+						collectionRows.delete(mutation.key)
+					else
+						collectionRows.set(mutation.key, mutation.value)
+				}
+				collectionRowsByCollectionId.set(collectionId, collectionRows)
+				const collectionMetadata = collectionMetadataByCollectionId.get(collectionId) ?? new Map()
+				for (const mutation of transaction.collectionMetadataMutations ?? []) {
+					if (mutation.type === 'delete')
+						collectionMetadata.delete(mutation.key)
+					else
+						collectionMetadata.set(mutation.key, JSON.stringify(mutation.value))
+				}
+				collectionMetadataByCollectionId.set(collectionId, collectionMetadata)
+			},
+			loadCollectionMetadata: async (collectionId) => [
+				...(collectionMetadataByCollectionId.get(collectionId) ?? new Map()),
+			].map(([key, value]) => ({
+				key,
+				value: JSON.parse(value),
+			})),
+			ensureIndex: async () => {},
+		} satisfies PersistenceAdapter,
+	}
+	const createContext = () => client({
+		schema,
+		sourceProviders,
+	})({
+		resolvers: [
+			atproto,
+			atprotoBskySocial,
+		],
+		env: {},
+	})({
+		queryClient: new QueryClient(),
+		persistence,
+		schemaVersion: 1,
+	})
+	const firstContext = createContext()
+
+	await subscribeEntity(
+		firstContext,
+		EntityType.AtprotoActor,
+		{
+			handle: 'alice.test',
+		},
+		{
+			sources: [Source.Atproto_Xrpc],
+		}
+	)
+	await expect.poll(() => collectionRowsByCollectionId.get('client.entities.AtprotoActor')?.size).toBe(2)
+	await expect.poll(() => collectionMetadataByCollectionId.get('client.entities.AtprotoActor')?.size).toBe(2)
+	expect([
+		...(collectionRowsByCollectionId.get('client.entities.AtprotoActor')?.values() ?? []),
+	]).toEqual(expect.arrayContaining([
+		expect.objectContaining({
+			[EntityMetaKey.Selector]: {
+				did: 'did:plc:alice',
+			},
+		}),
+		expect.objectContaining({
+			[EntityMetaKey.Selector]: {
+				handle: 'alice.test',
+			},
+		}),
+	]))
+	expect(bskyResolveHandle).toHaveBeenCalledTimes(1)
+
+	const restartedContext = createContext()
+	await subscribeEntity(
+		restartedContext,
+		EntityType.AtprotoActor,
+		{
+			handle: 'alice.test',
+		},
+		{
+			sources: [Source.Atproto_Xrpc],
+			fields: {},
+		}
+	)
+	expect(bskyResolveHandle).toHaveBeenCalledTimes(1)
+
+	await expect(subscribeEntity(
+		restartedContext,
+		EntityType.AtprotoActor,
+		{
+			handle: 'alice.new',
+		},
+		{
+			sources: [Source.Atproto_Xrpc],
+			fields: {
+				did: true,
+			},
+		}
+	)).resolves.toMatchObject({
+		did: 'did:plc:alice',
+	})
+	expect(bskyResolveHandle).toHaveBeenCalledTimes(2)
+	expect([
+		...(collectionRowsByCollectionId.get('client.entities.AtprotoActor')?.values() ?? []),
+	].filter((row) => row[EntityMetaKey.Selector].did === 'did:plc:alice')).toHaveLength(1)
+	expect([
+		...(collectionRowsByCollectionId.get('client.entities.AtprotoActor')?.values() ?? []),
+	].filter((row) => row[EntityMetaKey.Selector].handle != null)).toHaveLength(2)
+
+	await subscribeEntity(
+		restartedContext,
+		EntityType.AtprotoActor,
+		{
+			handle: 'alice.test',
+		},
+		{
+			sources: [Source.Atproto_BskySocial_Xrpc],
+			fields: {},
+		}
+	)
+	expect(bskySocialResolveHandle).toHaveBeenCalledTimes(1)
 })

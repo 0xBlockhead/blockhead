@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ENS hub observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalEnsNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalEnsNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import GlobalEnsNetwork_TimestampView from '$/views/_GlobalEnsNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(globalEnsNetworkTimestamps) => [...new Map(globalEnsNetworkTimestamps.values.map((globalEnsNetworkTimestamp) => [globalEnsNetworkTimestamp[EntityMetaKey.SelectorKey], globalEnsNetworkTimestamp])).values()]}
 	getKey={(globalEnsNetworkTimestamp) => globalEnsNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,19 +88,34 @@
 
 	{#snippet Item({ item: globalEnsNetworkTimestamp })}
 		{@const globalEnsNetworkTimestampFields = { ...globalEnsNetworkTimestamp[EntityMetaKey.Selector], ...globalEnsNetworkTimestamp }}
-		{@const selection = select(EntityType._GlobalEnsNetwork_Timestamp, globalEnsNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const globalEnsNetworkTimestampHrefFields = { ...globalEnsNetworkTimestamp, ...globalEnsNetworkTimestamp[EntityMetaKey.Selector] }}
-		<GlobalEnsNetwork_TimestampView
-			selection={selection}
-			prefetched={globalEnsNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType._GlobalEnsNetwork_Timestamp}
+			entitySelector={globalEnsNetworkTimestamp[EntityMetaKey.Selector]}
 			href={
-				(globalEnsNetworkTimestampHrefFields.timestampMs !== undefined && globalEnsNetworkTimestampHrefFields.source !== undefined ? resolve('/ens/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(globalEnsNetworkTimestampHrefFields.timestampMs ?? ''),
-					source: String(globalEnsNetworkTimestampHrefFields.source ?? ''),
-				}) : undefined)
+				(
+					globalEnsNetworkTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in globalEnsNetworkTimestamp[EntityMetaKey.Selector]
+					&& globalEnsNetworkTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& globalEnsNetworkTimestamp[EntityMetaKey.Selector] != null && 'source' in globalEnsNetworkTimestamp[EntityMetaKey.Selector]
+					&& globalEnsNetworkTimestamp[EntityMetaKey.Selector].source != null ?
+						resolve('/ens/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(globalEnsNetworkTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(globalEnsNetworkTimestamp[EntityMetaKey.Selector].source ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{['ENS'].filter(Boolean).join(' ') || 'ENS hub observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((globalEnsNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

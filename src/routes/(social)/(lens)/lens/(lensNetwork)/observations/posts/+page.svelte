@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType.LensNetwork, {
 				scope: 'LensNetwork',
-			}).$$lensPosts({
-				sources: [
-					Source.Lens_Graphql,
-				],
-				count: true,
 			})
+				.$$lensPosts({
+					sources: [
+						Source.Lens_Graphql,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.LensNetwork, {
+				scope: 'LensNetwork',
+			})
+				.$$lensPosts({
+					sources: [
+						Source.Lens_Graphql,
+					],
+				}).count
 		}
 		id='lens-posts'
 		data-column-item="flexible"

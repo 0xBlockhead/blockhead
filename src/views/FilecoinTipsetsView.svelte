@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Filecoin tipsets',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.FilecoinTipset>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FilecoinTipset>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FilecoinTipsetView from '$/views/FilecoinTipsetView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,7 +65,7 @@
 	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: [
+			sources: selection.sources ?? [
 				Source.Lotus_JsonRpc,
 				Source.Filfox_Rest,
 			],
@@ -83,6 +76,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(filecoinTipsets) => [...new Map(filecoinTipsets.values.map((filecoinTipset) => [filecoinTipset[EntityMetaKey.SelectorKey], filecoinTipset])).values()]}
 	getKey={(filecoinTipset) => filecoinTipset[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -97,12 +91,24 @@
 
 	{#snippet Item({ item: filecoinTipset })}
 		{@const filecoinTipsetFields = { ...filecoinTipset[EntityMetaKey.Selector], ...filecoinTipset }}
-		{@const selection = select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<FilecoinTipsetView
-			selection={selection}
-			prefetched={filecoinTipsetFields}
+		<EntityView
+			entityType={EntityType.FilecoinTipset}
+			entitySelector={filecoinTipset[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((filecoinTipsetFields.height) ?? '')].filter(Boolean).join(' ') || 'filecoin tipset'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((filecoinTipsetFields.tipsetKey) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((filecoinTipsetFields.timestampMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

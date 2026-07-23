@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BeaconSlot>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BeaconSlot>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BeaconSlot>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,11 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const beaconSlot = $derived(selection({
+	const beaconSlot = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived((String((pendingEntity.slot) ?? '') ? 'Slot #' + String((pendingEntity.slot) ?? '') : '') || 'beacon slot')
-	const viewDomId = $derived('beacon-slot-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('beacon-slot-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,13 +74,28 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.slot ?? '')}
 	href={
-		href ?? (pendingEntity.slot !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-			slot: String(pendingEntity.slot ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
-		}) : pendingEntity.slot !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-			slot: String(pendingEntity.slot ?? ''),
-			network: String(pendingEntity.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'slot' in selection.entitySelector
+			&& selection.entitySelector.slot != null
+			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
+				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+				&& selection.entitySelector.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+				slot: String(selection.entitySelector.slot ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+					&& selection.entitySelector.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+					slot: String(selection.entitySelector.slot ?? ''),
+					network: String(selection.entitySelector.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
@@ -104,34 +123,42 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			<ResourceBoundary
-				resource={selection.$epoch}
-			>
-				{#snippet children(beaconEpoch)}
-					{#if beaconEpoch != null && beaconEpoch[EntityMetaKey.Selector] != null}
-					<span data-text="muted">
-						<BeaconEpochView
-							selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
-							prefetched={beaconEpoch}
-							href={
-								(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-									epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
-									network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
-								}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-									epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
-									network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-					{:else}
-						<span data-text="muted">Unavailable</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$epoch') && prefetched.$epoch != null && prefetched.$epoch[EntityMetaKey.Selector] != null}
+			{@const beaconEpoch0 = pendingEntity.$epoch}
+			{#if beaconEpoch0 != null && beaconEpoch0[EntityMetaKey.Selector] != null}
+				<span data-text="muted">
+					<BeaconEpochView
+						selection={select(EntityType.BeaconEpoch, beaconEpoch0[EntityMetaKey.Selector], { sources: selection.sources })}
+						prefetched={beaconEpoch0}
+						href={
+							(
+								beaconEpoch0[EntityMetaKey.Selector] != null && 'epoch' in beaconEpoch0[EntityMetaKey.Selector]
+								&& beaconEpoch0[EntityMetaKey.Selector].epoch != null
+								&& beaconEpoch0[EntityMetaKey.Selector] != null && '$network' in beaconEpoch0[EntityMetaKey.Selector] ?
+									beaconEpoch0[EntityMetaKey.Selector].$network != null && 'caip2' in beaconEpoch0[EntityMetaKey.Selector].$network
+									&& beaconEpoch0[EntityMetaKey.Selector].$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+									epoch: String(beaconEpoch0[EntityMetaKey.Selector].epoch ?? ''),
+									network: String(caip2StringFromValue(beaconEpoch0[EntityMetaKey.Selector].$network.caip2) ?? ''),
+								})
+								:
+										beaconEpoch0[EntityMetaKey.Selector].$network != null && 'slug' in beaconEpoch0[EntityMetaKey.Selector].$network
+										&& beaconEpoch0[EntityMetaKey.Selector].$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+										epoch: String(beaconEpoch0[EntityMetaKey.Selector].epoch ?? ''),
+										network: String(beaconEpoch0[EntityMetaKey.Selector].$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/if}
 		{:else}
 			<ResourceBoundary resource={beaconSlot}>
 				{#snippet children(entity)}
@@ -146,20 +173,33 @@
 									selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 									prefetched={beaconEpoch}
 									href={
-										(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-											epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
-											network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-											epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
-											network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											beaconEpoch[EntityMetaKey.Selector] != null && 'epoch' in beaconEpoch[EntityMetaKey.Selector]
+											&& beaconEpoch[EntityMetaKey.Selector].epoch != null
+											&& beaconEpoch[EntityMetaKey.Selector] != null && '$network' in beaconEpoch[EntityMetaKey.Selector] ?
+												beaconEpoch[EntityMetaKey.Selector].$network != null && 'caip2' in beaconEpoch[EntityMetaKey.Selector].$network
+												&& beaconEpoch[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+												epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+												network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													beaconEpoch[EntityMetaKey.Selector].$network != null && 'slug' in beaconEpoch[EntityMetaKey.Selector].$network
+													&& beaconEpoch[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+													epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+													network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
 							</span>
-							{:else}
-								<span data-text="muted">Unavailable</span>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -208,13 +248,28 @@
 									selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 									prefetched={beaconEpoch}
 									href={
-										(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-											epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
-											network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-											epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
-											network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
-										}) : undefined)
+										(
+											beaconEpoch[EntityMetaKey.Selector] != null && 'epoch' in beaconEpoch[EntityMetaKey.Selector]
+											&& beaconEpoch[EntityMetaKey.Selector].epoch != null
+											&& beaconEpoch[EntityMetaKey.Selector] != null && '$network' in beaconEpoch[EntityMetaKey.Selector] ?
+												beaconEpoch[EntityMetaKey.Selector].$network != null && 'caip2' in beaconEpoch[EntityMetaKey.Selector].$network
+												&& beaconEpoch[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+												epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+												network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													beaconEpoch[EntityMetaKey.Selector].$network != null && 'slug' in beaconEpoch[EntityMetaKey.Selector].$network
+													&& beaconEpoch[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+													epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+													network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -384,118 +439,320 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-beacon-slot-consensus'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'beacon-slot-committees',
-							label: 'Committees',
-						},
-						{
-							id: 'beacon-slot-attestations',
-							label: 'Attestations',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-consensus'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Consensus</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-beacon-slot-consensus'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'beacon-slot-committees',
+						label: 'Committees',
+						ownsSection: true,
+					},
+					{
+						id: 'beacon-slot-attestations',
+						label: 'Attestations',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-consensus'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Consensus</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionBeaconSlotCommittees({ id, label, open })}
-					<BeaconCommitteesView
-						selection={selection.$$beaconCommittees}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No committees available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+			{#snippet MarkerBeaconSlotCommittees(_context, Content)}
+				{@const beaconSlotConsensusBeaconSlotCommitteesResource = selection.$$beaconCommittees}
+				<ResourceBoundary
+					resource={beaconSlotConsensusBeaconSlotCommitteesResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
 
-				{#snippet SectionBeaconSlotAttestations({ id, label, open })}
-					<BeaconAttestationsView
-						selection={selection.$$beaconAttestations}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No attestations available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
 
-			</CollapsibleTabs>
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-beacon-slot-exits'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'beacon-slot-withdrawals',
-							label: 'Withdrawals',
-						},
-						{
-							id: 'beacon-slot-slashings',
-							label: 'Slashings',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-exits'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Withdrawals and slashings</HeadingComponent>
-					</header>
-				{/snippet}
+			{#snippet SectionBeaconSlotCommittees({ id, label, open, active })}
+				{@const beaconSlotConsensusBeaconSlotCommitteesResource = selection.$$beaconCommittees}
+				<ResourceBoundary
+					resource={beaconSlotConsensusBeaconSlotCommitteesResource}
+				>
+					{#snippet children(beaconCommittee)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BeaconCommitteesView
+								selection={beaconSlotConsensusBeaconSlotCommitteesResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
 
-				{#snippet SectionBeaconSlotWithdrawals({ id, label, open })}
-					<BeaconWithdrawalsView
-						selection={selection.$$beaconWithdrawals}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No withdrawals available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
 
-				{#snippet SectionBeaconSlotSlashings({ id, label, open })}
-					<BeaconSlashingsView
-						selection={selection.$$beaconSlashings}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No slashings available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+			{#snippet MarkerBeaconSlotAttestations(_context, Content)}
+				{@const beaconSlotConsensusBeaconSlotAttestationsResource = selection.$$beaconAttestations}
+				<ResourceBoundary
+					resource={beaconSlotConsensusBeaconSlotAttestationsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionBeaconSlotAttestations({ id, label, open, active })}
+				{@const beaconSlotConsensusBeaconSlotAttestationsResource = selection.$$beaconAttestations}
+				<ResourceBoundary
+					resource={beaconSlotConsensusBeaconSlotAttestationsResource}
+				>
+					{#snippet children(beaconAttestation)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BeaconAttestationsView
+								selection={beaconSlotConsensusBeaconSlotAttestationsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-beacon-slot-exits'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'beacon-slot-withdrawals',
+						label: 'Withdrawals',
+						ownsSection: true,
+					},
+					{
+						id: 'beacon-slot-slashings',
+						label: 'Slashings',
+						ownsSection: true,
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-exits'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Withdrawals and slashings</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet MarkerBeaconSlotWithdrawals(_context, Content)}
+				{@const beaconSlotExitsBeaconSlotWithdrawalsResource = selection.$$beaconWithdrawals}
+				<ResourceBoundary
+					resource={beaconSlotExitsBeaconSlotWithdrawalsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionBeaconSlotWithdrawals({ id, label, open, active })}
+				{@const beaconSlotExitsBeaconSlotWithdrawalsResource = selection.$$beaconWithdrawals}
+				<ResourceBoundary
+					resource={beaconSlotExitsBeaconSlotWithdrawalsResource}
+				>
+					{#snippet children(beaconWithdrawal)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BeaconWithdrawalsView
+								selection={beaconSlotExitsBeaconSlotWithdrawalsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet MarkerBeaconSlotSlashings(_context, Content)}
+				{@const beaconSlotExitsBeaconSlotSlashingsResource = selection.$$beaconSlashings}
+				<ResourceBoundary
+					resource={beaconSlotExitsBeaconSlotSlashingsResource}
+				>
+					{#snippet children(_resolved)}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet PendingContent()}
+						{@render Content()}
+					{/snippet}
+
+					{#snippet FailedContent(_error, _retry)}
+						{@render Content()}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionBeaconSlotSlashings({ id, label, open, active })}
+				{@const beaconSlotExitsBeaconSlotSlashingsResource = selection.$$beaconSlashings}
+				<ResourceBoundary
+					resource={beaconSlotExitsBeaconSlotSlashingsResource}
+				>
+					{#snippet children(beaconSlashing)}
+						<section
+							id={id}
+							aria-labelledby={`${id}:marker`}
+							data-scroll-marker-label={label}
+							data-column-item="flexible"
+							data-column
+							data-active={active}
+						>
+							<BeaconSlashingsView
+								selection={beaconSlotExitsBeaconSlotSlashingsResource}
+								CollapsibleProps={{ canToggle: false }}
+								collapsible={false}
+								data-column-item="flexible"
+								data-card
+								data-scroll-container
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						</section>
+					{/snippet}
+
+					{#snippet Pending()}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+							</article>
+						</section>
+					{/snippet}
+
+					{#snippet Failed(_error, _retry)}
+						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+							</article>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

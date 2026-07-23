@@ -44,14 +44,14 @@
 				}
 				title='Beacon epochs'
 				selection={
-					projection.$$beaconEpochs({
-						sources: [
-							Source.Beacon_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$beaconEpochs({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
 				}
-				id='beacon-epochs'
+				id='account-beacon-epoch'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

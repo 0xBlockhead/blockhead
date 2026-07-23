@@ -11,8 +11,8 @@ export const e2eProbeVitePlugin = () => ({
 		for (const expected of [
 			"\t} from '$/client/$client.svelte.ts'\n",
 			'\t\treturn openBrowserWASQLiteOPFSDatabase({\n\t\t\tdatabaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,\n\t\t})',
-			"\t\tconst persistence = createBrowserWASQLitePersistence({\n\t\t\tdatabase,\n\t\t\tschemaMismatchPolicy: 'reset',\n\t\t})",
-			'\t\t\t\tpersistence,\n\t\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
+			"\t\t\tcreateBrowserWASQLitePersistence({\n\t\t\t\tdatabase,\n\t\t\t\tschemaMismatchPolicy: 'reset',\n\t\t\t})",
+			'\t\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
 			'\t\treturn appClient',
 		]) {
 			if (!source.includes(expected))
@@ -29,12 +29,12 @@ export const e2eProbeVitePlugin = () => ({
 				'\t\treturn openBlockheadBrowserDatabase({\n\t\t\tdatabaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),\n\t\t\tvfsName: e2eVfsName(),\n\t\t})'
 			)
 			.replace(
-				"\t\tconst persistence = createBrowserWASQLitePersistence({\n\t\t\tdatabase,\n\t\t\tschemaMismatchPolicy: 'reset',\n\t\t})",
-				"\t\tconst basePersistence = createBrowserWASQLitePersistence({\n\t\t\tdatabase,\n\t\t\tschemaMismatchPolicy: 'reset',\n\t\t})\n\t\tconst e2eInstrumentation = createE2EClientInstrumentation(basePersistence)"
+				"\t\t\tcreateBrowserWASQLitePersistence({\n\t\t\t\tdatabase,\n\t\t\t\tschemaMismatchPolicy: 'reset',\n\t\t\t})",
+				"\t\t\tcreateE2EClientInstrumentation(\n\t\t\t\tcreateBrowserWASQLitePersistence({\n\t\t\t\t\tdatabase,\n\t\t\t\t\tschemaMismatchPolicy: 'reset',\n\t\t\t\t})\n\t\t\t).persistence"
 			)
 			.replace(
-				'\t\t\t\tpersistence,\n\t\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
-				'\t\t\t\tpersistence: e2eInstrumentation.persistence,\n\t\t\t\tschemaVersion: e2eSchemaVersion(BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION),\n\t\t\t\twaitForPersistence: e2eInstrumentation.waitForPersistence,'
+				'\t\t\t\tschemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,',
+				'\t\t\t\tschemaVersion: e2eSchemaVersion(BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION),'
 			)
 			.replace(
 				'\t\treturn appClient',

@@ -31,7 +31,6 @@
 			paymentRequest: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning payment' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning payment')))
 
 
 	// Components
@@ -41,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Lightning payment • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning payment' : [String((({ ...data.selector, ...pageSelection.entity }).paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning payment'))} • Lightning payment • Blockhead</title>
 </svelte:head>
 
 

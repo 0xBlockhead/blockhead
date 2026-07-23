@@ -40,12 +40,22 @@
 		selection={
 			select(EntityType.LensPost, {
 				id: params.postId,
-			}).$$comments({
-				sources: [
-					Source.Lens_Graphql,
-				],
-				count: true,
 			})
+				.$$comments({
+					sources: [
+						Source.Lens_Graphql,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.LensPost, {
+				id: params.postId,
+			})
+				.$$comments({
+					sources: [
+						Source.Lens_Graphql,
+					],
+				}).count
 		}
 		id='comments'
 		data-column-item="flexible"

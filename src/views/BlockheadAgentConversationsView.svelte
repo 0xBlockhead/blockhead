@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Agent conversations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadAgentConversation>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadAgentConversation>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadAgentConversationView from '$/views/BlockheadAgentConversationView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(blockheadAgentConversations) => [...new Map(blockheadAgentConversations.values.map((blockheadAgentConversation) => [blockheadAgentConversation[EntityMetaKey.SelectorKey], blockheadAgentConversation])).values()]}
 	getKey={(blockheadAgentConversation) => blockheadAgentConversation[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,18 +88,31 @@
 
 	{#snippet Item({ item: blockheadAgentConversation })}
 		{@const blockheadAgentConversationFields = { ...blockheadAgentConversation[EntityMetaKey.Selector], ...blockheadAgentConversation }}
-		{@const selection = select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const blockheadAgentConversationHrefFields = { ...blockheadAgentConversation, ...blockheadAgentConversation[EntityMetaKey.Selector] }}
-		<BlockheadAgentConversationView
-			selection={selection}
-			prefetched={blockheadAgentConversationFields}
+		<EntityView
+			entityType={EntityType.BlockheadAgentConversation}
+			entitySelector={blockheadAgentConversation[EntityMetaKey.Selector]}
 			href={
-				(blockheadAgentConversationHrefFields.id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]', {
-					conversationId: String(blockheadAgentConversationHrefFields.id ?? ''),
-				}) : undefined)
+				(
+					blockheadAgentConversation[EntityMetaKey.Selector] != null && 'id' in blockheadAgentConversation[EntityMetaKey.Selector]
+					&& blockheadAgentConversation[EntityMetaKey.Selector].id != null ?
+						resolve('/~/agents/conversation/[conversationId=stringSegment]', {
+					conversationId: String(blockheadAgentConversation[EntityMetaKey.Selector].id ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((blockheadAgentConversationFields.name) ?? '')].filter(Boolean).join(' ') || [String((blockheadAgentConversationFields.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((blockheadAgentConversationFields.updatedAt) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

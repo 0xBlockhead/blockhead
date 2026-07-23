@@ -44,15 +44,15 @@
 				}
 				title='Gas estimates'
 				selection={
-					projection.$$gasEstimateTimestamps({
-						sources: [
-							Source.Blockscout_Rest,
-							Source.Etherscan_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$gasEstimateTimestamps({
+							sources: [
+								Source.Blockscout_Rest,
+								Source.Etherscan_Rest,
+							],
+						})
 				}
-				id='gas-estimate-timestamps'
+				id='account-evm-network-gas-estimate-timestamp'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

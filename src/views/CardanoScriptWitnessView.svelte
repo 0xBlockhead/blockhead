@@ -3,11 +3,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -26,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CardanoScriptWitness>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CardanoScriptWitness>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoScriptWitness>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -40,11 +43,21 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoScriptWitness = $derived(selection({
+	const cardanoScriptWitness = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
 		sources: selection.sources,
+		fields: {
+			scriptKind: true,
+			scriptHash: true,
+		},
+	} : {
+		sources: selection.sources,
+		fields: {
+			scriptKind: true,
+			scriptHash: true,
+		},
 	}))
-	const titleFallback = $derived('Cardano script witness')
-	const viewDomId = $derived('cardano-script-witness-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.scriptKind) ?? ''), (String((pendingEntity.witnessIndex) ?? '') ? 'Script #' + String((pendingEntity.witnessIndex) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano script witness')
+	const viewDomId = $derived('cardano-script-witness-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,13 +78,26 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'scriptKind') && Object.hasOwn(prefetched, 'scriptHash')}
+			{[String((pendingEntity.scriptKind) ?? ''), (String((pendingEntity.witnessIndex) ?? '') ? 'Script #' + String((pendingEntity.witnessIndex) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cardanoScriptWitness}>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{title || titleFallback}
+					{[String((resolvedEntity.scriptKind) ?? ''), (String((resolvedEntity.witnessIndex) ?? '') ? 'Script #' + String((resolvedEntity.witnessIndex) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet Value()}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'scriptKind') && Object.hasOwn(prefetched, 'scriptHash')}
+			{[String((pendingEntity.scriptHash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.scriptKind) ?? ''), (String((pendingEntity.witnessIndex) ?? '') ? 'Script #' + String((pendingEntity.witnessIndex) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
+		{:else}
+			<ResourceBoundary resource={cardanoScriptWitness}>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{[String((resolvedEntity.scriptHash) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.scriptKind) ?? ''), (String((resolvedEntity.witnessIndex) ?? '') ? 'Script #' + String((resolvedEntity.witnessIndex) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
@@ -83,7 +109,31 @@
 				<dt>transaction</dt>
 				<dd>
 					<CardanoTransactionView
-						selection={select(EntityType.CardanoTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.CardanoTransaction, selection.entitySelector.$transaction)}
+						href={
+							(
+								selection.entitySelector.$transaction != null && 'hash' in selection.entitySelector.$transaction
+								&& selection.entitySelector.$transaction.hash != null
+								&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
+									selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+									&& selection.entitySelector.$transaction.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+									transactionId: String(selection.entitySelector.$transaction.hash ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+										&& selection.entitySelector.$transaction.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+										transactionId: String(selection.entitySelector.$transaction.hash ?? ''),
+										network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

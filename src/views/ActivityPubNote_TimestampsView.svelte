@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ActivityPub note observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ActivityPubNote_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ActivityPubNote_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubNote_TimestampView from '$/views/ActivityPubNote_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,12 +67,19 @@
 		selection({
 			sources: selection.sources,
 			fields: {
-				$note: true,
+				$note: {
+					fields: {
+						content: true,
+						localStatusId: true,
+						createdAt: true,
+					},
+				},
 				timestampMs: true,
 				source: true,
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(activityPubNoteTimestamps) => [...new Map(activityPubNoteTimestamps.values.map((activityPubNoteTimestamp) => [activityPubNoteTimestamp[EntityMetaKey.SelectorKey], activityPubNoteTimestamp])).values()]}
 	getKey={(activityPubNoteTimestamp) => activityPubNoteTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,21 +94,41 @@
 
 	{#snippet Item({ item: activityPubNoteTimestamp })}
 		{@const activityPubNoteTimestampFields = { ...activityPubNoteTimestamp[EntityMetaKey.Selector], ...activityPubNoteTimestamp }}
-		{@const selection = select(EntityType.ActivityPubNote_Timestamp, activityPubNoteTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const activityPubNoteTimestampHrefFields = { ...activityPubNoteTimestamp, ...activityPubNoteTimestamp[EntityMetaKey.Selector] }}
-		<ActivityPubNote_TimestampView
-			selection={selection}
-			prefetched={activityPubNoteTimestampFields}
+		<EntityView
+			entityType={EntityType.ActivityPubNote_Timestamp}
+			entitySelector={activityPubNoteTimestamp[EntityMetaKey.Selector]}
 			href={
-				(activityPubNoteTimestampHrefFields.timestampMs !== undefined && activityPubNoteTimestampHrefFields.source !== undefined && activityPubNoteTimestampHrefFields.$note !== undefined && activityPubNoteTimestampHrefFields.$note.instanceOrigin !== undefined && activityPubNoteTimestampHrefFields.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(activityPubNoteTimestampHrefFields.timestampMs ?? ''),
-					source: String(activityPubNoteTimestampHrefFields.source ?? ''),
-					instanceOrigin: encodeURIComponent(String(activityPubNoteTimestampHrefFields.$note.instanceOrigin ?? '')),
-					localStatusId: String(activityPubNoteTimestampHrefFields.$note.localStatusId ?? ''),
-				}) : undefined)
+				(
+					activityPubNoteTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in activityPubNoteTimestamp[EntityMetaKey.Selector]
+					&& activityPubNoteTimestamp[EntityMetaKey.Selector].timestampMs != null
+					&& activityPubNoteTimestamp[EntityMetaKey.Selector] != null && 'source' in activityPubNoteTimestamp[EntityMetaKey.Selector]
+					&& activityPubNoteTimestamp[EntityMetaKey.Selector].source != null
+					&& activityPubNoteTimestamp[EntityMetaKey.Selector] != null && '$note' in activityPubNoteTimestamp[EntityMetaKey.Selector]
+					&& activityPubNoteTimestamp[EntityMetaKey.Selector].$note != null && 'instanceOrigin' in activityPubNoteTimestamp[EntityMetaKey.Selector].$note
+					&& activityPubNoteTimestamp[EntityMetaKey.Selector].$note.instanceOrigin != null
+					&& activityPubNoteTimestamp[EntityMetaKey.Selector].$note != null && 'localStatusId' in activityPubNoteTimestamp[EntityMetaKey.Selector].$note
+					&& activityPubNoteTimestamp[EntityMetaKey.Selector].$note.localStatusId != null ?
+						resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+					timestampMs: String(activityPubNoteTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+					source: String(activityPubNoteTimestamp[EntityMetaKey.Selector].source ?? ''),
+					instanceOrigin: encodeURIComponent(String(activityPubNoteTimestamp[EntityMetaKey.Selector].$note.instanceOrigin ?? '')),
+					localStatusId: String(activityPubNoteTimestamp[EntityMetaKey.Selector].$note.localStatusId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[activityPubNoteTimestampFields.$note.content == null ? '' : String((htmlToPlainText((activityPubNoteTimestampFields.$note.content))) ?? ''), String((activityPubNoteTimestampFields.$note.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note'].filter(Boolean).join(' ') || 'ActivityPub note observation'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((activityPubNoteTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

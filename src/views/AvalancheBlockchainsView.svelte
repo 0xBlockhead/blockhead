@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Avalanche blockchains',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AvalancheBlockchain>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AvalancheBlockchain>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AvalancheBlockchainView from '$/views/AvalancheBlockchainView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(avalancheBlockchains) => [...new Map(avalancheBlockchains.values.map((avalancheBlockchain) => [avalancheBlockchain[EntityMetaKey.SelectorKey], avalancheBlockchain])).values()]}
 	getKey={(avalancheBlockchain) => avalancheBlockchain[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,12 +88,20 @@
 
 	{#snippet Item({ item: avalancheBlockchain })}
 		{@const avalancheBlockchainFields = { ...avalancheBlockchain[EntityMetaKey.Selector], ...avalancheBlockchain }}
-		{@const selection = select(EntityType.AvalancheBlockchain, avalancheBlockchain[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AvalancheBlockchainView
-			selection={selection}
-			prefetched={avalancheBlockchainFields}
+		<EntityView
+			entityType={EntityType.AvalancheBlockchain}
+			entitySelector={avalancheBlockchain[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((avalancheBlockchainFields.chainName) ?? ''), String((avalancheBlockchainFields.chainAlias) ?? '')].filter(Boolean).join(' ') || [String((avalancheBlockchainFields.blockchainId) ?? '')].filter(Boolean).join(' ') || 'avalanche blockchain'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((avalancheBlockchainFields.vmId) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

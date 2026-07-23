@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Solana account observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.SolanaAccount_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SolanaAccount_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import SolanaAccount_TimestampView from '$/views/SolanaAccount_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(solanaAccountTimestamps) => [...new Map(solanaAccountTimestamps.values.map((solanaAccountTimestamp) => [solanaAccountTimestamp[EntityMetaKey.SelectorKey], solanaAccountTimestamp])).values()]}
 	getKey={(solanaAccountTimestamp) => solanaAccountTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: solanaAccountTimestamp })}
 		{@const solanaAccountTimestampFields = { ...solanaAccountTimestamp[EntityMetaKey.Selector], ...solanaAccountTimestamp }}
-		{@const selection = select(EntityType.SolanaAccount_Timestamp, solanaAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<SolanaAccount_TimestampView
-			selection={selection}
-			prefetched={solanaAccountTimestampFields}
+		<EntityView
+			entityType={EntityType.SolanaAccount_Timestamp}
+			entitySelector={solanaAccountTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((solanaAccountTimestampFields.slot) ?? '')].filter(Boolean).join(' ') || 'solana account timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((solanaAccountTimestampFields.lamports) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((solanaAccountTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

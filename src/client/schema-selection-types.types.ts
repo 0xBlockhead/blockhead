@@ -1,6 +1,7 @@
 import {
 	entity,
 	facet,
+	EntityMetaKey,
 	type EntityBaseFieldName,
 	type EntityFacetFieldNameAtPath,
 	type EntityFacetPathFor,
@@ -13,8 +14,14 @@ import {
 	EntityFieldCardinality,
 	EntityFieldType,
 } from '$/schema/EntityField.ts'
-import type { ClientContext } from '$/client/$client.svelte.ts'
-import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+import type {
+	ClientContext,
+	SubscribeEntityReferenceResult,
+} from '$/client/$client.svelte.ts'
+import {
+	EntityProxyField,
+	type EntityProxyPrefetchedData,
+} from '$/client/$proxy.svelte.ts'
 import {
 	subscribeEntity,
 	subscribeEntityField,
@@ -228,11 +235,43 @@ declare const selectedLog: EntitySelectedValue<
 	readonly [],
 	typeof logSelection
 >
+declare const prefetchedTransactionReference: SubscribeEntityReferenceResult<
+	typeof schema,
+	EvmTransactionEntityType,
+	typeof transactionSelection
+>
+declare const prefetchedLogReference: SubscribeEntityReferenceResult<
+	typeof schema,
+	EvmLogEntityType,
+	typeof logSelection
+>
 
 selectedTransaction.txHash
 selectedBlob.maxFeePerBlobGas
 selectedLog.$transaction.txHash
 selectedLog.$$transactions[0]?.value
+const prefetchedTransaction: EntityProxyPrefetchedData<
+	typeof schema,
+	EvmTransactionEntityType
+> = prefetchedTransactionReference
+prefetchedTransaction[EntityMetaKey.Selector]?.txHash
+const prefetchedLog: EntityProxyPrefetchedData<
+	typeof schema,
+	EvmLogEntityType
+> = prefetchedLogReference
+prefetchedLog.$transaction?.txHash
+prefetchedLog.$$transactions?.values[0]?.value
+
+const mismatchedPrefetchedTransaction: EntityProxyPrefetchedData<
+	typeof schema,
+	EvmTransactionEntityType
+> = {
+	[EntityMetaKey.Selector]: {
+		// @ts-expect-error Prefetched selector metadata stays scoped to the selected entity type.
+		topic0: 'transfer',
+	},
+}
+mismatchedPrefetchedTransaction
 
 declare const clientContext: ClientContext<typeof schema>
 
@@ -268,6 +307,21 @@ const selectedReferencesProxy = clientContext.select(
 		},
 	}
 )
+selectedReferencesProxy.$transaction({
+	fields: {
+		txHash: true,
+	},
+}).then((transaction) => {
+	transaction.txHash
+})
+selectedReferencesProxy.topic0.then((topic0) => {
+	const optionalTopic0: string | undefined = topic0
+	optionalTopic0
+
+	// @ts-expect-error ZeroOrOne fields remain optional on the resource promise surface.
+	const requiredTopic0: string = topic0
+	requiredTopic0
+})
 const selectedFacetProxy = clientContext.select(
 	EntityType.EvmTransaction,
 	{

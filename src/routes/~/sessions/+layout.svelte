@@ -10,7 +10,7 @@
 
 
 	// Components
-	import BlockheadSessionCreateControl from '$/components/BlockheadSessionCreateControl.svelte'
+	import BlockheadSessionCreateControl from './BlockheadSessionCreateControl.svelte'
 </script>
 
 

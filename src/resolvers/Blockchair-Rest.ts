@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type SourceResolverContext,
 } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
@@ -31,6 +32,45 @@ import { UtxoAddressSelector } from '$/schema/UtxoAddress.ts'
 import { UtxoAddress_TimestampSelector } from '$/schema/UtxoAddress_Timestamp.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const blockchairNetworkSlugs = [
+	'bitcoin',
+	'zcash',
+	'litecoin',
+	'dogecoin',
+	'bitcoin-cash',
+] as const
+
+const blockchairNetworkTimestampApplicability = blockchairNetworkSlugs.flatMap((slug) => ([
+	{
+		$network: {
+			caip2: networkBySlug[slug].caip2,
+		},
+		source: Source.Blockchair_Rest,
+	},
+	{
+		$network: { slug },
+		source: Source.Blockchair_Rest,
+	},
+]))
+
+const blockchairNetworkSelectors = <const _Snapshot extends object>(
+	resolve: (
+		network: NetworkId,
+		context: SourceResolverContext<Source.Blockchair_Rest>
+	) => Promise<_Snapshot>
+) => ({
+	[NetworkSelector.Caip2]: {
+		appliesTo: blockchairNetworkSlugs.map((slug) => ({
+			caip2: networkBySlug[slug].caip2,
+		})),
+		resolve,
+	},
+	[NetworkSelector.Slug]: {
+		appliesTo: blockchairNetworkSlugs.map((slug) => ({ slug })),
+		resolve,
+	},
+})
 
 const blockchairChain = (
 	network: NetworkId
@@ -123,16 +163,10 @@ export default {
 	resolvers: [
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Slug]: {
-					resolve: async (network) => {
-						blockchairChain(network)
-						return {
-							[EntityMetaKey.Selector]: network,
-						}
-					},
-				}
-			},
+			resolve: blockchairNetworkSelectors(async (network) => ({
+				[EntityMetaKey.Selector]: network,
+				slug: blockchairChain(network),
+			})),
 		})({
 				slug: (network) => network.slug,
 			}),
@@ -379,6 +413,7 @@ export default {
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
 				[Network_TimestampSelector.NetworkTimestampMsSource]: {
+					appliesTo: blockchairNetworkTimestampApplicability,
 					resolve: async ({
 						$network,
 						timestampMs,
@@ -481,65 +516,55 @@ export default {
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Slug]: {
-					resolve: async (network) => {
-						blockchairChain(network)
-						return {
-							[EntityMetaKey.Selector]: network,
-						}
-					},
-				}
-			},
+			resolve: blockchairNetworkSelectors(async (network) => ({
+				[EntityMetaKey.Selector]: network,
+				slug: blockchairChain(network),
+			})),
 		})({
 				slug: (network) => network.slug,
 			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Slug]: {
-					resolve: async (network) => {
-						const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
-						const stats = (await getBitcoinLikeStats({
-							chain: blockchairChain(network),
-						})).data
-						const bestBlockHeight = bigintFromNumber(stats.best_block_height)
-						const blockCount = bigintFromNumber(stats.blocks)
-						const transactionCount = bigintFromNumber(stats.transactions)
-						const mempoolSizeBytes = bigintFromNumber(stats.mempool_size)
-						const averageTransactionFee24hSats = bigintFromNumber(stats.average_transaction_fee_24h)
-						const medianTransactionFee24hSats = bigintFromNumber(stats.median_transaction_fee_24h)
-						const blockchainSizeBytes = bigintFromNumber(stats.blockchain_size)
-						const bestBlockTimeMs = timestampMsFromBlockchairTime(stats.best_block_time)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									timestampMs: bestBlockTimeMs ?? Date.now(),
-									source: Source.Blockchair_Rest,
-								},
-								...(bestBlockHeight != null && { bestBlockHeight }),
-								...(stats.best_block_hash != null && { bestBlockHash: stats.best_block_hash }),
-								...(bestBlockTimeMs != null && { bestBlockTimeMs }),
-								...(blockCount != null && { blockCount }),
-								...(transactionCount != null && { transactionCount }),
-								...(stats.blocks_24h != null && { blocks24h: stats.blocks_24h }),
-								...(stats.transactions_24h != null && { transactions24h: stats.transactions_24h }),
-								...(stats.mempool_transactions != null && { mempoolTransactionCount: stats.mempool_transactions }),
-								...(mempoolSizeBytes != null && { mempoolSizeBytes }),
-								...(stats.mempool_tps != null && { mempoolTps: stats.mempool_tps }),
-								...(averageTransactionFee24hSats != null && { averageTransactionFee24hSats }),
-								...(medianTransactionFee24hSats != null && { medianTransactionFee24hSats }),
-								...(stats.suggested_transaction_fee_per_byte_sat != null && {
-									suggestedTransactionFeePerByteSats: stats.suggested_transaction_fee_per_byte_sat,
-								}),
-								...(blockchainSizeBytes != null && { blockchainSizeBytes }),
-							},
-						]
+			resolve: blockchairNetworkSelectors(async (network) => {
+				const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
+				const stats = (await getBitcoinLikeStats({
+					chain: blockchairChain(network),
+				})).data
+				const bestBlockHeight = bigintFromNumber(stats.best_block_height)
+				const blockCount = bigintFromNumber(stats.blocks)
+				const transactionCount = bigintFromNumber(stats.transactions)
+				const mempoolSizeBytes = bigintFromNumber(stats.mempool_size)
+				const averageTransactionFee24hSats = bigintFromNumber(stats.average_transaction_fee_24h)
+				const medianTransactionFee24hSats = bigintFromNumber(stats.median_transaction_fee_24h)
+				const blockchainSizeBytes = bigintFromNumber(stats.blockchain_size)
+				const bestBlockTimeMs = timestampMsFromBlockchairTime(stats.best_block_time)
+				return [
+					{
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							timestampMs: bestBlockTimeMs ?? Date.now(),
+							source: Source.Blockchair_Rest,
+						},
+						...(bestBlockHeight != null && { bestBlockHeight }),
+						...(stats.best_block_hash != null && { bestBlockHash: stats.best_block_hash }),
+						...(bestBlockTimeMs != null && { bestBlockTimeMs }),
+						...(blockCount != null && { blockCount }),
+						...(transactionCount != null && { transactionCount }),
+						...(stats.blocks_24h != null && { blocks24h: stats.blocks_24h }),
+						...(stats.transactions_24h != null && { transactions24h: stats.transactions_24h }),
+						...(stats.mempool_transactions != null && { mempoolTransactionCount: stats.mempool_transactions }),
+						...(mempoolSizeBytes != null && { mempoolSizeBytes }),
+						...(stats.mempool_tps != null && { mempoolTps: stats.mempool_tps }),
+						...(averageTransactionFee24hSats != null && { averageTransactionFee24hSats }),
+						...(medianTransactionFee24hSats != null && { medianTransactionFee24hSats }),
+						...(stats.suggested_transaction_fee_per_byte_sat != null && {
+							suggestedTransactionFeePerByteSats: stats.suggested_transaction_fee_per_byte_sat,
+						}),
+						...(blockchainSizeBytes != null && { blockchainSizeBytes }),
 					},
-				}
-			},
+				]
+			}),
 		})({
 				$$timestamps: (timestamps) => timestamps.map((timestamp) => ({
 					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
@@ -564,26 +589,22 @@ export default {
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Slug]: {
-					resolve: async (network, context) => {
-						const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
-						return (await getBlocks<BlockchairBitcoinLikeBlock>({
-							chain: blockchairChain(network),
-							params: {
-								sort: 'id(desc)',
-								limit: resolverContextRowLimit(context),
-							},
-						})).data.map((block) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								height: BigInt(block.id),
-								hash: block.hash,
-							},
-						}))
+			resolve: blockchairNetworkSelectors(async (network, context) => {
+				const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
+				return (await getBlocks<BlockchairBitcoinLikeBlock>({
+					chain: blockchairChain(network),
+					params: {
+						sort: 'id(desc)',
+						limit: resolverContextRowLimit(context),
 					},
-				}
-			},
+				})).data.map((block) => ({
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						height: BigInt(block.id),
+						hash: block.hash,
+					},
+				}))
+			}),
 		})({
 				Utxo: {
 					$$blocks: (blocks) => blocks,
@@ -592,25 +613,21 @@ export default {
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Slug]: {
-					resolve: async (network, context) => {
-						const { getTransactions } = await import('$/sources/Blockchair/Rest/queries.ts')
-						return (await getTransactions<BlockchairBitcoinLikeTransaction>({
-							chain: blockchairChain(network),
-							params: {
-								sort: 'id(desc)',
-								limit: resolverContextRowLimit(context),
-							},
-						})).data.map((transaction) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								txId: transaction.hash,
-							},
-						}))
+			resolve: blockchairNetworkSelectors(async (network, context) => {
+				const { getTransactions } = await import('$/sources/Blockchair/Rest/queries.ts')
+				return (await getTransactions<BlockchairBitcoinLikeTransaction>({
+					chain: blockchairChain(network),
+					params: {
+						sort: 'id(desc)',
+						limit: resolverContextRowLimit(context),
 					},
-				}
-			},
+				})).data.map((transaction) => ({
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						txId: transaction.hash,
+					},
+				}))
+			}),
 		})({
 				Utxo: {
 					$$transactions: (transactions) => transactions,
@@ -619,20 +636,16 @@ export default {
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Slug]: {
-					resolve: async (network) => {
-						const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
-						const stats = (await getBitcoinLikeStats({
-							chain: blockchairChain(network),
-						})).data
-						return {
-							blocks: blockchairCount(stats.blocks, 'block'),
-							transactions: blockchairCount(stats.transactions, 'transaction'),
-						}
-					},
+			resolve: blockchairNetworkSelectors(async (network) => {
+				const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
+				const stats = (await getBitcoinLikeStats({
+					chain: blockchairChain(network),
+				})).data
+				return {
+					blocks: blockchairCount(stats.blocks, 'block'),
+					transactions: blockchairCount(stats.transactions, 'transaction'),
 				}
-			},
+			}),
 		})({
 				Utxo: {
 					$$blocks: {

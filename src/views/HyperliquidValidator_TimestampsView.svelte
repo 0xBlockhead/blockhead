@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Hyperliquid validator observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.HyperliquidValidator_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HyperliquidValidator_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import HyperliquidValidator_TimestampView from '$/views/HyperliquidValidator_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(hyperliquidValidatorTimestamps) => [...new Map(hyperliquidValidatorTimestamps.values.map((hyperliquidValidatorTimestamp) => [hyperliquidValidatorTimestamp[EntityMetaKey.SelectorKey], hyperliquidValidatorTimestamp])).values()]}
 	getKey={(hyperliquidValidatorTimestamp) => hyperliquidValidatorTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: hyperliquidValidatorTimestamp })}
 		{@const hyperliquidValidatorTimestampFields = { ...hyperliquidValidatorTimestamp[EntityMetaKey.Selector], ...hyperliquidValidatorTimestamp }}
-		{@const selection = select(EntityType.HyperliquidValidator_Timestamp, hyperliquidValidatorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<HyperliquidValidator_TimestampView
-			selection={selection}
-			prefetched={hyperliquidValidatorTimestampFields}
+		<EntityView
+			entityType={EntityType.HyperliquidValidator_Timestamp}
+			entitySelector={hyperliquidValidatorTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'hyperliquid validator timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

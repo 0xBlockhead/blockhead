@@ -41,6 +41,8 @@
 			<DetailView
 				selection={select(EntityType.NostrProfile, data.selector, { sources: [
 		Source.Constants_Internal,
+		Source.NostrBand_Rest,
+		Source.Primal_Rest,
 	] })}
 				href={
 					resolve('/nostr/profile/[pubkey=stringSegment]', {

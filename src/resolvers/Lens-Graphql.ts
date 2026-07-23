@@ -18,6 +18,7 @@ import { LensNetworkSelector } from '$/schema/LensNetwork.ts'
 import { LensPostSelector } from '$/schema/LensPost.ts'
 import { LensAccount_TimestampSelector } from '$/schema/LensAccount_Timestamp.ts'
 import { LensPost_TimestampSelector } from '$/schema/LensPost_Timestamp.ts'
+import { LensFeedSelector } from '$/schema/LensFeed.ts'
 
 
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
@@ -57,6 +58,87 @@ const lensAnyPostSlugFromWire = (
 	:
 		undefined
 )
+
+const lensPostCardReferenceFromWire = (
+	lensPost:
+		| {
+			__typename: string
+			slug?: string | null
+			timestamp?: string | null
+			isDeleted?: boolean | null
+			author?: {
+				address: string
+				createdAt?: string | null
+				username?: {
+					localName?: string | null
+				} | null
+				metadata?: {
+					name?: string | null
+				} | null
+			} | null
+			metadata?: {
+				__typename: string
+				content?: string | null
+			} | null
+			contentUri?: string | null
+			commentOn?: {
+				slug?: string | null
+			} | null
+			feed?: {
+				address?: string | null
+			} | null
+			repostOf?: {
+				slug?: string | null
+			} | null
+		}
+		| null
+		| undefined
+) => {
+	const id = lensAnyPostSlugFromWire(lensPost)
+	if (id == null || lensPost?.isDeleted === true || lensPost?.author == null)
+		return undefined
+
+	const timestamp = optionalTimestampMs(lensPost.timestamp)
+	const text = lensPost.__typename === 'Post' ? lensMetadataTextFromWire(lensPost.metadata) : undefined
+	const localName = optionalNonemptyString(lensPost.author.username?.localName)
+	const displayName = optionalNonemptyString(lensPost.author.metadata?.name)
+	const createdAt = optionalTimestampMs(lensPost.author.createdAt)
+	const contentUri = lensPost.__typename === 'Post' ? optionalNonemptyString(lensPost.contentUri) : undefined
+	const repostOfSlug = lensPost.__typename === 'Repost' ? optionalNonemptyString(lensPost.repostOf?.slug) : undefined
+	return {
+		[EntityMetaKey.Selector]: { id },
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.LensPost, [], 'text')]: text,
+			[entityFieldAddressKey(EntityType.LensPost, [], 'timestamp')]: timestamp,
+			...(contentUri != null && {
+				[entityFieldAddressKey(EntityType.LensPost, [], 'contentUri')]: contentUri,
+			}),
+			...(repostOfSlug != null && {
+				[entityFieldAddressKey(EntityType.LensPost, [], '$repostOf')]: {
+					[EntityMetaKey.Selector]: {
+						id: repostOfSlug,
+					},
+				},
+			}),
+			[entityFieldAddressKey(EntityType.LensPost, [], '$author')]: {
+				[EntityMetaKey.Selector]: {
+					address: lensEvmAddressFromWire(lensPost.author.address),
+				},
+				[EntityMetaKey.Fields]: {
+					...(localName != null && {
+						[entityFieldAddressKey(EntityType.LensAccount, [], 'localName')]: localName,
+					}),
+					...(displayName != null && {
+						[entityFieldAddressKey(EntityType.LensAccount, [], 'displayName')]: displayName,
+					}),
+					...(createdAt != null && {
+						[entityFieldAddressKey(EntityType.LensAccount, [], 'createdAt')]: createdAt,
+					}),
+				},
+			},
+		},
+	}
+}
 
 const lensAccountTimestampFieldsFromWire = (
 	wire: {
@@ -107,22 +189,10 @@ const lensGraphqlResolvers = {
 					resolve: async (_entitySelector, context) => {
 						const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
-						return (
-							(await queryLatestPosts(context.publicEnv, pageSize)).posts.items
-								.flatMap((lensPost) => (
-									((postSlug) => (
-										postSlug != null ?
-											[
-												{
-													[EntityMetaKey.Selector]: { id: postSlug },
-												},
-											]
-										:
-											[]
-									))(lensAnyPostSlugFromWire(lensPost))
-								))
-						)
+						return (await queryLatestPosts(context.publicEnv, limit)).posts.items.flatMap((lensPost) => {
+							const reference = lensPostCardReferenceFromWire(lensPost)
+							return reference == null ? [] : [reference]
+						}).slice(0, limit)
 					},
 				},
 			},
@@ -144,6 +214,8 @@ const lensGraphqlResolvers = {
 						)
 						const a = wire.account
 						if (a == null) throw new Error('Lens_Graphql: account not found')
+						if (lensEvmAddressFromWire(a.address) !== zeroExLowerCase(address))
+							throw new Error('Lens_Graphql: account response does not match request')
 						const createdAt = optionalTimestampMs(String(a.createdAt))
 						const localName = optionalNonemptyString(a.username?.localName)
 						const displayName = optionalNonemptyString(a.metadata?.name)
@@ -156,6 +228,8 @@ const lensGraphqlResolvers = {
 							...(localName != null && { localName }),
 							...(displayName != null && { displayName }),
 							...(bio != null && { bio }),
+							owner: lensEvmAddressFromWire(a.owner),
+							score: a.score,
 							...(createdAt != null && { createdAt }),
 							...(pictureUrl != null && { iconUrl: pictureUrl }),
 							...(iconMedia != null && { $icon: iconMedia }),
@@ -185,6 +259,8 @@ const lensGraphqlResolvers = {
 							localName: localName ?? selectedLocalName,
 							...(displayName != null && { displayName }),
 							...(bio != null && { bio }),
+							owner: lensEvmAddressFromWire(a.owner),
+							score: a.score,
 							...(createdAt != null && { createdAt }),
 							...(pictureUrl != null && { iconUrl: pictureUrl }),
 							...(iconMedia != null && { $icon: iconMedia }),
@@ -214,6 +290,8 @@ const lensGraphqlResolvers = {
 							...(localName != null && { localName }),
 							...(displayName != null && { displayName }),
 							...(bio != null && { bio }),
+							owner: lensEvmAddressFromWire(a.owner),
+							score: a.score,
 							...(createdAt != null && { createdAt }),
 							...(pictureUrl != null && { iconUrl: pictureUrl }),
 							...(iconMedia != null && { $icon: iconMedia }),
@@ -227,6 +305,8 @@ const lensGraphqlResolvers = {
 				legacyProfileId: (account) => account.legacyProfileId,
 				displayName: (account) => account.displayName,
 				bio: (account) => account.bio,
+				owner: (account) => account.owner,
+				score: (account) => account.score,
 				createdAt: (account) => account.createdAt,
 				iconUrl: (account) => account.iconUrl,
 				$icon: (account) => account.$icon,
@@ -248,6 +328,7 @@ const lensGraphqlResolvers = {
 								...(timestamp != null && { timestamp }),
 								isEdited: undefined,
 								isDeleted: p.isDeleted,
+								contentUri: undefined,
 								$commentOn: undefined,
 								$quoteOf: undefined,
 								$root: undefined,
@@ -271,6 +352,7 @@ const lensGraphqlResolvers = {
 							...(timestamp != null && { timestamp }),
 							isEdited: p.isEdited,
 							isDeleted: p.isDeleted,
+							...((contentUri) => contentUri != null && { contentUri })(optionalNonemptyString(p.contentUri)),
 							...((postSlug) => (
 								postSlug != null && {
 									$commentOn: { [EntityMetaKey.Selector]: { id: postSlug } },
@@ -314,6 +396,7 @@ const lensGraphqlResolvers = {
 				timestamp: (post) => post.timestamp,
 				isEdited: (post) => post.isEdited,
 				isDeleted: (post) => post.isDeleted,
+				contentUri: (post) => post.contentUri,
 				$commentOn: (post) => post.$commentOn,
 				$quoteOf: (post) => post.$quoteOf,
 				$repostOf: (post) => post.$repostOf,
@@ -397,22 +480,15 @@ const lensGraphqlResolvers = {
 					resolve: async ({ id }, context) => {
 						const { queryPostComments } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
-						return (
-							((await queryPostComments(context.publicEnv, id, pageSize)).postReferences.items )
-								.flatMap((lensPost) => (
-								((postSlug) => (
-									postSlug != null ?
-										[
-											{
-												[EntityMetaKey.Selector]: { id: postSlug },
-											},
-										]
-									:
-										[]
-								))(lensAnyPostSlugFromWire(lensPost))
-								))
-						)
+						return (await queryPostComments(context.publicEnv, id, limit)).postReferences.items.flatMap((lensPost) => {
+							if (
+								lensPost.__typename !== 'Post'
+								|| lensPost.commentOn?.slug !== id
+							)
+								return []
+							const reference = lensPostCardReferenceFromWire(lensPost)
+							return reference == null ? [] : [reference]
+						}).slice(0, limit)
 					},
 				}
 			},
@@ -519,28 +595,103 @@ const lensGraphqlResolvers = {
 					resolve: async ({ address }, context) => {
 						const { queryPostsByAuthor } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
-						return (
-							((await queryPostsByAuthor(context.publicEnv, zeroExLowerCase(address), pageSize)).posts.items )
-								.flatMap((lensPost) => (
-								((postSlug) => (
-									postSlug != null ?
-										[
-											{
-												[EntityMetaKey.Selector]: { id: postSlug },
-											},
-										]
-									:
-										[]
-								))(lensAnyPostSlugFromWire(lensPost))
-								))
-						)
+						return (await queryPostsByAuthor(context.publicEnv, zeroExLowerCase(address), limit)).posts.items.flatMap((lensPost) => {
+							const reference = lensPostCardReferenceFromWire(lensPost)
+							return (
+								reference != null
+								&& lensEvmAddressFromWire(lensPost.author.address) === zeroExLowerCase(address) ?
+									[reference]
+								:
+									[]
+							)
+						}).slice(0, limit)
 					},
 				}
 			},
 		})({
 				$$posts: (posts) => posts,
 			}),
+
+		defineResolver(Source.Lens_Graphql, {
+			entityType: EntityType.LensNetwork,
+			resolve: {
+				[LensNetworkSelector.Scope]: {
+					resolve: async (_entitySelector, context) => {
+						const { queryAccounts } = await import('$/sources/Lens/Graphql/queries.ts')
+						return (await queryAccounts(context.publicEnv, resolverContextRowLimit(context))).accounts.items.map((account) => ({
+							[EntityMetaKey.Selector]: {
+								address: lensEvmAddressFromWire(account.address),
+							},
+							[EntityMetaKey.Fields]: {
+								...(optionalNonemptyString(account.username?.localName) != null && {
+									[entityFieldAddressKey(EntityType.LensAccount, [], 'localName')]: optionalNonemptyString(account.username?.localName),
+								}),
+								...(optionalNonemptyString(account.metadata?.name) != null && {
+									[entityFieldAddressKey(EntityType.LensAccount, [], 'displayName')]: optionalNonemptyString(account.metadata?.name),
+								}),
+							},
+						}))
+					},
+				},
+			},
+		})({
+				$$lensAccounts: (accounts) => accounts,
+			}),
+
+		defineResolver(Source.Lens_Graphql, {
+			entityType: EntityType.LensFeed,
+			resolve: {
+				[LensFeedSelector.Address]: {
+					resolve: async ({ address }, context) => {
+						const { queryFeed } = await import('$/sources/Lens/Graphql/queries.ts')
+						const feed = (await queryFeed(context.publicEnv, zeroExLowerCase(address))).feed
+						if (feed == null) throw new Error('Lens_Graphql: feed not found')
+						if (lensEvmAddressFromWire(feed.address) !== zeroExLowerCase(address))
+							throw new Error('Lens_Graphql: feed response does not match request')
+						return {
+							address: lensEvmAddressFromWire(feed.address),
+							owner: lensEvmAddressFromWire(feed.owner),
+							...((name) => name != null && { name })(optionalNonemptyString(feed.metadata?.name)),
+							...((description) => description != null && { description })(optionalNonemptyString(feed.metadata?.description)),
+							...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(feed.createdAt)),
+						}
+					},
+				},
+			},
+		})({
+				address: (feed) => feed.address,
+				owner: (feed) => feed.owner,
+				name: (feed) => feed.name,
+				description: (feed) => feed.description,
+				createdAt: (feed) => feed.createdAt,
+			}),
+
+		defineResolver(Source.Lens_Graphql, {
+			entityType: EntityType.LensFeed,
+			resolve: {
+				[LensFeedSelector.Address]: {
+					resolve: async ({ address }, context) => {
+						const { queryFeedPosts } = await import('$/sources/Lens/Graphql/queries.ts')
+						return (await queryFeedPosts(
+							context.publicEnv,
+							zeroExLowerCase(address),
+							resolverContextRowLimit(context)
+						)).posts.items.flatMap((lensPost) => {
+							if (
+								lensPost.__typename !== 'Post'
+								|| lensPost.feed?.address == null
+								|| lensEvmAddressFromWire(lensPost.feed.address) !== zeroExLowerCase(address)
+							)
+								return []
+							const reference = lensPostCardReferenceFromWire(lensPost)
+							return reference == null ? [] : [reference]
+						})
+					},
+				},
+			},
+		})({
+			$$posts: (posts) => posts,
+		}),
 	] as const,
 }
 

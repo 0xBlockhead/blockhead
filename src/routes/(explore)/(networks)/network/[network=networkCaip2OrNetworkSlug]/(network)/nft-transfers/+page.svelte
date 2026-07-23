@@ -44,14 +44,14 @@
 				}
 				title='NFT transfers'
 				selection={
-					projection.$$nftTokenTransfers({
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$nftTokenTransfers({
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						})
 				}
-				id='nft-token-transfers'
+				id='account-evm-token-transfer'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

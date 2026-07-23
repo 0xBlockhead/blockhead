@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Arweave networks',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.ArweaveNetwork>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ArweaveNetwork>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ArweaveNetworkView from '$/views/ArweaveNetworkView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -77,6 +70,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(arweaveNetworks) => [...new Map(arweaveNetworks.values.map((arweaveNetwork) => [arweaveNetwork[EntityMetaKey.SelectorKey], arweaveNetwork])).values()]}
 	getKey={(arweaveNetwork) => arweaveNetwork[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -91,12 +85,16 @@
 
 	{#snippet Item({ item: arweaveNetwork })}
 		{@const arweaveNetworkFields = { ...arweaveNetwork[EntityMetaKey.Selector], ...arweaveNetwork }}
-		{@const selection = select(EntityType.ArweaveNetwork, arweaveNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<ArweaveNetworkView
-			selection={selection}
-			prefetched={arweaveNetworkFields}
+		<EntityView
+			entityType={EntityType.ArweaveNetwork}
+			entitySelector={arweaveNetwork[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[[String((arweaveNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [arweaveNetworkFields.$network.caip2 == null ? '' : String(`${(arweaveNetworkFields.$network.caip2).namespace}:${(arweaveNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'arweave network'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

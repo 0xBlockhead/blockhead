@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Nostr reposts',
 		typeAnnotationParagraphs = ['A Nostr repost is a kind-6 or kind-16 event keyed by event id and linked to the reposted note or article.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrRepost>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NostrRepost>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrRepostView from '$/views/NostrRepostView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nostrReposts) => [...new Map(nostrReposts.values.map((nostrRepost) => [nostrRepost[EntityMetaKey.SelectorKey], nostrRepost])).values()]}
 	getKey={(nostrRepost) => nostrRepost[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,18 +87,31 @@
 
 	{#snippet Item({ item: nostrRepost })}
 		{@const nostrRepostFields = { ...nostrRepost[EntityMetaKey.Selector], ...nostrRepost }}
-		{@const selection = select(EntityType.NostrRepost, nostrRepost[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const nostrRepostHrefFields = { ...nostrRepost, ...nostrRepost[EntityMetaKey.Selector] }}
-		<NostrRepostView
-			selection={selection}
-			prefetched={nostrRepostFields}
+		<EntityView
+			entityType={EntityType.NostrRepost}
+			entitySelector={nostrRepost[EntityMetaKey.Selector]}
 			href={
-				(nostrRepostHrefFields.eventId !== undefined ? resolve('/nostr/repost/[eventId=stringSegment]', {
-					eventId: String(nostrRepostHrefFields.eventId ?? ''),
-				}) : undefined)
+				(
+					nostrRepost[EntityMetaKey.Selector] != null && 'eventId' in nostrRepost[EntityMetaKey.Selector]
+					&& nostrRepost[EntityMetaKey.Selector].eventId != null ?
+						resolve('/nostr/repost/[eventId=stringSegment]', {
+					eventId: String(nostrRepost[EntityMetaKey.Selector].eventId ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nostrRepostFields.repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((nostrRepostFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.NearNetwork>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NearNetwork>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NearNetwork>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,7 +38,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nearNetwork = $derived(selection({
+	const nearNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			name: true,
+			environment: true,
+			namespace: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			name: true,
@@ -46,7 +54,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || 'near network')
-	const viewDomId = $derived('near-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('near-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,7 +78,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'environment') && Object.hasOwn(prefetched, 'namespace')}
 			{[String((pendingEntity.name) ?? ''), String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={nearNetwork}>
@@ -83,7 +91,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'environment') && Object.hasOwn(prefetched, 'namespace')}
 			{[String((pendingEntity.environment) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={nearNetwork}>
@@ -96,7 +104,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'environment') && Object.hasOwn(prefetched, 'namespace')}
 			{@const namespace0 = pendingEntity.namespace}
 			{#if namespace0 !== undefined && namespace0 !== null}
 				<span data-text="muted">
@@ -153,117 +161,280 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-near-chain-activity'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'near-chain-observations',
-							label: 'Observations',
-						},
-						{
-							id: 'near-chain-blocks',
-							label: 'Blocks',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-chain-activity'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Chain activity</HeadingComponent>
-					</header>
-				{/snippet}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-near-chain-activity'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'near-chain-observations',
+								label: 'Observations',
+								ownsSection: true,
+							},
+							{
+								id: 'near-chain-blocks',
+								label: 'Blocks',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-chain-activity'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Chain activity</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet SectionNearChainObservations({ id, label, open })}
-					<NearNetwork_TimestampsView
-						selection={
-							selection.$$timestamps({
-								sources: [
-									Source.NearRpc_JsonRpc,
-								],
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No observations available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+					{#snippet MarkerNearChainObservations(_context, Content)}
+						{@const nearChainActivityNearChainObservationsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.NearRpc_JsonRpc,
+			],
+		})}
+						<ResourceBoundary
+							resource={nearChainActivityNearChainObservationsResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
 
-				{#snippet SectionNearChainBlocks({ id, label, open })}
-					<NearBlocksView
-						selection={
-							selection.$$blocks({
-								sources: [
-									Source.NearRpc_JsonRpc,
-								],
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No blocks available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
 
-			</CollapsibleTabs>
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-near-validators'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'near-validator-list',
-							label: 'Validators',
-						},
-					]
-				}
-				data-card
-				class='network-view-collapsible-validators'
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Validators</HeadingComponent>
-					</header>
-				{/snippet}
+					{#snippet SectionNearChainObservations({ id, label, open, active })}
+						{@const nearChainActivityNearChainObservationsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.NearRpc_JsonRpc,
+			],
+		})}
+						<ResourceBoundary
+							resource={nearChainActivityNearChainObservationsResource}
+						>
+							{#snippet children(nearNetworkTimestamp)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<NearNetwork_TimestampsView
+										selection={nearChainActivityNearChainObservationsResource}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
 
-				{#snippet SectionNearValidatorList({ id, label, open })}
-					<NearValidatorsView
-						selection={
-							selection.$$validators({
-								sources: [
-									Source.NearRpc_JsonRpc,
-								],
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						collapsible={false}
-						data-column-item="flexible"
-						data-card
-						data-scroll-container
-						emptyText='No validators available.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
 
-			</CollapsibleTabs>
-		{/if}
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet MarkerNearChainBlocks(_context, Content)}
+						{@const nearChainActivityNearChainBlocksResource = selection
+		.$$blocks({
+			sources: [
+				Source.NearRpc_JsonRpc,
+			],
+		})}
+						<ResourceBoundary
+							resource={nearChainActivityNearChainBlocksResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionNearChainBlocks({ id, label, open, active })}
+						{@const nearChainActivityNearChainBlocksResource = selection
+		.$$blocks({
+			sources: [
+				Source.NearRpc_JsonRpc,
+			],
+		})}
+						<ResourceBoundary
+							resource={nearChainActivityNearChainBlocksResource}
+						>
+							{#snippet children(nearBlock)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<NearBlocksView
+										selection={nearChainActivityNearChainBlocksResource}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
+
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-near-validators'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'near-validator-list',
+								label: 'Validators',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-validators'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Validators</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet MarkerNearValidatorList(_context, Content)}
+						{@const nearValidatorsNearValidatorListResource = selection
+		.$$validators({
+			sources: [
+				Source.NearRpc_JsonRpc,
+			],
+		})}
+						<ResourceBoundary
+							resource={nearValidatorsNearValidatorListResource}
+						>
+							{#snippet children(_resolved)}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionNearValidatorList({ id, label, open, active })}
+						{@const nearValidatorsNearValidatorListResource = selection
+		.$$validators({
+			sources: [
+				Source.NearRpc_JsonRpc,
+			],
+		})}
+						<ResourceBoundary
+							resource={nearValidatorsNearValidatorListResource}
+						>
+							{#snippet children(nearValidator)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<NearValidatorsView
+										selection={nearValidatorsNearValidatorListResource}
+										CollapsibleProps={{ canToggle: false }}
+										collapsible={false}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
 	{/snippet}
 </EntityView>

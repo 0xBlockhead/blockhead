@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadAgentProviderCall>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadAgentProviderCall>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAgentProviderCall>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,14 +43,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAgentProviderCall = $derived(selection({
+	const blockheadAgentProviderCall = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			status: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			status: true,
 		},
 	}))
 	const titleFallback = $derived((String((pendingEntity.indexInTurn) ?? '') ? 'Call #' + String((pendingEntity.indexInTurn) ?? '') : '') || 'blockhead agent provider call')
-	const viewDomId = $derived('blockhead-agent-provider-call-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-agent-provider-call-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -93,7 +99,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
 			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadAgentProviderCall}>
@@ -111,12 +117,21 @@
 				<dt>turn</dt>
 				<dd>
 					<BlockheadAgentConversationTurnView
-						selection={select(EntityType.BlockheadAgentConversationTurn, selection.entitySelector.$turn, {})}
+						selection={select(EntityType.BlockheadAgentConversationTurn, selection.entitySelector.$turn)}
 						href={
-							(selection.entitySelector.$turn.id !== undefined && selection.entitySelector.$turn.$conversation !== undefined && selection.entitySelector.$turn.$conversation.id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]/turn/[turnId=stringSegment]', {
+							(
+								selection.entitySelector.$turn != null && 'id' in selection.entitySelector.$turn
+								&& selection.entitySelector.$turn.id != null
+								&& selection.entitySelector.$turn != null && '$conversation' in selection.entitySelector.$turn
+								&& selection.entitySelector.$turn.$conversation != null && 'id' in selection.entitySelector.$turn.$conversation
+								&& selection.entitySelector.$turn.$conversation.id != null ?
+									resolve('/~/agents/conversation/[conversationId=stringSegment]/turn/[turnId=stringSegment]', {
 								turnId: String(selection.entitySelector.$turn.id ?? ''),
 								conversationId: String(selection.entitySelector.$turn.$conversation.id ?? ''),
-							}) : undefined)
+							})
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}

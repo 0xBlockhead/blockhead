@@ -2,22 +2,22 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'XRPL amendments',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -29,7 +29,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.XrplAmendment>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.XrplAmendment>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -39,20 +40,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import XrplAmendmentView from '$/views/XrplAmendmentView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -80,6 +73,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(xrplAmendments) => [...new Map(xrplAmendments.values.map((xrplAmendment) => [xrplAmendment[EntityMetaKey.SelectorKey], xrplAmendment])).values()]}
 	getKey={(xrplAmendment) => xrplAmendment[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -94,22 +88,40 @@
 
 	{#snippet Item({ item: xrplAmendment })}
 		{@const xrplAmendmentFields = { ...xrplAmendment[EntityMetaKey.Selector], ...xrplAmendment }}
-		{@const selection = select(EntityType.XrplAmendment, xrplAmendment[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const xrplAmendmentHrefFields = { ...xrplAmendment, ...xrplAmendment[EntityMetaKey.Selector] }}
-		<XrplAmendmentView
-			selection={selection}
-			prefetched={xrplAmendmentFields}
+		<EntityView
+			entityType={EntityType.XrplAmendment}
+			entitySelector={xrplAmendment[EntityMetaKey.Selector]}
 			href={
-				(xrplAmendmentHrefFields.amendmentId !== undefined && xrplAmendmentHrefFields.$network !== undefined && xrplAmendmentHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/amendment/[amendmentId=stringSegment]', {
-					amendmentId: String(xrplAmendmentHrefFields.amendmentId ?? ''),
-					network: String(caip2StringFromValue(xrplAmendmentHrefFields.$network.caip2) ?? ''),
-				}) : xrplAmendmentHrefFields.amendmentId !== undefined && xrplAmendmentHrefFields.$network !== undefined && xrplAmendmentHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/amendment/[amendmentId=stringSegment]', {
-					amendmentId: String(xrplAmendmentHrefFields.amendmentId ?? ''),
-					network: String(xrplAmendmentHrefFields.$network.slug ?? ''),
-				}) : undefined)
+				(
+					xrplAmendment[EntityMetaKey.Selector] != null && 'amendmentId' in xrplAmendment[EntityMetaKey.Selector]
+					&& xrplAmendment[EntityMetaKey.Selector].amendmentId != null
+					&& xrplAmendment[EntityMetaKey.Selector] != null && '$network' in xrplAmendment[EntityMetaKey.Selector] ?
+						xrplAmendment[EntityMetaKey.Selector].$network != null && 'caip2' in xrplAmendment[EntityMetaKey.Selector].$network
+						&& xrplAmendment[EntityMetaKey.Selector].$network.caip2 != null ?
+							resolve('/network/[network=networkCaip2OrNetworkSlug]/amendment/[amendmentId=stringSegment]', {
+						amendmentId: String(xrplAmendment[EntityMetaKey.Selector].amendmentId ?? ''),
+						network: String(caip2StringFromValue(xrplAmendment[EntityMetaKey.Selector].$network.caip2) ?? ''),
+					})
+					:
+							xrplAmendment[EntityMetaKey.Selector].$network != null && 'slug' in xrplAmendment[EntityMetaKey.Selector].$network
+							&& xrplAmendment[EntityMetaKey.Selector].$network.slug != null ?
+								resolve('/network/[network=networkCaip2OrNetworkSlug]/amendment/[amendmentId=stringSegment]', {
+							amendmentId: String(xrplAmendment[EntityMetaKey.Selector].amendmentId ?? ''),
+							network: String(xrplAmendment[EntityMetaKey.Selector].$network.slug ?? ''),
+						})
+						:
+							undefined
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'XRPL amendment'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

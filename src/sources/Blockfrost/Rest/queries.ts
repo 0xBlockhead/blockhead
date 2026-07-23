@@ -2,13 +2,19 @@ import { throwHttpError } from '$/lib/http.ts'
 import { firstHttpUrlForBinding, sourceFetch } from '$/sources/_runtime/http.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
+	BlockfrostAddress,
+	BlockfrostAddressTotal,
+	BlockfrostAddressTransactions,
+	BlockfrostAddressUtxos,
 	BlockfrostAssets,
 	BlockfrostBlock,
 	BlockfrostBlocks,
 	BlockfrostCommittee,
 	BlockfrostCommitteeVotes,
 	BlockfrostDReps,
+	BlockfrostDRepListItem,
 	BlockfrostDRep,
+	BlockfrostDRepIdentity,
 	BlockfrostDRepMetadata,
 	BlockfrostDRepVotes,
 	BlockfrostEpoch,
@@ -22,8 +28,12 @@ import type {
 	BlockfrostStakePools,
 	BlockfrostStakePool,
 	BlockfrostStakePoolMetadata,
+	BlockfrostTransaction,
+	BlockfrostTransactionUtxos,
 	BlockfrostTransactions,
 } from '$/sources/Blockfrost/Rest/types.ts'
+import { blockfrostDRepIdentityMetadata } from '$/sources/Blockfrost/Rest/types.ts'
+import { type } from 'arktype'
 
 export const request = async <_Response>({
 	binding,
@@ -61,14 +71,21 @@ const getOptional = async <_Response>(binding: SourceBinding, path: string) => {
 const listPage = <_Response>(
 	binding: SourceBinding,
 	path: string,
-	count: number
+	count: number,
+	order?: 'asc' | 'desc',
+	page?: number
 ) => {
 	if (!Number.isSafeInteger(count) || count < 0 || count > 100)
 		throw new Error('Blockfrost_Rest: list count must be an integer from 0 through 100')
+	if (page != null && (!Number.isSafeInteger(page) || page < 1))
+		throw new Error('Blockfrost_Rest: list page must be a positive integer')
 
 	return count === 0
 		? Promise.resolve<_Response[]>([])
-		: get<_Response[]>(binding, `${path}?count=${count.toString()}`)
+		: get<_Response[]>(
+			binding,
+			`${path}?count=${count.toString()}${order == null ? '' : `&order=${order}`}${page == null ? '' : `&page=${page.toString()}`}`
+		)
 }
 
 export const getHealth = (binding: SourceBinding) => (
@@ -79,8 +96,54 @@ export const getLatestBlock = (binding: SourceBinding) => (
 	get<BlockfrostBlock>(binding, 'blocks/latest')
 )
 
+export const getAddress = (binding: SourceBinding, address: string) => (
+	get<BlockfrostAddress>(binding, `addresses/${encodeURIComponent(address)}`)
+)
+
+export const getAddressTotal = (binding: SourceBinding, address: string) => (
+	get<BlockfrostAddressTotal>(binding, `addresses/${encodeURIComponent(address)}/total`)
+)
+
+export const listAddressTransactions = (
+	binding: SourceBinding,
+	address: string,
+	count: number,
+	page = 1
+) => (
+	listPage<BlockfrostAddressTransactions[number]>(
+		binding,
+		`addresses/${encodeURIComponent(address)}/transactions`,
+		count,
+		'desc',
+		page
+	)
+)
+
+export const listAddressUtxos = (
+	binding: SourceBinding,
+	address: string,
+	count: number,
+	page = 1
+) => (
+	listPage<BlockfrostAddressUtxos[number]>(
+		binding,
+		`addresses/${encodeURIComponent(address)}/utxos`,
+		count,
+		'desc',
+		page
+	)
+)
+
 export const getBlock = (binding: SourceBinding, blockId: string) => (
 	get<BlockfrostBlock>(binding, `blocks/${encodeURIComponent(blockId)}`)
+)
+
+export const getTransaction = (binding: SourceBinding, hash: string) => (
+	get<BlockfrostTransaction>(binding, `txs/${encodeURIComponent(hash)}`)
+)
+
+export const getTransactionUtxos = (binding: SourceBinding, hash: string) => (
+	get<BlockfrostTransactionUtxos>(binding, `txs/${encodeURIComponent(hash)}/utxos`)
 )
 
 export const listBlocks = async (binding: SourceBinding, count: number) => {
@@ -131,7 +194,18 @@ export const getStakePoolMetadata = (binding: SourceBinding, poolId: string) => 
 )
 
 export const listDReps = (binding: SourceBinding, count: number) => (
-	listPage<BlockfrostDReps[number]>(binding, 'governance/dreps', count)
+	listPage<BlockfrostDReps[number]>(binding, 'governance/dreps', count).then((dReps) => (
+		dReps.map(({ metadata, ...dRep }): BlockfrostDRepListItem => {
+			const identityMetadata = blockfrostDRepIdentityMetadata(metadata?.json_metadata)
+
+			return {
+				...dRep,
+				...(identityMetadata instanceof type.errors ? {} : {
+					displayName: identityMetadata.body.givenName,
+				}),
+			}
+		})
+	))
 )
 
 export const getDRep = (binding: SourceBinding, drepId: string) => (
@@ -139,7 +213,20 @@ export const getDRep = (binding: SourceBinding, drepId: string) => (
 )
 
 export const getDRepMetadata = (binding: SourceBinding, drepId: string) => (
-	getOptional<BlockfrostDRepMetadata>(binding, `governance/dreps/${encodeURIComponent(drepId)}/metadata`)
+	getOptional<BlockfrostDRepMetadata>(binding, `governance/dreps/${encodeURIComponent(drepId)}/metadata`).then((metadata) => {
+		if (metadata == null)
+			return
+
+		const identityMetadata = blockfrostDRepIdentityMetadata(metadata.json_metadata)
+
+		return {
+			url: metadata.url,
+			hash: metadata.hash,
+			...(identityMetadata instanceof type.errors ? {} : {
+				displayName: identityMetadata.body.givenName,
+			}),
+		} satisfies BlockfrostDRepIdentity
+	})
 )
 
 export const listDRepVotes = (binding: SourceBinding, drepId: string, count: number) => (
@@ -148,9 +235,10 @@ export const listDRepVotes = (binding: SourceBinding, drepId: string, count: num
 
 export const listGovernanceProposals = (
 	binding: SourceBinding,
-	count: number
+	count: number,
+	page?: number
 ) => (
-	listPage<BlockfrostGovernanceProposals[number]>(binding, 'governance/proposals', count)
+	listPage<BlockfrostGovernanceProposals[number]>(binding, 'governance/proposals', count, undefined, page)
 )
 
 export const getGovernanceProposal = (
@@ -173,9 +261,10 @@ export const listGovernanceProposalVotes = (
 	binding: SourceBinding,
 	transactionHash: string,
 	certificateIndex: number,
-	count: number
+	count: number,
+	page?: number
 ) => (
-	listPage<BlockfrostGovernanceProposalVotes[number]>(binding, `governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}/votes`, count)
+	listPage<BlockfrostGovernanceProposalVotes[number]>(binding, `governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}/votes`, count, undefined, page)
 )
 
 export const listAssets = (binding: SourceBinding, count: number) => (

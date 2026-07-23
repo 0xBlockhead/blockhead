@@ -81,7 +81,6 @@ export const RedditLink = entity({
 		entityType: EntityType.RedditComment,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Constants_Internal,
 			Source.Reddit_PublicJson,
 		],
 	},

@@ -44,14 +44,14 @@
 				}
 				title='Beacon slots'
 				selection={
-					projection.$$beaconSlots({
-						sources: [
-							Source.Beacon_Rest,
-						],
-						count: true,
-					})
+					projection
+						.$$beaconSlots({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
 				}
-				id='beacon-slots'
+				id='account-beacon-slot'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

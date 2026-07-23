@@ -1,5 +1,11 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceDelivery,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
+
 const sourceFetch = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
@@ -36,7 +42,12 @@ test('uses the feed-target HttpProxy binding and parses its response', async () 
 	})
 	expect(sourceFetch).toHaveBeenCalledWith(
 		expect.objectContaining({
-			proxyId: 'Rss_Rest-271',
+			source: Source.Rss_Rest,
+			target: {
+				kind: SourceTargetKind.Feed,
+				key: 'https://hnrss.org',
+			},
+			delivery: SourceDelivery.HttpProxy,
 		}),
 		'https://hnrss.org/frontpage'
 	)

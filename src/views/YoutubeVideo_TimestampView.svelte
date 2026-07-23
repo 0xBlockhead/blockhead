@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.YoutubeVideo_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.YoutubeVideo_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.YoutubeVideo_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const youtubeVideoTimestamp = $derived(selection({
+	const youtubeVideoTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'YouTube video observation')
-	const viewDomId = $derived('youtube-video-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('youtube-video-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,61 +65,47 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$video !== undefined && pendingEntity.$video.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			videoId: encodeURIComponent(String(pendingEntity.$video.videoId ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$video' in selection.entitySelector
+			&& selection.entitySelector.$video != null && 'videoId' in selection.entitySelector.$video
+			&& selection.entitySelector.$video.videoId != null ?
+				resolve('/youtube/video/[videoId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			videoId: encodeURIComponent(String(selection.entitySelector.$video.videoId ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<YoutubeVideoView
-						selection={select(EntityType.YoutubeVideo, selection.entitySelector.$video)}
-						href={
-						(selection.entitySelector.$video.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
-							videoId: encodeURIComponent(String(selection.entitySelector.$video.videoId ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-					{@const timestampMs1 = pendingEntity.timestampMs}
-					{#if timestampMs1 !== undefined && timestampMs1 !== null}
-						<Timestamp timestamp={Number(timestampMs1)} />
-					{/if}
-					{@const source2 = pendingEntity.source}
-					{#if source2 !== undefined && source2 !== null}
-						{String((source2) ?? '')}
-					{/if}
-		{:else}
-			<ResourceBoundary resource={youtubeVideoTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<YoutubeVideoView
-						selection={select(EntityType.YoutubeVideo, selection.entitySelector.$video)}
-						href={
-						(selection.entitySelector.$video.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
-							videoId: encodeURIComponent(String(selection.entitySelector.$video.videoId ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-					{@const timestampMs1 = resolvedEntity.timestampMs}
-					{#if timestampMs1 !== undefined && timestampMs1 !== null}
-						<Timestamp timestamp={Number(timestampMs1)} />
-					{/if}
-					{@const source2 = resolvedEntity.source}
-					{#if source2 !== undefined && source2 !== null}
-						{String((source2) ?? '')}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={youtubeVideoTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<YoutubeVideoView
+					selection={select(EntityType.YoutubeVideo, selection.entitySelector.$video)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+				{@const timestampMs1 = resolvedEntity.timestampMs}
+				{#if timestampMs1 !== undefined && timestampMs1 !== null}
+					<Timestamp timestamp={Number(timestampMs1)} />
+				{/if}
+				{@const source2 = resolvedEntity.source}
+				{#if source2 !== undefined && source2 !== null}
+					{String((source2) ?? '')}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.CardanoGovernanceProposal>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CardanoGovernanceProposal>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoGovernanceProposal>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,14 +44,21 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoGovernanceProposal = $derived(selection({
+	const cardanoGovernanceProposal = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
 		sources: selection.sources,
 		fields: {
 			proposalKind: true,
+			governanceActionId: true,
+		},
+	} : {
+		sources: selection.sources,
+		fields: {
+			proposalKind: true,
+			governanceActionId: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.proposalKind) ?? ''), (String((pendingEntity.proposalTxHash) ?? '') ? 'Proposal ' + String((pendingEntity.proposalTxHash) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano governance proposal')
-	const viewDomId = $derived('cardano-governance-proposal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const titleFallback = $derived([String((pendingEntity.proposalKind) ?? ''), String((pendingEntity.governanceActionId) ?? '')].filter(Boolean).join(' ') || 'Cardano governance proposal')
+	const viewDomId = $derived('cardano-governance-proposal-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,41 +78,58 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.proposalTxHash !== undefined && pendingEntity.proposalIndex !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
-			proposalTxHash: String(pendingEntity.proposalTxHash ?? ''),
-			proposalIndex: String(pendingEntity.proposalIndex ?? ''),
-			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
-		}) : pendingEntity.proposalTxHash !== undefined && pendingEntity.proposalIndex !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
-			proposalTxHash: String(pendingEntity.proposalTxHash ?? ''),
-			proposalIndex: String(pendingEntity.proposalIndex ?? ''),
-			network: String(pendingEntity.$network.slug ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'proposalTxHash' in selection.entitySelector
+			&& selection.entitySelector.proposalTxHash != null
+			&& selection.entitySelector != null && 'proposalIndex' in selection.entitySelector
+			&& selection.entitySelector.proposalIndex != null
+			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
+				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+				&& selection.entitySelector.$network.caip2 != null ?
+					resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
+				proposalTxHash: String(selection.entitySelector.proposalTxHash ?? ''),
+				proposalIndex: String(selection.entitySelector.proposalIndex ?? ''),
+				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+			})
+			:
+					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+					&& selection.entitySelector.$network.slug != null ?
+						resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
+					proposalTxHash: String(selection.entitySelector.proposalTxHash ?? ''),
+					proposalIndex: String(selection.entitySelector.proposalIndex ?? ''),
+					network: String(selection.entitySelector.$network.slug ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.proposalKind) ?? ''), (String((pendingEntity.proposalTxHash) ?? '') ? 'Proposal ' + String((pendingEntity.proposalTxHash) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'proposalKind') && Object.hasOwn(prefetched, 'governanceActionId')}
+			{[String((pendingEntity.proposalKind) ?? ''), String((pendingEntity.governanceActionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cardanoGovernanceProposal}>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.proposalKind) ?? ''), (String((resolvedEntity.proposalTxHash) ?? '') ? 'Proposal ' + String((resolvedEntity.proposalTxHash) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+					{[String((resolvedEntity.proposalKind) ?? ''), String((resolvedEntity.governanceActionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{[(String((pendingEntity.proposalIndex) ?? '') ? '#' + String((pendingEntity.proposalIndex) ?? '') : '')].filter(Boolean).join(' ') || [String((pendingEntity.proposalKind) ?? ''), (String((pendingEntity.proposalTxHash) ?? '') ? 'Proposal ' + String((pendingEntity.proposalTxHash) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'proposalKind') && Object.hasOwn(prefetched, 'governanceActionId')}
+			{[(String((pendingEntity.proposalTxHash) ?? '') ? 'Proposal ' + String((pendingEntity.proposalTxHash) ?? '') : ''), (String((pendingEntity.proposalIndex) ?? '') ? '#' + String((pendingEntity.proposalIndex) ?? '') : '')].filter(Boolean).join(' ') || [String((pendingEntity.proposalKind) ?? ''), String((pendingEntity.governanceActionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={cardanoGovernanceProposal}>
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[(String((resolvedEntity.proposalIndex) ?? '') ? '#' + String((resolvedEntity.proposalIndex) ?? '') : '')].filter(Boolean).join(' ') || [String((resolvedEntity.proposalKind) ?? ''), (String((resolvedEntity.proposalTxHash) ?? '') ? 'Proposal ' + String((resolvedEntity.proposalTxHash) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
+					{[(String((resolvedEntity.proposalTxHash) ?? '') ? 'Proposal ' + String((resolvedEntity.proposalTxHash) ?? '') : ''), (String((resolvedEntity.proposalIndex) ?? '') ? '#' + String((resolvedEntity.proposalIndex) ?? '') : '')].filter(Boolean).join(' ') || [String((resolvedEntity.proposalKind) ?? ''), String((resolvedEntity.governanceActionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
@@ -116,13 +141,23 @@
 				<dt>network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -132,11 +167,12 @@
 
 			<ResourceBoundary
 				resource={
-					selection.$transaction({
-						sources: [
-							Source.Blockfrost_Rest,
-						],
-					})
+					selection
+						.$transaction({
+							sources: [
+								Source.CardanoKoios_Rest,
+							],
+						})
 				}
 			>
 				{#snippet children(cardanoTransaction)}
@@ -147,6 +183,30 @@
 								<CardanoTransactionView
 									selection={select(EntityType.CardanoTransaction, cardanoTransaction[EntityMetaKey.Selector])}
 									prefetched={cardanoTransaction}
+									href={
+										(
+											cardanoTransaction[EntityMetaKey.Selector] != null && 'hash' in cardanoTransaction[EntityMetaKey.Selector]
+											&& cardanoTransaction[EntityMetaKey.Selector].hash != null
+											&& cardanoTransaction[EntityMetaKey.Selector] != null && '$network' in cardanoTransaction[EntityMetaKey.Selector] ?
+												cardanoTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in cardanoTransaction[EntityMetaKey.Selector].$network
+												&& cardanoTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
+													resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+												transactionId: String(cardanoTransaction[EntityMetaKey.Selector].hash ?? ''),
+												network: String(caip2StringFromValue(cardanoTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											})
+											:
+													cardanoTransaction[EntityMetaKey.Selector].$network != null && 'slug' in cardanoTransaction[EntityMetaKey.Selector].$network
+													&& cardanoTransaction[EntityMetaKey.Selector].$network.slug != null ?
+														resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+													transactionId: String(cardanoTransaction[EntityMetaKey.Selector].hash ?? ''),
+													network: String(cardanoTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
+												})
+												:
+													undefined
+										:
+												undefined
+										)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -179,6 +239,30 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: selection.sources,
+						fields: {
+							governanceActionId: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const governanceActionId = resolvedEntity.governanceActionId}
+					{#if governanceActionId !== undefined && governanceActionId !== null}
+						<div>
+							<dt>governance action ID</dt>
+							<dd>
+								{String((governanceActionId) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={
@@ -287,37 +371,69 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<ResourceBoundary
+			resource={
+				selection({
+					sources: selection.sources,
+					fields: {
+						proposalPayload: true,
+					},
+				})
+			}
+		>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const proposalPayload = resolvedEntity.proposalPayload}
+				{#if proposalPayload !== undefined && proposalPayload !== null && proposalPayload !== ''}
+					<code>{proposalPayload == null ? '' : String((JSON.stringify((proposalPayload), null, 2)) ?? '')}</code>
+				{:else}
+					<p data-text="muted">No proposal payload available.</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<CardanoGovernanceProposal_TimestampsView
-				selection={
-						selection.$$timestamps({
-							sources: [
-								Source.Blockfrost_Rest,
-							],
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No proposal lifecycle observations.'
-				id='CardanoGovernanceProposal_TimestampsView-timestamps'
-			/>
-
-			<CardanoGovernanceVotesView
-				selection={
-						selection.$$votes({
-							sources: [
-								Source.Blockfrost_Rest,
-							],
-							count: true,
-						})
-					}
-				title='votes'
-				emptyText='No votes.'
-				id='CardanoGovernanceVotesView-votes'
-			/>
-		{/if}
+				{@const cardanoGovernanceProposalCardanoGovernanceProposalTimestampsViewTimestampsResource = selection
+		.$$timestamps({
+			sources: [
+				Source.Blockfrost_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={cardanoGovernanceProposalCardanoGovernanceProposalTimestampsViewTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<CardanoGovernanceProposal_TimestampsView
+							selection={cardanoGovernanceProposalCardanoGovernanceProposalTimestampsViewTimestampsResource}
+							countResource={cardanoGovernanceProposalCardanoGovernanceProposalTimestampsViewTimestampsResource.count}
+							title='timestamps'
+							id='CardanoGovernanceProposal_TimestampsView-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const cardanoGovernanceProposalCardanoGovernanceVotesViewVotesResource = selection
+		.$$votes({
+			sources: [
+				Source.Blockfrost_Rest,
+			],
+		})}
+				<ResourceBoundary
+					resource={cardanoGovernanceProposalCardanoGovernanceVotesViewVotesResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<CardanoGovernanceVotesView
+							selection={cardanoGovernanceProposalCardanoGovernanceVotesViewVotesResource}
+							countResource={cardanoGovernanceProposalCardanoGovernanceVotesViewVotesResource.count}
+							title='votes'
+							id='CardanoGovernanceVotesView-votes'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

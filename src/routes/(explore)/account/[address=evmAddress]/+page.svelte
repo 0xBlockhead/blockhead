@@ -26,11 +26,11 @@
 			Source.Constants_Internal,
 		],
 		fields: {
+			interopAddress: true,
 			avatarUrl: true,
 			$primaryName: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.address) ?? '')].filter(Boolean).join(' ') || 'EVM account' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'EVM account'))
 
 
 	// Components
@@ -40,7 +40,11 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • EVM account • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [String(({
+		address: params.address,
+	}.address) ?? '')].filter(Boolean).join(' ') || 'EVM account' : [String((({ ...{
+		address: params.address,
+	}, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'EVM account')} • EVM account • Blockhead</title>
 </svelte:head>
 
 

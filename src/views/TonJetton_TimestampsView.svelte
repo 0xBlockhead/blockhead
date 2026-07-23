@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'TON jetton observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.TonJetton_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.TonJetton_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import TonJetton_TimestampView from '$/views/TonJetton_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(tonJettonTimestamps) => [...new Map(tonJettonTimestamps.values.map((tonJettonTimestamp) => [tonJettonTimestamp[EntityMetaKey.SelectorKey], tonJettonTimestamp])).values()]}
 	getKey={(tonJettonTimestamp) => tonJettonTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: tonJettonTimestamp })}
 		{@const tonJettonTimestampFields = { ...tonJettonTimestamp[EntityMetaKey.Selector], ...tonJettonTimestamp }}
-		{@const selection = select(EntityType.TonJetton_Timestamp, tonJettonTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<TonJetton_TimestampView
-			selection={selection}
-			prefetched={tonJettonTimestampFields}
+		<EntityView
+			entityType={EntityType.TonJetton_Timestamp}
+			entitySelector={tonJettonTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'TON jetton timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

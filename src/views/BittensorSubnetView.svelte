@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,7 +30,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BittensorSubnet>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BittensorSubnet>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BittensorSubnet>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,14 +44,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bittensorSubnet = $derived(selection({
+	const bittensorSubnet = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			name: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			name: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.netuid) ?? '')].filter(Boolean).join(' ') || 'Bittensor subnet')
-	const viewDomId = $derived('bittensor-subnet-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('bittensor-subnet-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,7 +79,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
 			{[String((pendingEntity.name) ?? ''), String((pendingEntity.netuid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={bittensorSubnet}>
@@ -86,7 +92,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
 			{[String((pendingEntity.netuid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.netuid) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={bittensorSubnet}>
@@ -104,13 +110,23 @@
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							(
+								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
+								&& selection.entitySelector.$network.caip2 != null ?
+									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(selection.entitySelector.$network.slug ?? ''),
-							}) : undefined)
+							})
+							:
+									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
+									&& selection.entitySelector.$network.slug != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(selection.entitySelector.$network.slug ?? ''),
+								})
+								:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -249,32 +265,45 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BittensorMetagraph_TimestampsView
-				selection={
-						selection.$$metagraphTimestamps({
-							sources: [
-								Source.Bittensor_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Metagraph observations'
-				id='BittensorMetagraph_TimestampsView-metagraph-timestamps'
-			/>
-
-			<BittensorNeuronsView
-				selection={
-						selection.$$neurons({
-							sources: [
-								Source.Bittensor_JsonRpc,
-							],
-							count: true,
-						})
-					}
-				title='Neurons'
-				id='BittensorNeuronsView-neurons'
-			/>
-		{/if}
+				{@const bittensorSubnetBittensorMetagraphTimestampsViewMetagraphTimestampsResource = selection
+		.$$metagraphTimestamps({
+			sources: [
+				Source.Bittensor_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={bittensorSubnetBittensorMetagraphTimestampsViewMetagraphTimestampsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<BittensorMetagraph_TimestampsView
+							selection={bittensorSubnetBittensorMetagraphTimestampsViewMetagraphTimestampsResource}
+							countResource={bittensorSubnetBittensorMetagraphTimestampsViewMetagraphTimestampsResource.count}
+							title='Metagraph observations'
+							id='BittensorMetagraph_TimestampsView-metagraph-timestamps'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				{@const bittensorSubnetBittensorNeuronsViewNeuronsResource = selection
+		.$$neurons({
+			sources: [
+				Source.Bittensor_JsonRpc,
+			],
+		})}
+				<ResourceBoundary
+					resource={bittensorSubnetBittensorNeuronsViewNeuronsResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+						<BittensorNeuronsView
+							selection={bittensorSubnetBittensorNeuronsViewNeuronsResource}
+							countResource={bittensorSubnetBittensorNeuronsViewNeuronsResource.count}
+							title='Neurons'
+							id='BittensorNeuronsView-neurons'
+						/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 	{/snippet}
 </EntityView>

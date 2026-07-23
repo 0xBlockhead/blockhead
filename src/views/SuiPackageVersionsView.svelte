@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Sui package versions',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.SuiPackageVersion>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SuiPackageVersion>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import SuiPackageVersionView from '$/views/SuiPackageVersionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(suiPackageVersions) => [...new Map(suiPackageVersions.values.map((suiPackageVersion) => [suiPackageVersion[EntityMetaKey.SelectorKey], suiPackageVersion])).values()]}
 	getKey={(suiPackageVersion) => suiPackageVersion[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: suiPackageVersion })}
 		{@const suiPackageVersionFields = { ...suiPackageVersion[EntityMetaKey.Selector], ...suiPackageVersion }}
-		{@const selection = select(EntityType.SuiPackageVersion, suiPackageVersion[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<SuiPackageVersionView
-			selection={selection}
-			prefetched={suiPackageVersionFields}
+		<EntityView
+			entityType={EntityType.SuiPackageVersion}
+			entitySelector={suiPackageVersion[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'Sui package version'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

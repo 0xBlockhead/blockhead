@@ -39,13 +39,22 @@
 		}
 		title='Profile notes'
 		selection={
-			select(EntityType.NostrProfile, data.selector).$$notes({
-				sources: [
-					Source.Constants_Internal,
-					Source.NostrBand_Rest,
-				],
-				count: true,
-			})
+			select(EntityType.NostrProfile, data.selector)
+				.$$notes({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.NostrProfile, data.selector)
+				.$$notes({
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+					],
+				}).count
 		}
 		id='notes'
 		data-column-item="flexible"

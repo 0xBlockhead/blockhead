@@ -37,7 +37,6 @@
 			assistantText: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.userPrompt) ?? '')].filter(Boolean).join(' ') || 'agent conversation turn' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).userPrompt) ?? '')].filter(Boolean).join(' ') || 'agent conversation turn'))
 
 
 	// Components
@@ -47,7 +46,12 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • agent conversation turn • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'agent conversation turn' : [String((({ ...{
+		$conversation: {
+			id: params.conversationId,
+		},
+		id: params.turnId,
+	}, ...pageSelection.entity }).userPrompt) ?? '')].filter(Boolean).join(' ') || 'agent conversation turn')} • agent conversation turn • Blockhead</title>
 </svelte:head>
 
 

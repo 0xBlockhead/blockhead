@@ -42,7 +42,6 @@
 			reachable: true,
 		},
 	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? 'ENS hub observation' : 'ENS hub observation'))
 
 
 	// Components
@@ -52,7 +51,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • ENS hub observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'ENS hub observation' : 'ENS hub observation')} • ENS hub observation • Blockhead</title>
 </svelte:head>
 
 

@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'XRPL account observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.XrplAccount_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.XrplAccount_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import XrplAccount_TimestampView from '$/views/XrplAccount_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -72,8 +65,14 @@
 	resource={
 		selection({
 			sources: selection.sources,
+			fields: {
+				balanceDrops: true,
+				source: true,
+				ledgerIndex: true,
+			},
 		})
 	}
+	{countResource}
 	getResourceItems={(xrplAccountTimestamps) => [...new Map(xrplAccountTimestamps.values.map((xrplAccountTimestamp) => [xrplAccountTimestamp[EntityMetaKey.SelectorKey], xrplAccountTimestamp])).values()]}
 	getKey={(xrplAccountTimestamp) => xrplAccountTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +87,24 @@
 
 	{#snippet Item({ item: xrplAccountTimestamp })}
 		{@const xrplAccountTimestampFields = { ...xrplAccountTimestamp[EntityMetaKey.Selector], ...xrplAccountTimestamp }}
-		{@const selection = select(EntityType.XrplAccount_Timestamp, xrplAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<XrplAccount_TimestampView
-			selection={selection}
-			prefetched={xrplAccountTimestampFields}
+		<EntityView
+			entityType={EntityType.XrplAccount_Timestamp}
+			entitySelector={xrplAccountTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((xrplAccountTimestampFields.balanceDrops) ?? '')].filter(Boolean).join(' ') || 'XRPL account timestamp'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((xrplAccountTimestampFields.source) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((xrplAccountTimestampFields.ledgerIndex) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

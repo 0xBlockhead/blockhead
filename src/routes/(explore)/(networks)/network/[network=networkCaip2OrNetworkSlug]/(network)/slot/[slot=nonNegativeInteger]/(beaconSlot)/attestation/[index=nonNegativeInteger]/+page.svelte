@@ -27,7 +27,6 @@
 			aggregationBits: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInSlot) ?? '') ? 'Attestation #' + String((pageSelection.entitySelector.indexInSlot) ?? '') : '') || 'beacon attestation' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Attestation #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon attestation')))
 
 
 	// Components
@@ -37,7 +36,23 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • beacon attestation • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}.indexInSlot) ?? '') ? 'Attestation #' + String(({
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}.indexInSlot) ?? '') : '') || 'beacon attestation' : (String((({ ...{
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Attestation #' + String((({ ...{
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon attestation'))} • beacon attestation • Blockhead</title>
 </svelte:head>
 
 

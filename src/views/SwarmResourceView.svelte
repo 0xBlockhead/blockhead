@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -28,7 +29,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.SwarmResource>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SwarmResource>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SwarmResource>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const swarmResource = $derived(selection({
+	const swarmResource = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			canonicalUri: true,
+			contentType: true,
+			displayType: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			canonicalUri: true,
@@ -57,7 +65,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || 'Swarm resource')
-	const viewDomId = $derived('swarm-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('swarm-resource-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,23 +82,37 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.contentPath === '' && pendingEntity.reference !== undefined ? resolve('/swarm/[reference=stringSegment]', {
-			reference: String(pendingEntity.reference ?? ''),
-		}) : pendingEntity.contentPath !== '' && pendingEntity.reference !== undefined && pendingEntity.contentPath !== undefined ? resolve('/swarm/[reference=stringSegment]/path/[...contentPath=stringSegment]', {
-			reference: String(pendingEntity.reference ?? ''),
-			contentPath: String(pendingEntity.contentPath ?? ''),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'reference' in selection.entitySelector
+			&& selection.entitySelector.reference != null ?
+				selection.entitySelector.reference != null ?
+					resolve('/swarm/[reference=stringSegment]', {
+				reference: String(selection.entitySelector.reference ?? ''),
+			})
+			:
+					selection.entitySelector.reference != null
+					&& selection.entitySelector != null && 'contentPath' in selection.entitySelector
+					&& selection.entitySelector.contentPath != null ?
+						resolve('/swarm/[reference=stringSegment]/path/[...contentPath=stringSegment]', {
+					reference: String(selection.entitySelector.reference ?? ''),
+					contentPath: String(selection.entitySelector.contentPath ?? ''),
+				})
+				:
+					undefined
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					{@const canonicalUri0 = pendingEntity.canonicalUri}
-					{#if canonicalUri0 !== undefined && canonicalUri0 !== null}
-						<TruncatedValue value={String((canonicalUri0) ?? '')} />
-					{/if}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'canonicalUri') && Object.hasOwn(prefetched, 'contentType') && Object.hasOwn(prefetched, 'displayType')}
+			{@const canonicalUri0 = pendingEntity.canonicalUri}
+			{#if canonicalUri0 !== undefined && canonicalUri0 !== null}
+				<TruncatedValue value={String((canonicalUri0) ?? '')} />
+			{/if}
 		{:else}
 			<ResourceBoundary resource={swarmResource}>
 				{#snippet children(entity)}
@@ -105,7 +127,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'canonicalUri') && Object.hasOwn(prefetched, 'contentType') && Object.hasOwn(prefetched, 'displayType')}
 			{[String((pendingEntity.contentType) ?? ''), String((pendingEntity.displayType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={swarmResource}>
@@ -413,9 +435,15 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
+										(
+											media[EntityMetaKey.Selector] != null && 'url' in media[EntityMetaKey.Selector]
+											&& media[EntityMetaKey.Selector].url != null ?
+												resolve('/media/[url=absoluteUrl]', {
 											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}

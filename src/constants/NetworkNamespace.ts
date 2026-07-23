@@ -1,35 +1,8 @@
 import { CoinId } from '$/constants/Coin.ts'
 import { ConsensusMechanismId } from '$/constants/ConsensusMechanism.ts'
 import { ExecutionEnvironmentId } from '$/constants/ExecutionEnvironment.ts'
+import { NetworkNamespace } from '$/constants/Network.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
-
-
-export enum NetworkNamespace {
-	Bittensor = 'Bittensor',
-	Bitcoin = 'Bitcoin',
-	BitcoinCash = 'BitcoinCash',
-	Cardano = 'Cardano',
-	Cosmos = 'Cosmos',
-	Dogecoin = 'Dogecoin',
-	Elements = 'Elements',
-	Evm = 'Evm',
-	Filecoin = 'Filecoin',
-	Hedera = 'Hedera',
-	Hyperliquid = 'Hyperliquid',
-	Lightning = 'Lightning',
-	Litecoin = 'Litecoin',
-	Logos = 'Logos',
-	Monero = 'Monero',
-	Near = 'Near',
-	Polkadot = 'Polkadot',
-	Quilibrium = 'Quilibrium',
-	Solana = 'Solana',
-	Tron = 'Tron',
-	Tezos = 'Tezos',
-	Xrpl = 'Xrpl',
-	Zcash = 'Zcash',
-	ZeroG = 'ZeroG',
-}
 
 
 // Constants

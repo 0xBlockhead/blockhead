@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { EvmInternalCallType } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
@@ -30,7 +31,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.EvmTrace>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmTrace>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmTrace>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -44,7 +45,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmTrace = $derived(selection({
+	const evmTrace = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			index: true,
+			type: true,
+			error: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			index: true,
@@ -53,7 +61,7 @@
 		},
 	}))
 	const titleFallback = $derived((String((pendingEntity.index) ?? '') ? 'Trace #' + String((pendingEntity.index) ?? '') : '') || [String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ') || 'EVM trace')
-	const viewDomId = $derived('evm-trace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('evm-trace-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -78,67 +86,42 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const serialValue = pendingEntity.index}
-			{#if serialValue !== undefined && serialValue !== null}
-				<span data-row="inline align-center gap-2 wrap">
-					<span>Trace </span>
-					<span data-badge="small">
-						#{String((serialValue) ?? '')}
-					</span>
-				</span>
-			{:else}
-				{[String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmTrace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const serialValue = resolvedEntity.index}
-					{#if serialValue !== undefined && serialValue !== null}
-						<span data-row="inline align-center gap-2 wrap">
-							<span>Trace </span>
-							<span data-badge="small">
-								#{String((serialValue) ?? '')}
-							</span>
-						</span>
-					{:else}
-						{[String((resolvedEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-	{/snippet}
-
-	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-			{@const serialValue = pendingEntity.index}
-			{#if serialValue !== undefined && serialValue !== null}
-				<span data-badge="small">
-					#{String((serialValue) ?? '')}
-				</span>
-			{:else}
-				{[String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmTrace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const serialValue = resolvedEntity.index}
-					{#if serialValue !== undefined && serialValue !== null}
+		<ResourceBoundary resource={evmTrace}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const serialValue = resolvedEntity.index}
+				{#if serialValue !== undefined && serialValue !== null}
+					<span data-row="inline align-center gap-2 wrap">
+						<span>Trace </span>
 						<span data-badge="small">
 							#{String((serialValue) ?? '')}
 						</span>
-					{:else}
-						{[String((resolvedEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+					</span>
+				{:else}
+					{[String((resolvedEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={evmTrace}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const serialValue = resolvedEntity.index}
+				{#if serialValue !== undefined && serialValue !== null}
+					<span data-badge="small">
+						#{String((serialValue) ?? '')}
+					</span>
+				{:else}
+					{[String((resolvedEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'index') && Object.hasOwn(prefetched, 'type') && Object.hasOwn(prefetched, 'error')}
 			{@const type0 = pendingEntity.type}
 			{#if type0 !== undefined && type0 !== null}
 				<span data-text="muted">
@@ -284,9 +267,15 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+										(
+											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
+											&& evmAccount[EntityMetaKey.Selector].address != null ?
+												resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -309,9 +298,15 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+										(
+											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
+											&& evmAccount[EntityMetaKey.Selector].address != null ?
+												resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
+										})
+										:
+												undefined
+										)
 									}
 									layout={EntityLayout.Value}
 									open={false}
@@ -448,15 +443,30 @@
 				<dt>Transaction</dt>
 				<dd>
 					<EvmTransactionView
-						selection={select(EntityType.EvmTransaction, selection.entitySelector.$transaction, {})}
+						selection={select(EntityType.EvmTransaction, selection.entitySelector.$transaction)}
 						href={
-							(selection.entitySelector.$transaction.txHash !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
-								network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-							}) : selection.entitySelector.$transaction.txHash !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
-								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-							}) : undefined)
+							(
+								selection.entitySelector.$transaction != null && 'txHash' in selection.entitySelector.$transaction
+								&& selection.entitySelector.$transaction.txHash != null
+								&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
+									selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
+									&& selection.entitySelector.$transaction.$network.caip2 != null ?
+										resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+									transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
+									network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+								})
+								:
+										selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
+										&& selection.entitySelector.$transaction.$network.slug != null ?
+											resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+										transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
+										network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+									})
+									:
+										undefined
+							:
+									undefined
+							)
 						}
 						layout={EntityLayout.Value}
 						open={false}
@@ -467,17 +477,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<EvmTracesView
-				selection={
-						selection.$$children({
-							count: true,
-						})
-					}
-				title='Children'
-				emptyText='No child traces.'
-				id='EvmTracesView-children'
-			/>
-		{/if}
+		{@const evmTraceEvmTracesViewChildrenResource = selection.$$children}
+		<ResourceBoundary
+			resource={evmTraceEvmTracesViewChildrenResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<EvmTracesView
+					selection={evmTraceEvmTracesViewChildrenResource}
+					countResource={evmTraceEvmTracesViewChildrenResource.count}
+					title='Children'
+					id='EvmTracesView-children'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

@@ -44,14 +44,6 @@ export type NormalizedBlockheadWallet = {
 	capabilities: readonly WalletCapability[]
 }
 
-export type NormalizedBlockheadWalletAccount = {
-	namespace: string
-	reference: string
-	accountAddress: string
-	label?: string
-	capabilities: readonly WalletCapability[]
-}
-
 export type NormalizedBlockheadWalletConnection = {
 	connectionKey: string
 	walletId: string
@@ -373,7 +365,6 @@ export type NormalizedLocalInternal = {
 	blockheadSources: readonly NormalizedBlockheadSource[]
 	blockheadWallets: readonly NormalizedBlockheadWallet[]
 	blockheadWalletConnections: readonly NormalizedBlockheadWalletConnection[]
-	blockheadWalletAccounts: readonly NormalizedBlockheadWalletAccount[]
 	blockheadSessions: readonly NormalizedBlockheadSession[]
 	blockheadSessionActions: readonly NormalizedBlockheadSessionAction[]
 	blockheadWorkspaces: readonly NormalizedBlockheadWorkspace[]
@@ -433,31 +424,6 @@ const probeBlockheadWallet = {
 	],
 } as const satisfies NormalizedBlockheadWallet
 
-const probeBlockheadWalletAccounts = [
-	{
-		namespace: 'eip155',
-		reference: '1',
-		accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
-		label: 'E2E Ethereum account',
-		capabilities: [
-			WalletCapability.SignMessage,
-			WalletCapability.SignTransaction,
-			WalletCapability.SendTransaction,
-			WalletCapability.SignTypedData,
-		],
-	},
-	{
-		namespace: 'solana',
-		reference: 'mainnet',
-		accountAddress: '11111111111111111111111111111111',
-		label: 'E2E Solana account',
-		capabilities: [
-			WalletCapability.SignMessage,
-			WalletCapability.SignTransaction,
-		],
-	},
-] as const satisfies readonly NormalizedBlockheadWalletAccount[]
-
 const probeBlockheadWalletConnection = {
 	connectionKey: 'e2e-probe-wallet-connection',
 	walletId: probeBlockheadWallet.id,
@@ -489,16 +455,7 @@ const probeBlockheadWalletConnection = {
 			events: ['change'],
 		},
 	],
-	accountIds: probeBlockheadWalletAccounts.map((account) => ({
-		namespace: account.namespace,
-		reference: account.reference,
-		accountAddress: account.accountAddress,
-	})),
-	activeAccountId: {
-		namespace: probeBlockheadWalletAccounts[0].namespace,
-		reference: probeBlockheadWalletAccounts[0].reference,
-		accountAddress: probeBlockheadWalletAccounts[0].accountAddress,
-	},
+	accountIds: [],
 	selected: true,
 	connectedAt: 0,
 } as const satisfies NormalizedBlockheadWalletConnection
@@ -858,7 +815,6 @@ const defaultNormalizedLocalInternal: NormalizedLocalInternal = {
 	blockheadSources: [probeBlockheadSource],
 	blockheadWallets: [probeBlockheadWallet],
 	blockheadWalletConnections: [probeBlockheadWalletConnection],
-	blockheadWalletAccounts: probeBlockheadWalletAccounts,
 	blockheadSessions: [
 		probeBlockheadSession,
 		probeBlockheadDirectSession,

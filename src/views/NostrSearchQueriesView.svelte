@@ -2,21 +2,21 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Nostr profile searches',
 		typeAnnotationParagraphs = ['A bounded NostrBand profile search addressed by its normalized query.'],
 		placeholderText = undefined,
@@ -28,7 +28,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrSearchQuery>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NostrSearchQuery>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -38,20 +39,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NostrSearchQueryView from '$/views/NostrSearchQueryView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(nostrSearchQueries) => [...new Map(nostrSearchQueries.values.map((nostrSearchQuery) => [nostrSearchQuery[EntityMetaKey.SelectorKey], nostrSearchQuery])).values()]}
 	getKey={(nostrSearchQuery) => nostrSearchQuery[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,18 +87,31 @@
 
 	{#snippet Item({ item: nostrSearchQuery })}
 		{@const nostrSearchQueryFields = { ...nostrSearchQuery[EntityMetaKey.Selector], ...nostrSearchQuery }}
-		{@const selection = select(EntityType.NostrSearchQuery, nostrSearchQuery[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		{@const nostrSearchQueryHrefFields = { ...nostrSearchQuery, ...nostrSearchQuery[EntityMetaKey.Selector] }}
-		<NostrSearchQueryView
-			selection={selection}
-			prefetched={nostrSearchQueryFields}
+		<EntityView
+			entityType={EntityType.NostrSearchQuery}
+			entitySelector={nostrSearchQuery[EntityMetaKey.Selector]}
 			href={
-				(nostrSearchQueryHrefFields.query !== undefined ? resolve('/nostr/search/[query=stringSegment]', {
-					query: String(nostrSearchQueryHrefFields.query ?? ''),
-				}) : undefined)
+				(
+					nostrSearchQuery[EntityMetaKey.Selector] != null && 'query' in nostrSearchQuery[EntityMetaKey.Selector]
+					&& nostrSearchQuery[EntityMetaKey.Selector].query != null ?
+						resolve('/nostr/search/[query=stringSegment]', {
+					query: String(nostrSearchQuery[EntityMetaKey.Selector].query ?? ''),
+				})
+				:
+						undefined
+				)
 			}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{[String((nostrSearchQueryFields.query) ?? '')].filter(Boolean).join(' ') || 'Nostr profile search'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((nostrSearchQueryFields.resultCount) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

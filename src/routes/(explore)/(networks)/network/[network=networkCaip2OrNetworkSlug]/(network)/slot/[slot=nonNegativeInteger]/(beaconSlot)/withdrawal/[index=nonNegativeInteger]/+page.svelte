@@ -33,7 +33,6 @@
 			$account: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? (String((pageSelection.entitySelector.indexInSlot) ?? '') ? 'Withdrawal #' + String((pageSelection.entitySelector.indexInSlot) ?? '') : '') || 'beacon withdrawal' : (String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Withdrawal #' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon withdrawal')))
 
 
 	// Components
@@ -43,7 +42,23 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • beacon withdrawal • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}.indexInSlot) ?? '') ? 'Withdrawal #' + String(({
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}.indexInSlot) ?? '') : '') || 'beacon withdrawal' : (String((({ ...{
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Withdrawal #' + String((({ ...{
+		$network: data.selector,
+		slot: Number(params.slot),
+		indexInSlot: Number(params.index),
+	}, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon withdrawal'))} • beacon withdrawal • Blockhead</title>
 </svelte:head>
 
 

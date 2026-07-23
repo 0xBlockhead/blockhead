@@ -9,6 +9,8 @@ import { neynarFeedDefaultLimit, neynarFeedMaxLimit } from '$/sources/Neynar/Res
 import type {
 	NeynarBulkUsersResponse,
 	NeynarCast,
+	NeynarConversationQuery,
+	NeynarConversationResponse,
 	NeynarFeedQuery,
 	NeynarFeedResponse,
 	NeynarUser,
@@ -102,4 +104,24 @@ export const getCastByClientUrl = async (
 		`/v2/farcaster/cast/?${searchParams}`
 	)
 	return response?.cast
+}
+
+/**
+ * One level of replies to the focal cast. Parent casts and recursive descendants
+ * are intentionally excluded from this product relationship.
+ */
+export const getCastConversation = async (
+	publicEnv: SourcePublicEnv,
+	query: NeynarConversationQuery
+): Promise<NeynarConversationResponse | undefined> => {
+	const searchParams = new URLSearchParams({
+		identifier: query.identifier,
+		type: query.type,
+		reply_depth: '1',
+		include_chronological_parent_casts: 'false',
+	})
+	return neynarFetch<NeynarConversationResponse>(
+		publicEnv,
+		`/v2/farcaster/cast/conversation/?${searchParams}`
+	)
 }

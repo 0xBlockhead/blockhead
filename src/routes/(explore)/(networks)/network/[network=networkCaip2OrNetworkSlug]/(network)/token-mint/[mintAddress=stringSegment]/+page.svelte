@@ -18,7 +18,6 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.SolanaTokenMint, data.selector))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.mintAddress) ?? '')].filter(Boolean).join(' ') || 'solana token mint' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).mintAddress) ?? '')].filter(Boolean).join(' ') || 'solana token mint')))
 
 
 	// Components
@@ -28,7 +27,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • solana token mint • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.mintAddress) ?? '')].filter(Boolean).join(' ') || 'solana token mint' : [String((({ ...data.selector, ...pageSelection.entity }).mintAddress) ?? '')].filter(Boolean).join(' ') || 'solana token mint'))} • solana token mint • Blockhead</title>
 </svelte:head>
 
 

@@ -29,12 +29,22 @@
 		selection={
 			select(EntityType.XNetwork, {
 				scope: 'XNetwork',
-			}).$$xUsers({
-				sources: [
-					Source.X_FxEmbed_Rest,
-				],
-				count: true,
 			})
+				.$$xUsers({
+					sources: [
+						Source.X_FxEmbed_Rest,
+					],
+				})
+		}
+		countResource={
+			select(EntityType.XNetwork, {
+				scope: 'XNetwork',
+			})
+				.$$xUsers({
+					sources: [
+						Source.X_FxEmbed_Rest,
+					],
+				}).count
 		}
 		id='x-users'
 		data-column-item="flexible"

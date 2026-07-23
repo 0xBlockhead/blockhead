@@ -44,14 +44,14 @@
 				}
 				title='Observations'
 				selection={
-					projection.$$timestamps({
-						sources: [
-							Source.Voltaire_JsonRpc,
-						],
-						count: true,
-					})
+					projection
+						.$$timestamps({
+							sources: [
+								Source.Voltaire_JsonRpc,
+							],
+						})
 				}
-				id='timestamps'
+				id='account-evm-network-timestamp'
 				data-column-item="flexible"
 				data-card
 				data-scroll-container

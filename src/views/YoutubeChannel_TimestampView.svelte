@@ -4,11 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.YoutubeChannel_Timestamp>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.YoutubeChannel_Timestamp>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.YoutubeChannel_Timestamp>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,11 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const youtubeChannelTimestamp = $derived(selection({
+	const youtubeChannelTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {},
+	} : {
 		sources: selection.sources,
 	}))
 	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'YouTube channel observation')
-	const viewDomId = $derived('youtube-channel-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('youtube-channel-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,61 +65,47 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$channel !== undefined && pendingEntity.$channel.channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-			channelId: encodeURIComponent(String(pendingEntity.$channel.channelId ?? '')),
-		}) : undefined)
+		href ?? (
+			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
+			&& selection.entitySelector.timestampMs != null
+			&& selection.entitySelector != null && 'source' in selection.entitySelector
+			&& selection.entitySelector.source != null
+			&& selection.entitySelector != null && '$channel' in selection.entitySelector
+			&& selection.entitySelector.$channel != null && 'channelId' in selection.entitySelector.$channel
+			&& selection.entitySelector.$channel.channelId != null ?
+				resolve('/youtube/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
+			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
+			source: String(selection.entitySelector.source ?? ''),
+			channelId: encodeURIComponent(String(selection.entitySelector.$channel.channelId ?? '')),
+		})
+		:
+				undefined
+		)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
-					<YoutubeChannelView
-						selection={select(EntityType.YoutubeChannel, selection.entitySelector.$channel)}
-						href={
-						(selection.entitySelector.$channel.channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]', {
-							channelId: encodeURIComponent(String(selection.entitySelector.$channel.channelId ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-					{@const timestampMs1 = pendingEntity.timestampMs}
-					{#if timestampMs1 !== undefined && timestampMs1 !== null}
-						<Timestamp timestamp={Number(timestampMs1)} />
-					{/if}
-					{@const source2 = pendingEntity.source}
-					{#if source2 !== undefined && source2 !== null}
-						{String((source2) ?? '')}
-					{/if}
-		{:else}
-			<ResourceBoundary resource={youtubeChannelTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<YoutubeChannelView
-						selection={select(EntityType.YoutubeChannel, selection.entitySelector.$channel)}
-						href={
-						(selection.entitySelector.$channel.channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]', {
-							channelId: encodeURIComponent(String(selection.entitySelector.$channel.channelId ?? '')),
-						}) : undefined)
-					}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-					{@const timestampMs1 = resolvedEntity.timestampMs}
-					{#if timestampMs1 !== undefined && timestampMs1 !== null}
-						<Timestamp timestamp={Number(timestampMs1)} />
-					{/if}
-					{@const source2 = resolvedEntity.source}
-					{#if source2 !== undefined && source2 !== null}
-						{String((source2) ?? '')}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={youtubeChannelTimestamp}>
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<YoutubeChannelView
+					selection={select(EntityType.YoutubeChannel, selection.entitySelector.$channel)}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+				{@const timestampMs1 = resolvedEntity.timestampMs}
+				{#if timestampMs1 !== undefined && timestampMs1 !== null}
+					<Timestamp timestamp={Number(timestampMs1)} />
+				{/if}
+				{@const source2 = resolvedEntity.source}
+				{#if source2 !== undefined && source2 !== null}
+					{String((source2) ?? '')}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

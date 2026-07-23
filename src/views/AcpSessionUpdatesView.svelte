@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'ACP session updates',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.AcpSessionUpdate>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AcpSessionUpdate>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AcpSessionUpdateView from '$/views/AcpSessionUpdateView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -79,6 +72,7 @@
 			},
 		})
 	}
+	{countResource}
 	getResourceItems={(acpSessionUpdates) => [...new Map(acpSessionUpdates.values.map((acpSessionUpdate) => [acpSessionUpdate[EntityMetaKey.SelectorKey], acpSessionUpdate])).values()]}
 	getKey={(acpSessionUpdate) => acpSessionUpdate[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -93,12 +87,24 @@
 
 	{#snippet Item({ item: acpSessionUpdate })}
 		{@const acpSessionUpdateFields = { ...acpSessionUpdate[EntityMetaKey.Selector], ...acpSessionUpdate }}
-		{@const selection = select(EntityType.AcpSessionUpdate, acpSessionUpdate[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<AcpSessionUpdateView
-			selection={selection}
-			prefetched={acpSessionUpdateFields}
+		<EntityView
+			entityType={EntityType.AcpSessionUpdate}
+			entitySelector={acpSessionUpdate[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{(String((acpSessionUpdateFields.sequence) ?? '') ? 'Update #' + String((acpSessionUpdateFields.sequence) ?? '') : '') || 'ACP session update'}
+			{/snippet}
+
+			{#snippet Value()}
+				{[String((acpSessionUpdateFields.updateKind) ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[String((acpSessionUpdateFields.timestampMs) ?? '')].filter(Boolean).join(' ')}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

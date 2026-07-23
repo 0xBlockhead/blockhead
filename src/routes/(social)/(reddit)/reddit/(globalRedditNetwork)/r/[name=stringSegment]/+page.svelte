@@ -20,7 +20,6 @@
 
 	const pageSelection = $derived(select(EntityType.RedditSubreddit, data.selector, {
 		sources: [
-			Source.Constants_Internal,
 			Source.Reddit_PublicJson,
 		],
 		fields: {
@@ -31,7 +30,6 @@
 			over18: true,
 		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.title) ?? '')].filter(Boolean).join(' ') || [(String((pageSelection.entitySelector.name) ?? '') ? 'r/' + String((pageSelection.entitySelector.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || [(String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '') ? 'r/' + String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit')))
 
 
 	// Components
@@ -41,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{pageEntityTitle} • Reddit subreddit • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? [(String((data.selector.name) ?? '') ? 'r/' + String((data.selector.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit' : [String((({ ...data.selector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || [(String((({ ...data.selector, ...pageSelection.entity }).name) ?? '') ? 'r/' + String((({ ...data.selector, ...pageSelection.entity }).name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit'))} • Reddit subreddit • Blockhead</title>
 </svelte:head>
 
 

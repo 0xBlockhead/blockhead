@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -27,7 +28,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadIntentQuote>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadIntentQuote>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadIntentQuote>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -41,7 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadIntentQuote = $derived(selection({
+	const blockheadIntentQuote = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			source: true,
+			providerProtocol: true,
+			requestedAt: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			source: true,
@@ -51,7 +59,7 @@
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || 'blockhead intent quote')
-	const viewDomId = $derived('blockhead-intent-quote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-intent-quote-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -74,7 +82,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'providerProtocol') && Object.hasOwn(prefetched, 'source') && Object.hasOwn(prefetched, 'requestedAt')}
 			{[String((pendingEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadIntentQuote}>
@@ -87,7 +95,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'providerProtocol') && Object.hasOwn(prefetched, 'source') && Object.hasOwn(prefetched, 'requestedAt')}
 			{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadIntentQuote}>
@@ -100,7 +108,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'providerProtocol') && Object.hasOwn(prefetched, 'source') && Object.hasOwn(prefetched, 'requestedAt')}
 			{@const requestedAt0 = pendingEntity.requestedAt}
 			{#if requestedAt0 !== undefined && requestedAt0 !== null}
 				<span data-text="muted">
@@ -341,17 +349,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadIntentQuote_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No quote observations.'
-				id='BlockheadIntentQuote_TimestampsView-timestamps'
-			/>
-		{/if}
+		{@const blockheadIntentQuoteBlockheadIntentQuoteTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadIntentQuoteBlockheadIntentQuoteTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadIntentQuote_TimestampsView
+					selection={blockheadIntentQuoteBlockheadIntentQuoteTimestampsViewTimestampsResource}
+					countResource={blockheadIntentQuoteBlockheadIntentQuoteTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadIntentQuote_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

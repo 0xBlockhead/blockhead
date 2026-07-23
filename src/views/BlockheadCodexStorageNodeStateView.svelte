@@ -3,11 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -23,7 +24,7 @@
 	}: WithRest<
 		{
 			selection: RegisteredEntityProxyResource<EntityType.BlockheadCodexStorageNodeState>
-			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadCodexStorageNodeState>>
+			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadCodexStorageNodeState>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -37,14 +38,19 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadCodexStorageNodeState = $derived(selection({
+	const blockheadCodexStorageNodeState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
+		sources: selection.sources,
+		fields: {
+			endpoint: true,
+		},
+	} : {
 		sources: selection.sources,
 		fields: {
 			endpoint: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || 'blockhead codex storage node state')
-	const viewDomId = $derived('blockhead-codex-storage-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	const viewDomId = $derived('blockhead-codex-storage-node-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,7 +72,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'endpoint')}
 			{[String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadCodexStorageNodeState}>
@@ -79,7 +85,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'endpoint')}
 			{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 		{:else}
 			<ResourceBoundary resource={blockheadCodexStorageNodeState}>
@@ -92,7 +98,7 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails}
+		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'endpoint')}
 			{@const endpoint0 = pendingEntity.endpoint}
 			{#if endpoint0 !== undefined && endpoint0 !== null}
 				<span data-text="muted">
@@ -236,28 +242,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<BlockheadCodexStorageNodeState_TimestampsView
-				selection={
-						selection.$$timestamps({
-							count: true,
-						})
-					}
-				title='timestamps'
-				emptyText='No Codex node-state observations.'
-				id='BlockheadCodexStorageNodeState_TimestampsView-timestamps'
-			/>
-
-			<BlockheadCodexStoredDataEntriesView
-				selection={
-						selection.$$storedData({
-							count: true,
-						})
-					}
-				title='Stored Data'
-				emptyText='No stored data.'
-				id='BlockheadCodexStoredDataEntriesView-stored-data'
-			/>
-		{/if}
+		{@const blockheadCodexStorageNodeStateBlockheadCodexStorageNodeStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={blockheadCodexStorageNodeStateBlockheadCodexStorageNodeStateTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadCodexStorageNodeState_TimestampsView
+					selection={blockheadCodexStorageNodeStateBlockheadCodexStorageNodeStateTimestampsViewTimestampsResource}
+					countResource={blockheadCodexStorageNodeStateBlockheadCodexStorageNodeStateTimestampsViewTimestampsResource.count}
+					title='timestamps'
+					id='BlockheadCodexStorageNodeState_TimestampsView-timestamps'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const blockheadCodexStorageNodeStateBlockheadCodexStoredDataEntriesViewStoredDataResource = selection.$$storedData}
+		<ResourceBoundary
+			resource={blockheadCodexStorageNodeStateBlockheadCodexStoredDataEntriesViewStoredDataResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+				<BlockheadCodexStoredDataEntriesView
+					selection={blockheadCodexStorageNodeStateBlockheadCodexStoredDataEntriesViewStoredDataResource}
+					countResource={blockheadCodexStorageNodeStateBlockheadCodexStoredDataEntriesViewStoredDataResource.count}
+					title='Stored Data'
+					id='BlockheadCodexStoredDataEntriesView-stored-data'
+				/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

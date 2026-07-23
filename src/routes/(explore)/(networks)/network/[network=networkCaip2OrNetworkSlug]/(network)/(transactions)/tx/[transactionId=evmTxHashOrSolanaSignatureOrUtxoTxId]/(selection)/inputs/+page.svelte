@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -18,34 +19,62 @@
 	}: PageProps = $props()
 
 
+
 	// Components
 	import Page from '$/components/Page.svelte'
+	import CardanoTxInputsView from '$/views/CardanoTxInputsView.svelte'
 	import UtxoInputsView from '$/views/UtxoInputsView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>UTXO inputs • Blockhead</title>
+	<title>Collections • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	<UtxoInputsView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/inputs', {
-				network: params.network,
-				transactionId: params.transactionId,
-			})
-		}
-		title='UTXO inputs'
-		selection={
-			select(EntityType.UtxoTransaction, data.selector).$$inputs({
-				count: true,
-			})
-		}
-		id='inputs'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
-	/>
+	{#if data.entityType === EntityType.CardanoTransaction}
+		{@const collection0Selection = select(EntityType.CardanoTransaction, data.selector)
+			.$$inputs({
+				sources: [
+					Source.Blockfrost_Rest,
+				],
+			})}
+
+		<CardanoTxInputsView
+			href={
+				resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/inputs', {
+					network: params.network,
+					transactionId: params.transactionId,
+				})
+			}
+			title='Cardano inputs'
+			selection={collection0Selection}
+			countResource={collection0Selection.count}
+			id='inputs'
+			data-column-item="flexible"
+			data-card
+			data-scroll-container
+		/>
+	{/if}
+
+	{#if data.entityType === EntityType.UtxoTransaction}
+		{@const collection1Selection = select(EntityType.UtxoTransaction, data.selector).$$inputs}
+
+		<UtxoInputsView
+			href={
+				resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/inputs', {
+					network: params.network,
+					transactionId: params.transactionId,
+				})
+			}
+			title='UTXO inputs'
+			selection={collection1Selection}
+			countResource={collection1Selection.count}
+			id='inputs'
+			data-column-item="flexible"
+			data-card
+			data-scroll-container
+		/>
+	{/if}
 </Page>

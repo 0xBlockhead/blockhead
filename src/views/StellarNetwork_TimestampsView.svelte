@@ -2,20 +2,20 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selection,
+		countResource,
 		title = 'Stellar network observations',
 		typeAnnotationParagraphs = [],
 		placeholderText = undefined,
@@ -27,7 +27,8 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: RegisteredEntityProxyEntitiesResource<EntityType.StellarNetwork_Timestamp>
+			selection: RegisteredEntityProxyEntitiesSelection<EntityType.StellarNetwork_Timestamp>
+			countResource?: SvelteKitResource<number>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -37,20 +38,12 @@
 			showTypeAnnotation?: boolean
 			id?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'href'
-			| 'CollapsibleProps'
-		>
+		EntitiesListForwardProps
 	> = $props()
-
-	const collectionSelection = $derived(selection)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import StellarNetwork_TimestampView from '$/views/StellarNetwork_TimestampView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -74,6 +67,7 @@
 			sources: selection.sources,
 		})
 	}
+	{countResource}
 	getResourceItems={(stellarNetworkTimestamps) => [...new Map(stellarNetworkTimestamps.values.map((stellarNetworkTimestamp) => [stellarNetworkTimestamp[EntityMetaKey.SelectorKey], stellarNetworkTimestamp])).values()]}
 	getKey={(stellarNetworkTimestamp) => stellarNetworkTimestamp[EntityMetaKey.SelectorKey]}
 	{placeholderText}
@@ -88,12 +82,16 @@
 
 	{#snippet Item({ item: stellarNetworkTimestamp })}
 		{@const stellarNetworkTimestampFields = { ...stellarNetworkTimestamp[EntityMetaKey.Selector], ...stellarNetworkTimestamp }}
-		{@const selection = select(EntityType.StellarNetwork_Timestamp, stellarNetworkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
-		<StellarNetwork_TimestampView
-			selection={selection}
-			prefetched={stellarNetworkTimestampFields}
+		<EntityView
+			entityType={EntityType.StellarNetwork_Timestamp}
+			entitySelector={stellarNetworkTimestamp[EntityMetaKey.Selector]}
 			layout={EntityLayout.Summary}
 			open={false}
-		/>
+			showTypeAnnotation={false}
+		>
+			{#snippet Title()}
+				{'stellar network timestamp'}
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>
