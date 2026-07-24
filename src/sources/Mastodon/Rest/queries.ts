@@ -1,6 +1,12 @@
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { mastodonFetch, mastodonFetchUrl, mastodonGet } from '$/sources/Mastodon/Rest/client.ts'
-import { mastodonInstanceByBaseUrl } from '$/constants/Mastodon.ts'
+import {
+	mastodonFetch,
+	mastodonFetchPublicTimelineUrl,
+	mastodonFetchUrl,
+	mastodonGet,
+	mastodonInstanceOrigins,
+	mastodonPublicTimelineOrigins,
+} from '$/sources/Mastodon/Rest/client.ts'
 import type {
 	MastodonApiV1Account,
 	MastodonApiV1Context,
@@ -162,7 +168,7 @@ export const listAccountStatusesPageByLocalAccountId = async (
 	const configuredInstanceOrigin = new URL(instanceOrigin).origin
 	if (
 		configuredInstanceOrigin !== instanceOrigin
-		|| mastodonInstanceByBaseUrl[configuredInstanceOrigin] == null
+		|| !mastodonInstanceOrigins.some((origin) => origin === configuredInstanceOrigin)
 	)
 		throw new Error('Mastodon_Rest: invalid authored notes instance')
 
@@ -212,14 +218,17 @@ export const listPublicTimeline = async (
 	publicEnv: SourcePublicEnv,
 	instanceOrigin: string,
 	limit: number
-) => (
-	mastodonGet<MastodonApiV1Status[]>(
-		publicEnv,
-		instanceOrigin,
-		'/timelines/public',
-		{ limit: String(Math.min(40, Math.max(1, limit))) }
-	)
-)
+) => {
+	if (!mastodonPublicTimelineOrigins.includes(instanceOrigin))
+		throw new Error(`Mastodon_Rest: public timeline binding is missing for ${instanceOrigin}`)
+
+	const url = `${instanceOrigin}/api/v1/timelines/public?limit=${Math.min(40, Math.max(1, limit))}`
+	const response = await mastodonFetchPublicTimelineUrl(publicEnv, url)
+	if (!response.ok)
+		throw new Error(`Mastodon_Rest: public timeline failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
+
+	return response.json<MastodonApiV1Status[]>()
+}
 
 export const listPublicTimelinePage = async (
 	publicEnv: SourcePublicEnv,
@@ -230,7 +239,7 @@ export const listPublicTimelinePage = async (
 	const configuredInstanceOrigin = new URL(instanceOrigin).origin
 	if (
 		configuredInstanceOrigin !== instanceOrigin
-		|| mastodonInstanceByBaseUrl[configuredInstanceOrigin] == null
+		|| !mastodonPublicTimelineOrigins.some((origin) => origin === configuredInstanceOrigin)
 	)
 		throw new Error('Mastodon_Rest: invalid public timeline instance')
 
@@ -245,7 +254,7 @@ export const listPublicTimelinePage = async (
 	)
 		throw new Error('Mastodon_Rest: invalid public timeline continuation')
 
-	const response = await mastodonFetchUrl(publicEnv, requestUrl)
+	const response = await mastodonFetchPublicTimelineUrl(publicEnv, requestUrl)
 	if (!response.ok)
 		throw new Error(`Mastodon_Rest: public timeline failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
 
@@ -289,6 +298,6 @@ export const listInstanceModeratedDomains = async (
 }
 
 export const assertInstanceMatches = (instanceOrigin: string) => {
-	if (mastodonInstanceByBaseUrl[new URL(instanceOrigin).origin] == null)
+	if (!mastodonInstanceOrigins.some((origin) => origin === new URL(instanceOrigin).origin))
 		throw new Error('Mastodon_Rest: entity instance does not match configured Mastodon-compatible ActivityPub instance')
 }

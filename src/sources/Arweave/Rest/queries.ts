@@ -1,18 +1,17 @@
-import { corsFetch, jsonErrorHintFromResponse } from '$/lib/http.ts'
+import { jsonErrorHintFromResponse } from '$/lib/http.ts'
 import { type as arktype } from 'arktype'
 import { Source } from '$/sources/Source.ts'
 import {
+	ApiFamily,
+	SourceEndpointKind,
 	SourceTargetKind,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
 	getJson,
 	getText,
 } from '$/sources/_shared/wire/HttpRest/client.ts'
-import {
-	arweaveGatewayEndpoints,
-	arweaveGatewayOrigins,
-} from '$/sources/Arweave/Rest/constants.ts'
 import type {
 	ArweaveBrowseResult,
 	ArweaveTransactionStatus,
@@ -32,8 +31,21 @@ const assertBinding = (binding: SourceBinding) => {
 		binding.source !== Source.Arweave_Rest
 		|| binding.target.kind !== SourceTargetKind.ContentAddressScheme
 		|| binding.target.key !== 'arweave'
+		|| binding.apiFamily !== ApiFamily.ArweaveGateway
 	)
 		throw new Error('Arweave_Rest: expected canonical Arweave gateway binding')
+}
+
+const arweaveGatewayEndpoints = (binding: SourceBinding) => {
+	assertBinding(binding)
+	const endpoints = binding.endpoints.filter((endpoint) => (
+		endpoint.endpointKind === SourceEndpointKind.HttpUrl
+		&& endpoint.origin != null
+	))
+	if (endpoints.length === 0)
+		throw new Error('Arweave_Rest: canonical gateway binding has no HTTP endpoints')
+
+	return endpoints
 }
 
 const assertBase64UrlId = (
@@ -136,11 +148,13 @@ export const getGatewayUrl = ({
 }
 
 export const fetchBrowseResult = async ({
+	binding,
 	transactionId,
 	contentPath,
 	maxContentBytes = 1_048_576,
 	signal,
 }: {
+	binding: SourceBinding
 	transactionId: string
 	contentPath?: string
 	maxContentBytes?: number
@@ -153,22 +167,20 @@ export const fetchBrowseResult = async ({
 		throw new Error('Arweave_Rest: content inspection limit must be from 0 through 5242880 bytes')
 	const failures: string[] = []
 
-	for (const endpoint of arweaveGatewayEndpoints) {
+	for (const endpoint of arweaveGatewayEndpoints(binding)) {
 		const gatewayUrl = getGatewayUrl({
 			transactionId: trimmedTransactionId,
 			contentPath: trimmedPath,
-			gatewayOrigin: endpoint.origin,
+			gatewayOrigin: endpoint.locator,
 		})
 
 		let contentLength: bigint | undefined
 		if (trimmedPath === '') {
-			const metadataResponse = await corsFetch(
-				`${endpoint.origin}/tx/${encodeURIComponent(trimmedTransactionId)}/offset`,
+			const metadataResponse = await sourceFetch(
+				binding,
+				`${endpoint.locator}/tx/${encodeURIComponent(trimmedTransactionId)}/offset`,
 				{
-					origins: arweaveGatewayOrigins,
-					init: {
-						signal,
-					},
+					signal,
 				}
 			)
 			if (!metadataResponse.ok) {
@@ -195,10 +207,7 @@ export const fetchBrowseResult = async ({
 				continue
 			}
 		}
-		const response = await corsFetch(gatewayUrl, {
-			origins: arweaveGatewayOrigins,
-			init: { signal },
-		})
+		const response = await sourceFetch(binding, gatewayUrl, { signal })
 		if (!response.ok) {
 			const hint = await jsonErrorHintFromResponse(response)
 			failures.push(

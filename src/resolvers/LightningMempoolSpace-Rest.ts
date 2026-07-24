@@ -3,7 +3,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
-import { lightningNetworkBySlug } from '$/constants/LightningNetwork.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -264,9 +263,7 @@ export default {
 						assertLightningNetwork($lightningNetwork.$network)
 						const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						return timestampFieldsFromMempoolSpaceStatistics(
-							(await getLightningStatistics({
-								restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
-							})).latest
+							(await getLightningStatistics()).latest
 						)
 					},
 				}
@@ -292,9 +289,8 @@ export default {
 						assertLightningNetwork($network)
 						const { getLightningNode } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						const node = await getLightningNode({
-								restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
-								publicKey: publicKey,
-							})
+							publicKey,
+						})
 						return {
 							$$timestamps: [
 								nodeFieldsFromMempoolSpaceNode(node),
@@ -321,7 +317,6 @@ export default {
 						const { getLightningNode } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						return nodeFieldsFromMempoolSpaceNode(
 							await getLightningNode({
-								restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
 								publicKey: $node.publicKey,
 							}),
 							timestampMs
@@ -350,8 +345,7 @@ export default {
 						const { getLightningChannel } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						return channelFieldsFromMempoolSpaceChannel(
 							await getLightningChannel({
-								restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
-								channelId: channelId,
+								channelId,
 							})
 						)
 					},
@@ -374,7 +368,6 @@ export default {
 						const { getLightningChannel } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						return channelTimestampFieldsFromMempoolSpaceChannel(
 							await getLightningChannel({
-								restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
 								channelId: $channel.channelId,
 							}),
 							timestampMs
@@ -402,9 +395,7 @@ export default {
 						const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						return [
 							timestampFieldsFromMempoolSpaceStatistics(
-								(await getLightningStatistics({
-									restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
-								})).latest
+								(await getLightningStatistics()).latest
 							),
 						]
 					},
@@ -431,9 +422,7 @@ export default {
 									source: Source.LightningMempoolSpace_Rest,
 								},
 								[EntityMetaKey.Fields]: timestampFieldsFromMempoolSpaceStatistics(
-									(await getLightningStatistics({
-										restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
-									})).latest
+									(await getLightningStatistics()).latest
 								)[EntityMetaKey.Fields],
 							},
 						]
@@ -454,9 +443,7 @@ export default {
 						assertLightningNetwork($network)
 						const { getTopLightningNodesByConnectivity } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						return (
-							await getTopLightningNodesByConnectivity({
-								restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
-							})
+							await getTopLightningNodesByConnectivity()
 						).slice(0, resolverContextRowLimit(context)).map(nodeReferenceFromMempoolSpaceRankedNode)
 					},
 				}
@@ -473,9 +460,7 @@ export default {
 						assertLightningNetwork(network)
 						const { getTopLightningNodesByConnectivity } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						return (
-							await getTopLightningNodesByConnectivity({
-								restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
-							})
+							await getTopLightningNodesByConnectivity()
 						).slice(0, resolverContextRowLimit(context)).map(nodeReferenceFromMempoolSpaceRankedNode)
 					},
 				}
@@ -495,8 +480,7 @@ export default {
 						const { getLightningNodeChannels } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 						return (
 							await getLightningNodeChannels({
-								restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
-								publicKey: publicKey,
+								publicKey,
 							})
 						).slice(0, resolverContextRowLimit(context)).map((channel) => ({
 							[EntityMetaKey.Selector]: {

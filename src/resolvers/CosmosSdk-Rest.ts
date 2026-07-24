@@ -10,6 +10,8 @@ import {
 import { TransportType } from '$/constants/TransportType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -55,6 +57,19 @@ const assertCosmosHub = (network: NetworkId) => {
 
 	throw new Error('CosmosSdk_Rest: unsupported network')
 }
+
+const cosmosSdkBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.CosmosSdk_Rest
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === `${cosmosNetworkBySlug.cosmos.caip2.namespace}:${cosmosNetworkBySlug.cosmos.caip2.reference}`
+	))
+
+if (cosmosSdkBindings.length !== 1)
+	throw new Error('CosmosSdk_Rest: canonical Cosmos Hub source binding is missing or ambiguous')
+
+const cosmosSdkBinding = cosmosSdkBindings[0]
 
 const cosmosNetworkApplicability = [
 	{
@@ -465,23 +480,23 @@ export default {
 			resolve: {
 				[NetworkSelector.Caip2]: {
 					appliesTo: [cosmosNetworkApplicability[0]],
-					resolve: async () => [
-						{
-							url: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+					resolve: async () => (
+						cosmosSdkBinding.endpoints.map((endpoint) => ({
+							url: endpoint.locator,
 							transportType: TransportType.Http,
 							providerName: 'Cosmos Directory',
-						},
-					],
+						}))
+					),
 				},
 				[NetworkSelector.Slug]: {
 					appliesTo: [cosmosNetworkApplicability[1]],
-					resolve: async () => [
-						{
-							url: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+					resolve: async () => (
+						cosmosSdkBinding.endpoints.map((endpoint) => ({
+							url: endpoint.locator,
 							transportType: TransportType.Http,
 							providerName: 'Cosmos Directory',
-						},
-					],
+						}))
+					),
 				}
 			},
 		})({
@@ -514,15 +529,15 @@ export default {
 							bondedValidators,
 							stakingPool,
 						] = await Promise.all([
-							getLatestBlock({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
-							getNodeInfo({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
-							getSyncing({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
+							getLatestBlock({ binding: cosmosSdkBinding }),
+							getNodeInfo({ binding: cosmosSdkBinding }),
+							getSyncing({ binding: cosmosSdkBinding }),
 							getValidators({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								limit: 1,
 								status: 'BOND_STATUS_BONDED',
 							}),
-							getStakingPool({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
+							getStakingPool({ binding: cosmosSdkBinding }),
 						])
 						return {
 							$network: {
@@ -581,7 +596,7 @@ export default {
 
 						const { getBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const wireBlock = await getBlock({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							height,
 						})
 						return {
@@ -610,7 +625,7 @@ export default {
 
 						const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const wireTransaction = await getTx({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							txHash: entitySelector.txHash,
 						})
 						if (wireTransaction.tx_response.txhash !== entitySelector.txHash)
@@ -655,11 +670,11 @@ export default {
 							latestBlock,
 						] = await Promise.all([
 							getAccount({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								address: address,
 							}),
 							getLatestBlock({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 							}),
 						])
 						if (account == null)
@@ -709,7 +724,7 @@ export default {
 
 						const { getAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const account = (await getAccount({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							address: $account.address,
 						})).account
 						if (account == null)
@@ -743,7 +758,7 @@ export default {
 						const { $network, operatorAddress } = entitySelector
 						const { getValidator } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const validator = (await getValidator({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							operatorAddress: operatorAddress,
 						})).validator
 						return {
@@ -775,7 +790,7 @@ export default {
 						return cosmosValidatorTimestampFields(
 							$validator,
 							(await getValidator({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								operatorAddress: $validator.operatorAddress,
 							})).validator,
 							timestampMs
@@ -802,7 +817,7 @@ export default {
 						const cosmosMessage = cosmosMessageRows(
 							$transaction,
 							await getTx({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								txHash: $transaction.txHash,
 							})
 							).at(indexInTransaction)
@@ -826,7 +841,7 @@ export default {
 						const { $network, proposalId } = entitySelector
 						const { getProposal } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const proposal = (await getProposal({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							proposalId: proposalId,
 						})).proposal
 						if (proposal.id !== proposalId)
@@ -866,7 +881,7 @@ export default {
 							timestampMs,
 							source,
 							status: (await getProposal({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								proposalId: $proposal.proposalId,
 							})).proposal.status,
 						}
@@ -888,7 +903,7 @@ export default {
 					resolve: async ({ $network, denom }) => {
 						const { getDenomMetadata } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const metadata = (await getDenomMetadata({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							denom: denom,
 						})).metadata
 						return {
@@ -913,7 +928,7 @@ export default {
 					resolve: async ({ $network, moduleName }) => {
 						const { getModuleAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const moduleAccount = await getModuleAccount({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							moduleName: moduleName,
 						})
 						return {
@@ -941,7 +956,7 @@ export default {
 					resolve: async ({ $network, address }) => {
 						const { getContractInfo } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const contractInfo = (await getContractInfo({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							address: address,
 						})).contract_info
 						return {
@@ -1013,7 +1028,7 @@ export default {
 					appliesTo: [cosmosNetworkApplicability[0]],
 					resolve: async (network, context) => {
 						const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const latestBlock = await getLatestBlock({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl })
+						const latestBlock = await getLatestBlock({ binding: cosmosSdkBinding })
 						const latestBlockHeight = BigInt(latestBlock.block.header.height)
 						return Array.from({
 							length: Math.min(
@@ -1032,7 +1047,7 @@ export default {
 					appliesTo: [cosmosNetworkApplicability[1]],
 					resolve: async (network, context) => {
 						const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const latestBlock = await getLatestBlock({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl })
+						const latestBlock = await getLatestBlock({ binding: cosmosSdkBinding })
 						const latestBlockHeight = BigInt(latestBlock.block.header.height)
 						return Array.from({
 							length: Math.min(
@@ -1064,7 +1079,7 @@ export default {
 						return cosmosAccountRows(
 							network,
 							(await getAccounts({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).accounts
 						).map((account) => ({
@@ -1079,7 +1094,7 @@ export default {
 						return cosmosAccountRows(
 							network,
 							(await getAccounts({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).accounts
 						).map((account) => ({
@@ -1102,7 +1117,7 @@ export default {
 					resolve: async () => {
 						const { getAccounts } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getAccounts({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'account')
 					},
@@ -1112,7 +1127,7 @@ export default {
 					resolve: async () => {
 						const { getAccounts } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getAccounts({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'account')
 					},
@@ -1136,7 +1151,7 @@ export default {
 						return cosmosValidatorRows(
 							network,
 							(await getValidators({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).validators
 						).map((validator) => ({
@@ -1151,7 +1166,7 @@ export default {
 						return cosmosValidatorRows(
 							network,
 							(await getValidators({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).validators
 						).map((validator) => ({
@@ -1174,7 +1189,7 @@ export default {
 					resolve: async (network) => {
 						const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getValidators({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'validator')
 					},
@@ -1184,7 +1199,7 @@ export default {
 					resolve: async (network) => {
 						const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getValidators({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'validator')
 					},
@@ -1208,7 +1223,7 @@ export default {
 						return cosmosProposalRows(
 							network,
 							(await getProposals({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).proposals
 						).map((proposal) => ({
@@ -1223,7 +1238,7 @@ export default {
 						return cosmosProposalRows(
 							network,
 							(await getProposals({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).proposals
 						).map((proposal) => ({
@@ -1246,7 +1261,7 @@ export default {
 					resolve: async (network) => {
 						const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getProposals({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'governance proposal')
 					},
@@ -1256,7 +1271,7 @@ export default {
 					resolve: async (network) => {
 						const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getProposals({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'governance proposal')
 					},
@@ -1281,7 +1296,7 @@ export default {
 						return cosmosMessageRows(
 							entitySelector,
 							await getTx({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								txHash: entitySelector.txHash,
 							})
 						)
@@ -1314,12 +1329,12 @@ export default {
 						const { getTransactionsByEvent } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const [senderPage, recipientPage] = await Promise.all([
 							getTransactionsByEvent({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								event: `message.sender='${cosmosAccount.address}'`,
 								limit: prefixLimit,
 							}),
 							getTransactionsByEvent({
-								restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								binding: cosmosSdkBinding,
 								event: `transfer.recipient='${cosmosAccount.address}'`,
 								limit: prefixLimit,
 							}),

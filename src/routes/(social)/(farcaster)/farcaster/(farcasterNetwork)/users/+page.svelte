@@ -33,7 +33,6 @@
 				.$$users({
 					sources: [
 						Source.Snapchain_Rest,
-						Source.Neynar_Rest,
 					],
 				})
 		}
@@ -44,7 +43,6 @@
 				.$$users({
 					sources: [
 						Source.Snapchain_Rest,
-						Source.Neynar_Rest,
 					],
 				}).count
 		}

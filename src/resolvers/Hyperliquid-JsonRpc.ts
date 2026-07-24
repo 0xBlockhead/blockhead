@@ -10,19 +10,33 @@ import {
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import { HyperliquidNetworkSelector } from '$/schema/HyperliquidNetwork.ts'
 import { HyperliquidBlockSelector } from '$/schema/HyperliquidBlock.ts'
 import { HyperliquidTransactionSelector } from '$/schema/HyperliquidTransaction.ts'
 import { HyperliquidTransaction_TimestampSelector } from '$/schema/HyperliquidTransaction_Timestamp.ts'
 import { NetworkSelector } from '$/schema/Network.ts'
 
-const hyperliquidMainnetRpcEndpoints = async () =>
-	(await import('$/sources/Hyperliquid/JsonRpc/queries.ts')).hyperliquidMainnetRpcEndpoints
+const hyperliquidJsonRpcBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.Hyperliquid_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Eip155Chain
+		&& binding.target.key === '999'
+	))
 
-const hyperliquidEvmRpcUrl = async () =>
-	(await hyperliquidMainnetRpcEndpoints())[0].url
+if (hyperliquidJsonRpcBindings.length !== 1)
+	throw new Error('Hyperliquid_JsonRpc: canonical HyperEVM source binding is missing or ambiguous')
 
+const hyperliquidJsonRpcBinding = hyperliquidJsonRpcBindings[0]
+const hyperliquidRpcEndpoints = hyperliquidJsonRpcBinding.endpoints.map((endpoint) => ({
+	url: endpoint.locator,
+	transportType: TransportType.Http,
+	providerName: 'Hyperliquid',
+}))
 
 const assertHyperliquidMainnet = (network: EntitySelector<typeof schema, EntityType.Network>) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.hyperliquid.slug)
@@ -45,7 +59,7 @@ export default {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
 							},
-							rpcEndpoints: [...await hyperliquidMainnetRpcEndpoints()],
+							rpcEndpoints: hyperliquidRpcEndpoints,
 						}
 					},
 				}
@@ -63,7 +77,7 @@ export default {
 						assertHyperliquidMainnet(network)
 						return {
 							Hyperliquid: {
-								rpcEndpoints: [...await hyperliquidMainnetRpcEndpoints()],
+								rpcEndpoints: hyperliquidRpcEndpoints,
 							},
 						}
 					},
@@ -71,7 +85,7 @@ export default {
 			},
 		})({
 				Hyperliquid: {
-					rpcEndpoints: (snapshot) => snapshot.hyperliquidRpcEndpoints,
+					rpcEndpoints: (snapshot) => snapshot.rpcEndpoints,
 				},
 			}),
 
@@ -84,7 +98,7 @@ export default {
 
 						const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 						const block = await getBlockByNumber({
-							rpcUrl: await hyperliquidEvmRpcUrl(),
+							binding: hyperliquidJsonRpcBinding,
 							height,
 							includeTransactions: true,
 						})
@@ -133,12 +147,9 @@ export default {
 				[HyperliquidTransactionSelector.NetworkTxHash]: {
 					resolve: async ({ $network, txHash }) => {
 						assertHyperliquidMainnet($network)
-						const {
-							getTransactionByHash,
-							getTransactionReceipt,
-						} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+						const { getTransactionByHash } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 						const transaction = await getTransactionByHash({
-							rpcUrl: await hyperliquidEvmRpcUrl(),
+							binding: hyperliquidJsonRpcBinding,
 							txHash: txHash,
 						})
 						if (transaction == null) throw new Error(`Hyperliquid_JsonRpc: transaction not found for ${txHash}`)
@@ -197,7 +208,7 @@ export default {
 						assertHyperliquidMainnet($transaction.$network)
 						const { getTransactionReceipt } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 						const receipt = await getTransactionReceipt({
-							rpcUrl: await hyperliquidEvmRpcUrl(),
+							binding: hyperliquidJsonRpcBinding,
 							txHash: $transaction.txHash,
 						})
 						return {
@@ -224,7 +235,7 @@ export default {
 						assertHyperliquidMainnet($network)
 						const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 						const headBlockHeight = hexToBigInt(await getBlockNumber({
-							rpcUrl: await hyperliquidEvmRpcUrl(),
+							binding: hyperliquidJsonRpcBinding,
 						}))
 						return Array.from({
 							length: Math.min(
@@ -252,7 +263,7 @@ export default {
 						assertHyperliquidMainnet(network)
 						const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 						const headBlockHeight = hexToBigInt(await getBlockNumber({
-							rpcUrl: await hyperliquidEvmRpcUrl(),
+							binding: hyperliquidJsonRpcBinding,
 						}))
 						return Array.from({
 							length: Math.min(
@@ -284,9 +295,8 @@ export default {
 							getBlockByNumber,
 							getBlockNumber,
 						} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-						const rpcUrl = await hyperliquidEvmRpcUrl()
 						const headBlockHeight = hexToBigInt(await getBlockNumber({
-							rpcUrl,
+							binding: hyperliquidJsonRpcBinding,
 						}))
 						return (
 							await Promise.all(
@@ -297,7 +307,7 @@ export default {
 								),
 								}, async (_value, blockOffset) => (
 								await getBlockByNumber({
-									rpcUrl,
+									binding: hyperliquidJsonRpcBinding,
 									height: headBlockHeight - BigInt(blockOffset),
 									includeTransactions: true,
 								})
@@ -349,9 +359,8 @@ export default {
 							getBlockByNumber,
 							getBlockNumber,
 						} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-						const rpcUrl = await hyperliquidEvmRpcUrl()
 						const headBlockHeight = hexToBigInt(await getBlockNumber({
-							rpcUrl,
+							binding: hyperliquidJsonRpcBinding,
 						}))
 						return (
 							await Promise.all(
@@ -362,7 +371,7 @@ export default {
 									),
 								}, async (_value, blockOffset) => (
 									await getBlockByNumber({
-										rpcUrl,
+										binding: hyperliquidJsonRpcBinding,
 										height: headBlockHeight - BigInt(blockOffset),
 										includeTransactions: true,
 									})

@@ -14,7 +14,6 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { YoutubeLiveBroadcastContent } from '$/schema/YoutubeVideo.ts'
 import { UrlString } from '$/schema/UrlString.ts'
-import { youtubeNetworkSeedChannels } from '$/constants/Social/Youtube.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	YoutubeApiChannel,
@@ -926,12 +925,10 @@ export default {
 						} = await import('$/sources/Youtube/Rest/queries.ts')
 						const publicEnv = context.publicEnv
 						const limit = resolverContextRowLimit(context)
-						const channelIds: string[] = [
-							...youtubeNetworkSeedChannels.map(({ channelId }) => channelId),
-						]
+						const channelIds = new Set<string>()
 						for (const video of ((await listPopularVideos(publicEnv, limit)).items ?? [])) {
 							const channelId = optionalNonemptyString(video.snippet?.channelId)
-							if (channelId != null) channelIds.push(channelId)
+							if (channelId != null) channelIds.add(channelId)
 						}
 						const refs: ReturnType<typeof youtubePlaylistReference>[] = []
 						for (const channelId of channelIds) {

@@ -8,9 +8,25 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
+
+const bitcoinMainnetBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.BitcoinCore_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === `${bitcoinNetworkBySlug.bitcoin.caip2.namespace}:${bitcoinNetworkBySlug.bitcoin.caip2.reference}`
+	))
+
+if (bitcoinMainnetBindings.length !== 1)
+	throw new Error('BitcoinCore_JsonRpc: canonical Bitcoin mainnet source binding is missing or ambiguous')
+
+const bitcoinMainnetRpcUrl = firstHttpUrlForBinding(bitcoinMainnetBindings[0])
 
 const assertBitcoinMainnet = (network: { caip2: {
 	namespace: string
@@ -39,7 +55,7 @@ export default {
 							getBlock,
 						} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
 						const block = await getBlock({
-							rpcUrl: bitcoinNetworkBySlug.bitcoin.bitcoinCoreRpcUrl,
+							rpcUrl: bitcoinMainnetRpcUrl,
 							blockHash: hash,
 						})
 						if (typeof block === 'string')
@@ -107,7 +123,7 @@ export default {
 						assertBitcoinMainnet($network)
 						const { getRawTransaction } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
 						const transaction = await getRawTransaction({
-							rpcUrl: bitcoinNetworkBySlug.bitcoin.bitcoinCoreRpcUrl,
+							rpcUrl: bitcoinMainnetRpcUrl,
 							txId: txId,
 						})
 						if (typeof transaction === 'string')

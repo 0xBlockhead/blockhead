@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { mastodonInstances } from '$/constants/Mastodon.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -18,6 +17,10 @@ import type {
 	MastodonApiV1MediaAttachment,
 	MastodonApiV1Status,
 } from '$/sources/Mastodon/Rest/types.ts'
+import {
+	mastodonInstanceOrigins,
+	mastodonPublicTimelineOrigins,
+} from '$/sources/Mastodon/Rest/client.ts'
 import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
 import { ActivityPubInstanceSelector } from '$/schema/ActivityPubInstance.ts'
 import { ActivityPubInstance_TimestampSelector } from '$/schema/ActivityPubInstance_Timestamp.ts'
@@ -136,17 +139,12 @@ const activityPubNoteFieldsFromMastodonStatus = (
 								[EntityMetaKey.Fields]: Object.fromEntries(
 									Object.entries(activityPubActorFieldsFromMastodonAccount(
 										status.account,
-										new URL(activityStreamsUri).origin,
+										instanceOrigin,
 										mastodonAvatarUrl
-									)).flatMap(([fieldName, value]) => (
-										fieldName === 'localAccountId' ?
-											[]
-										:
-											[[
-												entityFieldAddressKey(EntityType.ActivityPubActor, [], fieldName),
-												value,
-											]]
-									))
+									)).map(([fieldName, value]) => [
+										entityFieldAddressKey(EntityType.ActivityPubActor, [], fieldName),
+										value,
+									])
 								),
 							}),
 						}
@@ -333,18 +331,13 @@ const activityPubActorCardReferenceFromMastodonStatus = (
 			...Object.fromEntries(Object.entries(
 				activityPubActorFieldsFromMastodonAccount(
 					status.account,
-					actorUrl.origin,
+					servingInstanceOrigin,
 					mastodonAvatarUrl
 				)
-			).flatMap(([fieldName, value]) => (
-				fieldName === 'localAccountId' && actorUrl.origin !== servingInstanceOrigin ?
-					[]
-				:
-					[[
-						entityFieldAddressKey(EntityType.ActivityPubActor, [], fieldName),
-						value,
-					]]
-			))),
+			).map(([fieldName, value]) => [
+					entityFieldAddressKey(EntityType.ActivityPubActor, [], fieldName),
+					value,
+				])),
 			[entityFieldAddressKey(EntityType.ActivityPubActor, [], '$$timestamps')]: [{
 				[EntityMetaKey.Selector]: {
 					$actor: {
@@ -430,16 +423,16 @@ export default {
 							}
 
 						const timelineStatuses = (
-							await Promise.allSettled(
-								mastodonInstances.filter((instance) => instance.publicTimelineAvailable).map(async (instance) => (
-									(await listPublicTimeline(context.publicEnv, instance.origin, limit))
+							await Promise.all(
+								mastodonPublicTimelineOrigins.map(async (instanceOrigin) => (
+									(await listPublicTimeline(context.publicEnv, instanceOrigin, limit))
 										.map((status) => ({
-											instanceOrigin: instance.origin,
+											instanceOrigin,
 											status,
 										}))
 								))
 							)
-						).flatMap((result) => result.status === 'fulfilled' ? result.value : [])
+						).flat()
 						const resolvedAtMs = Date.now()
 						const timelineEntries = timelineStatuses.flatMap(({ instanceOrigin, status }) => {
 							try {
@@ -493,9 +486,9 @@ export default {
 			resolve: {
 				[_GlobalActivityPubNetworkSelector.Scope]: {
 					resolve: async () => (
-						mastodonInstances.map((instance) => ({
+						mastodonInstanceOrigins.map((instanceOrigin) => ({
 							[EntityMetaKey.Selector]: {
-								instanceOrigin: instance.origin,
+								instanceOrigin,
 							},
 						}))
 					),
@@ -511,7 +504,7 @@ export default {
 				[_GlobalActivityPubNetworkSelector.Scope]: {
 					resolve: async ({ scope }, context) => {
 						const timestampMs = Date.now()
-						const instanceOrigin = mastodonInstances[0].origin
+						const instanceOrigin = mastodonInstanceOrigins[0]
 						const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
 
 						try {
@@ -533,7 +526,7 @@ export default {
 									...(instance.version != null && {
 										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceVersion')]: instance.version,
 									}),
-									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstances.length,
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstanceOrigins.length,
 									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: true,
 								},
 							}]
@@ -546,7 +539,7 @@ export default {
 								},
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceOrigin')]: instanceOrigin,
-									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstances.length,
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstanceOrigins.length,
 									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: false,
 								},
 							}]
@@ -615,8 +608,8 @@ export default {
 						}
 						const [instance, peerDomains, moderatedDomains] = await Promise.all([
 							getInstance(publicEnv, instanceOrigin),
-							listInstancePeerDomains(publicEnv, instanceOrigin).catch(() => Array()),
-							listInstanceModeratedDomains(publicEnv, instanceOrigin).catch(() => Array()),
+							listInstancePeerDomains(publicEnv, instanceOrigin),
+							listInstanceModeratedDomains(publicEnv, instanceOrigin),
 						])
 						return [{
 							[EntityMetaKey.Selector]: $observation,
@@ -720,15 +713,15 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						return (
 							await Promise.all(
-								mastodonInstances.map(async (instance) => (
-									(await listPublicTimeline(publicEnv, instance.origin, limit))
+								mastodonPublicTimelineOrigins.map(async (instanceOrigin) => (
+									(await listPublicTimeline(publicEnv, instanceOrigin, limit))
 										.flatMap((status) => (
 										status.id == null ?
 											[]
 										:
 											[{
 												[EntityMetaKey.Selector]: {
-													instanceOrigin: instance.origin,
+													instanceOrigin,
 													localStatusId: String(status.id),
 												},
 											}]

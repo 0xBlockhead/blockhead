@@ -7,7 +7,9 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import type {
 	TronNodeBlock,
 	TronNodeContractValue,
@@ -25,9 +27,18 @@ type NetworkId = { caip2: {
 	reference: string
 } } | { slug: string }
 
-const tronSolidityNodeRestBaseUrl = async () => (
-	(await import('$/sources/TronSolidityNode/Rest/queries.ts')).tronSolidityNodeRestEndpoints[0].restBaseUrl
-)
+const tronSolidityNodeBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.TronSolidityNode_Rest
+		&& binding.target.kind === SourceTargetKind.LocalDevice
+		&& binding.target.key === 'tron-solidity-node'
+	))
+
+if (tronSolidityNodeBindings.length !== 1)
+	throw new Error('TronSolidityNode_Rest: canonical local SolidityNode source binding is missing or ambiguous')
+
+const tronSolidityNodeBinding = tronSolidityNodeBindings[0]
 
 const assertTronMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.tron.slug)
@@ -197,7 +208,7 @@ export default {
 						return blockFields(
 							$network,
 							await getBlockByNumber({
-								restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+								binding: tronSolidityNodeBinding,
 								height: height,
 							})
 						)
@@ -227,7 +238,7 @@ export default {
 							getTransactionInfoById,
 						} = await import('$/sources/TronSolidityNode/Rest/queries.ts')
 						const transaction = await getTransactionById({
-							restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+							binding: tronSolidityNodeBinding,
 							transactionId: transactionId,
 						})
 						if (transaction.txID == null) throw new Error(`TronSolidityNode_Rest: transaction not found for ${transactionId}`)
@@ -235,7 +246,7 @@ export default {
 							$network,
 							transaction,
 							await getTransactionInfoById({
-								restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+								binding: tronSolidityNodeBinding,
 								transactionId: transactionId,
 							})
 						)
@@ -267,7 +278,7 @@ export default {
 						assertTronMainnet($network)
 						const { getAccount } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
 						const account = await getAccount({
-							restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+							binding: tronSolidityNodeBinding,
 							address: address,
 						})
 						return {
@@ -307,7 +318,7 @@ export default {
 						assertTronMainnet($account.$network)
 						const { getAccount } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
 						const account = await getAccount({
-							restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+							binding: tronSolidityNodeBinding,
 							address: $account.address,
 						})
 						return {
@@ -334,7 +345,7 @@ export default {
 						assertTronMainnet($transaction.$network)
 						const { getTransactionInfoById } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
 						return receiptFields(await getTransactionInfoById({
-							restBaseUrl: await tronSolidityNodeRestBaseUrl(),
+							binding: tronSolidityNodeBinding,
 							transactionId: $transaction.transactionId,
 						}))
 					},

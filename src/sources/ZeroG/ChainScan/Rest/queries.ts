@@ -1,10 +1,12 @@
-import { getText } from '$/lib/http.ts'
-import { zeroGMainnetExplorerEndpoints } from '$/sources/ZeroG/ChainScan/Rest/endpoints.ts'
-import { zeroGOrigins } from '$/sources/ZeroG/ChainScan/Rest/endpoints.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetText,
+} from '$/sources/_runtime/http.ts'
 import type { ZeroGChainScanInfo } from '$/sources/ZeroG/ChainScan/Rest/types.ts'
 
-export const getInfo = () => ({
-	url: 'https://chainscan.0g.ai',
+export const getInfo = (binding: SourceBinding) => ({
+	url: firstHttpUrlForBinding(binding),
 	chainId: 16661,
 	features: [
 		'blocks',
@@ -15,8 +17,6 @@ export const getInfo = () => ({
 	],
 }) as const satisfies ZeroGChainScanInfo
 
-export const getLlmInfo = () => (
-	getText(new URL('/llms.txt', zeroGMainnetExplorerEndpoints[0].url).toString(), {
-		origins: zeroGOrigins,
-	})
+export const getLlmInfo = (binding: SourceBinding) => (
+	sourceGetText(binding, new URL('/llms.txt', firstHttpUrlForBinding(binding)).toString())
 )

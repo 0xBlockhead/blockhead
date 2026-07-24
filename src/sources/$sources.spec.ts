@@ -517,26 +517,21 @@ describe('source provider registry', () => {
 			entries.flatMap((entry) => entry.origins.map((origin) => origin.origin))
 		)))).toEqual(
 			new Set(
-				voltaireJsonRpcTransportCandidates
-					.filter((entry) => entry.transportType === TransportType.Http)
-					.map((entry) => new URL(entry.rpcUrl).origin)
+				sourceProviderDefinitions
+					.filter((provider) => provider.provider === SourceProvider.Voltaire)
+					.flatMap((provider) => provider.bindings)
+					.flatMap((binding) => binding.endpoints)
+					.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
+					.map((endpoint) => endpoint.origin ?? new URL(endpoint.locator).origin)
 			)
 		)
 	})
 
 	it('keeps Voltaire default JSON-RPC transport HTTP when the chain has any HTTP candidate', () => {
-		for (const chainId of new Set(voltaireJsonRpcTransportCandidates.map((entry) => entry.chainId))) {
-			const httpCandidate = voltaireJsonRpcTransportCandidates
-				.find((entry) => (
-					entry.chainId === chainId
-					&& entry.transportType === TransportType.Http
-			))
+		for (const [chainId, transports] of Object.entries(voltaireJsonRpcTransportsWithOriginsByChainId)) {
+			const httpCandidate = transports.find((entry) => entry.transportType === TransportType.Http)
 			if (httpCandidate != null)
-				expect(voltaireJsonRpcTransportWithOriginsByChainId[chainId]).toEqual({
-					...httpCandidate,
-					binding: voltaireJsonRpcTransportsWithOriginsByChainId[chainId][0].binding,
-					origins: voltaireJsonRpcTransportsWithOriginsByChainId[chainId][0].origins,
-				})
+				expect(voltaireJsonRpcTransportWithOriginsByChainId[Number(chainId)]).toBe(httpCandidate)
 		}
 	})
 
@@ -579,6 +574,39 @@ describe('source provider registry', () => {
 			rpcUrl: executionEndpoint.url,
 			transportType: executionEndpoint.transportType,
 		})).toSorted((left, right) => byChainUrlTransport(left).localeCompare(byChainUrlTransport(right))))
+	})
+
+	it('uses generated Voltaire bindings as the executable transport authority', () => {
+		expect(readFileSync(join(process.cwd(), 'src', 'sources', 'Voltaire', 'JsonRpc', 'queries.ts'), 'utf8'))
+			.not.toMatch(/executionEndpoints\.ts|voltaireJsonRpcTransportCandidates/)
+
+		expect(Object.values(voltaireJsonRpcTransportsWithOriginsByChainId).flat().map((transport) => ({
+			chainId: transport.chainId,
+			rpcUrl: transport.rpcUrl,
+			transportType: transport.transportType,
+		}))).toEqual(
+			sourceProviderDefinitions
+				.filter((provider) => provider.provider === SourceProvider.Voltaire)
+				.flatMap((provider) => provider.bindings)
+				.flatMap((binding) => (
+					binding.endpoints.flatMap((endpoint) => (
+						endpoint.endpointKind === SourceEndpointKind.HttpUrl
+							|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
+							[{
+								chainId: Number(binding.target.key),
+								rpcUrl: endpoint.locator,
+								transportType: (
+									endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
+										TransportType.Http
+									:
+										TransportType.WebSocket
+								),
+							}]
+						:
+							[]
+					))
+				))
+		)
 	})
 
 	it('keeps Beacon origins aligned with source endpoint rows', () => {

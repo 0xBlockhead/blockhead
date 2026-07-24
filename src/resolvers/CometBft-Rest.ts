@@ -2,6 +2,8 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { cosmosNetworkBySlug } from '$/constants/CosmosNetwork.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -25,6 +27,19 @@ const assertCosmosHub = (network: NetworkId) => {
 	}
 }
 
+const cometBftBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.CometBft_Rest
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === `${cosmosNetworkBySlug.cosmos.caip2.namespace}:${cosmosNetworkBySlug.cosmos.caip2.reference}`
+	))
+
+if (cometBftBindings.length !== 1)
+	throw new Error('CometBft_Rest: canonical Cosmos Hub source binding is missing or ambiguous')
+
+const cometBftBinding = cometBftBindings[0]
+
 export default {
 	source: Source.CometBft_Rest,
 
@@ -38,7 +53,7 @@ export default {
 
 						const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')
 						const wireBlock = await getBlock({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cometBftRestBaseUrl,
+							binding: cometBftBinding,
 							height,
 						})
 						return {
@@ -63,7 +78,7 @@ export default {
 						assertCosmosHub($network)
 						const { getTx } = await import('$/sources/CometBft/Rest/queries.ts')
 						const wireTransaction = await getTx({
-							restBaseUrl: cosmosNetworkBySlug.cosmos.cometBftRestBaseUrl,
+							binding: cometBftBinding,
 							txHash: txHash,
 						})
 						return {

@@ -890,6 +890,25 @@ describe('client resolver architecture', () => {
 		expect(source).not.toMatch(/\b(?:backfill|enrich|hydrateCatalog|runtimeCatalog)\b/)
 	})
 
+	it('keeps checked-in network seeds in Constants_Internal ownership', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			&& basename(path) !== 'Constants.ts'
+			&& basename(path) !== '$resolvers.ts'
+			&& basename(path) !== 'index.ts'
+		)))
+			expect(scannedSourceByFilePath[filePath], filePath).not.toMatch(/\b\w*NetworkSeed\w*\b/)
+	})
+
+	it('keeps transport endpoints in SourceBinding ownership', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			&& basename(path) !== '$resolvers.ts'
+			&& basename(path) !== 'index.ts'
+		)))
+			expect(scannedSourceByFilePath[filePath], filePath).not.toMatch(/\.\w*(?:RpcUrl|RestBaseUrl|ApiBaseUrl|XrpcBase)\b/)
+	})
+
 	it('keeps CoinGecko and LI.FI source modules from composing each other directly', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Coingecko', 'Rest', 'coinInstances.ts')]).not.toMatch(/\$\/sources\/Lifi\//)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Lifi', 'Rest', 'coinBridgeCapabilities.ts')]).not.toMatch(/\$\/sources\/Coingecko\//)

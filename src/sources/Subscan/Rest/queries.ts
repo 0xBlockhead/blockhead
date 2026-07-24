@@ -1,6 +1,10 @@
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { TransportType } from '$/constants/TransportType.ts'
+import { throwHttpError } from '$/lib/http.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import type {
 	SubscanBlock,
 	SubscanExtrinsic,
@@ -11,43 +15,29 @@ import type {
 } from '$/sources/Subscan/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-export const subscanPolkadotRestEndpoints = [
-	{
-		url: 'https://polkadot.api.subscan.io',
-		transportType: TransportType.Http,
-		providerName: 'Subscan',
-	},
-] as const
-
-export const subscanOrigins = [
-	{
-		origin: 'https://polkadot.api.subscan.io',
-		corsEnabled: false,
-	},
-] as const
-
 const post = async <_Result>({
-	restBaseUrl,
+	binding,
 	path,
 	body,
 	publicEnv,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	path: string
 	body: JsonValue
 	publicEnv: SourcePublicEnv
 }) => {
-	const response = await corsFetch(`${restBaseUrl.replace(/\/$/, '')}${path}`, {
-		origins: subscanOrigins,
-		init: {
+	const response = await sourceFetch(
+		binding,
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path}`,
+		{
 			method: 'POST',
 			headers: {
 				'content-type': 'application/json',
 				'X-API-Key': publicEnv.PUBLIC_SUBSCAN_API_KEY,
 			},
 			body: JSON.stringify(body),
-		},
-	})
+		}
+	)
 	if (!response.ok) await throwHttpError(`Subscan ${path}`, response)
 	const result = await response.json<SubscanResponse<_Result>>()
 	if (result.code !== 0)
@@ -56,16 +46,16 @@ const post = async <_Result>({
 }
 
 export const getBlock = ({
-	restBaseUrl,
+	binding,
 	height,
 	publicEnv,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	height: bigint
 	publicEnv: SourcePublicEnv
 }) => (
 	post<SubscanBlock>({
-		restBaseUrl,
+		binding,
 		path: '/api/scan/block',
 		body: {
 			block_num: Number(height),
@@ -75,16 +65,16 @@ export const getBlock = ({
 )
 
 export const getExtrinsic = ({
-	restBaseUrl,
+	binding,
 	extrinsicIndex,
 	publicEnv,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	extrinsicIndex: string
 	publicEnv: SourcePublicEnv
 }) => (
 	post<SubscanExtrinsic>({
-		restBaseUrl,
+		binding,
 		path: '/api/scan/extrinsic',
 		body: {
 			extrinsic_index: extrinsicIndex,
@@ -94,13 +84,13 @@ export const getExtrinsic = ({
 )
 
 export const listAccountExtrinsics = async ({
-	restBaseUrl,
+	binding,
 	accountId,
 	page,
 	row,
 	publicEnv,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	accountId: string
 	page: number
 	row: number
@@ -126,7 +116,7 @@ export const listAccountExtrinsics = async ({
 		}
 
 	const response = await post<SubscanExtrinsicList>({
-		restBaseUrl,
+		binding,
 		path: '/api/scan/extrinsics',
 		body: {
 			address: accountId,
@@ -191,11 +181,11 @@ export const listAccountExtrinsics = async ({
 }
 
 export const getReferendum = ({
-	restBaseUrl,
+	binding,
 	referendumIndex,
 	publicEnv,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	referendumIndex: number
 	publicEnv: SourcePublicEnv
 }) => {
@@ -203,7 +193,7 @@ export const getReferendum = ({
 		throw new Error('Subscan referendum index must be a nonnegative safe integer')
 
 	return post<SubscanReferendum>({
-		restBaseUrl,
+		binding,
 		path: '/api/scan/referenda/referendum',
 		body: {
 			referendum_index: referendumIndex,
@@ -213,7 +203,7 @@ export const getReferendum = ({
 }
 
 export const listReferenda = async ({
-	restBaseUrl,
+	binding,
 	page,
 	row,
 	status,
@@ -221,7 +211,7 @@ export const listReferenda = async ({
 	origin,
 	publicEnv,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	page: number
 	row: number
 	status?: string
@@ -257,7 +247,7 @@ export const listReferenda = async ({
 		}
 
 	const response = await post<SubscanReferendumList>({
-		restBaseUrl,
+		binding,
 		path: '/api/scan/referenda/referendums',
 		body: {
 			page,

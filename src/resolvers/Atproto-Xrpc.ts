@@ -2,7 +2,6 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { atprotoNetworkSeedActors } from '$/constants/Social/Atproto.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
@@ -203,11 +202,8 @@ export default {
 					resolve: async (_entitySelector, context) => {
 						const { searchActorsTypeahead } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						const refs: { [EntityMetaKey.Selector]: { did: string } }[] = [
-							...atprotoNetworkSeedActors.map((seed) => ({
-								[EntityMetaKey.Selector]: { did: seed.did },
-							})),
-							...((await searchActorsTypeahead({
+						return (
+							((await searchActorsTypeahead({
 								limit,
 								q: 'bsky',
 							})).actors ?? [])
@@ -217,9 +213,9 @@ export default {
 									[]
 								:
 									[{ [EntityMetaKey.Selector]: { did } }]
-								}),
-						]
-						return refs.slice(0, limit)
+								})
+								.slice(0, limit)
+						)
 					},
 				}
 			},

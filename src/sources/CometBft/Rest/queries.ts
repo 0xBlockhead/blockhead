@@ -1,40 +1,32 @@
-import { getJson } from '$/lib/http.ts'
+import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	CometBftBlockResponse,
 	CometBftTxResponse,
 } from '$/sources/CometBft/Rest/types.ts'
 
-const cometBftOrigins = [
-	{
-		origin: 'https://cosmos-rpc.publicnode.com',
-		corsEnabled: true,
-	},
-] as const
-
-const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
-
 export const getBlock = ({
-	restBaseUrl,
+	binding,
 	height,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	height: bigint
 }) => (
 	getJson<CometBftBlockResponse>(
-		`${base(restBaseUrl)}/block?height=${height.toString()}`,
-		{ origins: cometBftOrigins }
+		binding,
+		`/block?height=${height.toString()}`
 	)
 )
 
 export const getTx = ({
-	restBaseUrl,
+	binding,
 	txHash,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	txHash: string
 }) => (
 	getJson<CometBftTxResponse>(
-		`${base(restBaseUrl)}/tx?hash=0x${txHash.replace(/^0x/i, '')}`,
-		{ origins: cometBftOrigins }
+		binding,
+		`/tx?hash=0x${txHash.replace(/^0x/i, '')}`
 	)
 )

@@ -53,7 +53,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'OpenAI_Rest-235': {
+	'OpenAI_Rest-237': {
 		envKey: 'OPENAI_API_KEY',
 		injection: {
 			header: {
@@ -62,7 +62,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'SpaceAndTime_MakeInfinite-275': {
+	'SpaceAndTime_MakeInfinite-277': {
 		envKey: 'MAKEINFINITE_API_KEY',
 		injection: {
 			header: {

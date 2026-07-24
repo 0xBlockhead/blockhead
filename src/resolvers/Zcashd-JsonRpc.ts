@@ -15,12 +15,28 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { ZcashShieldedPoolBlockStateSelector } from '$/schema/ZcashShieldedPoolBlockState.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { ZcashShieldedActionSelector } from '$/schema/ZcashShieldedAction.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const zcashdMainnetBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.Zcashd_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === `${bitcoinNetworkBySlug.zcash.caip2.namespace}:${bitcoinNetworkBySlug.zcash.caip2.reference}`
+	))
+
+if (zcashdMainnetBindings.length !== 1)
+	throw new Error('Zcashd_JsonRpc: canonical Zcash mainnet source binding is missing or ambiguous')
+
+const zcashdMainnetRpcUrl = firstHttpUrlForBinding(zcashdMainnetBindings[0])
 
 const assertZcashMainnet = (network: NetworkId) => {
 	if (
@@ -132,7 +148,7 @@ const getTransaction = async ({ $network, txId }: {
 	assertZcashMainnet($network)
 	const { getRawTransaction } = await import('$/sources/Zcashd/JsonRpc/queries.ts')
 	return getRawTransaction({
-		rpcUrl: bitcoinNetworkBySlug.zcash.zcashdRpcUrl,
+		rpcUrl: zcashdMainnetRpcUrl,
 		txId: txId,
 	})
 }
@@ -167,7 +183,7 @@ const zcashPoolStateRows = async ($block: {
 	assertZcashMainnet($block.$network)
 	const { getTreeState } = await import('$/sources/Zcashd/JsonRpc/queries.ts')
 	const treeState = await getTreeState({
-		rpcUrl: bitcoinNetworkBySlug.zcash.zcashdRpcUrl,
+		rpcUrl: zcashdMainnetRpcUrl,
 		block: $block.hash ?? Number($block.height),
 	})
 	if (

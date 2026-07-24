@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
 	ProposalCategory,
@@ -23,9 +23,18 @@ import polkadotRfcs from '$/resolvers/PolkadotRfcs-Github.ts'
 import quilibriumDocs from '$/resolvers/QuilibriumDocs-Rest.ts'
 import solanaSimds from '$/resolvers/SolanaSimds-Github.ts'
 import zcashZips from '$/resolvers/ZcashZips-Github.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+
+const dogecoinDipsQueries = vi.hoisted(() => ({
+	getContents: vi.fn(),
+	getMediaWikiText: vi.fn(),
+}))
+
+vi.mock('$/sources/DogecoinDips/Github/queries.ts', () => dogecoinDipsQueries)
 
 const proposalResolvers = [
 	[bitcoinBips, SpecificationRealm.Bitcoin, ProposalCategory.Bip],
@@ -47,6 +56,45 @@ const proposalResolvers = [
 ] as const
 
 describe('specification proposal source applicability', () => {
+	it('discovers Dogecoin DIPs from the declared GitHub source snapshot', async () => {
+		dogecoinDipsQueries.getContents.mockResolvedValueOnce([
+			{
+				type: 'file',
+				name: 'dip-0070.mediawiki',
+			},
+			{
+				type: 'file',
+				name: 'dip-0100.mediawiki',
+			},
+			{
+				type: 'dir',
+				name: 'dip-0101.mediawiki',
+			},
+			{
+				type: 'file',
+				name: 'README.mediawiki',
+			},
+		])
+
+		const rows = await dogecoinDips.resolvers[1]
+			.resolve[_GlobalSelector.Scope]
+			.resolve()
+
+		expect(dogecoinDipsQueries.getContents).toHaveBeenCalledOnce()
+		expect(rows.map((row) => row[EntityMetaKey.Selector])).toEqual([
+			{
+				realm: SpecificationRealm.Dogecoin,
+				category: ProposalCategory.Dip,
+				number: 70,
+			},
+			{
+				realm: SpecificationRealm.Dogecoin,
+				category: ProposalCategory.Dip,
+				number: 100,
+			},
+		])
+	})
+
 	it('admits only the provider that owns each realm and category before resolution', () => {
 		const modules = [...new Set(proposalResolvers.map(([module]) => module))]
 		const indexed = indexResolvers(

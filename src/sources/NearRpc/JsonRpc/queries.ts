@@ -1,5 +1,9 @@
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { TransportType } from '$/constants/TransportType.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import { jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
@@ -16,21 +20,6 @@ import type {
 	NearRpcViewState,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
 
-export const nearMainnetRpcEndpoints = [
-	{
-		url: 'https://rpc.mainnet.near.org',
-		transportType: TransportType.Http,
-		providerName: 'NEAR',
-	},
-] as const
-
-export const nearRpcOrigins = [
-	{
-		origin: 'https://rpc.mainnet.near.org',
-		corsEnabled: false,
-	},
-] as const
-
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion
 	id: number | string | null
@@ -43,17 +32,18 @@ type JsonRpcResponse<_Result> = {
 }
 
 const nearJsonRpc = async <_Result>({
-	rpcUrl,
+	binding,
 	method,
 	params,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	method: string
 	params: JsonValue
 }) => {
-	const response = await corsFetch(rpcUrl, {
-		origins: nearRpcOrigins,
-		init: {
+	const response = await sourceFetch(
+		binding,
+		firstHttpUrlForBinding(binding),
+		{
 			method: 'POST',
 			headers: {
 				'content-type': 'application/json',
@@ -64,8 +54,8 @@ const nearJsonRpc = async <_Result>({
 				method,
 				params,
 			}),
-		},
-	})
+		}
+	)
 	if (!response.ok) await throwHttpError(`NEAR ${method}`, response)
 	const json = await response.json<JsonRpcResponse<_Result>>()
 	if (json.error != null) throw new Error(`NEAR ${method}: ${json.error.message}`)
@@ -74,14 +64,14 @@ const nearJsonRpc = async <_Result>({
 }
 
 export const getBlock = ({
-	rpcUrl,
+	binding,
 	blockId,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	blockId: bigint | string | 'final'
 }) => (
 	nearJsonRpc<NearRpcBlock>({
-		rpcUrl,
+		binding,
 		method: 'block',
 		params: (
 			blockId === 'final' ?
@@ -97,16 +87,16 @@ export const getBlock = ({
 )
 
 export const getTx = ({
-	rpcUrl,
+	binding,
 	txHash,
 	senderAccountId,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	txHash: string
 	senderAccountId: string
 }) => (
 	nearJsonRpc<NearRpcTransactionStatus>({
-		rpcUrl,
+		binding,
 		method: 'tx',
 		params: {
 			tx_hash: txHash,
@@ -117,16 +107,16 @@ export const getTx = ({
 )
 
 export const getTxStatus = ({
-	rpcUrl,
+	binding,
 	txHash,
 	senderAccountId,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	txHash: string
 	senderAccountId: string
 }) => (
 	nearJsonRpc<NearRpcTransactionStatus>({
-		rpcUrl,
+		binding,
 		method: 'EXPERIMENTAL_tx_status',
 		params: {
 			tx_hash: txHash,
@@ -137,14 +127,14 @@ export const getTxStatus = ({
 )
 
 export const getReceipt = ({
-	rpcUrl,
+	binding,
 	receiptId,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	receiptId: string
 }) => (
 	nearJsonRpc<NearRpcReceipt>({
-		rpcUrl,
+		binding,
 		method: 'EXPERIMENTAL_receipt',
 		params: {
 			receipt_id: receiptId,
@@ -153,14 +143,14 @@ export const getReceipt = ({
 )
 
 export const getChunk = ({
-	rpcUrl,
+	binding,
 	chunkHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	chunkHash: string
 }) => (
 	nearJsonRpc<NearRpcChunk>({
-		rpcUrl,
+		binding,
 		method: 'chunk',
 		params: {
 			chunk_id: chunkHash,
@@ -169,14 +159,14 @@ export const getChunk = ({
 )
 
 export const viewAccount = ({
-	rpcUrl,
+	binding,
 	accountId,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	accountId: string
 }) => (
 	nearJsonRpc<NearRpcAccount>({
-		rpcUrl,
+		binding,
 		method: 'query',
 		params: {
 			request_type: 'view_account',
@@ -187,14 +177,14 @@ export const viewAccount = ({
 )
 
 export const viewAccessKeyList = ({
-	rpcUrl,
+	binding,
 	accountId,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	accountId: string
 }) => (
 	nearJsonRpc<NearRpcAccessKeyList>({
-		rpcUrl,
+		binding,
 		method: 'query',
 		params: {
 			request_type: 'view_access_key_list',
@@ -205,16 +195,16 @@ export const viewAccessKeyList = ({
 )
 
 export const viewAccessKey = ({
-	rpcUrl,
+	binding,
 	accountId,
 	publicKey,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	accountId: string
 	publicKey: string
 }) => (
 	nearJsonRpc<NearRpcAccessKey>({
-		rpcUrl,
+		binding,
 		method: 'query',
 		params: {
 			request_type: 'view_access_key',
@@ -226,18 +216,18 @@ export const viewAccessKey = ({
 )
 
 export const viewState = ({
-	rpcUrl,
+	binding,
 	accountId,
 	prefixBase64,
 	blockHeight,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	accountId: string
 	prefixBase64: string
 	blockHeight: number
 }) => (
 	nearJsonRpc<NearRpcViewState>({
-		rpcUrl,
+		binding,
 		method: 'query',
 		params: {
 			request_type: 'view_state',
@@ -248,25 +238,25 @@ export const viewState = ({
 	})
 )
 
-export const getValidators = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getValidators = ({ binding }: { binding: SourceBinding }) => (
 	nearJsonRpc<NearRpcValidators>({
-		rpcUrl,
+		binding,
 		method: 'validators',
 		params: [null],
 	})
 )
 
-export const getGasPrice = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getGasPrice = ({ binding }: { binding: SourceBinding }) => (
 	nearJsonRpc<NearRpcGasPrice>({
-		rpcUrl,
+		binding,
 		method: 'gas_price',
 		params: [null],
 	})
 )
 
-export const getStatus = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getStatus = ({ binding }: { binding: SourceBinding }) => (
 	nearJsonRpc<NearRpcStatus>({
-		rpcUrl,
+		binding,
 		method: 'status',
 		params: [],
 	})

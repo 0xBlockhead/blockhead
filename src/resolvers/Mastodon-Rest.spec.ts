@@ -54,6 +54,16 @@ vi.mock('$/sources/Mastodon/Rest/queries.ts', () => ({
 	listPublicTimeline,
 }))
 
+vi.mock('$/sources/Mastodon/Rest/client.ts', () => ({
+	mastodonInstanceOrigins: [
+		'https://mastodon.social',
+		'https://fosstodon.org',
+	],
+	mastodonPublicTimelineOrigins: [
+		'https://fosstodon.org',
+	],
+}))
+
 const { default: mastodon } = await import('$/resolvers/Mastodon-Rest.ts')
 
 const context = {
@@ -92,13 +102,11 @@ describe('Mastodon ActivityPub observations', () => {
 		listPublicTimeline.mockReset()
 	})
 
-	it('materializes public timeline identities from each serving instance', async () => {
-		listPublicTimeline
-			.mockResolvedValueOnce([
-				{ id: '114000000000000001' },
-				{},
-			])
-			.mockResolvedValueOnce([{ id: '114000000000000002' }])
+	it('materializes public timeline identities only from declared anonymous feeds', async () => {
+		listPublicTimeline.mockResolvedValueOnce([
+			{ id: '114000000000000002' },
+			{},
+		])
 
 		const notes = await resolver(
 			EntityType.ActivityPubNetwork,
@@ -108,23 +116,13 @@ describe('Mastodon ActivityPub observations', () => {
 			pagination: { limit: 25 },
 		})
 
-		expect(listPublicTimeline).toHaveBeenNthCalledWith(
-			1,
-			{},
-			'https://mastodon.social',
-			25
-		)
-		expect(listPublicTimeline).toHaveBeenNthCalledWith(
-			2,
+		expect(listPublicTimeline).toHaveBeenCalledWith(
 			{},
 			'https://fosstodon.org',
 			25
 		)
+		expect(listPublicTimeline).toHaveBeenCalledTimes(1)
 		expect(notes.map((note) => note[EntityMetaKey.Selector])).toEqual([
-			{
-				instanceOrigin: 'https://mastodon.social',
-				localStatusId: '114000000000000001',
-			},
 			{
 				instanceOrigin: 'https://fosstodon.org',
 				localStatusId: '114000000000000002',
@@ -147,28 +145,28 @@ describe('Mastodon ActivityPub observations', () => {
 					followers_count: 10,
 				},
 			},
-				{
-					id: 'local-copy-of-3',
-					uri: 'https://remote.example/users/alice/statuses/3',
-					account: {
-						id: 'remote-cache-2',
-						uri: 'https://remote.example/users/alice',
-						username: 'alice',
-						acct: 'alice@remote.example',
-						display_name: 'Alice duplicate',
-					},
+			{
+				id: 'local-copy-of-3',
+				uri: 'https://remote.example/users/alice/statuses/3',
+				account: {
+					id: 'remote-cache-2',
+					uri: 'https://remote.example/users/alice',
+					username: 'alice',
+					acct: 'alice@remote.example',
+					display_name: 'Alice duplicate',
 				},
-				{
-					id: '114000000000000004',
-					uri: 'https://fosstodon.org/users/bob/statuses/4',
-					account: {
-						id: 'bob-local-id',
-						uri: 'https://fosstodon.org/users/bob',
-						username: 'bob',
-						acct: 'bob',
-						display_name: 'Bob',
-					},
+			},
+			{
+				id: '114000000000000004',
+				uri: 'https://fosstodon.org/users/bob/statuses/4',
+				account: {
+					id: 'bob-local-id',
+					uri: 'https://fosstodon.org/users/bob',
+					username: 'bob',
+					acct: 'bob',
+					display_name: 'Bob',
 				},
+			},
 		])
 
 		const definition = resolver(
@@ -191,6 +189,7 @@ describe('Mastodon ActivityPub observations', () => {
 			'https://fosstodon.org',
 			17
 		)
+		expect(listPublicTimeline).toHaveBeenCalledTimes(1)
 		expect(notes(timeline)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -213,7 +212,8 @@ describe('Mastodon ActivityPub observations', () => {
 			},
 		])
 		expect(projectedActors[0][EntityMetaKey.Fields]).toMatchObject({
-			[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'instanceOrigin')]: 'https://remote.example',
+			[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'instanceOrigin')]: 'https://fosstodon.org',
+			[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'localAccountId')]: 'remote-cache-1',
 			[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'acct')]: 'alice@remote.example',
 			[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'displayName')]: 'Alice',
 			[entityFieldAddressKey(EntityType.ActivityPubActor, [], '$$timestamps')]: [{
@@ -226,9 +226,6 @@ describe('Mastodon ActivityPub observations', () => {
 				},
 			}],
 		})
-		expect(projectedActors[0][EntityMetaKey.Fields]).not.toHaveProperty(
-			entityFieldAddressKey(EntityType.ActivityPubActor, [], 'localAccountId')
-		)
 		expect(projectedActors[1][EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'instanceOrigin')]: 'https://fosstodon.org',
 			[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'localAccountId')]: 'bob-local-id',
@@ -459,8 +456,7 @@ describe('Mastodon ActivityPub observations', () => {
 		]))
 	})
 
-	it('keeps required instance metadata when optional topology endpoints are unavailable', async () => {
-		vi.spyOn(Date, 'now').mockReturnValueOnce(1_700_000_000_001)
+	it('does not publish a partial instance snapshot when topology resolution fails', async () => {
 		getInstance.mockResolvedValueOnce({
 			title: 'Available metadata',
 			version: '4.3.1',
@@ -468,23 +464,16 @@ describe('Mastodon ActivityPub observations', () => {
 		listInstancePeerDomains.mockRejectedValueOnce(new Error('peers unavailable'))
 		listInstanceModeratedDomains.mockRejectedValueOnce(new Error('domain blocks unavailable'))
 
-		const observations = await resolver(
+		await expect(resolver(
 			EntityType.ActivityPubInstance,
 			'$$timestamps'
 		).resolve[ActivityPubInstanceSelector.InstanceOrigin].resolve({
 			instanceOrigin: 'https://metadata.example',
-		}, context)
-		const fields = Object.values(observations[0][EntityMetaKey.Fields])
+		}, context)).rejects.toThrow('peers unavailable')
 
 		expect(getInstance).toHaveBeenCalledTimes(1)
 		expect(listInstancePeerDomains).toHaveBeenCalledTimes(1)
 		expect(listInstanceModeratedDomains).toHaveBeenCalledTimes(1)
-		expect(fields).toContain('Available metadata')
-		expect(fields).toContain('4.3.1')
-		expect(fields).toEqual(expect.arrayContaining([
-			[],
-			[],
-		]))
 	})
 
 	it('does not mask required instance metadata failure', async () => {
@@ -606,7 +595,8 @@ describe('Mastodon ActivityPub observations', () => {
 				activityStreamsUri: 'https://actor-origin.example/users/alice',
 			},
 			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'instanceOrigin')]: 'https://actor-origin.example',
+				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'instanceOrigin')]: 'https://note-origin.example',
+				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'localAccountId')]: 'actor-17',
 				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'username')]: 'alice',
 				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'acct')]: 'alice@federation.example',
 				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'displayName')]: 'Alice Example',

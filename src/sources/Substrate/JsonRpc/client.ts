@@ -1,5 +1,9 @@
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
-import { getJson } from '$/lib/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 
 type SubstrateJsonRpcResponse<_Result> = {
 	result?: _Result
@@ -9,21 +13,20 @@ type SubstrateJsonRpcResponse<_Result> = {
 }
 
 export const substrateJsonRpc = async <_Result>({
-	rpcUrl,
+	binding,
 	method,
 	params,
-	origins,
 	label,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	method: string
 	params?: readonly unknown[]
-	origins: readonly SourceOrigin[]
 	label: string
 }): Promise<_Result> => {
-	const response = await getJson<SubstrateJsonRpcResponse<_Result>>(rpcUrl, {
-		origins,
-		init: {
+	const response = await sourceFetch(
+		binding,
+		firstHttpUrlForBinding(binding),
+		{
 			method: 'POST',
 			headers: {
 				'content-type': 'application/json',
@@ -34,12 +37,16 @@ export const substrateJsonRpc = async <_Result>({
 				method,
 				params: params ?? [],
 			}),
-		},
-	})
-	if (response.error != null)
-		throw new Error(`${label} Substrate JSON-RPC ${method}: ${response.error.message}`)
-	if (response.result === undefined)
+		}
+	)
+	if (!response.ok)
+		await throwHttpError(`${label} Substrate JSON-RPC ${method}`, response)
+
+	const json = await response.json<SubstrateJsonRpcResponse<_Result>>()
+	if (json.error != null)
+		throw new Error(`${label} Substrate JSON-RPC ${method}: ${json.error.message}`)
+	if (json.result === undefined)
 		throw new Error(`${label} Substrate JSON-RPC ${method}: missing result`)
 
-	return response.result
+	return json.result
 }

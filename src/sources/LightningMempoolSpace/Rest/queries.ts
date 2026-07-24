@@ -1,4 +1,10 @@
-import { getJson } from '$/lib/http.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
 import type {
 	MempoolSpaceLightningChannel,
 	MempoolSpaceLightningChannelSummary,
@@ -8,19 +14,19 @@ import type {
 	MempoolSpaceLightningStatisticsResponse,
 } from '$/sources/LightningMempoolSpace/Rest/types.ts'
 
-const lightningMempoolSpaceOrigins = [
-	{
-		origin: 'https://mempool.space',
-		corsEnabled: true,
-	},
-] as const
+const lightningMempoolSpaceBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.LightningMempoolSpace_Rest
+		&& binding.target.kind === SourceTargetKind.NetworkSlug
+		&& binding.target.key === 'lightning'
+	))
 
-const base = (restBaseUrl: string) => {
-	const normalizedBaseUrl = restBaseUrl.replace(/\/$/, '')
-	if (normalizedBaseUrl !== 'https://mempool.space/api/v1/lightning')
-		throw new Error('LightningMempoolSpace_Rest: expected canonical Lightning API binding')
-	return normalizedBaseUrl
-}
+if (lightningMempoolSpaceBindings.length !== 1)
+	throw new Error('LightningMempoolSpace_Rest: canonical Lightning source binding is missing or ambiguous')
+
+const lightningMempoolSpaceBinding = lightningMempoolSpaceBindings[0]
+const lightningMempoolSpaceApiBaseUrl = `${firstHttpUrlForBinding(lightningMempoolSpaceBinding).replace(/\/$/, '')}/api/v1/lightning`
 
 const assertPublicKey = (publicKey: string) => {
 	if (!/^(02|03)[0-9a-f]{64}$/.test(publicKey))
@@ -83,16 +89,12 @@ const assertChannel = (
 		assertPublicKey(channel.node.public_key)
 }
 
-export const getLightningStatistics = async ({
-	restBaseUrl,
-	interval = 'latest',
-}: {
-	restBaseUrl: string
-	interval?: string
-}) => {
-	const response = await getJson<MempoolSpaceLightningStatisticsResponse>(
-		`${base(restBaseUrl)}/statistics/${encodeURIComponent(interval)}`,
-		{ origins: lightningMempoolSpaceOrigins }
+export const getLightningStatistics = async (
+	interval = 'latest'
+) => {
+	const response = await sourceGetJson<MempoolSpaceLightningStatisticsResponse>(
+		lightningMempoolSpaceBinding,
+		`${lightningMempoolSpaceApiBaseUrl}/statistics/${encodeURIComponent(interval)}`
 	)
 	if (!Number.isFinite(Date.parse(response.latest.added)))
 		throw new Error('LightningMempoolSpace_Rest: invalid statistics timestamp')
@@ -115,16 +117,14 @@ export const getLightningStatistics = async ({
 }
 
 export const getLightningNode = async ({
-	restBaseUrl,
 	publicKey,
 }: {
-	restBaseUrl: string
 	publicKey: string
 }) => {
 	assertPublicKey(publicKey)
-	const node = await getJson<MempoolSpaceLightningNode>(
-		`${base(restBaseUrl)}/nodes/${encodeURIComponent(publicKey)}`,
-		{ origins: lightningMempoolSpaceOrigins }
+	const node = await sourceGetJson<MempoolSpaceLightningNode>(
+		lightningMempoolSpaceBinding,
+		`${lightningMempoolSpaceApiBaseUrl}/nodes/${encodeURIComponent(publicKey)}`
 	)
 	assertNode(node)
 	if (node.public_key !== publicKey)
@@ -133,21 +133,19 @@ export const getLightningNode = async ({
 }
 
 export const getLightningNodeChannels = async ({
-	restBaseUrl,
 	publicKey,
 	status = 'open',
 	index = 0,
 }: {
-	restBaseUrl: string
 	publicKey: string
 	status?: 'open' | 'active' | 'closed'
 	index?: number
 }) => {
 	assertPublicKey(publicKey)
 	assertSafeUnsigned(index, 'channel page index')
-	const channels = await getJson<MempoolSpaceLightningChannelSummary[]>(
-		`${base(restBaseUrl)}/channels?public_key=${encodeURIComponent(publicKey)}&status=${status}&index=${index}`,
-		{ origins: lightningMempoolSpaceOrigins }
+	const channels = await sourceGetJson<MempoolSpaceLightningChannelSummary[]>(
+		lightningMempoolSpaceBinding,
+		`${lightningMempoolSpaceApiBaseUrl}/channels?public_key=${encodeURIComponent(publicKey)}&status=${status}&index=${index}`
 	)
 	if (channels.length > 10)
 		throw new Error('LightningMempoolSpace_Rest: channel page exceeds provider page size')
@@ -164,29 +162,23 @@ export const getLightningNodeChannels = async ({
 }
 
 export const getLightningChannel = async ({
-	restBaseUrl,
 	channelId,
 }: {
-	restBaseUrl: string
 	channelId: string
 }) => {
 	assertChannelId(channelId)
-	const channel = await getJson<MempoolSpaceLightningChannel>(
-		`${base(restBaseUrl)}/channels/${encodeURIComponent(channelId)}`,
-		{ origins: lightningMempoolSpaceOrigins }
+	const channel = await sourceGetJson<MempoolSpaceLightningChannel>(
+		lightningMempoolSpaceBinding,
+		`${lightningMempoolSpaceApiBaseUrl}/channels/${encodeURIComponent(channelId)}`
 	)
 	assertChannel(channel, channelId)
 	return channel
 }
 
-export const getTopLightningNodesByConnectivity = async ({
-	restBaseUrl,
-}: {
-	restBaseUrl: string
-}) => {
-	const nodes = await getJson<MempoolSpaceLightningRankedNode[]>(
-		`${base(restBaseUrl)}/nodes/rankings/connectivity`,
-		{ origins: lightningMempoolSpaceOrigins }
+export const getTopLightningNodesByConnectivity = async () => {
+	const nodes = await sourceGetJson<MempoolSpaceLightningRankedNode[]>(
+		lightningMempoolSpaceBinding,
+		`${lightningMempoolSpaceApiBaseUrl}/nodes/rankings/connectivity`
 	)
 	if (nodes.length > 100)
 		throw new Error('LightningMempoolSpace_Rest: connectivity ranking exceeds provider limit')
@@ -202,14 +194,12 @@ export const getTopLightningNodesByConnectivity = async ({
 }
 
 export const searchLightning = ({
-	restBaseUrl,
 	searchText,
 }: {
-	restBaseUrl: string
 	searchText: string
 }) => (
-	getJson<MempoolSpaceLightningSearchResult>(
-		`${base(restBaseUrl)}/search?searchText=${encodeURIComponent(searchText)}`,
-		{ origins: lightningMempoolSpaceOrigins }
+	sourceGetJson<MempoolSpaceLightningSearchResult>(
+		lightningMempoolSpaceBinding,
+		`${lightningMempoolSpaceApiBaseUrl}/search?searchText=${encodeURIComponent(searchText)}`
 	)
 )

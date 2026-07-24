@@ -114,6 +114,10 @@ describe('Dogecoin Core AuxPoW resolvers', () => {
 			resolverContext
 		)
 
+		expect(getBlock).toHaveBeenCalledWith({
+			rpcUrl: 'http://127.0.0.1:22555',
+			blockHash: blockSelector.hash,
+		})
 		expect(auxPowResolver.projections.$parentBlockHeader(auxPow)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$auxPow: auxPowSelector,

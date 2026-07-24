@@ -5,11 +5,13 @@ import {
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import { regex } from 'arkregex'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import type { DogecoinDipsGithubContents } from '$/sources/DogecoinDips/Github/types.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
 
@@ -17,15 +19,21 @@ const dipMetadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
 
-const dogecoinDipProposalRows = async () => {
+const dogecoinDipProposalRows = async (entries: DogecoinDipsGithubContents) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return [70, 71, 72].map((number) => ({
-		[EntityMetaKey.Selector]: {
-			realm: SpecificationRealm.Dogecoin,
-			category: ProposalCategory.Dip,
-			number,
-		},
-	}))
+	return entries.flatMap((githubContent) => {
+		const proposalNumberRaw = regex('^dip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(githubContent.name)?.groups.proposalNumber
+		return githubContent.type !== 'file' || proposalNumberRaw == null ?
+			[]
+		:
+			[{
+				[EntityMetaKey.Selector]: {
+					realm: SpecificationRealm.Dogecoin,
+					category: ProposalCategory.Dip,
+					number: parseInt(proposalNumberRaw, 10),
+				},
+			}]
+	})
 }
 
 export default {
@@ -70,7 +78,10 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: {
-					resolve: dogecoinDipProposalRows,
+					resolve: async () => {
+						const { getContents } = await import('$/sources/DogecoinDips/Github/queries.ts')
+						return dogecoinDipProposalRows(await getContents())
+					},
 				}
 			}
 		})({

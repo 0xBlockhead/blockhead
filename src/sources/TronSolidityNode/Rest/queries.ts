@@ -1,4 +1,9 @@
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	TronNodeAccount,
@@ -7,54 +12,39 @@ import type {
 	TronNodeTransactionInfo,
 } from '$/sources/TronGrid/Rest/types.ts'
 
-export const tronSolidityNodeRestEndpoints = [
-	{
-		slug: 'solidity_node_local',
-		restBaseUrl: 'http://127.0.0.1:8091',
-	},
-] as const
-
-export const tronSolidityNodeOrigins = [
-	{
-		origin: 'http://127.0.0.1:8091',
-		corsEnabled: false,
-	},
-] as const
-
-const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
-
 const tronSolidityNodePost = async <_Result>({
-	restBaseUrl,
+	binding,
 	path,
 	body,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	path: string
 	body: JsonValue
 }) => {
-	const response = await corsFetch(`${base(restBaseUrl)}/${path}`, {
-		origins: tronSolidityNodeOrigins,
-		init: {
+	const response = await sourceFetch(
+		binding,
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/${path}`,
+		{
 			method: 'POST',
 			headers: {
 				'content-type': 'application/json',
 			},
 			body: JSON.stringify(body),
-		},
-	})
+		}
+	)
 	if (!response.ok) await throwHttpError(`TRON SolidityNode ${path}`, response)
 	return response.json<_Result>()
 }
 
 export const getBlockByNumber = ({
-	restBaseUrl,
+	binding,
 	height,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	height: bigint
 }) => (
 	tronSolidityNodePost<TronNodeBlock>({
-		restBaseUrl,
+		binding,
 		path: 'walletsolidity/getblockbynum',
 		body: {
 			num: Number(height),
@@ -64,14 +54,14 @@ export const getBlockByNumber = ({
 )
 
 export const getTransactionById = ({
-	restBaseUrl,
+	binding,
 	transactionId,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	transactionId: string
 }) => (
 	tronSolidityNodePost<TronNodeTransaction>({
-		restBaseUrl,
+		binding,
 		path: 'walletsolidity/gettransactionbyid',
 		body: {
 			value: transactionId,
@@ -81,14 +71,14 @@ export const getTransactionById = ({
 )
 
 export const getTransactionInfoById = ({
-	restBaseUrl,
+	binding,
 	transactionId,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	transactionId: string
 }) => (
 	tronSolidityNodePost<TronNodeTransactionInfo>({
-		restBaseUrl,
+		binding,
 		path: 'walletsolidity/gettransactioninfobyid',
 		body: {
 			value: transactionId,
@@ -97,14 +87,14 @@ export const getTransactionInfoById = ({
 )
 
 export const getAccount = ({
-	restBaseUrl,
+	binding,
 	address,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	address: string
 }) => (
 	tronSolidityNodePost<TronNodeAccount>({
-		restBaseUrl,
+		binding,
 		path: 'walletsolidity/getaccount',
 		body: {
 			address,

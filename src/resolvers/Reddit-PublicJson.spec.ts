@@ -289,6 +289,75 @@ describe('Reddit_PublicJson comment hierarchy', () => {
 })
 
 describe('Reddit_PublicJson listing continuation', () => {
+	it('resolves canonical route fixtures from the public source instead of static seed data', async () => {
+		vi.mocked(getSubredditAbout).mockResolvedValue({
+			kind: 't5',
+			data: {
+				display_name: 'ethereum',
+				title: 'Ethereum live',
+				public_description: 'Live community metadata',
+			},
+		})
+		vi.mocked(getInfo).mockImplementation(async (fullname) => ({
+			kind: 'Listing',
+			data: {
+				children: fullname === 't3_1u8x2f8' ? [{
+					kind: 't3',
+					data: {
+						name: fullname,
+						title: 'Live submission title',
+						author: 'live_author',
+						subreddit: 'ethereum',
+						permalink: '/r/ethereum/comments/1u8x2f8/live_submission/',
+					},
+				}] : [{
+					kind: 't1',
+					data: {
+						name: fullname,
+						body: 'Live comment body',
+						author: 'live_commenter',
+						link_id: 't3_1u8x2f8',
+					},
+				}],
+			},
+		}))
+		const subreddit = redditPublicJson.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.RedditSubreddit
+			&& 'title' in candidate.projections
+		))
+		const link = redditPublicJson.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.RedditLink
+			&& 'title' in candidate.projections
+		))
+		const comment = redditPublicJson.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.RedditComment
+			&& 'body' in candidate.projections
+		))
+		if (subreddit == null || link == null || comment == null)
+			throw new Error('Reddit_PublicJson spec missing live identity resolvers')
+
+		await expect(subreddit.resolve[RedditSubredditSelector.Name].resolve({
+			name: 'ethereum',
+		}, resolverContext)).resolves.toMatchObject({
+			title: 'Ethereum live',
+		})
+		await expect(link.resolve[RedditLinkSelector.Fullname].resolve({
+			fullname: 't3_1u8x2f8',
+		}, resolverContext)).resolves.toMatchObject({
+			title: 'Live submission title',
+			author: 'live_author',
+			permalink: 'https://www.reddit.com/r/ethereum/comments/1u8x2f8/live_submission/',
+		})
+		await expect(comment.resolve[RedditCommentSelector.Fullname].resolve({
+			fullname: 't1_osbo75d',
+		}, resolverContext)).resolves.toMatchObject({
+			body: 'Live comment body',
+			author: 'live_commenter',
+		})
+		expect(getInfo).toHaveBeenCalledWith('t3_1u8x2f8')
+		expect(getInfo).toHaveBeenCalledWith('t1_osbo75d')
+	})
+
 	it('materializes bounded submission cards and rejects mismatched detail subjects', async () => {
 		const page = {
 			kind: 'Listing' as const,

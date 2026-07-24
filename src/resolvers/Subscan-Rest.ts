@@ -6,7 +6,12 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import {
+	SourceEndpointKind,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
 import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
 import { PolkadotReferendumSelector } from '$/schema/PolkadotReferendum.ts'
@@ -27,9 +32,20 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 	}
 }
 
-const subscanPolkadotRestBaseUrl = async () => (
-	(await import('$/sources/Subscan/Rest/queries.ts')).subscanPolkadotRestEndpoints[0].url
-)
+const subscanPolkadotRestBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.Subscan_Rest
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === 'polkadot:91b171bb158e2d3848fa23a9f1c25182'
+		&& binding.endpoints.length === 1
+		&& binding.endpoints[0]?.endpointKind === SourceEndpointKind.HttpUrl
+	))
+
+if (subscanPolkadotRestBindings.length !== 1)
+	throw new Error('Subscan_Rest: canonical Polkadot mainnet source binding is missing or ambiguous')
+
+const [subscanPolkadotRestBinding] = subscanPolkadotRestBindings
 
 const referendumIndexFromId = (referendumId: string) => {
 	const referendumIndex = Number(referendumId)
@@ -50,7 +66,7 @@ export default {
 						assertPolkadotMainnet($network)
 						const { getBlock } = await import('$/sources/Subscan/Rest/queries.ts')
 						const block = (await getBlock({
-							restBaseUrl: await subscanPolkadotRestBaseUrl(),
+							binding: subscanPolkadotRestBinding,
 							height: blockNumber,
 							publicEnv: context.publicEnv,
 						})).data
@@ -87,7 +103,7 @@ export default {
 						const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
 						const extrinsicIndex = `${$block.blockNumber.toString()}-${indexInBlock}`
 						const extrinsic = (await getExtrinsic({
-							restBaseUrl: await subscanPolkadotRestBaseUrl(),
+							binding: subscanPolkadotRestBinding,
 							extrinsicIndex,
 							publicEnv: context.publicEnv,
 						})).data
@@ -146,7 +162,7 @@ export default {
 						assertPolkadotMainnet(entitySelector.$network)
 						const { getReferendum } = await import('$/sources/Subscan/Rest/queries.ts')
 						const referendum = (await getReferendum({
-							restBaseUrl: await subscanPolkadotRestBaseUrl(),
+							binding: subscanPolkadotRestBinding,
 							referendumIndex: referendumIndexFromId(entitySelector.referendumId),
 							publicEnv: context.publicEnv,
 						})).data
@@ -179,7 +195,7 @@ export default {
 						assertPolkadotMainnet($referendum.$network)
 						const { getReferendum } = await import('$/sources/Subscan/Rest/queries.ts')
 						const referendum = (await getReferendum({
-							restBaseUrl: await subscanPolkadotRestBaseUrl(),
+							binding: subscanPolkadotRestBinding,
 							referendumIndex: referendumIndexFromId($referendum.referendumId),
 							publicEnv: context.publicEnv,
 						})).data

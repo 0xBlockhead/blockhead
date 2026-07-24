@@ -10,7 +10,9 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import { FilecoinTipsetSelector } from '$/schema/FilecoinTipset.ts'
 import { FilecoinBlockSelector } from '$/schema/FilecoinBlock.ts'
 import { FilecoinMessageSelector } from '$/schema/FilecoinMessage.ts'
@@ -19,6 +21,19 @@ type NetworkId = { caip2: {
 	namespace: string
 	reference: string
 } } | { slug: string }
+
+const filfoxBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.Filfox_Rest
+		&& binding.target.kind === SourceTargetKind.Global
+		&& binding.target.key === 'api'
+	))
+
+if (filfoxBindings.length !== 1)
+	throw new Error('Filfox_Rest: canonical source binding is missing or ambiguous')
+
+const filfoxBinding = filfoxBindings[0]
 
 const assertFilecoinMainnet = (network: NetworkId) => {
 	if (
@@ -49,7 +64,7 @@ export default {
 							getTipset,
 						} = await import('$/sources/Filfox/Rest/queries.ts')
 						const tipset = await getTipset({
-							restBaseUrl: filecoinNetworkBySlug.filecoin.filfoxRestBaseUrl,
+							binding: filfoxBinding,
 							height: height,
 						})
 						const firstBlock = tipset.blocks.at(0)
@@ -58,7 +73,7 @@ export default {
 								undefined
 							:
 								await getBlock({
-									restBaseUrl: filecoinNetworkBySlug.filecoin.filfoxRestBaseUrl,
+									binding: filfoxBinding,
 									blockCid: firstBlock.cid,
 								})
 						)
@@ -120,11 +135,11 @@ export default {
 							getTipset,
 						} = await import('$/sources/Filfox/Rest/queries.ts')
 						const block = await getBlock({
-							restBaseUrl: filecoinNetworkBySlug.filecoin.filfoxRestBaseUrl,
+							binding: filfoxBinding,
 							blockCid: cid,
 						})
 						const tipset = await getTipset({
-							restBaseUrl: filecoinNetworkBySlug.filecoin.filfoxRestBaseUrl,
+							binding: filfoxBinding,
 							height: BigInt(block.height),
 						})
 						return {
@@ -162,7 +177,7 @@ export default {
 						assertFilecoinMainnet($network)
 						const { getMessage } = await import('$/sources/Filfox/Rest/queries.ts')
 						const message = await getMessage({
-							restBaseUrl: filecoinNetworkBySlug.filecoin.filfoxRestBaseUrl,
+							binding: filfoxBinding,
 							messageCid: cid,
 						})
 						return {
@@ -209,7 +224,7 @@ export default {
 						assertFilecoinMainnet($network)
 						const { getBlockMessages } = await import('$/sources/Filfox/Rest/queries.ts')
 						return (await getBlockMessages({
-							restBaseUrl: filecoinNetworkBySlug.filecoin.filfoxRestBaseUrl,
+							binding: filfoxBinding,
 							blockCid: cid,
 							pageSize: resolverContextRowLimit(context),
 						})).messages.map((message) => ({

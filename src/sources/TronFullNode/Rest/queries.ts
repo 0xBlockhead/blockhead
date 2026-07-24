@@ -1,4 +1,9 @@
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	TronNodeAccount,
@@ -7,54 +12,39 @@ import type {
 	TronNodeTransactionInfo,
 } from '$/sources/TronGrid/Rest/types.ts'
 
-export const tronFullNodeRestEndpoints = [
-	{
-		slug: 'full_node_local',
-		restBaseUrl: 'http://127.0.0.1:8090',
-	},
-] as const
-
-export const tronFullNodeOrigins = [
-	{
-		origin: 'http://127.0.0.1:8090',
-		corsEnabled: false,
-	},
-] as const
-
-const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
-
 const tronFullNodePost = async <_Result>({
-	restBaseUrl,
+	binding,
 	path,
 	body,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	path: string
 	body: JsonValue
 }) => {
-	const response = await corsFetch(`${base(restBaseUrl)}/${path}`, {
-		origins: tronFullNodeOrigins,
-		init: {
+	const response = await sourceFetch(
+		binding,
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/${path}`,
+		{
 			method: 'POST',
 			headers: {
 				'content-type': 'application/json',
 			},
 			body: JSON.stringify(body),
-		},
-	})
+		}
+	)
 	if (!response.ok) await throwHttpError(`TRON FullNode ${path}`, response)
 	return response.json<_Result>()
 }
 
 export const getBlockByNumber = ({
-	restBaseUrl,
+	binding,
 	height,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	height: bigint
 }) => (
 	tronFullNodePost<TronNodeBlock>({
-		restBaseUrl,
+		binding,
 		path: 'wallet/getblockbynum',
 		body: {
 			num: Number(height),
@@ -64,14 +54,14 @@ export const getBlockByNumber = ({
 )
 
 export const getTransactionById = ({
-	restBaseUrl,
+	binding,
 	transactionId,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	transactionId: string
 }) => (
 	tronFullNodePost<TronNodeTransaction>({
-		restBaseUrl,
+		binding,
 		path: 'wallet/gettransactionbyid',
 		body: {
 			value: transactionId,
@@ -81,14 +71,14 @@ export const getTransactionById = ({
 )
 
 export const getTransactionInfoById = ({
-	restBaseUrl,
+	binding,
 	transactionId,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	transactionId: string
 }) => (
 	tronFullNodePost<TronNodeTransactionInfo>({
-		restBaseUrl,
+		binding,
 		path: 'wallet/gettransactioninfobyid',
 		body: {
 			value: transactionId,
@@ -97,14 +87,14 @@ export const getTransactionInfoById = ({
 )
 
 export const getAccount = ({
-	restBaseUrl,
+	binding,
 	address,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	address: string
 }) => (
 	tronFullNodePost<TronNodeAccount>({
-		restBaseUrl,
+		binding,
 		path: 'wallet/getaccount',
 		body: {
 			address,

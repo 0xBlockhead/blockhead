@@ -1,17 +1,48 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 
-vi.mock('$/sources/_runtime/http.ts', () => ({
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
 	sourceFetch,
 }))
 
 const {
 	getSignaturesForAddress,
+	getSlot,
 	getTransactionsForAddress,
 } = await import('$/sources/Solana/JsonRpc/queries.ts')
+
+const solanaMainnetHttpBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.Solana_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'
+		&& binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
+	))
+const [solanaMainnetHttpBinding] = solanaMainnetHttpBindings
+if (solanaMainnetHttpBinding == null || solanaMainnetHttpBindings.length !== 1)
+	throw new Error('Expected exactly one canonical Solana mainnet HTTP binding')
+
+const [solanaMainnetWebSocketBinding] = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.Solana_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'
+		&& binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
+	))
+if (solanaMainnetWebSocketBinding == null)
+	throw new Error('Expected the canonical Solana mainnet WebSocket binding')
 
 const pubkey = 'Account111111111111111111111111111111111'
 const firstSignature = 'Signature111111111111111111111111111111111111111111111111111111111111'
@@ -72,7 +103,7 @@ describe('Solana account transaction JSON-RPC', () => {
 		]))
 
 		await expect(getSignaturesForAddress({
-			rpcUrl: 'https://solana-rpc.publicnode.com',
+			binding: solanaMainnetHttpBinding,
 			pubkey,
 			limit: 2,
 			before: 'BeforeSignature',
@@ -106,13 +137,20 @@ describe('Solana account transaction JSON-RPC', () => {
 		})
 	})
 
+	it('rejects a non-HTTP Solana binding before transport', async () => {
+		await expect(getSlot({
+			binding: solanaMainnetWebSocketBinding,
+		})).rejects.toThrow('expected canonical Solana mainnet HTTP binding')
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
 	it('loads minimal transaction facts and rejects a transaction outside the exact account subject', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(rpcResponse([addressSignature]))
 			.mockResolvedValueOnce(rpcResponse(transaction))
 
 		await expect(getTransactionsForAddress({
-			rpcUrl: 'https://solana-rpc.publicnode.com',
+			binding: solanaMainnetHttpBinding,
 			pubkey,
 			limit: 1,
 		})).resolves.toEqual({
@@ -154,7 +192,7 @@ describe('Solana account transaction JSON-RPC', () => {
 				},
 			}))
 		await expect(getTransactionsForAddress({
-			rpcUrl: 'https://solana-rpc.publicnode.com',
+			binding: solanaMainnetHttpBinding,
 			pubkey,
 			limit: 1,
 		})).rejects.toThrow(`outside account ${pubkey}`)
@@ -193,7 +231,7 @@ describe('Solana account transaction JSON-RPC', () => {
 		for (const { result, message, limit = 2 } of malformedPages) {
 			sourceFetch.mockResolvedValueOnce(rpcResponse(result))
 			await expect(getSignaturesForAddress({
-				rpcUrl: 'https://solana-rpc.publicnode.com',
+				binding: solanaMainnetHttpBinding,
 				pubkey,
 				limit,
 			})).rejects.toThrow(message)
@@ -217,7 +255,7 @@ describe('Solana account transaction JSON-RPC', () => {
 				.mockResolvedValueOnce(rpcResponse([addressSignature]))
 				.mockResolvedValueOnce(rpcResponse(mismatchedTransaction))
 			await expect(getTransactionsForAddress({
-				rpcUrl: 'https://solana-rpc.publicnode.com',
+				binding: solanaMainnetHttpBinding,
 				pubkey,
 				limit: 1,
 			})).rejects.toThrow(
@@ -245,12 +283,12 @@ describe('Solana account transaction JSON-RPC', () => {
 			},
 		])
 			await expect(getSignaturesForAddress({
-				rpcUrl: 'https://solana-rpc.publicnode.com',
+				binding: solanaMainnetHttpBinding,
 				...request,
 			})).rejects.toThrow()
 
 		await expect(getSignaturesForAddress({
-			rpcUrl: 'https://solana-rpc.publicnode.com',
+			binding: solanaMainnetHttpBinding,
 			pubkey,
 			limit: 0,
 			before: firstSignature,

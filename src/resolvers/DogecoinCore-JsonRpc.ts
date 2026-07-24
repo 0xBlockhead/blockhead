@@ -9,12 +9,28 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { DogecoinAuxPowMerkleBranchSelector } from '$/schema/DogecoinAuxPowMerkleBranch.ts'
 import { DogecoinAuxPowParentBlockHeaderSelector } from '$/schema/DogecoinAuxPowParentBlockHeader.ts'
 import { DogecoinBlockAuxPowSelector } from '$/schema/DogecoinBlockAuxPow.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
+
+const dogecoinMainnetBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.DogecoinCore_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === `${bitcoinNetworkBySlug.dogecoin.caip2.namespace}:${bitcoinNetworkBySlug.dogecoin.caip2.reference}`
+	))
+
+if (dogecoinMainnetBindings.length !== 1)
+	throw new Error('DogecoinCore_JsonRpc: canonical Dogecoin mainnet source binding is missing or ambiguous')
+
+const dogecoinMainnetRpcUrl = firstHttpUrlForBinding(dogecoinMainnetBindings[0])
 
 const assertDogecoinMainnet = (network: { caip2: {
 	namespace: string
@@ -45,7 +61,7 @@ export default {
 						assertDogecoinMainnet($block.$network)
 						const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const block = await getBlock({
-							rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
+							rpcUrl: dogecoinMainnetRpcUrl,
 							blockHash: $block.hash,
 						})
 						if (block.auxpow == null)
@@ -93,7 +109,7 @@ export default {
 						assertDogecoinMainnet($auxPow.$block.$network)
 						const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const block = await getBlock({
-							rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
+							rpcUrl: dogecoinMainnetRpcUrl,
 							blockHash: $auxPow.$block.hash,
 						})
 						if (block.auxpow == null)
@@ -131,7 +147,7 @@ export default {
 						assertDogecoinMainnet($auxPow.$block.$network)
 						const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const block = await getBlock({
-							rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
+							rpcUrl: dogecoinMainnetRpcUrl,
 							blockHash: $auxPow.$block.hash,
 						})
 						if (block.auxpow == null)
@@ -180,7 +196,7 @@ export default {
 							getBlock,
 						} = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const block = await getBlock({
-							rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
+							rpcUrl: dogecoinMainnetRpcUrl,
 							blockHash: hash,
 						})
 						if (typeof block === 'string')
@@ -248,7 +264,7 @@ export default {
 						assertDogecoinMainnet($network)
 						const { getRawTransaction } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const transaction = await getRawTransaction({
-							rpcUrl: bitcoinNetworkBySlug.dogecoin.dogecoinCoreRpcUrl,
+							rpcUrl: dogecoinMainnetRpcUrl,
 							txId: txId,
 						})
 						if (typeof transaction === 'string')

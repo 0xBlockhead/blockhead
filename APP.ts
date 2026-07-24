@@ -81906,7 +81906,7 @@ export const routes = defineRoutes(schema)({
 												"$$users"
 											],
 											query: {
-												sources: [Source.Snapchain_Rest, Source.Neynar_Rest],
+												sources: [Source.Snapchain_Rest],
 											},
 											derivations: {
 												"scope": { kind: "literal", value: "FarcasterNetwork" }
@@ -86411,14 +86411,6 @@ export const app = {
 			{
 				provider: "Mastodon",
 				label: "Mastodon",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_MASTODON_ACCESS_TOKEN",
-							type: "string > 0?",
-						},
-					],
-				},
 			},
 			{
 				provider: "Mcp",
@@ -93923,63 +93915,104 @@ export const app = {
 				source: Source.Mastodon_Rest,
 				provider: "Mastodon",
 				label: "Mastodon REST",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_MASTODON_ACCESS_TOKEN",
-							type: "string > 0?",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "mastodon-instance:https://mastodon.social",
 						},
-					],
-				},
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "mastodon-compatible-activitypub",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://mastodon.social",
-							origin: "https://mastodon.social",
-							corsEnabled: false,
-						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://fosstodon.org",
-							origin: "https://fosstodon.org",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.PublicConfig,
-							env: {
-								keys: [
-									{
-										name: "PUBLIC_MASTODON_ACCESS_TOKEN",
-										type: "string > 0?",
-									},
-								],
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://mastodon.social",
+								origin: "https://mastodon.social",
+								corsEnabled: false,
 							},
-							keys: [
-								"PUBLIC_MASTODON_ACCESS_TOKEN",
-							],
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.None,
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Mastodon/Rest/types.ts",
+								generated: false,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "mastodon-instance:https://fosstodon.org",
 						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Mastodon/Rest/types.ts",
-							generated: false,
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://fosstodon.org",
+								origin: "https://fosstodon.org",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.None,
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Mastodon/Rest/types.ts",
+								generated: false,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Feed,
+							key: "mastodon-public-timeline:https://fosstodon.org",
 						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://fosstodon.org",
+								origin: "https://fosstodon.org",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.None,
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Mastodon/Rest/types.ts",
+								generated: false,
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.McpDeclared_Protocol,

@@ -10,8 +10,23 @@ import {
 } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import { IpfsResourceSelector } from '$/schema/IpfsResource.ts'
+
+const ipfsBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.Ipfs_Rest
+		&& binding.target.kind === SourceTargetKind.ContentAddressScheme
+		&& binding.target.key === 'ipfs'
+	))
+
+if (ipfsBindings.length !== 1)
+	throw new Error('Ipfs_Rest: canonical gateway binding is missing or ambiguous')
+
+const ipfsBinding = ipfsBindings[0]
 
 export default {
 	source: Source.Ipfs_Rest,
@@ -22,12 +37,13 @@ export default {
 			resolve: {
 				[IpfsResourceSelector.ResourceAddress]: {
 					resolve: async ({ contentPath, namespace, target }) => {
-							const { fetchBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
-							const browseResult = await fetchBrowseResult({
-								namespace: ipfsNamespaceFromString(namespace) ?? undefined,
-								target: target,
-								contentPath: contentPath,
-							})
+						const { fetchBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
+						const browseResult = await fetchBrowseResult({
+							binding: ipfsBinding,
+							namespace: ipfsNamespaceFromString(namespace) ?? undefined,
+							target: target,
+							contentPath: contentPath,
+						})
 						const decodedCid = (
 							browseResult.namespace === 'ipfs' ?
 								decodeIpfsCid(browseResult.target)

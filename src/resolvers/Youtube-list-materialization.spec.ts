@@ -313,6 +313,53 @@ describe.each([
 })
 
 describe('YouTube observation provenance', () => {
+	it('requests observed playlists only for channels returned by the live source snapshot', async () => {
+		youtubeQueries.listPopularVideos.mockClear()
+		youtubeQueries.listChannelPlaylists.mockClear()
+		youtubeQueries.listPopularVideos.mockResolvedValueOnce({
+			items: [
+				{
+					snippet: {
+						channelId: 'live-channel',
+					},
+				},
+				{
+					snippet: {
+						channelId: 'live-channel',
+					},
+				},
+			],
+		})
+		youtubeQueries.listChannelPlaylists.mockResolvedValueOnce({
+			items: [{
+				id: 'live-playlist',
+				snippet: {
+					channelId: 'live-channel',
+					title: 'Live playlist',
+				},
+			}],
+		})
+
+		const playlists = await youtubeResolvers.resolvers[19]
+			.resolve[_GlobalYoutubeNetworkSelector.Scope]
+			.resolve(
+				{ scope: '_GlobalYoutubeNetwork' },
+				resolverContext
+			)
+
+		expect(youtubeQueries.listPopularVideos).toHaveBeenCalledOnce()
+		expect(youtubeQueries.listChannelPlaylists).toHaveBeenCalledOnce()
+		expect(youtubeQueries.listChannelPlaylists).toHaveBeenCalledWith(
+			resolverContext.publicEnv,
+			'live-channel',
+			64
+		)
+		expect(playlists).toHaveLength(1)
+		expect(playlists[0][EntityMetaKey.Selector]).toEqual({
+			playlistId: 'live-playlist',
+		})
+	})
+
 	it.each([
 		{
 			label: 'YouTube',

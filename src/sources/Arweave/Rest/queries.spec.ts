@@ -18,9 +18,16 @@ const binding = sourceProviderDefinitions
 		&& candidate.target.kind === SourceTargetKind.ContentAddressScheme
 		&& candidate.target.key === 'arweave'
 	))
+const swarmBinding = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.find((candidate) => (
+		candidate.source === Source.Swarm_Rest
+		&& candidate.target.kind === SourceTargetKind.ContentAddressScheme
+		&& candidate.target.key === 'swarm'
+	))
 
-if (binding == null)
-	throw new Error('Arweave REST binding is not registered')
+if (binding == null || swarmBinding == null)
+	throw new Error('Arweave or Swarm REST binding is not registered')
 
 const transactionId = 'A'.repeat(43)
 const recipientAddress = 'B'.repeat(43)
@@ -58,6 +65,17 @@ describe('Arweave public gateway metadata', () => {
 			quantity: '1000000000000',
 			reward: '12345678901234567',
 		})
+	})
+
+	it('rejects another provider binding before content transport', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+		vi.stubGlobal('fetch', fetchMock)
+
+		await expect(fetchBrowseResult({
+			binding: swarmBinding,
+			transactionId,
+		})).rejects.toThrow('expected canonical Arweave gateway binding')
+		expect(fetchMock).not.toHaveBeenCalled()
 	})
 
 	it('rejects substituted transaction and malformed confirmed block identity', async () => {
@@ -106,6 +124,7 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
+			binding,
 			transactionId,
 		})).rejects.toThrow('invalid transaction offset size')
 		expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -127,6 +146,7 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
+			binding,
 			transactionId,
 		})).rejects.toThrow('content exceeds 1048576 byte inspection limit')
 		expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -153,6 +173,7 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
+			binding,
 			transactionId,
 		})).resolves.toMatchObject({
 			contentLength: 5,
@@ -170,6 +191,7 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
+			binding,
 			transactionId,
 			contentPath: 'assets/selected.txt',
 			maxContentBytes: 14,
@@ -204,6 +226,7 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
+			binding,
 			transactionId,
 		})).rejects.toThrow('content body exceeds declared or configured size')
 	})

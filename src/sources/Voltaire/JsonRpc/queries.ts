@@ -31,47 +31,52 @@ import {
 	type VoltaireTxRpc,
 } from '$/sources/Voltaire/JsonRpc/types.ts'
 
-import {
-	voltaireJsonRpcOriginsByChainId,
-	voltaireJsonRpcTransportCandidates,
-} from '$/sources/Voltaire/JsonRpc/executionEndpoints.ts'
-
-const voltaireJsonRpcTransportCandidatesByChainId = Object.groupBy(
-	voltaireJsonRpcTransportCandidates,
-	(voltaireJsonRpcTransportCandidate) => voltaireJsonRpcTransportCandidate.chainId
-)
-
 const voltaireBindings = sourceProviders
 	.filter((sourceProvider) => sourceProvider.provider === SourceProvider.Voltaire)
 	.flatMap((sourceProvider) => sourceProvider.bindings)
 
-export const voltaireJsonRpcTransportsWithOriginsByChainId = Object.fromEntries(
-	Object.entries(voltaireJsonRpcTransportCandidatesByChainId)
-		.map(([chainId, entries]) => [
-			Number(chainId),
-			entries.flatMap((entry) => {
-				const binding = voltaireBindings.find((candidate) => (
-					candidate.target.key === chainId
-					&& candidate.endpoints.some((endpoint) => (
-						endpoint.locator === entry.rpcUrl
-						&& (
-							(entry.transportType === TransportType.Http
-								&& endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-							|| (entry.transportType === TransportType.WebSocket
-								&& endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
-						)
-					))
-				))
-				return binding == null ?
-					[]
-				:
+const voltaireJsonRpcOriginsByChainId = Object.fromEntries(
+	Object.entries(Object.groupBy(
+		voltaireBindings,
+		(binding) => binding.target.key
+	)).map(([chainId, bindings]) => [
+		Number(chainId),
+		bindings.flatMap((binding) => (
+			binding.endpoints.flatMap((endpoint) => (
+				endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
 					[{
-						...entry,
-						binding,
-						origins: voltaireJsonRpcOriginsByChainId[Number(chainId)],
+						origin: endpoint.origin ?? new URL(endpoint.locator).origin,
+						corsEnabled: endpoint.corsEnabled ?? false,
 					}]
-			}),
-		])
+				:
+					[]
+			))
+		)),
+	])
+)
+
+export const voltaireJsonRpcTransportsWithOriginsByChainId = Object.groupBy(
+	voltaireBindings.flatMap((binding) => (
+		binding.endpoints.flatMap((endpoint) => (
+			endpoint.endpointKind === SourceEndpointKind.HttpUrl
+				|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
+				[{
+					chainId: Number(binding.target.key),
+					rpcUrl: endpoint.locator,
+					transportType: (
+						endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
+							TransportType.Http
+						:
+							TransportType.WebSocket
+					),
+					binding,
+					origins: voltaireJsonRpcOriginsByChainId[Number(binding.target.key)] ?? [],
+				}]
+			:
+				[]
+		))
+	)),
+	(transport) => transport.chainId
 )
 
 export const voltaireJsonRpcTransportWithOriginsByChainId = Object.fromEntries(

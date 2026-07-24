@@ -16,7 +16,9 @@ import { ZeroGStorageLogEntrySelector } from '$/schema/ZeroGStorageLogEntry.ts'
 import { ZeroGStorageNodeSelector } from '$/schema/ZeroGStorageNode.ts'
 import { ZeroGStorageNode_TimestampSelector } from '$/schema/ZeroGStorageNode_Timestamp.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 type NetworkId = { readonly slug: '0g' }
 
@@ -24,6 +26,19 @@ type InputNetworkId = { readonly caip2: {
 	readonly namespace: string
 	readonly reference: string
 } } | { readonly slug: string }
+
+const zeroGStorageScanBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.ZeroGStorageScan_Rest
+		&& binding.target.kind === SourceTargetKind.Global
+		&& binding.target.key === '0g-storage-scan'
+	))
+
+if (zeroGStorageScanBindings.length !== 1)
+	throw new Error('ZeroGStorageScan_Rest: canonical global source binding is missing or ambiguous')
+
+const zeroGStorageScanBinding = zeroGStorageScanBindings[0]
 
 const assertZeroGMainnet: (network: InputNetworkId) => asserts network is NetworkId = (network) => {
 	if (!('slug' in network) || network.slug !== networkBySlug['0g'].slug)
@@ -43,11 +58,13 @@ const zeroGStorageTimestampFields = async () => {
 		miners,
 		transactions,
 	] = await Promise.all([
-		getStorageSummary(),
+		getStorageSummary(zeroGStorageScanBinding),
 		listStorageMiners({
+			binding: zeroGStorageScanBinding,
 			limit: 1,
 		}),
 		listStorageTransactions({
+			binding: zeroGStorageScanBinding,
 			limit: 1,
 		}),
 	])
@@ -292,6 +309,7 @@ export default {
 						assertZeroGMainnet($network)
 						const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 						const miner = await getStorageMiner({
+							binding: zeroGStorageScanBinding,
 							address: EvmAddress.assert(nodeId),
 						})
 						return {
@@ -332,6 +350,7 @@ export default {
 						assertZeroGMainnet($storageNode.$network)
 						const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 						const miner = await getStorageMiner({
+							binding: zeroGStorageScanBinding,
 							address: EvmAddress.assert($storageNode.nodeId),
 						})
 						return zeroGStorageNodeTimestampRow({
@@ -363,6 +382,7 @@ export default {
 						assertZeroGMainnet(network)
 						const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 						return (await listStorageMiners({
+							binding: zeroGStorageScanBinding,
 							limit: resolverContextRowLimit(context),
 						})).list.map((miner) => zeroGStorageNodeRow({
 							$network: network,
@@ -392,6 +412,7 @@ export default {
 						assertZeroGMainnet($network)
 						const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 						const transactions = await listStorageTransactions({
+							binding: zeroGStorageScanBinding,
 							limit: 1,
 							rootHash: dataRoot,
 						})
@@ -416,6 +437,7 @@ export default {
 						assertZeroGMainnet(network)
 						const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 						return (await listStorageTransactions({
+							binding: zeroGStorageScanBinding,
 							limit: resolverContextRowLimit(context),
 						})).list.map((transaction) => zeroGDataBlobRow({
 							$network: network,
@@ -443,6 +465,7 @@ export default {
 						assertZeroGMainnet($network)
 						const { getStorageTransaction } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 						const transaction = await getStorageTransaction({
+							binding: zeroGStorageScanBinding,
 							txSeq: logEntryId,
 						})
 						return zeroGStorageLogEntryFields({
@@ -468,6 +491,7 @@ export default {
 						assertZeroGMainnet(network)
 						const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 						return (await listStorageTransactions({
+							binding: zeroGStorageScanBinding,
 							limit: resolverContextRowLimit(context),
 						})).list.map((transaction) => zeroGStorageLogEntryFields({
 							$network: network,

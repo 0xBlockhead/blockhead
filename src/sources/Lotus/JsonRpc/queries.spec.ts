@@ -16,8 +16,22 @@ import {
 	getMinerSectorCount,
 	getMinerSectors,
 } from '$/sources/Lotus/JsonRpc/queries.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const fetchMock = vi.fn<typeof fetch>()
+
+const lotusMainnetBinding = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.find((binding) => (
+		binding.source === Source.Lotus_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === 'fil:f'
+	))
+
+if (lotusMainnetBinding == null)
+	throw new Error('Lotus JSON-RPC spec requires the canonical Filecoin mainnet binding')
 
 const tipsetKey = [
 	{
@@ -49,41 +63,44 @@ describe('Lotus JSON-RPC state queries', () => {
 
 	it('uses one explicit tipset for actor, miner, sector, and count state', async () => {
 		await getActor({
-			rpcUrl: 'https://api.node.glif.io/rpc/v1',
+			binding: lotusMainnetBinding,
 			address: 'f01234',
 			tipsetKey,
 		})
 		await getIdAddress({
-			rpcUrl: 'https://api.node.glif.io/rpc/v1',
+			binding: lotusMainnetBinding,
 			address: 'f1robust',
 			tipsetKey,
 		})
 		await getMinerInfo({
-			rpcUrl: 'https://api.node.glif.io/rpc/v1',
+			binding: lotusMainnetBinding,
 			minerAddress: 'f01234',
 			tipsetKey,
 		})
 		await getMinerPower({
-			rpcUrl: 'https://api.node.glif.io/rpc/v1',
+			binding: lotusMainnetBinding,
 			minerAddress: 'f01234',
 			tipsetKey,
 		})
 		await getMinerSectors({
-			rpcUrl: 'https://api.node.glif.io/rpc/v1',
+			binding: lotusMainnetBinding,
 			minerAddress: 'f01234',
 			tipsetKey,
 		})
 		await getMinerActiveSectors({
-			rpcUrl: 'https://api.node.glif.io/rpc/v1',
+			binding: lotusMainnetBinding,
 			minerAddress: 'f01234',
 			tipsetKey,
 		})
 		await getMinerSectorCount({
-			rpcUrl: 'https://api.node.glif.io/rpc/v1',
+			binding: lotusMainnetBinding,
 			minerAddress: 'f01234',
 			tipsetKey,
 		})
 
+		expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(
+			Array.from({ length: 7 }, () => 'https://api.node.glif.io/rpc/v1')
+		)
 		expect(fetchMock.mock.calls.map(([, init]) => JSON.parse(String(init?.body)))).toEqual([
 			{
 				jsonrpc: '2.0',

@@ -7,11 +7,14 @@ import {
 	optionalTimestampMs,
 	timestampMsFromUnixSeconds,
 } from '$/lib/time.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaType } from '$/schema/Media.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	PrimalNostrEvent,
@@ -52,6 +55,10 @@ const normalizeEventId = (value: string | undefined | null) => {
 			undefined
 	)
 }
+
+const optionalUrlString = (value: string | undefined) => (
+	value != null && UrlString.allows(value) ? value : undefined
+)
 
 const tagValueFromTags = (
 	tags: PrimalNostrEvent['tags'],
@@ -542,14 +549,30 @@ const profileMetadataEventFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 		signature: event.sig,
 		content: event.content,
 		...(event.tags != null && { tags: event.tags }),
-		displayName: metadata.displayName,
-		about: metadata.about,
-		nip05: metadata.nip05,
-		lud16: metadata.lud16,
-		lud06: metadata.lud06,
-		website: metadata.website,
-		iconUrl: metadata.picture,
-		bannerUrl: metadata.banner,
+		...(metadata.displayName != null && { displayName: metadata.displayName }),
+		...(metadata.about != null && { about: metadata.about }),
+		...(metadata.nip05 != null && { nip05: metadata.nip05 }),
+		...(metadata.lud16 != null && { lud16: metadata.lud16 }),
+		...(metadata.lud06 != null && { lud06: metadata.lud06 }),
+		...(optionalUrlString(metadata.website) != null && { website: optionalUrlString(metadata.website) }),
+		...((iconUrl) => (
+			iconUrl == null ?
+				{}
+			:
+				{
+					iconUrl,
+					$icon: mediaFromUrl(iconUrl, MediaType.Image),
+				}
+		))(optionalUrlString(metadata.picture)),
+		...((bannerUrl) => (
+			bannerUrl == null ?
+				{}
+			:
+				{
+					bannerUrl,
+					$banner: mediaFromUrl(bannerUrl, MediaType.Image),
+				}
+		))(optionalUrlString(metadata.banner)),
 	}
 }
 

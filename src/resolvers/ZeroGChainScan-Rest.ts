@@ -6,12 +6,27 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
 import { ZeroGConsensusNetworkSelector } from '$/schema/ZeroGConsensusNetwork.ts'
 import { ZeroGConsensusNetwork_TimestampSelector } from '$/schema/ZeroGConsensusNetwork_Timestamp.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
+
+const zeroGChainScanBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.ZeroGChainScan_Rest
+		&& binding.target.kind === SourceTargetKind.Eip155Chain
+		&& binding.target.key === '16661'
+	))
+
+if (zeroGChainScanBindings.length !== 1)
+	throw new Error('ZeroGChainScan_Rest: canonical 0G mainnet source binding is missing or ambiguous')
+
+const zeroGChainScanBinding = zeroGChainScanBindings[0]
 
 const assertZeroGMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== '0g') {
@@ -45,7 +60,7 @@ export default {
 									source: Source.ZeroGChainScan_Rest,
 								},
 								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.ZeroGConsensusNetwork_Timestamp, [], 'sharedStakingStatusSource')]: getInfo().url,
+									[entityFieldAddressKey(EntityType.ZeroGConsensusNetwork_Timestamp, [], 'sharedStakingStatusSource')]: getInfo(zeroGChainScanBinding).url,
 								},
 							},
 						],
@@ -71,7 +86,7 @@ export default {
 						},
 						timestampMs,
 						source: Source.ZeroGChainScan_Rest,
-						sharedStakingStatusSource: getInfo().url,
+						sharedStakingStatusSource: getInfo(zeroGChainScanBinding).url,
 					}
 				},
 				},

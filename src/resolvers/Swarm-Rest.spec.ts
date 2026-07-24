@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityType } from '$/schema/EntityType.ts'
 import { _GlobalSwarmAccess_TimestampSelector } from '$/schema/_GlobalSwarmAccess_Timestamp.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const corsFetch = vi.fn()
 
@@ -12,12 +14,19 @@ vi.mock('$/lib/http.ts', () => ({
 }))
 
 const resolverModule = (await import('$/resolvers/Swarm-Rest.ts')).default
+const binding = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.find((candidate) => (
+		candidate.source === Source.Swarm_Rest
+		&& candidate.target.kind === SourceTargetKind.ContentAddressScheme
+		&& candidate.target.key === 'swarm'
+	))
 const accessTimestampResolver = resolverModule.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._GlobalSwarmAccess_Timestamp
 ))
 
-if (accessTimestampResolver == null)
-	throw new Error('Swarm access timestamp resolver is not registered')
+if (binding == null || accessTimestampResolver == null)
+	throw new Error('Swarm source binding or access timestamp resolver is not registered')
 
 const resolveAccessTimestamp = accessTimestampResolver.resolve[
 	_GlobalSwarmAccess_TimestampSelector.HubTimestampMsSource
@@ -50,6 +59,9 @@ describe('Swarm access timestamp resolver', () => {
 			reachable: true,
 		})
 		expect(corsFetch).toHaveBeenCalledTimes(2)
+		expect(corsFetch.mock.calls.map(([url]) => url)).toEqual(
+			binding.endpoints.map((endpoint) => endpoint.locator)
+		)
 	})
 
 	it('counts partial and total gateway failure without inventing reachability', async () => {

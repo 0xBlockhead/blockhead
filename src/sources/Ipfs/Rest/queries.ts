@@ -1,8 +1,16 @@
-import { corsFetch, jsonErrorHintFromResponse } from '$/lib/http.ts'
+import { jsonErrorHintFromResponse } from '$/lib/http.ts'
 import {
 	ipfsNamespaceForTarget,
 	trimIpfsSlashes,
 } from '$/lib/ipfs.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	ApiFamily,
+	SourceEndpointKind,
+	SourceTargetKind,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
 import type {
 	IpfsBrowseResult,
 	IpfsNamespace,
@@ -10,30 +18,24 @@ import type {
 
 const gatewayUrlLastSegment = /([^/]+)$/
 
-const ipfsGatewayEndpoints = [
-	{
-		locator: 'https://ipfs.io',
-		origin: 'https://ipfs.io',
-		corsEnabled: false,
-	},
-	{
-		locator: 'https://dweb.link',
-		origin: 'https://dweb.link',
-		corsEnabled: true,
-	},
-	{
-		locator: 'https://cloudflare-ipfs.com',
-		origin: 'https://cloudflare-ipfs.com',
-		corsEnabled: false,
-	},
-] as const
+const ipfsGatewayEndpoints = (binding: SourceBinding) => {
+	if (
+		binding.source !== Source.Ipfs_Rest
+		|| binding.target.kind !== SourceTargetKind.ContentAddressScheme
+		|| binding.target.key !== 'ipfs'
+		|| binding.apiFamily !== ApiFamily.IpfsGateway
+	)
+		throw new Error('Ipfs_Rest: expected canonical IPFS gateway binding')
 
-const ipfsGatewayOrigins = ipfsGatewayEndpoints.flatMap((endpoint) => (
-	[{
-		origin: endpoint.origin,
-		corsEnabled: endpoint.corsEnabled,
-	}]
-))
+	const endpoints = binding.endpoints.filter((endpoint) => (
+		endpoint.endpointKind === SourceEndpointKind.HttpUrl
+		&& endpoint.origin != null
+	))
+	if (endpoints.length === 0)
+		throw new Error('Ipfs_Rest: canonical gateway binding has no HTTP endpoints')
+
+	return endpoints
+}
 
 const resolvedIpfsNamespace = ({
 	target,
@@ -65,11 +67,13 @@ export const getGatewayUrl = ({
 }
 
 export const fetchBrowseResult = async ({
+	binding,
 	namespace,
 	target,
 	contentPath,
 	signal,
 }: {
+	binding: SourceBinding
 	namespace?: IpfsNamespace
 	target: string
 	contentPath?: string
@@ -83,20 +87,17 @@ export const fetchBrowseResult = async ({
 	})
 	const failures: string[] = []
 
-	for (const endpoint of ipfsGatewayEndpoints) {
+	for (const endpoint of ipfsGatewayEndpoints(binding)) {
 		const gatewayUrl = getGatewayUrl({
 			namespace: resolvedNamespace,
 			target: trimmedTarget,
 			contentPath: trimmedPath,
-			gatewayOrigin: endpoint.origin,
+			gatewayOrigin: endpoint.locator,
 		})
 
 		let response: Response
 		try {
-			response = await corsFetch(gatewayUrl, {
-				origins: ipfsGatewayOrigins,
-				init: { signal },
-			})
+			response = await sourceFetch(binding, gatewayUrl, { signal })
 		}
 		catch (error) {
 			failures.push(`${endpoint.locator}: ${error instanceof Error ? error.message : String(error)}`)

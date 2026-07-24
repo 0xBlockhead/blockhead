@@ -1,4 +1,8 @@
-import { getJson } from '$/lib/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
 import type {
 	FilfoxAddress,
 	FilfoxBlock,
@@ -8,89 +12,82 @@ import type {
 	FilfoxTipset,
 } from '$/sources/Filfox/Rest/types.ts'
 
-const filfoxOrigins = [
-	{
-		origin: 'https://filfox.info',
-		corsEnabled: true,
-	},
-] as const
-
-const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
+const base = (binding: SourceBinding) => `${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/api/v1`
 
 export const getTipset = ({
-	restBaseUrl,
+	binding,
 	height,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	height: bigint
 }) => (
-	getJson<FilfoxTipset>(
-		`${base(restBaseUrl)}/tipset/${height.toString()}`,
-		{ origins: filfoxOrigins }
+	sourceGetJson<FilfoxTipset>(
+		binding,
+		`${base(binding)}/tipset/${height.toString()}`
 	)
 )
 
 export const getMessage = ({
-	restBaseUrl,
+	binding,
 	messageCid,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	messageCid: string
 }) => (
-	getJson<FilfoxMessage>(
-		`${base(restBaseUrl)}/message/${messageCid}`,
-		{ origins: filfoxOrigins }
+	sourceGetJson<FilfoxMessage>(
+		binding,
+		`${base(binding)}/message/${messageCid}`
 	)
 )
 
 export const getBlock = ({
-	restBaseUrl,
+	binding,
 	blockCid,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	blockCid: string
 }) => (
-	getJson<FilfoxBlock>(
-		`${base(restBaseUrl)}/block/${blockCid}`,
-		{ origins: filfoxOrigins }
+	sourceGetJson<FilfoxBlock>(
+		binding,
+		`${base(binding)}/block/${blockCid}`
 	)
 )
 
 export const getBlockMessages = ({
-	restBaseUrl,
+	binding,
 	blockCid,
 	pageSize,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	blockCid: string
 	pageSize: number
 }) => (
-	getJson<FilfoxMessagesPage>(
-		`${base(restBaseUrl)}/block/${blockCid}/messages?pageSize=${pageSize.toString()}`,
-		{ origins: filfoxOrigins }
+	sourceGetJson<FilfoxMessagesPage>(
+		binding,
+		`${base(binding)}/block/${blockCid}/messages?pageSize=${pageSize.toString()}`
 	)
 )
 
 export const getAddress = ({
-	restBaseUrl,
+	binding,
 	address,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	address: string
 }) => (
-	getJson<FilfoxAddress>(
-		`${base(restBaseUrl)}/address/${address}`,
-		{ origins: filfoxOrigins }
+	sourceGetJson<FilfoxAddress>(
+		binding,
+		`${base(binding)}/address/${address}`
 	)
 )
 
 export const getOverview = ({
-	restBaseUrl,
+	binding,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 }) => (
-	getJson<FilfoxOverview>(
-		`${base(restBaseUrl)}/overview`,
-		{ origins: filfoxOrigins }
+	sourceGetJson<FilfoxOverview>(
+		binding,
+		`${base(binding)}/overview`
 	)
 )

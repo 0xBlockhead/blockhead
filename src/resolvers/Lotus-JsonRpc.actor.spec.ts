@@ -8,6 +8,7 @@ import { FilecoinActorSelector } from '$/schema/FilecoinActor.ts'
 import { FilecoinActor_TimestampSelector } from '$/schema/FilecoinActor_Timestamp.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const getActor = vi.fn()
 const getHead = vi.fn()
@@ -35,6 +36,13 @@ const actorSelector = {
 	$network: network,
 	address: 'f01234',
 }
+const lotusMainnetBinding = expect.objectContaining({
+	source: Source.Lotus_JsonRpc,
+	target: {
+		kind: SourceTargetKind.Caip2Network,
+		key: 'fil:f',
+	},
+})
 const resolverModules = await loadAllResolvers()
 const indexed = indexResolvers(
 	schema,
@@ -124,12 +132,12 @@ it('materializes current and historical actor state only at the exact selected t
 		stateRootCid: 'bafy-state',
 	})
 	expect(getActor).toHaveBeenCalledWith({
-		rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+		binding: lotusMainnetBinding,
 		address: actorSelector.address,
 		tipsetKey: [{ '/': 'bafy-head' }],
 	})
 	expect(getIdAddress).toHaveBeenCalledWith({
-		rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+		binding: lotusMainnetBinding,
 		address: actorSelector.address,
 		tipsetKey: [{ '/': 'bafy-head' }],
 	})

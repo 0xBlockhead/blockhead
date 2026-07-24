@@ -9,9 +9,25 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
+
+const litecoinMainnetBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.LitecoinCore_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === `${bitcoinNetworkBySlug.litecoin.caip2.namespace}:${bitcoinNetworkBySlug.litecoin.caip2.reference}`
+	))
+
+if (litecoinMainnetBindings.length !== 1)
+	throw new Error('LitecoinCore_JsonRpc: canonical Litecoin mainnet source binding is missing or ambiguous')
+
+const litecoinMainnetRpcUrl = firstHttpUrlForBinding(litecoinMainnetBindings[0])
 
 const assertLitecoinMainnet = (network: { caip2: {
 	namespace: string
@@ -44,7 +60,7 @@ export default {
 							getBlock,
 						} = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 						const block = await getBlock({
-							rpcUrl: bitcoinNetworkBySlug.litecoin.litecoinCoreRpcUrl,
+							rpcUrl: litecoinMainnetRpcUrl,
 							blockHash: hash,
 						})
 						if (typeof block === 'string')
@@ -112,7 +128,7 @@ export default {
 						assertLitecoinMainnet($network)
 						const { getRawTransaction } = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 						const transaction = await getRawTransaction({
-							rpcUrl: bitcoinNetworkBySlug.litecoin.litecoinCoreRpcUrl,
+							rpcUrl: litecoinMainnetRpcUrl,
 							txId: txId,
 						})
 						if (typeof transaction === 'string')

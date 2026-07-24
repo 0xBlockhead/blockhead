@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { substrateJsonRpc } from '$/sources/Substrate/JsonRpc/client.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import {
 	getAllMetagraphs,
-	getMainnetRpcUrl,
 	getNeuronLite,
 	getNeuronsLite,
 	getSubnetInfo,
@@ -15,6 +17,18 @@ vi.mock('$/sources/Substrate/JsonRpc/client.ts', () => ({
 
 const substrateJsonRpcMock = vi.mocked(substrateJsonRpc)
 const blockHash = `0x${'a'.repeat(64)}`
+const bittensorBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.Bittensor_JsonRpc
+		&& binding.target.kind === SourceTargetKind.NetworkSlug
+		&& binding.target.key === 'bittensor'
+	))
+
+if (bittensorBindings.length !== 1)
+	throw new Error('Bittensor query spec missing canonical mainnet binding')
+
+const bittensorBinding = bittensorBindings[0]
 
 describe('Bittensor custom JSON-RPC SCALE transport', () => {
 	beforeEach(() => {
@@ -24,7 +38,7 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 
 	it('pins network and subnet observations to the requested block hash', async () => {
 		await expect(getAllMetagraphs({
-			rpcUrl: getMainnetRpcUrl,
+			binding: bittensorBinding,
 			blockHash,
 		})).resolves.toEqual([0, 1, 254, 255])
 		expect(substrateJsonRpcMock).toHaveBeenLastCalledWith(expect.objectContaining({
@@ -33,7 +47,7 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 		}))
 
 		await getSubnetInfo({
-			rpcUrl: getMainnetRpcUrl,
+			binding: bittensorBinding,
 			netuid: 65_535,
 			blockHash,
 		})
@@ -48,7 +62,7 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 
 	it('uses the official neuron RPC identities without signing state', async () => {
 		await getNeuronsLite({
-			rpcUrl: getMainnetRpcUrl,
+			binding: bittensorBinding,
 			netuid: 1,
 			blockHash,
 		})
@@ -61,7 +75,7 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 		}))
 
 		await getNeuronLite({
-			rpcUrl: getMainnetRpcUrl,
+			binding: bittensorBinding,
 			netuid: 1,
 			uid: 2,
 			blockHash,
@@ -82,23 +96,25 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 		1.5,
 	])('rejects foreign or malformed subnet identity %s before transport', async (netuid) => {
 		await expect(getSubnetInfo({
-			rpcUrl: getMainnetRpcUrl,
+			binding: bittensorBinding,
 			netuid,
 		})).rejects.toThrow('unsigned 16-bit integer')
 		expect(substrateJsonRpcMock).not.toHaveBeenCalled()
 	})
 
-	it('rejects non-canonical endpoints before transport', async () => {
-		await expect(getSubnetInfo({
-			rpcUrl: 'https://attacker.invalid',
+	it('derives transport authority from the canonical source binding', async () => {
+		await getSubnetInfo({
+			binding: bittensorBinding,
 			netuid: 1,
-		})).rejects.toThrow('canonical mainnet RPC endpoint')
-		expect(substrateJsonRpcMock).not.toHaveBeenCalled()
+		})
+		expect(substrateJsonRpcMock).toHaveBeenCalledWith(expect.objectContaining({
+			binding: bittensorBinding,
+		}))
 	})
 
 	it('rejects malformed observation block identity before transport', async () => {
 		await expect(getSubnetInfo({
-			rpcUrl: getMainnetRpcUrl,
+			binding: bittensorBinding,
 			netuid: 1,
 			blockHash: '0x1234',
 		})).rejects.toThrow('invalid observation block hash')
@@ -113,7 +129,7 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 	])('rejects malformed SCALE byte arrays', async (wire) => {
 		substrateJsonRpcMock.mockResolvedValue(wire)
 		await expect(getSubnetInfo({
-			rpcUrl: getMainnetRpcUrl,
+			binding: bittensorBinding,
 			netuid: 1,
 		})).rejects.toThrow()
 	})
@@ -121,7 +137,7 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 	it('rejects unbounded aggregate SCALE responses', async () => {
 		substrateJsonRpcMock.mockResolvedValue(new Array(16_777_217).fill(0))
 		await expect(getAllMetagraphs({
-			rpcUrl: getMainnetRpcUrl,
+			binding: bittensorBinding,
 		})).rejects.toThrow('16777216 byte response limit')
 	})
 })

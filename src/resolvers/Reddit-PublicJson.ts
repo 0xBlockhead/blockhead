@@ -1,10 +1,5 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
-	redditNetworkSeedComments,
-	redditNetworkSeedLinks,
-	redditNetworkSeedSubreddits,
-} from '$/constants/Social/Reddit.ts'
-import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
@@ -236,15 +231,6 @@ export default {
 			resolve: {
 				[RedditSubredditSelector.Name]: {
 					resolve: async ({ name }) => {
-						if (redditNetworkSeedSubreddits.some((subreddit) => subreddit.name === name))
-							return {
-								title: `r/${name}`,
-								publicDescription: undefined,
-								createdAt: undefined,
-								over18: undefined,
-								$icon: undefined,
-							}
-
 						const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const subredditAbout = (await getSubredditAbout(name)).data
 						const iconMedia = mediaFromUrl(redditSubredditIconUrl(subredditAbout.icon_img, subredditAbout.community_icon), MediaType.Image)
@@ -276,20 +262,6 @@ export default {
 			resolve: {
 				[RedditLinkSelector.Fullname]: {
 					resolve: async ({ fullname }) => {
-						const seedLink = redditNetworkSeedLinks.find((link) => link.fullname === fullname)
-						if (seedLink != null)
-							return {
-								title: seedLink.title,
-								selftext: undefined,
-								url: undefined,
-								author: seedLink.author,
-								createdAt: seedLink.createdAt,
-								$subreddit: {
-									[EntityMetaKey.Selector]: { name: seedLink.subredditName },
-								},
-								permalink: canonicalRedditPermalink(seedLink.permalink),
-							}
-
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't3')
 						const sub = optionalNonemptyString(redditThing.data.subreddit?.trim())?.toLowerCase()
@@ -329,21 +301,6 @@ export default {
 			resolve: {
 				[RedditCommentSelector.Fullname]: {
 					resolve: async ({ fullname }) => {
-						const seedComment = redditNetworkSeedComments.find((comment) => comment.fullname === fullname)
-						if (seedComment != null)
-							return {
-								body: seedComment.body,
-								author: seedComment.author,
-								createdAt: seedComment.createdAt,
-								depth: undefined,
-								$link: {
-									[EntityMetaKey.Selector]: {
-										fullname: seedComment.linkFullname,
-									},
-								},
-								$parentComment: undefined,
-							}
-
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't1')
 						const linkId = optionalNonemptyString(redditThing.data.link_id)
@@ -426,11 +383,6 @@ export default {
 			resolve: {
 				[RedditComment_TimestampSelector.CommentTimestampMsSource]: {
 					resolve: async ({ $comment }) => {
-						if (redditNetworkSeedComments.some((comment) => comment.fullname === $comment.fullname))
-							return {
-								score: undefined,
-							}
-
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo($comment.fullname), $comment.fullname, 't1')
 						return {
@@ -635,9 +587,6 @@ export default {
 			resolve: {
 				[RedditCommentSelector.Fullname]: {
 					resolve: async ({ fullname }) => {
-						if (redditNetworkSeedComments.some((comment) => comment.fullname === fullname))
-							return []
-
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't1')
 						return [
@@ -666,9 +615,6 @@ export default {
 			resolve: {
 				[RedditCommentSelector.Fullname]: {
 					resolve: async ({ fullname }, context) => {
-						if (redditNetworkSeedComments.some((comment) => comment.fullname === fullname))
-							return []
-
 						const limit = resolverContextRowLimit(context)
 						if (limit === 0)
 							return []

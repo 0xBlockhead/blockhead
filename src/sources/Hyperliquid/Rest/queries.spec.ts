@@ -5,6 +5,9 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
 
@@ -21,7 +24,16 @@ const {
 	getUserVaultEquities,
 } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 
-const restBaseUrl = 'https://api.hyperliquid.xyz/'
+const binding = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.find((candidate) => (
+		candidate.source === Source.Hyperliquid_Rest
+		&& candidate.target.kind === SourceTargetKind.Caip2Network
+		&& candidate.target.key === 'eip155:999'
+	))
+
+if (binding == null)
+	throw new Error('Hyperliquid_Rest test: canonical source binding is missing')
 
 describe('Hyperliquid public account Info transport', () => {
 	beforeEach(() => {
@@ -35,7 +47,7 @@ describe('Hyperliquid public account Info transport', () => {
 	it.each([
 		{
 			query: () => getClearinghouseState({
-				restBaseUrl,
+				binding,
 				user: '0x1111111111111111111111111111111111111111',
 			}),
 			body: {
@@ -45,7 +57,7 @@ describe('Hyperliquid public account Info transport', () => {
 		},
 		{
 			query: () => getSpotClearinghouseState({
-				restBaseUrl,
+				binding,
 				user: '0x1111111111111111111111111111111111111111',
 			}),
 			body: {
@@ -55,7 +67,7 @@ describe('Hyperliquid public account Info transport', () => {
 		},
 		{
 			query: () => getHistoricalOrders({
-				restBaseUrl,
+				binding,
 				user: '0x1111111111111111111111111111111111111111',
 			}),
 			body: {
@@ -65,7 +77,7 @@ describe('Hyperliquid public account Info transport', () => {
 		},
 		{
 			query: () => getUserFillsByTime({
-				restBaseUrl,
+				binding,
 				user: '0x1111111111111111111111111111111111111111',
 				startTime: 1_700_000_000_000,
 				endTime: 1_700_086_400_000,
@@ -80,7 +92,7 @@ describe('Hyperliquid public account Info transport', () => {
 		},
 		{
 			query: () => getUserVaultEquities({
-				restBaseUrl,
+				binding,
 				user: '0x1111111111111111111111111111111111111111',
 			}),
 			body: {
@@ -109,7 +121,7 @@ describe('Hyperliquid public account Info transport', () => {
 		{ startTime: 10, endTime: Number.MAX_SAFE_INTEGER + 1 },
 	])('rejects invalid fill windows before transport', ({ startTime, endTime }) => {
 		expect(() => getUserFillsByTime({
-			restBaseUrl,
+			binding,
 			user: '0x1111111111111111111111111111111111111111',
 			startTime,
 			...(endTime != null && { endTime }),

@@ -9,7 +9,22 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { SwarmResourceSelector } from '$/schema/SwarmResource.ts'
 import { _GlobalSwarmAccess_TimestampSelector } from '$/schema/_GlobalSwarmAccess_Timestamp.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+
+const swarmBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.Swarm_Rest
+		&& binding.target.kind === SourceTargetKind.ContentAddressScheme
+		&& binding.target.key === 'swarm'
+	))
+
+if (swarmBindings.length !== 1)
+	throw new Error('Swarm_Rest: canonical gateway binding is missing or ambiguous')
+
+const swarmBinding = swarmBindings[0]
 
 export default {
 	source: Source.Swarm_Rest,
@@ -35,6 +50,7 @@ export default {
 						let browseResult
 						try {
 							browseResult = await fetchBrowseResult({
+								binding: swarmBinding,
 								reference: normalizedReference,
 								contentPath,
 							})
@@ -129,7 +145,9 @@ export default {
 							source,
 							...(await (
 								await import('$/sources/Swarm/Rest/queries.ts')
-							).getGatewayReachability()),
+							).getGatewayReachability({
+								binding: swarmBinding,
+							})),
 						}
 					},
 				},

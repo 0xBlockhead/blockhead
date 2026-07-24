@@ -9,7 +9,10 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
 import { BitcoinCashCashTokenFungibleAmountSelector } from '$/schema/BitcoinCashCashTokenFungibleAmount.ts'
 import { BitcoinCashCashTokenNftSelector } from '$/schema/BitcoinCashCashTokenNft.ts'
@@ -19,6 +22,19 @@ type NetworkId = { caip2: {
 	namespace: string
 	reference: string
 } } | { slug: string }
+
+const bitcoinCashMainnetBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.BitcoinCashNode_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === `${bitcoinNetworkBySlug['bitcoin-cash'].caip2.namespace}:${bitcoinNetworkBySlug['bitcoin-cash'].caip2.reference}`
+	))
+
+if (bitcoinCashMainnetBindings.length !== 1)
+	throw new Error('BitcoinCashNode_JsonRpc: canonical Bitcoin Cash mainnet source binding is missing or ambiguous')
+
+const bitcoinCashMainnetRpcUrl = firstHttpUrlForBinding(bitcoinCashMainnetBindings[0])
 
 const assertBitcoinCashMainnet = (network: NetworkId) => {
 	if (
@@ -44,7 +60,7 @@ const getOutput = async ({ $transaction, indexInTransaction }: {
 	assertBitcoinCashMainnet($transaction.$network)
 	const { getRawTransaction } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
 	const transaction = await getRawTransaction({
-		rpcUrl: bitcoinNetworkBySlug['bitcoin-cash'].bitcoinCashNodeRpcUrl,
+		rpcUrl: bitcoinCashMainnetRpcUrl,
 		txId: $transaction.txId,
 	})
 	const output = transaction.vout.at(indexInTransaction)

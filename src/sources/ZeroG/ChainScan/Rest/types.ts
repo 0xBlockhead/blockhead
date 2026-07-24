@@ -1,5 +1,5 @@
 export type ZeroGChainScanInfo = {
-	url: 'https://chainscan.0g.ai'
+	url: string
 	chainId: 16661
 	features: readonly string[]
 }

@@ -5,11 +5,10 @@ import type {
 	SubstrateRuntimeVersion,
 	SubstrateSystemHealth,
 } from '$/sources/Substrate/JsonRpc/types.ts'
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 type SubstrateJsonRpcRequest = {
-	rpcUrl: string
-	origins: readonly SourceOrigin[]
+	binding: SourceBinding
 	label: string
 }
 

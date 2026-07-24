@@ -1,5 +1,9 @@
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { TransportType } from '$/constants/TransportType.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
@@ -7,23 +11,6 @@ import type {
 	HyperliquidEvmTransaction,
 	HyperliquidEvmTransactionReceipt,
 } from '$/sources/Hyperliquid/JsonRpc/types.ts'
-
-const hyperliquidRpcOrigin = 'https://rpc.hyperliquid.xyz' as const
-
-export const hyperliquidOrigins = [
-	{
-		origin: hyperliquidRpcOrigin,
-		corsEnabled: true,
-	},
-] as const
-
-export const hyperliquidMainnetRpcEndpoints = [
-	{
-		url: `${hyperliquidRpcOrigin}/evm`,
-		transportType: TransportType.Http,
-		providerName: 'Hyperliquid HyperEVM JSON-RPC',
-	},
-] as const
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion
@@ -37,17 +24,18 @@ type JsonRpcResponse<_Result> = {
 }
 
 const hyperliquidJsonRpc = async <_Result>({
-	rpcUrl,
+	binding,
 	method,
 	params,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	method: string
 	params: JsonValue[]
 }) => {
-	const response = await corsFetch(rpcUrl, {
-		origins: hyperliquidOrigins,
-		init: {
+	const response = await sourceFetch(
+		binding,
+		firstHttpUrlForBinding(binding),
+		{
 			method: 'POST',
 			headers: jsonRpcHeaders,
 			body: JSON.stringify({
@@ -56,8 +44,8 @@ const hyperliquidJsonRpc = async <_Result>({
 				method,
 				params,
 			}),
-		},
-	})
+		}
+	)
 	if (!response.ok) await throwHttpError(`Hyperliquid ${method}`, response)
 	const json = await response.json<JsonRpcResponse<_Result>>()
 	if (json.error != null) throw new Error(`Hyperliquid ${method}: ${json.error.message}`)
@@ -66,16 +54,16 @@ const hyperliquidJsonRpc = async <_Result>({
 }
 
 export const getBlockByNumber = ({
-	rpcUrl,
+	binding,
 	height,
 	includeTransactions = false,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	height: bigint
 	includeTransactions?: boolean
 }) => (
 	hyperliquidJsonRpc<HyperliquidEvmBlock | null>({
-		rpcUrl,
+		binding,
 		method: 'eth_getBlockByNumber',
 		params: [
 			`0x${height.toString(16)}`,
@@ -85,40 +73,40 @@ export const getBlockByNumber = ({
 )
 
 export const getBlockNumber = ({
-	rpcUrl,
+	binding,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 }) => (
 	hyperliquidJsonRpc<string>({
-		rpcUrl,
+		binding,
 		method: 'eth_blockNumber',
 		params: [],
 	})
 )
 
 export const getTransactionByHash = ({
-	rpcUrl,
+	binding,
 	txHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	txHash: string
 }) => (
 	hyperliquidJsonRpc<HyperliquidEvmTransaction | null>({
-		rpcUrl,
+		binding,
 		method: 'eth_getTransactionByHash',
 		params: [txHash],
 	})
 )
 
 export const getTransactionReceipt = ({
-	rpcUrl,
+	binding,
 	txHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	txHash: string
 }) => (
 	hyperliquidJsonRpc<HyperliquidEvmTransactionReceipt | null>({
-		rpcUrl,
+		binding,
 		method: 'eth_getTransactionReceipt',
 		params: [txHash],
 	})

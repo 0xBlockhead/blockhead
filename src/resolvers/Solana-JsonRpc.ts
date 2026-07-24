@@ -7,12 +7,18 @@ import {
 	NetworkExecutionModel,
 	NetworkLedgerModel,
 } from '$/constants/Network.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import {
+	SourceEndpointKind,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 import type {
 	SolanaRpcInstruction,
 	SolanaRpcTransactionWithMeta,
@@ -38,9 +44,25 @@ import { schema } from '$/schema/index.ts'
 
 const solanaMainnetCaip2 = networkBySlug.solana.caip2
 
-const solanaMainnetRpcUrl = async () => (
-	(await import('$/sources/Solana/JsonRpc/queries.ts')).solanaMainnetRpcEndpoints[0].url
-)
+const solanaMainnetBindingEntries = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings.map((binding) => ({
+		binding,
+		providerName: provider.label,
+	})))
+	.filter(({ binding }) => (
+		binding.source === Source.Solana_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Caip2Network
+		&& binding.target.key === `${solanaMainnetCaip2.namespace}:${solanaMainnetCaip2.reference}`
+	))
+
+const solanaMainnetHttpBindingEntries = solanaMainnetBindingEntries.filter(({ binding }) => (
+	binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
+))
+const [solanaMainnetHttpBindingEntry] = solanaMainnetHttpBindingEntries
+if (solanaMainnetHttpBindingEntry == null || solanaMainnetHttpBindingEntries.length !== 1)
+	throw new Error('Solana_JsonRpc: canonical Solana mainnet HTTP source binding is missing or ambiguous')
+
+const solanaMainnetHttpBinding = solanaMainnetHttpBindingEntry.binding
 
 const assertSolanaMainnet = (network: { caip2: {
 	namespace: string
@@ -352,7 +374,7 @@ const getTransaction = async ({ $network, signature }: {
 	assertSolanaMainnet($network)
 	const { getTransaction } = await import('$/sources/Solana/JsonRpc/queries.ts')
 	const transaction = await getTransaction({
-		rpcUrl: await solanaMainnetRpcUrl(),
+		binding: solanaMainnetHttpBinding,
 		signature: signature,
 	})
 	if (transaction == null) throw new Error(`Solana_JsonRpc: transaction not found for signature ${signature}`)
@@ -482,7 +504,7 @@ export default {
 
 							const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
 							const block = await getBlock({
-								rpcUrl: await solanaMainnetRpcUrl(),
+								binding: solanaMainnetHttpBinding,
 								slot,
 							})
 							if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${slot.toString()}`)
@@ -538,7 +560,24 @@ export default {
 				[NetworkSelector.Caip2]: {
 					resolve: async ({ caip2 }) => {
 						assertSolanaMainnet({ caip2 })
-						return (await import('$/sources/Solana/JsonRpc/queries.ts')).solanaMainnetRpcEndpoints
+						return solanaMainnetBindingEntries.flatMap(({ binding, providerName }) => (
+							binding.endpoints.flatMap((endpoint) => (
+								endpoint.endpointKind === SourceEndpointKind.HttpUrl
+									|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
+									[{
+										url: endpoint.locator,
+										transportType: (
+											endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
+												TransportType.Http
+											:
+												TransportType.WebSocket
+										),
+										providerName,
+									}]
+								:
+									[]
+							))
+						))
 					},
 				}
 			},
@@ -568,18 +607,16 @@ export default {
 						voteAccounts,
 						] = await Promise.all([
 							getEpochInfo({
-								rpcUrl: await solanaMainnetRpcUrl(),
+								binding: solanaMainnetHttpBinding,
 							}),
 							getHealth({
-								rpcUrl: await solanaMainnetRpcUrl(),
-							}).catch((error) => (
-							error instanceof Error ? error.message : 'unavailable'
-							)),
+								binding: solanaMainnetHttpBinding,
+							}),
 							getVersion({
-								rpcUrl: await solanaMainnetRpcUrl(),
+								binding: solanaMainnetHttpBinding,
 							}),
 							getVoteAccounts({
-								rpcUrl: await solanaMainnetRpcUrl(),
+								binding: solanaMainnetHttpBinding,
 							}),
 						])
 						return {
@@ -697,7 +734,7 @@ export default {
 								slot
 							),
 							confirmationStatus: (await getSignatureStatuses({
-								rpcUrl: await solanaMainnetRpcUrl(),
+								binding: solanaMainnetHttpBinding,
 								signatures: [$transaction.signature],
 							})).value[0]?.confirmationStatus,
 						}
@@ -775,7 +812,7 @@ export default {
 						assertSolanaMainnet($network)
 						const { getAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getAccountInfo({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 							pubkey: pubkey,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${pubkey}`)
@@ -788,7 +825,7 @@ export default {
 									},
 									accountInfo.value,
 									BigInt(await getSlot({
-										rpcUrl: await solanaMainnetRpcUrl(),
+										binding: solanaMainnetHttpBinding,
 									}))
 								),
 							],
@@ -811,7 +848,7 @@ export default {
 						assertSolanaMainnet($account.$network)
 						const { getAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getAccountInfo({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 							pubkey: $account.pubkey,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${$account.pubkey}`)
@@ -863,7 +900,7 @@ export default {
 						assertSolanaMainnet($network)
 						const { getParsedTokenMintAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getParsedTokenMintAccountInfo({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 							pubkey: mintAddress,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token mint not found for address ${mintAddress}`)
@@ -876,7 +913,7 @@ export default {
 											mintAddress,
 										},
 										slot: BigInt(await getSlot({
-											rpcUrl: await solanaMainnetRpcUrl(),
+											binding: solanaMainnetHttpBinding,
 										})),
 										source: Source.Solana_JsonRpc,
 									},
@@ -899,7 +936,7 @@ export default {
 						assertSolanaMainnet($mint.$network)
 						const { getParsedTokenMintAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getParsedTokenMintAccountInfo({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 							pubkey: $mint.mintAddress,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token mint not found for address ${$mint.mintAddress}`)
@@ -937,7 +974,7 @@ export default {
 						assertSolanaMainnet($network)
 						const { getParsedTokenAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getParsedTokenAccountInfo({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 							pubkey: tokenAccountPubkey,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token account not found for address ${tokenAccountPubkey}`)
@@ -985,7 +1022,7 @@ export default {
 											tokenAccountPubkey,
 										},
 										slot: BigInt(await getSlot({
-											rpcUrl: await solanaMainnetRpcUrl(),
+											binding: solanaMainnetHttpBinding,
 										})),
 										source: Source.Solana_JsonRpc,
 									},
@@ -1013,7 +1050,7 @@ export default {
 						assertSolanaMainnet($tokenAccount.$network)
 						const { getParsedTokenAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getParsedTokenAccountInfo({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 							pubkey: $tokenAccount.tokenAccountPubkey,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token account not found for address ${$tokenAccount.tokenAccountPubkey}`)
@@ -1050,7 +1087,7 @@ export default {
 						assertSolanaMainnet($network)
 						const { getSlot, getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const voteAccounts = await getVoteAccounts({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 							votePubkey: votePubkey,
 						})
 						const currentVoteAccount = voteAccounts.current.find((voteAccount) => (
@@ -1070,7 +1107,7 @@ export default {
 											votePubkey,
 										},
 										slot: BigInt(await getSlot({
-											rpcUrl: await solanaMainnetRpcUrl(),
+											binding: solanaMainnetHttpBinding,
 										})),
 										source: Source.Solana_JsonRpc,
 									},
@@ -1093,7 +1130,7 @@ export default {
 						assertSolanaMainnet($validator.$network)
 						const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const voteAccounts = await getVoteAccounts({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 							votePubkey: $validator.votePubkey,
 						})
 						const currentVoteAccount = voteAccounts.current.find((voteAccount) => (
@@ -1167,10 +1204,10 @@ export default {
 						} = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						const endSlot = BigInt(await getSlot({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 						}))
 						return (await getBlocks({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 							startSlot: endSlot > BigInt(limit - 1) ?
 								endSlot - BigInt(limit - 1)
 							:
@@ -1204,10 +1241,10 @@ export default {
 						return solanaValidatorRows(
 							{ caip2 },
 							await getVoteAccounts({
-								rpcUrl: await solanaMainnetRpcUrl(),
+								binding: solanaMainnetHttpBinding,
 							}),
 							BigInt(await getSlot({
-								rpcUrl: await solanaMainnetRpcUrl(),
+								binding: solanaMainnetHttpBinding,
 							}))
 						)
 					},
@@ -1227,7 +1264,7 @@ export default {
 						assertSolanaMainnet({ caip2 })
 						const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const voteAccounts = await getVoteAccounts({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 						})
 						return voteAccounts.current.length + voteAccounts.delinquent.length
 					},
@@ -1254,12 +1291,12 @@ export default {
 						} = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						const endSlot = BigInt(await getSlot({
-							rpcUrl: await solanaMainnetRpcUrl(),
+							binding: solanaMainnetHttpBinding,
 						}))
 						const blocks = (
 							await Promise.all(
 								(await getBlocks({
-									rpcUrl: await solanaMainnetRpcUrl(),
+									binding: solanaMainnetHttpBinding,
 									startSlot: endSlot > 31n ? endSlot - 31n : 0n,
 									endSlot,
 								}))
@@ -1267,9 +1304,9 @@ export default {
 									.map(async (slot) => ({
 										slot: BigInt(slot),
 										block: await getBlock({
-											rpcUrl: await solanaMainnetRpcUrl(),
+											binding: solanaMainnetHttpBinding,
 											slot: BigInt(slot),
-										}).catch(() => null),
+										}),
 									}))
 							)
 						)
@@ -1383,7 +1420,7 @@ export default {
 
 							const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
 							const block = await getBlock({
-								rpcUrl: await solanaMainnetRpcUrl(),
+								binding: solanaMainnetHttpBinding,
 								slot,
 							})
 							if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${slot.toString()}`)

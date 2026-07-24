@@ -12,7 +12,9 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import type { RpcBlockHeader } from '$/sources/Evm/JsonRpc/types.ts'
 import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
 import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
@@ -21,6 +23,18 @@ import { EvmNetworkAccount_TimestampSelector } from '$/schema/EvmNetworkAccount_
 import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
 
 const zeroGChainId = 16661
+const zeroGChainBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.ZeroGChain_JsonRpc
+		&& binding.target.kind === SourceTargetKind.Eip155Chain
+		&& binding.target.key === zeroGChainId.toString()
+	))
+
+if (zeroGChainBindings.length !== 1)
+	throw new Error('ZeroGChain_JsonRpc: canonical 0G mainnet source binding is missing or ambiguous')
+
+const zeroGChainBinding = zeroGChainBindings[0]
 
 const assertZeroGMainnetChain = (network: { caip2: { namespace: string; reference: string } }) => {
 	if (network.caip2.namespace !== 'eip155' || network.caip2.reference !== String(zeroGChainId)) {
@@ -107,6 +121,7 @@ export default {
 						assertZeroGMainnetChain($network)
 						const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 						const block = await getBlockByNumber({
+							binding: zeroGChainBinding,
 							blockNumber: blockNumber,
 							txObjects: false,
 						})
@@ -195,7 +210,10 @@ export default {
 							throw new Error('ZeroGChain_JsonRpc: EvmNetworkAccount wallet address not normalized')
 
 						return {
-							isContract: await getCode({ address }) !== '0x',
+							isContract: await getCode({
+								binding: zeroGChainBinding,
+								address,
+							}) !== '0x',
 						}
 					},
 				},
@@ -214,9 +232,15 @@ export default {
 							getTransactionByHash,
 							getTransactionReceipt,
 						} = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-						const transaction = await getTransactionByHash({ txHash: txHash })
+						const transaction = await getTransactionByHash({
+							binding: zeroGChainBinding,
+							txHash: txHash,
+						})
 						if (transaction == null) throw new Error(`ZeroGChain_JsonRpc: transaction not found ${txHash}`)
-						const receipt = await getTransactionReceipt({ txHash: txHash })
+						const receipt = await getTransactionReceipt({
+							binding: zeroGChainBinding,
+							txHash: txHash,
+						})
 						const value = quantityToBigInt(transaction.value) ?? 0n
 						const fromAddress = hexLowerOfByteSize(transaction.from ?? '', 20)
 						const toAddress = hexLowerOfByteSize(transaction.to ?? '', 20)
@@ -332,6 +356,7 @@ export default {
 					assertZeroGMainnetChain($network)
 					const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 					const block = await getBlockByNumber({
+						binding: zeroGChainBinding,
 						blockNumber: blockNumber,
 						txObjects: true,
 					})

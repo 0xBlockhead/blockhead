@@ -1,5 +1,6 @@
 import { substrateJsonRpc } from '$/sources/Substrate/JsonRpc/client.ts'
 import type { BittensorScaleBytes } from '$/sources/Bittensor/JsonRpc/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 import {
 	getBlock as getSubstrateBlock,
@@ -10,30 +11,12 @@ import {
 	getSystemHealth as getSubstrateSystemHealth,
 } from '$/sources/Substrate/JsonRpc/queries.ts'
 
-export const getMainnetRpcUrl = 'https://entrypoint-finney.opentensor.ai'
-
-const bittensorOrigins = [
-	{
-		origin: getMainnetRpcUrl,
-		corsEnabled: false,
-	},
-	{
-		origin: 'https://lite.chain.opentensor.ai',
-		corsEnabled: false,
-	},
-] as const
-
-const bittensorJsonRpc = {
-	origins: bittensorOrigins,
+const bittensorJsonRpc = (binding: SourceBinding) => ({
+	binding,
 	label: 'Bittensor',
-} as const
+} as const)
 
 const scaleBytes = arktype('(number.integer >= 0 <= 255)[]')
-
-const assertRpcUrl = (rpcUrl: string) => {
-	if (!bittensorOrigins.some((origin) => origin.origin === rpcUrl))
-		throw new Error('Bittensor_JsonRpc: expected canonical mainnet RPC endpoint')
-}
 
 const assertNetuid = (netuid: number) => {
 	if (!Number.isSafeInteger(netuid) || netuid < 0 || netuid > 65_535)
@@ -46,20 +29,18 @@ const assertBlockHash = (blockHash: string | undefined) => {
 }
 
 const getScaleBytes = async ({
-	rpcUrl,
+	binding,
 	method,
 	params,
 	maxBytes,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	method: string
 	params: readonly unknown[]
 	maxBytes: number
 }): Promise<BittensorScaleBytes> => {
-	assertRpcUrl(rpcUrl)
 	const bytes = scaleBytes.assert(await substrateJsonRpc<unknown>({
-		...bittensorJsonRpc,
-		rpcUrl,
+		...bittensorJsonRpc(binding),
 		method,
 		params,
 	}))
@@ -69,17 +50,17 @@ const getScaleBytes = async ({
 }
 
 const getNetworkScaleBytes = ({
-	rpcUrl,
+	binding,
 	method,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	method: string
 	blockHash?: string
 }) => {
 	assertBlockHash(blockHash)
 	return getScaleBytes({
-		rpcUrl,
+		binding,
 		method,
 		params: blockHash == null ? [] : [blockHash],
 		maxBytes: 16_777_216,
@@ -87,12 +68,12 @@ const getNetworkScaleBytes = ({
 }
 
 const getSubnetScaleBytes = async ({
-	rpcUrl,
+	binding,
 	method,
 	netuid,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	method: string
 	netuid: number
 	blockHash?: string
@@ -100,7 +81,7 @@ const getSubnetScaleBytes = async ({
 	assertNetuid(netuid)
 	assertBlockHash(blockHash)
 	return await getScaleBytes({
-		rpcUrl,
+		binding,
 		method,
 		params: blockHash == null ? [netuid] : [netuid, blockHash],
 		maxBytes: 4_194_304,
@@ -108,198 +89,192 @@ const getSubnetScaleBytes = async ({
 }
 
 export const getFinalizedHead = ({
-	rpcUrl,
+	binding,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 }) => (
 	getSubstrateFinalizedHead({
-		...bittensorJsonRpc,
-		rpcUrl,
+		...bittensorJsonRpc(binding),
 	})
 )
 
 export const getBlockHash = ({
-	rpcUrl,
+	binding,
 	blockNumber,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	blockNumber: bigint
 }) => (
 	getSubstrateBlockHash({
-		...bittensorJsonRpc,
-		rpcUrl,
+		...bittensorJsonRpc(binding),
 		blockNumber,
 	})
 )
 
 export const getHeader = ({
-	rpcUrl,
+	binding,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	blockHash?: string
 }) => (
 	getSubstrateHeader({
-		...bittensorJsonRpc,
-		rpcUrl,
+		...bittensorJsonRpc(binding),
 		blockHash,
 	})
 )
 
 export const getBlock = ({
-	rpcUrl,
+	binding,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	blockHash: string
 }) => (
 	getSubstrateBlock({
-		...bittensorJsonRpc,
-		rpcUrl,
+		...bittensorJsonRpc(binding),
 		blockHash,
 	})
 )
 
 export const getRuntimeVersion = ({
-	rpcUrl,
+	binding,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 }) => (
 	getSubstrateRuntimeVersion({
-		...bittensorJsonRpc,
-		rpcUrl,
+		...bittensorJsonRpc(binding),
 	})
 )
 
 export const getSystemHealth = ({
-	rpcUrl,
+	binding,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 }) => (
 	getSubstrateSystemHealth({
-		...bittensorJsonRpc,
-		rpcUrl,
+		...bittensorJsonRpc(binding),
 	})
 )
 
 export const getSubnetsInfo = ({
-	rpcUrl,
+	binding,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	blockHash?: string
 }) => getNetworkScaleBytes({
-	rpcUrl,
+	binding,
 	method: 'subnetInfo_getSubnetsInfo',
 	blockHash,
 })
 
 export const getAllDynamicInfo = ({
-	rpcUrl,
+	binding,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	blockHash?: string
 }) => getNetworkScaleBytes({
-	rpcUrl,
+	binding,
 	method: 'subnetInfo_getAllDynamicInfo',
 	blockHash,
 })
 
 export const getAllMetagraphs = ({
-	rpcUrl,
+	binding,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	blockHash?: string
 }) => getNetworkScaleBytes({
-	rpcUrl,
+	binding,
 	method: 'subnetInfo_getAllMetagraphs',
 	blockHash,
 })
 
 export const getSubnetInfo = ({
-	rpcUrl,
+	binding,
 	netuid,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	netuid: number
 	blockHash?: string
 }) => getSubnetScaleBytes({
-	rpcUrl,
+	binding,
 	method: 'subnetInfo_getSubnetInfo',
 	netuid,
 	blockHash,
 })
 
 export const getDynamicInfo = ({
-	rpcUrl,
+	binding,
 	netuid,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	netuid: number
 	blockHash?: string
 }) => getSubnetScaleBytes({
-	rpcUrl,
+	binding,
 	method: 'subnetInfo_getDynamicInfo',
 	netuid,
 	blockHash,
 })
 
 export const getMetagraph = ({
-	rpcUrl,
+	binding,
 	netuid,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	netuid: number
 	blockHash?: string
 }) => getSubnetScaleBytes({
-	rpcUrl,
+	binding,
 	method: 'subnetInfo_getMetagraph',
 	netuid,
 	blockHash,
 })
 
 export const getSubnetHyperparams = ({
-	rpcUrl,
+	binding,
 	netuid,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	netuid: number
 	blockHash?: string
 }) => getSubnetScaleBytes({
-	rpcUrl,
+	binding,
 	method: 'subnetInfo_getSubnetHyperparams',
 	netuid,
 	blockHash,
 })
 
 export const getNeuronsLite = ({
-	rpcUrl,
+	binding,
 	netuid,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	netuid: number
 	blockHash?: string
 }) => getSubnetScaleBytes({
-	rpcUrl,
+	binding,
 	method: 'neuronInfo_getNeuronsLite',
 	netuid,
 	blockHash,
 })
 
 export const getNeuronLite = async ({
-	rpcUrl,
+	binding,
 	netuid,
 	uid,
 	blockHash,
 }: {
-	rpcUrl: string
+	binding: SourceBinding
 	netuid: number
 	uid: number
 	blockHash?: string
@@ -309,7 +284,7 @@ export const getNeuronLite = async ({
 	if (!Number.isSafeInteger(uid) || uid < 0 || uid > 65_535)
 		throw new Error('Bittensor_JsonRpc: uid must be an unsigned 16-bit integer')
 	return await getScaleBytes({
-		rpcUrl,
+		binding,
 		method: 'neuronInfo_getNeuronLite',
 		params: blockHash == null ? [netuid, uid] : [netuid, uid, blockHash],
 		maxBytes: 65_536,

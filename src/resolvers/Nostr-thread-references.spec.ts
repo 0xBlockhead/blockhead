@@ -496,9 +496,17 @@ describe('Nostr thread references', () => {
 			signedEvent([['d', 'target'], ['title', 'Version A']], 30_023, 'article A'),
 		].sort((left, right) => right.id.localeCompare(left.id))
 		const profileVersions = [
-			signedEvent([], 0, JSON.stringify({ display_name: 'Profile B', lud06: 'lnurl-b' })),
+			signedEvent([], 0, JSON.stringify({
+				display_name: 'Profile B',
+				lud06: 'lnurl-b',
+				picture: 'https://images.example/profile-b.png',
+				banner: 'https://images.example/profile-b-banner.png',
+			}), 1_700_000_010),
 			signedEvent([], 0, JSON.stringify({ display_name: 'Profile A', lud06: 'lnurl-a' })),
-		].sort((left, right) => right.id.localeCompare(left.id))
+		].sort((left, right) => (
+			right.created_at - left.created_at
+			|| right.id.localeCompare(left.id)
+		))
 		const articleResolver = primal.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.NostrArticle
 			&& '$$events' in candidate.projections
@@ -562,6 +570,14 @@ describe('Nostr thread references', () => {
 			content: profileVersions[0].content,
 			displayName: JSON.parse(profileVersions[0].content).display_name,
 			lud06: JSON.parse(profileVersions[0].content).lud06,
+			iconUrl: JSON.parse(profileVersions[0].content).picture,
+			bannerUrl: JSON.parse(profileVersions[0].content).banner,
+			$icon: expect.objectContaining({
+				[EntityMetaKey.Selector]: { url: JSON.parse(profileVersions[0].content).picture },
+			}),
+			$banner: expect.objectContaining({
+				[EntityMetaKey.Selector]: { url: JSON.parse(profileVersions[0].content).banner },
+			}),
 		}))
 	})
 })

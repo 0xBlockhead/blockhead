@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NearContractStorageEntrySelector } from '$/schema/NearContractStorageEntry.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
 
@@ -42,6 +44,18 @@ const selector = {
 	blockHeight: 123n,
 	source: Source.NearRpc_JsonRpc,
 }
+const nearBindings = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.filter((binding) => (
+		binding.source === Source.NearRpc_JsonRpc
+		&& binding.target.kind === SourceTargetKind.NetworkSlug
+		&& binding.target.key === 'near'
+	))
+
+if (nearBindings.length !== 1)
+	throw new Error('NearRpc_JsonRpc spec missing canonical mainnet binding')
+
+const nearBinding = nearBindings[0]
 
 describe('NEAR contract storage query', () => {
 	beforeEach(() => {
@@ -64,7 +78,7 @@ describe('NEAR contract storage query', () => {
 		})))
 
 		await expect(viewState({
-			rpcUrl: 'https://rpc.mainnet.near.org',
+			binding: nearBinding,
 			accountId: selector.$contract.accountId,
 			prefixBase64: selector.keyBase64,
 			blockHeight: 123,

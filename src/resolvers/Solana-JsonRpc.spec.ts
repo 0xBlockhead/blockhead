@@ -13,11 +13,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { NetworkSelector } from '$/schema/Network.ts'
 
 vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
-	solanaMainnetRpcEndpoints: [{
-		url: 'https://solana.example',
-		transportType: 'Http',
-		providerName: 'Solana Labs',
-	}],
 	getSlot: vi.fn().mockResolvedValue(100),
 	getVoteAccounts: vi.fn().mockResolvedValue({
 		current: [{
@@ -126,14 +121,21 @@ describe('Solana JSON-RPC network state lists', () => {
 			context
 		)
 
-		expect(resolver.projections.Solana.rpcEndpoints(rpcEndpoints)).toEqual([{
-			url: 'https://solana.example',
-			transportType: 'Http',
-			providerName: 'Solana Labs',
-		}])
+		expect(resolver.projections.Solana.rpcEndpoints(rpcEndpoints)).toEqual([
+			{
+				url: 'https://solana-rpc.publicnode.com',
+				transportType: 'Http',
+				providerName: 'PublicNode',
+			},
+			{
+				url: 'wss://solana-rpc.publicnode.com',
+				transportType: 'WebSocket',
+				providerName: 'PublicNode',
+			},
+		])
 	})
 
-	it('derives every recent state list from one partial-failure-tolerant block scan', async () => {
+	it('fails the shared recent-state snapshot when any requested block fails', async () => {
 		const resolver = solanaJsonRpc.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Network
 			&& 'Solana' in candidate.projections
@@ -143,65 +145,12 @@ describe('Solana JSON-RPC network state lists', () => {
 
 		vi.mocked(getBlocks).mockResolvedValueOnce([99, 100])
 		vi.mocked(getBlock).mockRejectedValueOnce(new Error('pruned slot'))
-		const state = await resolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
 			networkSelector,
 			context
-		)
+		)).rejects.toThrow('pruned slot')
 
 		expect(getBlock).toHaveBeenCalledTimes(2)
-		expect(resolver.projections.Solana.$$transactions(state)).toHaveLength(1)
-		expect(resolver.projections.Solana.$$accounts(state)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$network: networkSelector,
-				pubkey: 'account-1',
-			},
-		}])
-		expect(resolver.projections.Solana.$$programs(state)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: networkSelector,
-					programId: 'token-program',
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: networkSelector,
-					programId: 'application-program',
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: networkSelector,
-					programId: 'associated-token-program',
-				},
-			},
-		])
-		expect(resolver.projections.Solana.$$tokenAccounts(state)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: networkSelector,
-					tokenAccountPubkey: 'token-account-destination',
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: networkSelector,
-					tokenAccountPubkey: 'token-account-source',
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: networkSelector,
-					tokenAccountPubkey: 'token-account-created',
-				},
-			},
-		])
-		expect(resolver.projections.Solana.$$tokenMints(state)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$network: networkSelector,
-				mintAddress: 'token-mint',
-			},
-		}])
 	})
 
 	it('embeds validator observations exclusively through canonical field addresses', async () => {

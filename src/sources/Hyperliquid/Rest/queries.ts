@@ -1,5 +1,9 @@
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { TransportType } from '$/constants/TransportType.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	HyperliquidClearinghouseState,
@@ -13,57 +17,40 @@ import type {
 	HyperliquidValidatorSummary,
 } from '$/sources/Hyperliquid/Rest/types.ts'
 
-const hyperliquidRestOrigin = 'https://api.hyperliquid.xyz' as const
-
-export const hyperliquidOrigins = [
-	{
-		origin: hyperliquidRestOrigin,
-		corsEnabled: true,
-	},
-] as const
-
-export const hyperliquidMainnetRestEndpoints = [
-	{
-		restBaseUrl: hyperliquidRestOrigin,
-		url: `${hyperliquidRestOrigin}/info`,
-		transportType: TransportType.Http,
-		providerName: 'Hyperliquid info API',
-	},
-] as const
-
 const info = async <_Result>({
-	restBaseUrl,
+	binding,
 	body,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	body: JsonValue
 }) => {
-	const response = await corsFetch(`${restBaseUrl.replace(/\/$/, '')}/info`, {
-		origins: hyperliquidOrigins,
-		init: {
+	const response = await sourceFetch(
+		binding,
+		firstHttpUrlForBinding(binding),
+		{
 			method: 'POST',
 			headers: {
 				'content-type': 'application/json',
 			},
 			body: JSON.stringify(body),
 		},
-	})
+	)
 	if (!response.ok) await throwHttpError('Hyperliquid info', response)
 	return response.json<_Result>()
 }
 
-export const getMeta = ({ restBaseUrl }: { restBaseUrl: string }) => (
+export const getMeta = ({ binding }: { binding: SourceBinding }) => (
 	info<HyperliquidMeta>({
-		restBaseUrl,
+		binding,
 		body: {
 			type: 'meta',
 		},
 	})
 )
 
-export const getSpotMeta = ({ restBaseUrl }: { restBaseUrl: string }) => (
+export const getSpotMeta = ({ binding }: { binding: SourceBinding }) => (
 	info<HyperliquidSpotMeta>({
-		restBaseUrl,
+		binding,
 		body: {
 			type: 'spotMeta',
 		},
@@ -71,14 +58,14 @@ export const getSpotMeta = ({ restBaseUrl }: { restBaseUrl: string }) => (
 )
 
 export const getClearinghouseState = ({
-	restBaseUrl,
+	binding,
 	user,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	user: string
 }) => (
 	info<HyperliquidClearinghouseState>({
-		restBaseUrl,
+		binding,
 		body: {
 			type: 'clearinghouseState',
 			user,
@@ -87,14 +74,14 @@ export const getClearinghouseState = ({
 )
 
 export const getSpotClearinghouseState = ({
-	restBaseUrl,
+	binding,
 	user,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	user: string
 }) => (
 	info<HyperliquidSpotClearinghouseState>({
-		restBaseUrl,
+		binding,
 		body: {
 			type: 'spotClearinghouseState',
 			user,
@@ -103,14 +90,14 @@ export const getSpotClearinghouseState = ({
 )
 
 export const getHistoricalOrders = ({
-	restBaseUrl,
+	binding,
 	user,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	user: string
 }) => (
 	info<HyperliquidHistoricalOrder[]>({
-		restBaseUrl,
+		binding,
 		body: {
 			type: 'historicalOrders',
 			user,
@@ -119,12 +106,12 @@ export const getHistoricalOrders = ({
 )
 
 export const getUserFillsByTime = ({
-	restBaseUrl,
+	binding,
 	user,
 	startTime,
 	endTime,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	user: string
 	startTime: number
 	endTime?: number
@@ -136,7 +123,7 @@ export const getUserFillsByTime = ({
 		throw new Error(`Hyperliquid_Rest: invalid fill end time ${endTime}`)
 
 	return info<HyperliquidFill[]>({
-		restBaseUrl,
+		binding,
 		body: {
 			type: 'userFillsByTime',
 			user,
@@ -148,14 +135,14 @@ export const getUserFillsByTime = ({
 }
 
 export const getUserVaultEquities = ({
-	restBaseUrl,
+	binding,
 	user,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	user: string
 }) => (
 	info<HyperliquidUserVaultEquity[]>({
-		restBaseUrl,
+		binding,
 		body: {
 			type: 'userVaultEquities',
 			user,
@@ -164,14 +151,14 @@ export const getUserVaultEquities = ({
 )
 
 export const getUserRole = ({
-	restBaseUrl,
+	binding,
 	user,
 }: {
-	restBaseUrl: string
+	binding: SourceBinding
 	user: string
 }) => (
 	info<HyperliquidUserRole>({
-		restBaseUrl,
+		binding,
 		body: {
 			type: 'userRole',
 			user,
@@ -179,9 +166,9 @@ export const getUserRole = ({
 	})
 )
 
-export const getValidatorSummaries = ({ restBaseUrl }: { restBaseUrl: string }) => (
+export const getValidatorSummaries = ({ binding }: { binding: SourceBinding }) => (
 	info<HyperliquidValidatorSummary[]>({
-		restBaseUrl,
+		binding,
 		body: {
 			type: 'validatorSummaries',
 		},
