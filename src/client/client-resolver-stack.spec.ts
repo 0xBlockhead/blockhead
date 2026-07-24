@@ -621,7 +621,6 @@ describe('client resolver stack architecture', () => {
 	it('reconciles persisted field and count rows through partial, live, refresh, and malformed replay', async () => {
 		const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
 		const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
-		let providerCalls = 0
 		const persistence = {
 			adapter: {
 				loadSubset: async (collectionId) => [
@@ -704,6 +703,7 @@ describe('client resolver stack architecture', () => {
 		let sourceBCount = 1
 		let sourceBFailure = true
 		let sourceASubsetRefresh = false
+		let sourceAResolveBlocker: Promise<void> | undefined
 		let replaceLiveValues = (_values: readonly string[]) => {
 			throw new Error('live field publisher not mounted')
 		}
@@ -713,6 +713,9 @@ describe('client resolver stack architecture', () => {
 		let invalidateLive = () => {
 			throw new Error('live publisher not mounted')
 		}
+		let invalidateLiveValues = () => {
+			throw new Error('live field publisher not mounted')
+		}
 		const resolvers = [
 			{
 				source: 'source-a',
@@ -720,7 +723,16 @@ describe('client resolver stack architecture', () => {
 					entityType: 'PersistenceFixture',
 					resolve: {
 						Slug: {
-							resolve: async () => ({}),
+							resolve: async () => {
+								const snapshot = {
+									count: sourceACount,
+									values: sourceAValues,
+								}
+								const resolveBlocker = sourceAResolveBlocker
+								sourceAResolveBlocker = undefined
+								await resolveBlocker
+								return snapshot
+							},
 						},
 					},
 					resolveLive: {
@@ -738,6 +750,7 @@ describe('client resolver stack architecture', () => {
 									source: 'source-a',
 									value: count,
 								}])
+								invalidateLiveValues = fields.items.invalidate
 								invalidateLive = () => {
 									fields.items.invalidate()
 									fields.items.count.invalidate()
@@ -747,16 +760,16 @@ describe('client resolver stack architecture', () => {
 					},
 					projections: {
 						items: {
-							select: (_snapshot, _selector, context) => {
+							select: (snapshot, _selector, context) => {
 								if (sourceASubsetRefresh && context.sorts[0]?.direction === 'asc')
 									return []
 
 								if (sourceASubsetRefresh && context.sorts[0]?.direction === 'desc')
 									throw new Error('source-a descending subset failed')
 
-								return sourceAValues
+								return snapshot.values
 							},
-							resolveCount: () => sourceACount,
+							resolveCount: (snapshot) => snapshot.count,
 						},
 					},
 				}],
@@ -1007,6 +1020,81 @@ describe('client resolver stack architecture', () => {
 					&& row[EntityMetaKey.Value] === 2
 				))
 		)).toBe(true)
+
+		sourceAValues = ['overlap-stale']
+		const overlapLoad = Promise.withResolvers<void>()
+		sourceAResolveBlocker = overlapLoad.promise
+		const overlapLoadingEventsBefore = warm.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.decision === CollectionLoadDecision.Remote
+			&& event.status === PersistedCollectionLoadStatus.Loading
+			&& event.reason === 'live invalidation'
+		)).length
+		invalidateLiveValues()
+		await expect.poll(() => warm.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.decision === CollectionLoadDecision.Remote
+			&& event.status === PersistedCollectionLoadStatus.Loading
+			&& event.reason === 'live invalidation'
+		)).length).toBeGreaterThan(overlapLoadingEventsBefore)
+			const overlapKey = warm.events.filter((event) => (
+				event.collectionId === fieldCollectionId
+				&& event.decision === CollectionLoadDecision.Remote
+				&& event.status === PersistedCollectionLoadStatus.Loading
+				&& event.reason === 'live invalidation'
+			))[overlapLoadingEventsBefore].key
+
+		const overlapKeyLoadsBefore = warm.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.key === overlapKey
+			&& event.decision === CollectionLoadDecision.Remote
+			&& event.status === PersistedCollectionLoadStatus.Loading
+		)).length
+		expect(warmFieldCollection.isLoadingSubset).toBe(false)
+		expect(warmFieldCollection.status).toBe('ready')
+		expect(liveFieldSubscription.status).toBe('ready')
+
+		sourceAValues = [
+			'overlap-fresh-a',
+			'overlap-fresh-b',
+			'overlap-fresh-c',
+		]
+		invalidateLiveValues()
+		invalidateLiveValues()
+		warmFieldCollection.utils.refresh()
+		expect(warm.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.key === overlapKey
+			&& event.decision === CollectionLoadDecision.Remote
+			&& event.status === PersistedCollectionLoadStatus.Loading
+		))).toHaveLength(overlapKeyLoadsBefore)
+		overlapLoad.resolve()
+
+		await expect.poll(() => warm.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.key === overlapKey
+			&& event.decision === CollectionLoadDecision.Remote
+			&& event.status === PersistedCollectionLoadStatus.Loading
+		)).length).toBe(overlapKeyLoadsBefore + 1)
+		expect(liveFieldSubscription.status).toBe('ready')
+		await expect.poll(() => (
+			[...collectionMetadataByCollectionId.get(fieldCollectionId)?.values() ?? []]
+				.map(JSON.parse)
+				.find((marker) => marker.loadedKey === overlapKey)
+				?.sourceRowCounts['source-a']
+		)).toBe(3)
+		const overlapMarker = [...collectionMetadataByCollectionId.get(fieldCollectionId)?.values() ?? []]
+			.map(JSON.parse)
+			.find((marker) => marker.loadedKey === overlapKey)
+		expect(overlapMarker).toMatchObject({
+				sourceRowCounts: {
+					'source-a': 3,
+					'source-b': 1,
+				},
+			})
+		expect(overlapMarker.sourceRowKeys['source-a'].map((rowKey) => (
+			collectionRowsByCollectionId.get(fieldCollectionId)?.get(rowKey)?.[EntityMetaKey.Value]
+		))).toEqual(sourceAValues)
 
 		sourceAValues = []
 		sourceACount = 0

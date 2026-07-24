@@ -5,7 +5,6 @@ import {
 	tick,
 	untrack,
 } from 'svelte'
-import { createSubscriber } from 'svelte/reactivity'
 
 
 export type QueryResourceError = object | string
@@ -29,29 +28,12 @@ export type SvelteKitResource<Data> = Omit<
 	error: QueryResourceError | undefined
 }
 
-const promiseWithResolvers = <Value>() => {
-	let resolveValue: ((value: Value) => void) | undefined
-	let rejectValue: ((error: QueryResourceError) => void) | undefined
-	const promise = new Promise<Value>((resolve, reject) => {
-		resolveValue = resolve
-		rejectValue = reject
-	})
-	return {
-		promise,
-		resolve: (value: Value) => resolveValue?.(value),
-		reject: (error: QueryResourceError) => rejectValue?.(error),
-	}
-}
-
 export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> {
 	#query: () => TanStackLiveQuerySnapshot<Data>
 	#subscribeToSource: (update: () => void) => () => void
 	#initialize: (() => Promise<void>) | undefined
-	#sourceUnsubscribe: (() => void) | undefined
-	#sourceReferenceCount = 0
-	#sourceUpdates = new Set<() => void>()
-	#track = createSubscriber((update) => this.#acquireSource(update))
-	#first = promiseWithResolvers<void>()
+	#unsubscribe: (() => void) | undefined
+	#first = Promise.withResolvers<void>()
 	#loading = $state(true)
 	#ready = $state(false)
 	#raw = $state.raw<{ readonly value: Data } | undefined>()
@@ -72,13 +54,12 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 		const promise = this.#promise
 		this.#raw
 		return (onFulfilled, onRejected) => {
-			const releaseSource = this.#acquireSource()
 			const result = promise.then(tick).then(() => {
 				if (!this.#ready || this.#raw === undefined)
 					throw new Error('TanStackLiveQueryResource resolved before current value was available')
 
 				return this.#raw.value
-			}).finally(releaseSource)
+			})
 
 			return result.then(onFulfilled, onRejected)
 		}
@@ -95,33 +76,15 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 		this.#promise.catch(() => {})
 	}
 
-	#acquireSource(update?: () => void) {
-		this.#sourceReferenceCount += 1
-		if (update != null)
-			this.#sourceUpdates.add(update)
-		if (this.#sourceUnsubscribe === undefined)
-			this.#sourceUnsubscribe = this.#subscribeToSource(() => {
-				untrack(() => {
-					this.#apply(this.#query())
-				})
-				for (const sourceUpdate of this.#sourceUpdates)
-					sourceUpdate()
+	#subscribe() {
+		if (this.#unsubscribe !== undefined)
+			return
+
+		this.#unsubscribe = this.#subscribeToSource(() => {
+			untrack(() => {
+				this.#apply(this.#query())
 			})
-
-		let released = false
-		return () => {
-			if (released)
-				return
-
-			released = true
-			this.#sourceReferenceCount -= 1
-			if (update != null)
-				this.#sourceUpdates.delete(update)
-			if (this.#sourceReferenceCount === 0) {
-				this.#sourceUnsubscribe?.()
-				this.#sourceUnsubscribe = undefined
-			}
-		}
+		})
 	}
 
 	#start() {
@@ -129,7 +92,11 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			return
 
 		this.#started = true
-		void (this.#initialize?.() ?? Promise.resolve())
+		void tick()
+			.then(() => {
+				this.#subscribe()
+				return this.#initialize?.()
+			})
 			.then(() => {
 				untrack(() => {
 					this.#apply(this.#query())
@@ -137,19 +104,6 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			})
 			.catch((error) => {
 				this.fail(error instanceof Error ? error : String(error))
-			})
-	}
-
-	#read() {
-		const started = this.#started
-		this.#start()
-		this.#track()
-		if (
-			started
-			&& this.#sourceReferenceCount === 0
-		)
-			untrack(() => {
-				this.#apply(this.#query())
 			})
 	}
 
@@ -184,7 +138,7 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	}
 
 	#resetPending() {
-		this.#first = promiseWithResolvers<void>()
+		this.#first = Promise.withResolvers<void>()
 		this.#promise = this.#first.promise
 		this.#promise.catch(() => {})
 		this.#resolveFirst = this.#first.resolve
@@ -194,13 +148,11 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 
 	get then(): Promise<Data>['then'] {
 		this.#start()
-		this.#track()
 		return this.#then
 	}
 
 	get catch(): Promise<Data>['catch'] {
 		this.#start()
-		this.#track()
 		this.#then
 		return (
 			onRejected
@@ -209,7 +161,6 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 
 	get finally(): Promise<Data>['finally'] {
 		this.#start()
-		this.#track()
 		this.#then
 		return (
 			onFinally?: (() => void) | null
@@ -226,29 +177,32 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	}
 
 	get current() {
-		this.#read()
+		this.#start()
 		return this.#current
 	}
 
 	get error() {
-		this.#read()
+		this.#start()
 		return this.#error
 	}
 
 	get loading() {
-		this.#read()
+		this.#start()
 		return this.#loading
 	}
 
 	get ready() {
-		this.#read()
+		this.#start()
 		return this.#ready
 	}
 
 	subscribe(
 		update: () => void
 	) {
-		return this.#acquireSource(update)
+		this.#start()
+		return this.#subscribeToSource(() => {
+			queueMicrotask(update)
+		})
 	}
 
 	set(

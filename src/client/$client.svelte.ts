@@ -280,6 +280,7 @@ type PersistedCollectionSyncOptions<_Row extends PersistedCollectionRow> = {
 	loadRows(
 		loadSubsetOptions: LoadSubsetOptions,
 		sources: readonly string[],
+		forceRemote: boolean,
 		providerContinuationTokenBySource?: Readonly<Record<string, string>>
 	): Promise<PersistedCollectionRowsLoadResult<_Row>>
 	waitForPersistence?: WaitForPersistence
@@ -1650,7 +1651,7 @@ const persistedCollectionSync = <
 }: PersistedCollectionSyncOptions<_Row>): SyncConfig<_Row, string | number> => {
 	const inFlightLoads = new Map<string, Promise<void>>()
 	const inFlightAppendAbortControllerByKey = new Map<string, AbortController>()
-	const forceRemoteKeys = new Set<string>()
+	const staleSubsetKeys = new Set<string>()
 
 	return {
 		sync: ({
@@ -1805,8 +1806,9 @@ const persistedCollectionSync = <
 				}
 				notifyLocalMutationAuthorityChange()
 
-				const load = (async () => {
+				const loadSubsetOnce = async () => {
 					const requestedSources = sources(loadSubsetOptions)
+					const forceRemote = staleSubsetKeys.delete(key)
 					const metadataKey = `loadedSubset:${schemaVersion}:${key}`
 					const persistedMarker = persistedCollectionLoadedSubset(metadata?.collection.get(metadataKey))
 					const localSourceRowKeys = localAuthoritySourceRowKeys?.(
@@ -1854,7 +1856,7 @@ const persistedCollectionSync = <
 						requestedSources,
 						hydratedRows.invalidSources
 					)
-					const hydrationPlan = forceRemoteKeys.delete(key) ? {
+					const hydrationPlan = forceRemote ? {
 						...persistedHydrationPlan,
 						decision: CollectionLoadDecision.Remote,
 						remoteSources: requestedSources,
@@ -1890,7 +1892,11 @@ const persistedCollectionSync = <
 							status: PersistedCollectionLoadStatus.Loading,
 							reason: hydrationPlan.missReason,
 						})
-						const loadedRows = await loadRows(loadSubsetOptions, hydrationPlan.remoteSources)
+						const loadedRows = await loadRows(
+							loadSubsetOptions,
+							hydrationPlan.remoteSources,
+							forceRemote
+						)
 						const currentLocalSourceRowKeys = localAuthoritySourceRowKeys?.(
 							loadSubsetOptions,
 							collection.toArray
@@ -2091,7 +2097,12 @@ const persistedCollectionSync = <
 						})
 						throw error
 					}
-			})()
+				}
+				const load = (async () => {
+					await loadSubsetOnce()
+					if (staleSubsetKeys.has(key))
+						await loadSubsetOnce()
+				})()
 				inFlightLoads.set(key, load)
 				notifyResolverSubsetLoadingChange()
 				try {
@@ -2142,6 +2153,7 @@ const persistedCollectionSync = <
 						loadRows(
 							loadSubsetOptions,
 							[source],
+							false,
 							{
 								[source]: currentContinuation.token,
 							}
@@ -2326,7 +2338,7 @@ const persistedCollectionSync = <
 			})
 			setRefreshRows(() => {
 				for (const [key, activeLoadSubset] of activeLoadSubsets) {
-					forceRemoteKeys.add(key)
+					staleSubsetKeys.add(key)
 					void loadSubset(activeLoadSubset.loadSubsetOptions)
 				}
 			})
@@ -2407,6 +2419,7 @@ const resolverSnapshot = async <
 	entityDefinition: EntityDefinition,
 	entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
 	subset: ReturnType<typeof parseResolverSubset>,
+	forceRemote: boolean,
 	providerContinuationToken?: string
 ) => {
 	const selectorName = validateEntitySelector(
@@ -2440,7 +2453,7 @@ const resolverSnapshot = async <
 				)
 			)),
 		}),
-		staleTime: Infinity,
+		staleTime: forceRemote ? 0 : Infinity,
 	}).then((result) => (
 		result.snapshot
 	))
@@ -2671,6 +2684,7 @@ const loadEntityRows = async <
 	context: ClientContext<_Schema>,
 	entityType: string,
 	loadSubsetOptions: LoadSubsetOptions,
+	forceRemote: boolean,
 	sourceNames?: readonly string[]
 ) => {
 	const subset = parseResolverSubset(loadSubsetOptions)
@@ -2755,7 +2769,8 @@ const loadEntityRows = async <
 						resolver,
 						entityDefinition,
 						entitySelector,
-						subset
+						subset,
+						forceRemote
 					)
 				if (snapshot === undefined)
 					return {
@@ -2822,6 +2837,7 @@ const loadFieldRows = async <
 	entityType: string,
 	definition: EntityFieldDefinition,
 	loadSubsetOptions: LoadSubsetOptions,
+	forceRemote: boolean,
 	sourceNames?: readonly string[],
 	providerContinuationTokenBySource?: Readonly<Record<string, string>>
 ) => {
@@ -2976,6 +2992,7 @@ const loadFieldRows = async <
 					entityDefinition,
 					parentSelector,
 					subset,
+					forceRemote,
 					providerContinuationTokenBySource?.[String(resolverPart.source)]
 				)
 				if (snapshot === undefined)
@@ -3109,6 +3126,7 @@ const loadCountRows = async <
 	entityType: string,
 	definition: EntityFieldDefinition,
 	loadSubsetOptions: LoadSubsetOptions,
+	forceRemote: boolean,
 	sourceNames?: readonly string[]
 ) => {
 	const subset = parseResolverSubset(loadSubsetOptions)
@@ -3179,7 +3197,8 @@ const loadCountRows = async <
 					resolverPart.resolver,
 					entityDefinition,
 					parentSelector,
-					subset
+					subset,
+					forceRemote
 				)
 				if (snapshot === undefined)
 					return fieldCanCompleteEmpty(definition) ?
@@ -3315,30 +3334,6 @@ const mountFieldLive = <
 			invalidate: (fieldNames: readonly EntityFieldName<_Schema, EntityType<_Schema>>[]) => {
 				for (const fieldName of fieldNames) {
 					const liveFieldAddressKey = entityFieldAddressKey(entityType, liveFacetPath, fieldName)
-					const resolverDefinitionIndexes = new Set(
-						resolverPartsForEntitySelectors(
-							context.schema,
-							context.entityDefinitionByType[entityType],
-							[parentEntitySelector],
-							context.resolverIndexes.resolverValuePartsByEntityTypeSelectorAndFieldName,
-							entityType,
-							liveFacetPath,
-							fieldName
-						)
-							.filter((part) => String(part.source) === source)
-							.map((part) => String(part.resolver.definitionIndex))
-					)
-					void context.queryClient.invalidateQueries({
-						predicate: (query) => (
-							query.queryKey[0] === 'client'
-							&& query.queryKey[1] === 'resolverSnapshot'
-							&& query.queryKey[2] === source
-							&& query.queryKey[3] === entityType
-							&& resolverDefinitionIndexes.has(String(query.queryKey[5]))
-							&& query.queryKey[6] === stringify(parentEntitySelector)
-						),
-						refetchType: 'none',
-					})
 					context.entityFieldCollections[entityType][liveFieldAddressKey]?.utils.refresh()
 				}
 			},
@@ -3812,10 +3807,11 @@ export const client = <
 							malformedRowKeys: [...malformedRowKeys],
 						}
 					},
-					loadRows: (loadSubsetOptions, sources) => loadEntityRows(
+					loadRows: (loadSubsetOptions, sources, forceRemote) => loadEntityRows(
 						requireContext(),
 						entityDefinition.entityType,
 						loadSubsetOptions,
+						forceRemote,
 						sources
 					),
 					waitForPersistence,
@@ -4147,12 +4143,14 @@ export const client = <
 							loadRows: (
 								loadSubsetOptions,
 								sources,
+								forceRemote,
 								providerContinuationTokenBySource
 							) => loadFieldRows(
 								requireContext(),
 								entityDefinition.entityType,
 								definition,
 								loadSubsetOptions,
+								forceRemote,
 								sources,
 								providerContinuationTokenBySource
 							),
@@ -4411,11 +4409,16 @@ export const client = <
 									malformedRowKeys: [...malformedRowKeys],
 								}
 							},
-							loadRows: (loadSubsetOptions, sources) => loadCountRows(
+							loadRows: (
+								loadSubsetOptions,
+								sources,
+								forceRemote
+							) => loadCountRows(
 								requireContext(),
 								entityDefinition.entityType,
 								definition,
 								loadSubsetOptions,
+								forceRemote,
 								sources
 							),
 							waitForPersistence,

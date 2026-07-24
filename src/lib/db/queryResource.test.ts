@@ -92,9 +92,10 @@ describe('TanStackLiveQueryResource', () => {
 		expect(initializationCount).toBe(0)
 		expect(fixture.resource.current).toBeUndefined()
 		expect(fixture.sourceSubscriptionCount).toBe(0)
-		expect(initializationCount).toBe(1)
+		expect(initializationCount).toBe(0)
 		await expect(fixture.resource).resolves.toBe('ready')
-		expect(fixture.sourceSubscriptionCount).toBe(0)
+		expect(fixture.sourceSubscriptionCount).toBe(1)
+		expect(initializationCount).toBe(1)
 	})
 
 	it('publishes one ready value through every getter', async () => {
