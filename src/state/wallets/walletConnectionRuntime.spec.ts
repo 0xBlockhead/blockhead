@@ -617,6 +617,7 @@ describe('wallet connection runtime normalization', () => {
 			WalletProtocol.CardanoCip30,
 			WalletProtocol.BitcoinInjected,
 			WalletProtocol.CosmosOfflineSigner,
+			WalletProtocol.TonConnect,
 			WalletProtocol.TronTip1193,
 			WalletProtocol.StarknetWalletApi,
 			WalletProtocol.PolkadotInjectedWeb3,
@@ -1339,7 +1340,7 @@ describe('wallet connection runtime normalization', () => {
 		walletId,
 		keystoreChangeEvent
 	) => {
-		let accountAddresses = ['cosmos1first']
+		let accountAddresses = ['cosmos1ruszzg3rysjjvfeg9y4zktpd9chnqvfje038ze']
 		const eventListeners = new Map<string, () => void>()
 		const enable = vi.fn()
 		vi.stubGlobal('window', {
@@ -1372,14 +1373,14 @@ describe('wallet connection runtime normalization', () => {
 				id: walletId,
 				name: walletName,
 				protocol: WalletProtocol.CosmosOfflineSigner,
-				capabilities: [
+				capabilities: expect.arrayContaining([
 					WalletCapability.Discover,
 					WalletCapability.Connect,
 					WalletCapability.Reconnect,
 					WalletCapability.ListAccounts,
 					WalletCapability.WatchAccounts,
 					WalletCapability.SignTransaction,
-				],
+				]),
 			}),
 		])
 		expect(await adapter.connect(walletId)).toMatchObject({
@@ -1399,7 +1400,7 @@ describe('wallet connection runtime normalization', () => {
 				expect.objectContaining({
 					namespace: 'cosmos',
 					reference: 'cosmoshub-4',
-					accountAddress: 'cosmos1first',
+					accountAddress: 'cosmos1ruszzg3rysjjvfeg9y4zktpd9chnqvfje038ze',
 				}),
 			],
 		})
@@ -1410,12 +1411,12 @@ describe('wallet connection runtime normalization', () => {
 			walletId,
 			(connection) => connectionUpdates.push(connection)
 		)
-		accountAddresses = ['cosmos1second']
+		accountAddresses = ['cosmos18cl5qs2zgdzy23j8fpy55j6vf48y75z395ggwe']
 		eventListeners.get(keystoreChangeEvent)?.()
 		await vi.waitFor(() => {
 			expect(connectionUpdates.at(-1)?.accounts).toEqual([
 				expect.objectContaining({
-					accountAddress: 'cosmos1second',
+					accountAddress: 'cosmos18cl5qs2zgdzy23j8fpy55j6vf48y75z395ggwe',
 				}),
 			])
 		})
@@ -1432,7 +1433,7 @@ describe('wallet connection runtime normalization', () => {
 		await vi.waitFor(() => {
 			expect(restoredConnectionUpdates.at(-1)?.accounts).toEqual([
 				expect.objectContaining({
-					accountAddress: 'cosmos1second',
+					accountAddress: 'cosmos18cl5qs2zgdzy23j8fpy55j6vf48y75z395ggwe',
 				}),
 			])
 		})

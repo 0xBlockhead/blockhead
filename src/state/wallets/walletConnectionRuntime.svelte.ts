@@ -26,6 +26,7 @@ import { createCosmosOfflineSignerAdapter } from './adapters/cosmosOfflineSigner
 import { createEip6963Adapter } from './adapters/eip6963.ts'
 import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWeb3.ts'
 import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
+import { createTonConnectAdapter } from './adapters/tonConnect.ts'
 import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
 import type { WalletAccount, WalletAdapter, WalletCandidate, WalletConnection } from './adapters/types.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
@@ -96,6 +97,7 @@ const createWalletRuntimeState = (
 		createCardanoCip30Adapter(),
 		createBitcoinInjectedAdapter(),
 		createCosmosOfflineSignerAdapter(),
+		createTonConnectAdapter(),
 		createTronInjectedAdapter(),
 		createStarknetWalletApiAdapter(),
 		createPolkadotInjectedWeb3Adapter(),
